@@ -1,0 +1,11 @@
+# Nmap 7.60 scan initiated Sat Dec  5 16:15:37 2020 as: nmap -n -v -sT -sV -T3 -Pn --randomize-hosts -p21,22,23,25,53,80,81,88,139,389,443,445,513,514,587,636,990,1080,1099,1194,3128,3389,4443,5900,5985,5986,8000,8001,8009,8080,8081,8443,9000,9999,10443 -oN /home/fabien/Documents/PollenisatorGUI/./results/TEst/Nmap.tcp/TEst/www.algosecure.fr/Nmap.tcp_1607181337.6756775.nmap www.algosecure.fr
+Nmap scan report for www.algosecure.fr (178.33.6.117)
+Host is up (0.015s latency).
+Not shown: 33 filtered ports
+PORT    STATE SERVICE VERSION
+80/tcp  open  http    Apache httpd
+443/tcp open  ssl/ssl Apache httpd (SSL-only mode)
+
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Dec  5 16:15:52 2020 -- 1 IP address (1 host up) scanned in 14.62 seconds
