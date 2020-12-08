@@ -9,8 +9,8 @@ from bson import ObjectId
 from core.Components.Utils import JSONEncoder, JSONDecoder
 from shutil import copyfile
 
-#proxies = {"http":"127.0.0.1:8080", "https":"127.0.0.1:8080"}
-proxies = {}
+proxies = {"http":"127.0.0.1:8080", "https":"127.0.0.1:8080"}
+#proxies = {}
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
 config_dir = os.path.join(dir_path, "./../../config/")
 if not os.path.isfile(os.path.join(config_dir, "client.cfg")):
@@ -320,7 +320,7 @@ class APIClient():
 
     def addCustomTool(self, port_iid, tool_name):
         api_url = '{0}ports/{1}/{2}/addCustomTool/'.format(self.api_url_base, self.getCurrentPentest(), port_iid)
-        response = requests.put(api_url, headers=self.headers, data=tool_name)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"tool_name":tool_name}, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -476,13 +476,15 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return None
+
     
-    def generateReport(self, modele, clientName, contractName, mainRedac):
+    
+    def generateReport(self, templateName, clientName, contractName, mainRedac):
         api_url = '{0}report/{1}/generate'.format(self.api_url_base, self.getCurrentPentest())
-        response = requests.get(api_url, headers=self.headers, params={"templateName":modele, "contractName":contractName, "clientName":clientName, "mainRedactor":mainRedac}, proxies=proxies, verify=False)
+        response = requests.get(api_url, headers=self.headers, params={"templateName":templateName, "contractName":contractName, "clientName":clientName, "mainRedactor":mainRedac}, proxies=proxies, verify=False)
         if response.status_code == 200:
             timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
-            ext = os.path.splitext(modele)[-1]
+            ext = os.path.splitext(templateName)[-1]
             basename = clientName.strip()+"_"+contractName.strip()
             out_name = str(timestr)+"_"+basename
             out_path = os.path.join(dir_path, "../../exports/",out_name+ext)
@@ -490,3 +492,20 @@ class APIClient():
                 f.write(response.content)
                 return os.path.normpath(out_path)
         return response.content.decode("utf-8")
+
+    def getTemplateList(self):
+        api_url = '{0}report/templates'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        return []
+    
+    def downloadTemplate(self, templateName):
+        api_url = '{0}report/templates/download'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, params={"templateName":templateName},proxies=proxies, verify=False)
+        if response.status_code == 200:
+            out_path = os.path.join(dir_path, "../../exports/",templateName)
+            with open(out_path, 'wb') as f:
+                f.write(response.content)
+                return os.path.normpath(out_path)
+        return None
