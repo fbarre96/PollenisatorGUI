@@ -36,9 +36,9 @@ class Defect(Element):
                         valuesFromDb.get(
                             "risk", ""), valuesFromDb.get("redactor", "N/A"), list(valuesFromDb.get("type", [])),
                         valuesFromDb.get("notes", ""), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
-                        valuesFromDb.get("index", 0))
+                        valuesFromDb.get("index", "0"))
 
-    def initialize(self, ip, port, proto, title="", ease="", impact="", risk="", redactor="N/A", mtype=None, notes="", proofs=None, infos=None, index=0):
+    def initialize(self, ip, port, proto, title="", ease="", impact="", risk="", redactor="N/A", mtype=None, notes="", proofs=None, infos=None, index="0"):
         """Set values of defect
         Args:
             ip: defect will be assigned to this IP, can be empty
@@ -112,7 +112,7 @@ class Defect(Element):
         base["type"] = list(self.mtype)
         base["proofs"] = self.proofs
         if self.index is not None:
-            base["index"] = int(self.index)
+            base["index"] = str(self.index)
         res, id = apiclient.insert("defects", base)
         if not res:
             return False, id

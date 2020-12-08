@@ -5,13 +5,14 @@ import tkinter.ttk as ttk
 import tkinter as tk
 import tkinter.messagebox
 import os
+from shutil import which
 from os import listdir
 from os.path import isfile, join
 from bson.objectid import ObjectId
 from datetime import datetime
 from core.Components.apiclient import APIClient
-
 from core.Models.Defect import Defect
+from core.Components.Utils import getIconDir, execute
 from core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
 from core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
@@ -31,10 +32,9 @@ class Report:
         """
         Constructor
         """
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.dir_path = os.path.normpath(os.path.join(self.dir_path, "../../../Templates/"))
-        self.default_ppt = os.path.join(self.dir_path, "Modele.pptx")
-        self.default_word = os.path.join(self.dir_path, "Modele.docx")
+        templates = APIClient.getInstance().getTemplateList()
+        self.docx_models = [f for f in templates if f.endswith(".docx")]
+        self.pptx_models = [f for f in templates if f.endswith(".pptx")]
         self.mainRedac = "N/A"
         self.settings = settings
         self.dragging = None
@@ -46,10 +46,9 @@ class Report:
         self.treevw = None
         self.ent_client = None
         self.ent_contract = None
-        self.val_word = None
-        self.entry_word = None
-        self.val_ppt = None
-        self.entry_ppt = None
+        self.combo_word = None
+        self.combo_pptx = None
+        self.btn_template_photo = None
         return
 
     def open(self):
@@ -92,14 +91,20 @@ class Report:
         """
         Reload informations and reload them into the widgets
         """
-        self.default_word = os.path.join(self.dir_path, "Modele.docx")
         self.settings.reloadSettings()
         pentest_type = self.settings.getPentestType().lower()
-        models = [f for f in listdir(
-            self.dir_path) if isfile(join(self.dir_path, f)) and f.endswith(".docx") and pentest_type in f.lower()]
-        if models:
-            self.default_word = join(self.dir_path, models[0])
-        self.val_word.set(self.default_word)
+        
+        pentesttype_docx_models = [f for f in self.docx_models if pentest_type in f.lower()]
+        if pentesttype_docx_models:
+            self.combo_word.set(pentesttype_docx_models[0])
+        elif self.docx_models:
+            self.combo_word.set(self.docx_models[0])
+
+        pentesttype_pptx_models = [f for f in self.pptx_models if pentest_type in f.lower()]
+        if pentesttype_pptx_models:
+            self.combo_pptx.set(pentesttype_pptx_models[0])
+        elif self.pptx_models:
+            self.combo_pptx.set(self.pptx_models[0])
 
     def initUI(self, parent, nbk, treevw):
         """
@@ -182,15 +187,12 @@ class Report:
         lbl = ttk.Label(
             wordFrame, text="Choose a word template : ", background="white")
         lbl.pack(side=tk.LEFT)
-        self.val_word = tk.StringVar()
-        self.entry_word = tk.Entry(
-            wordFrame, textvariable=self.val_word, width=50)
-        self.entry_word.bind("<Control-a>", self.selectAll)
-        self.entry_word.pack(side=tk.LEFT, padx=10)
-        self.val_word.set(self.default_word)
-        search_btn = ttk.Button(wordFrame, text="...",
-                                command=self.on_click, width=5)
-        search_btn.pack(side=tk.LEFT, padx=10)
+        self.combo_word = ttk.Combobox(wordFrame, values=self.docx_models, width=50)
+        self.combo_word.pack(side=tk.LEFT, padx=10)
+        btn_word_template_dl = ttk.Button(wordFrame)
+        self.btn_template_photo = tk.PhotoImage(file=os.path.join(getIconDir(), "download.png"))
+        btn_word_template_dl.config(image=self.btn_template_photo, command=self.downloadWordTemplate)
+        btn_word_template_dl.pack(side="left")
         btn_word = ttk.Button(
             wordFrame, text="Generate Word report", command=self.generateReportWord, width=30)
         btn_word.pack(side=tk.RIGHT, padx=10)
@@ -198,17 +200,14 @@ class Report:
         ### POWERPOINT EXPORT FRAME ###
         powerpointFrame = ttk.Frame(officeFrame)
         lbl = ttk.Label(powerpointFrame,
-                        text="Choose a pptx template : ", background="white")
+                        text="Choose a pptx template :  ", background="white")
         lbl.pack(side=tk.LEFT)
-        self.val_ppt = tk.StringVar()
-        self.entry_ppt = tk.Entry(
-            powerpointFrame, textvariable=self.val_ppt, width=50)
-        self.entry_ppt.bind("<Control-a>", self.selectAll)
-        self.entry_ppt.pack(side=tk.LEFT, padx=10)
-        self.val_ppt.set(self.default_ppt)
-        search_btn = ttk.Button(
-            powerpointFrame, text="...", command=self.on_click_pptx, width=5)
-        search_btn.pack(side=tk.LEFT, padx=10)
+        self.combo_pptx = ttk.Combobox(
+            powerpointFrame, values=self.pptx_models, width=50)
+        self.combo_pptx.pack(side=tk.LEFT, padx=10)
+        btn_pptx_template_dl = ttk.Button(powerpointFrame)
+        btn_pptx_template_dl.config(image=self.btn_template_photo, command=self.downloadPptxTemplate)
+        btn_pptx_template_dl.pack(side="left")
         btn_ppt = ttk.Button(
             powerpointFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint, width=30)
         btn_ppt.pack(side=tk.RIGHT, padx=10)
@@ -314,60 +313,6 @@ class Report:
                              {"_id": ObjectId(selected)}, {"$set": {"index":int(currentIndice+1)}})
             apiclient.update(Defect.coll_name,
                              {"_id": ObjectId(moved_by_side_effect)}, {"$set": {"index":int(currentIndice)}})
-        return "break"
-
-    def on_click(self, _event=None):
-        """
-        Callback for selecting word template.
-        Open a filedialog window and sets the entry value to the selected file
-        Args:
-            _event: not used but mandatory
-        """
-        ftypes = [
-            ('Word files', '*.docx'),
-            ('All files', '*'),
-        ]
-        f = tkinter.filedialog.askopenfilename(
-            initialdir=self.dir_path, title="Select template for report", defaultextension=".docx", filetypes=ftypes)
-        if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
-            return
-        filename = str(f)
-        if filename == "()":
-            return
-        self.val_word.set(filename)
-
-    def on_click_pptx(self, _event=None):
-        """
-        Callback for selecting powerpoint template.
-        Open a filedialog window and sets the entry value to the selected file
-        Args:
-            _event: not used but mandatory
-        """
-        ftypes = [
-            ('Powerpoint files', '*.pptx'),
-            ('All files', '*'),
-        ]
-        f = tkinter.filedialog.askopenfilename(
-            initialdir=self.dir_path, title="Select template for report", defaultextension=".pptx", filetypes=ftypes)
-        if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
-            return
-        filename = str(f)
-        if filename == "()":
-            return
-        self.val_ppt.set(filename)
-
-    def selectAll(self, _event):
-        """
-        Select all text in an entry
-        Args:
-            _event: not used but mandatory
-        Returns:
-            returns "break" to stop the interrupt the event thus preventing the shortcut key to be written
-        """
-        # select text
-        self.entry_word.select_range(0, 'end')
-        # move cursor to the end
-        self.entry_word.icursor('end')
         return "break"
 
     def addDefectCallback(self):
@@ -553,14 +498,20 @@ class Report:
         apiclient = APIClient.getInstance()
         toExport = apiclient.getCurrentPentest()
         if toExport != "":
-            modele_pptx = str(self.val_ppt.get())
+            modele_pptx = str(self.combo_pptx.get())
             dialog = ChildDialogInfo(
                 self.parent, "PowerPoint Report", "Creating report . Please wait.")
             dialog.show()
             out_name = apiclient.generateReport(modele_pptx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac)
             dialog.destroy()
             tkinter.messagebox.showinfo(
-                "Success", "The document was generated in ./exports/"+str(out_name))
+                "Success", "The document was generated in "+str(out_name))
+            if which("xdg-open"):
+                os.system("xdg-open "+os.path.dirname(out_name))
+            elif which("explorer"):
+                os.system("explorer "+os.path.dirname(out_name))
+            elif which("open"):
+                os.system("open "+os.path.dirname(out_name))
 
     def generateReportWord(self):
         """
@@ -577,7 +528,7 @@ class Report:
         apiclient = APIClient.getInstance()
         toExport = apiclient.getCurrentPentest()
         if toExport != "":
-            modele_docx = str(self.val_word.get())
+            modele_docx = str(self.combo_word.get())
             dialog = ChildDialogInfo(
                 self.parent, "Word Report", "Creating report . Please wait.")
             dialog.show()
@@ -587,4 +538,29 @@ class Report:
                 tkinter.messagebox.showerror(
                     "Failure", str(res))
             tkinter.messagebox.showinfo(
-                "Success", "The document was generated in ./exports/"+str(res))
+                "Success", "The document was generated in "+str(res))
+            if which("xdg-open"):
+                os.system("xdg-open "+os.path.dirname(res))
+            elif which("explorer"):
+                os.system("explorer "+os.path.dirname(res))
+            elif which("open"):
+                os.system("open "+os.path.dirname(res))
+    def downloadWordTemplate(self):
+        self._download_and_open_template(self.combo_word.get())
+
+    def downloadPptxTemplate(self):
+        self._download_and_open_template(self.combo_pptx.get())
+
+    def _download_and_open_template(self, templateName):
+        apiclient = APIClient.getInstance()
+        path = apiclient.downloadTemplate(templateName)
+        if which("xdg-open") is not None:
+            dialog = ChildDialogQuestion(self.parent,
+                                        "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])
+            self.parent.wait_window(dialog.app)
+            if dialog.rvalue != "Open":
+                return
+            execute("xdg-open "+str(path))
+        else:
+            tkinter.messagebox.showinfo(
+                "Success", "The template was generated in "+str(path))
