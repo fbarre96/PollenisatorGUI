@@ -122,7 +122,7 @@ class DefectController(ControllerElement):
             return None
         return {"title": self.model.title, "ease": self.model.ease, "impact": self.model.impact,
                 "risk": self.model.risk, "redactor": self.model.redactor, "type": self.model.mtype, "notes": self.model.notes,
-                "ip": self.model.ip, "port": self.model.port, "proto": self.model.proto,
+                "ip": self.model.ip, "port": self.model.port, "proto": self.model.proto,"index":self.model.index,
                 "proofs": self.model.proofs, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
