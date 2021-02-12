@@ -25,7 +25,7 @@ class Report:
     Store elements to report and create docx or xlsx with them
     """
     iconName = "tab_report.png"
-    tabName = "   Report   "
+    tabName = "    Report    "
 
     def __init__(self, parent, settings):
 
@@ -116,7 +116,7 @@ class Report:
             return
         self.parent = parent
         ### MAIN PAGE FRAME ###
-        self.reportFrame = ttk.Frame(parent)
+        self.reportFrame = ttk.LabelFrame(parent, text="Defects table")
         self.paned = tk.PanedWindow(self.reportFrame, orient=tk.VERTICAL, height=800)
         ### DEFECT TABLE ###
         self.rowHeight = 20
@@ -165,11 +165,11 @@ class Report:
         #lbl_help.constructView(frameBtn)
         btn_addDefect = ttk.Button(
             frameBtn, text="Add a security defect", command=self.addDefectCallback)
-        btn_addDefect.pack(side=tk.RIGHT)
+        btn_addDefect.pack(side=tk.RIGHT, padx=5)
         btn_setMainRedactor = ttk.Button(
             frameBtn, text="Set main redactor", command=self.setMainRedactor)
         btn_setMainRedactor.pack(side=tk.RIGHT)
-        frameBtn.pack(side=tk.TOP)
+        frameBtn.pack(side=tk.TOP, pady=5)
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###
         informations_frame = ttk.Frame(officeFrame)
@@ -183,36 +183,36 @@ class Report:
         self.ent_contract.grid(row=1, column=1, sticky=tk.W)
         informations_frame.pack(side=tk.TOP, pady=10)
         ### WORD EXPORT FRAME ###
-        wordFrame = ttk.Frame(officeFrame)
+        templatesFrame = ttk.Frame(officeFrame)
+        templatesFrame.grid_columnconfigure(2, minsize=70)
+        templatesFrame.grid_columnconfigure(3, minsize=300)
         lbl = ttk.Label(
-            wordFrame, text="Choose a word template : ", background="white")
-        lbl.pack(side=tk.LEFT)
-        self.combo_word = ttk.Combobox(wordFrame, values=self.docx_models, width=50)
-        self.combo_word.pack(side=tk.LEFT, padx=10)
-        btn_word_template_dl = ttk.Button(wordFrame)
+            templatesFrame, text="Word template", background="white")
+        lbl.grid(row=0, column=0, sticky=tk.E)
+        self.combo_word = ttk.Combobox(templatesFrame, values=self.docx_models, width=50)
+        self.combo_word.grid(row=0, column=1)
+        btn_word_template_dl = ttk.Button(templatesFrame)
         self.btn_template_photo = tk.PhotoImage(file=os.path.join(getIconDir(), "download.png"))
         btn_word_template_dl.config(image=self.btn_template_photo, command=self.downloadWordTemplate)
-        btn_word_template_dl.pack(side="left")
+        btn_word_template_dl.grid(row=0, column=2, sticky=tk.W)
         btn_word = ttk.Button(
-            wordFrame, text="Generate Word report", command=self.generateReportWord, width=30)
-        btn_word.pack(side=tk.RIGHT, padx=10)
-        wordFrame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
+            templatesFrame, text="Generate Word report", command=self.generateReportWord, width=30)
+        btn_word.grid(row=0, column=3, sticky=tk.E)
         ### POWERPOINT EXPORT FRAME ###
-        powerpointFrame = ttk.Frame(officeFrame)
-        lbl = ttk.Label(powerpointFrame,
-                        text="Choose a pptx template :  ", background="white")
-        lbl.pack(side=tk.LEFT)
+        lbl = ttk.Label(templatesFrame,
+                        text="Powerpoint template", background="white")
+        lbl.grid(row=1, column=0, sticky=tk.E, pady=20)
         self.combo_pptx = ttk.Combobox(
-            powerpointFrame, values=self.pptx_models, width=50)
-        self.combo_pptx.pack(side=tk.LEFT, padx=10)
-        btn_pptx_template_dl = ttk.Button(powerpointFrame)
+            templatesFrame, values=self.pptx_models, width=50)
+        self.combo_pptx.grid(row=1, column=1)
+        btn_pptx_template_dl = ttk.Button(templatesFrame)
         btn_pptx_template_dl.config(image=self.btn_template_photo, command=self.downloadPptxTemplate)
-        btn_pptx_template_dl.pack(side="left")
+        btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
         btn_ppt = ttk.Button(
-            powerpointFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint, width=30)
-        btn_ppt.pack(side=tk.RIGHT, padx=10)
-        powerpointFrame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
-        officeFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
+            templatesFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint, width=30)
+        btn_ppt.grid(row=1, column=3, sticky=tk.E)
+        templatesFrame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
+        officeFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)
         self.paned.add(self.frameTw)
         self.paned.add(belowFrame)
         self.paned.pack(fill=tk.BOTH, expand=1)
@@ -258,7 +258,7 @@ class Report:
                 children = self.treevw.get_children()
                 for i in range(index+1,len(children),1):
                     d_o = Defect({"_id":children[i]})
-                    d_o.update({"index":int(i)})
+                    d_o.update({"index":str(i)})
             defectToDelete.delete()
             self.resizeDefectTreeview()
 
@@ -403,7 +403,7 @@ class Report:
                         new_ind += 1
                     d_list[new_ind] = defect
                     defect.index = new_ind
-                    defect.update({"index":int(new_ind)})
+                    defect.update({"index":str(new_ind)})
         # Fix dict order to index between 0 and *
         keys_ordered = sorted(list(d_list.keys()))
         for i in range(len(keys_ordered)):
@@ -445,7 +445,7 @@ class Report:
             if str(indToInsert) != "end":
                 for i in range(int(indToInsert), len(children), 1):
                     d_o = Defect({"_id":children[i]})
-                    d_o.update({"index":int(i+1)})
+                    d_o.update({"index":str(i+1)})
         else:
             indToInsert = defect_o.index
         types = defect_o.mtype

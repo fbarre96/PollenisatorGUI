@@ -409,7 +409,7 @@ class CalendarTreeview(PollenisatorTreeview):
                     tool.addInDb()
                     if tool is None:
                         return
-                    self.mainApp.scanManager.launchTask(tool, parser, False, worker)
+                    self.appli.scanManager.launchTask(tool, parser, False, worker)
 
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
