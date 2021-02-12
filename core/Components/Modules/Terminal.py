@@ -7,7 +7,7 @@ from core.Components.apiclient import APIClient
 
 class Terminal:
     iconName = "tab_terminal.png"
-    tabName = "  Terminal  "
+    tabName = "   Terminal  "
 
     def __init__(self, parent, settings):
         self.settings = settings
