@@ -130,7 +130,7 @@ class Defect(Element):
         if pipeline_set is None:
             apiclient.update("defects", ObjectId(self._id), {"ip": self.ip, "title": self.title, "port": self.port,
                          "proto": self.proto, "notes": self.notes, "ease": self.ease, "impact": self.impact,
-                         "risk": self.risk, "redactor": self.redactor, "type": list(self.mtype), "proofs": self.proofs, "infos": self.infos, "index":int(self.index)})
+                         "risk": self.risk, "redactor": self.redactor, "type": list(self.mtype), "proofs": self.proofs, "infos": self.infos, "index":str(self.index)})
         else:
             apiclient.update("defects", ObjectId(self._id), pipeline_set)
 
@@ -246,3 +246,11 @@ class Defect(Element):
             bool
         """
         return self.ip != ""
+
+    @classmethod
+    def getDefectTable(cls):
+        """Return the table of global defects sorted by their index field
+        Returns:
+            A list of Defect
+        """
+        return APIClient.getInstance().getDefectTable()
