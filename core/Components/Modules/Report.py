@@ -6,7 +6,6 @@ import tkinter as tk
 import tkinter.messagebox
 import os
 from shutil import which
-from os import listdir
 from os.path import isfile, join
 from bson.objectid import ObjectId
 from datetime import datetime
@@ -146,8 +145,6 @@ class Report:
         self.treevw.tag_configure(
             "Mineur", background="yellow", foreground="black")
         self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
-        self.treevw.bind("<Alt-Up>", self.moveItemUp)
-        self.treevw.bind("<Alt-Down>", self.moveItemDown)
         self.treevw.bind("<Delete>", self.deleteSelectedItem)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel = ttk.Scrollbar(self.frameTw,
@@ -253,67 +250,9 @@ class Report:
         self.treevw.delete(toDeleteIid)
         defectToDelete = Defect.fetchObject({"title": item["text"], "ip":"", "port":"", "proto":""})
         if defectToDelete is not None:
-            if defectToDelete.index is not None:
-                index = int(defectToDelete.index)
-                children = self.treevw.get_children()
-                for i in range(index+1,len(children),1):
-                    d_o = Defect({"_id":children[i]})
-                    d_o.update({"index":str(i)})
             defectToDelete.delete()
             self.resizeDefectTreeview()
 
-    def moveItemUp(self, _event=None):
-        """
-        Swap the selected treeview item with the one up above it.
-        Args:
-            _event: not used but mandatory
-        Returns:
-            returns "break" to stop the interrupt the event thus preventing cursor to move up
-        """
-        selected = self.treevw.selection()[0]
-        currentIndice = 0
-        children = self.treevw.get_children()
-        for i, child in enumerate(children):
-            if child == selected:
-                currentIndice = i
-                break
-        if currentIndice != 0:
-            self.treevw.move(selected, '', currentIndice-1)
-            apiclient = APIClient.getInstance()
-            selected = children[currentIndice]
-            moved_by_side_effect = children[currentIndice-1]
-            apiclient.update(Defect.coll_name,
-                             {"_id": ObjectId(selected)}, {"$set": {"index":int(currentIndice-1)}})
-            apiclient.update(Defect.coll_name,
-                             {"_id": ObjectId(moved_by_side_effect)}, {"$set": {"index":int(currentIndice)}})
-        return "break"
-
-    def moveItemDown(self, _event=None):
-        """
-        Swap the selected treeview item with the one down below it.
-        Args:
-            _event: not used but mandatory
-        Returns:
-            returns "break" to stop the interrupt the event thus preventing cursor to move down
-        """
-        selected = self.treevw.selection()[0]
-        len_max = len(self.treevw.get_children())
-        currentIndice = len_max-1
-        children = self.treevw.get_children()
-        for i, child in enumerate(children):
-            if child == selected:
-                currentIndice = i
-                break
-        if currentIndice < len_max-1:
-            self.treevw.move(selected, '', currentIndice+1)
-            apiclient = APIClient.getInstance()
-            selected = children[currentIndice]
-            moved_by_side_effect = children[currentIndice+1]
-            apiclient.update(Defect.coll_name,
-                             {"_id": ObjectId(selected)}, {"$set": {"index":int(currentIndice+1)}})
-            apiclient.update(Defect.coll_name,
-                             {"_id": ObjectId(moved_by_side_effect)}, {"$set": {"index":int(currentIndice)}})
-        return "break"
 
     def addDefectCallback(self):
         """Open an insert defect view form in a child window"""
@@ -360,11 +299,11 @@ class Report:
         newValues[columnRisk] = defect_m.risk
         newValues[columnType] = ", ".join(defect_m.mtype)
         newValues[columnRedactor] = defect_m.redactor
+
         self.treevw.item(defect_m.getId(), text=defect_m.title,
                          tags=(newRisk), values=newValues)
-        if oldRisk != newRisk:
-            self.treevw.move(defect_m.getId(), '',
-                             self.findInsertIndex(defect_m))
+        self.treevw.move(str(defect_m.getId()), '',
+                            int(defect_m.index))
 
     def OnDoubleClick(self, event):
         """
@@ -385,52 +324,10 @@ class Report:
         """
         Fetch defects that are global (not assigned to an ip) and fill the defect table with them.
         """
-        defects = Defect.fetchObjects({"ip":""})
-        d_list = {}
-        end_defect = []
-        for defect in defects:
-            if defect.index is None:
-                end_defect.append(defect)
-            elif str(defect.index) == "end":
-                end_defect.append(defect)
-            else:
-                ind = int(defect.index)
-                if ind not in d_list:
-                    d_list[ind] = defect
-                else:
-                    new_ind = ind + 1
-                    while new_ind in d_list:
-                        new_ind += 1
-                    d_list[new_ind] = defect
-                    defect.index = new_ind
-                    defect.update({"index":str(new_ind)})
-        # Fix dict order to index between 0 and *
-        keys_ordered = sorted(list(d_list.keys()))
-        for i in range(len(keys_ordered)):
-            self.addDefect(d_list[keys_ordered[i]])
-        for defect in end_defect:
-            self.addDefect(defect)
+        for line in Defect.getDefectTable():
+            self.addDefect(Defect(line))
 
-    def findInsertIndex(self, defect_o):
-        """
-        Find the inserting position for the given defect (treeview is sorted by risk)
-        Args:
-            defect_o: a Models.Defect object to be inserted in treeview
-        Returns:
-            the string "end" to insert at the end of the treeview
-            an integer between 0 and the nb of lines-1 otherwise
-        """
-        children = self.treevw.get_children()
-        order = Report.getRisks()
-        columnRisk = self.treevw['columns'].index("risk")
-        for i in range(len(children)):
-            if str(defect_o.getId()) != str(children[i]):
-                cursorRisk = self.treevw.item(
-                    children[i])["values"][columnRisk]
-                if order.index(defect_o.risk) <= order.index(cursorRisk):
-                    return i
-        return "end"
-
+    
     def addDefect(self, defect_o):
         """
         Add the given defect object in the treeview
@@ -440,14 +337,7 @@ class Report:
         if defect_o is None:
             return
         children = self.treevw.get_children()
-        if defect_o.index is None or str(defect_o.index) == "":
-            indToInsert = self.findInsertIndex(defect_o)
-            if str(indToInsert) != "end":
-                for i in range(int(indToInsert), len(children), 1):
-                    d_o = Defect({"_id":children[i]})
-                    d_o.update({"index":str(i+1)})
-        else:
-            indToInsert = defect_o.index
+        indToInsert = defect_o.index
         types = defect_o.mtype
         types = ", ".join(defect_o.mtype)
         new_values = (defect_o.ease, defect_o.impact,
@@ -465,7 +355,6 @@ class Report:
                 self.treevw.insert('', indToInsert, defect_o.getId(), text=defect_o.title,
                                    values=new_values,
                                    tags=(defect_o.risk))
-                defect_o.update({"index":str(indToInsert)})
             except tk.TclError:
                 # The defect already exists
                 already_inserted = True
@@ -566,3 +455,24 @@ class Report:
         else:
             tkinter.messagebox.showinfo(
                 "Success", "The template was generated in "+str(path))
+
+    def notify(self, db, collection, iid, action, _parent):
+        """
+        Callback for the observer implemented in mongo.py.
+        Each time an object is inserted, updated or deleted the standard way, this function will be called.
+
+        Args:
+            collection: the collection that has been modified
+            iid: the mongo ObjectId _id that was modified/inserted/deleted
+            action: string "update" or "insert" or "delete". It was the action performed on the iid
+            _parent: Not used. the mongo ObjectId of the parent. Only if action in an insert. Not used anymore
+        """
+        apiclient = APIClient.getInstance()
+        if not apiclient.getCurrentPentest() != "":
+            return
+        if apiclient.getCurrentPentest() != db:
+            return
+        if action == "update":
+            if collection == "defects":
+                defect_m = Defect.fetchObject({"_id":ObjectId(iid)})
+                self.updateDefectInTreevw(defect_m, )

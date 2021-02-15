@@ -57,8 +57,9 @@ class ChildDialogConnect:
         self.rvalue = None
         self.parent = parent
         self.clientCfg = loadClientConfig()
-        lbl = ttk.Label(appFrame, text=displayMsg)
+        lbl = ttk.Label(self.app, text=displayMsg)
         lbl.pack()
+        
         lbl_hostname = ttk.Label(appFrame, text="Host : ")
         lbl_hostname.grid(row=0, column=0)
         self.ent_hostname = tk.Entry(
@@ -67,7 +68,7 @@ class ChildDialogConnect:
         self.ent_hostname.bind('<Return>', self.validateHost)
         self.ent_hostname.bind('<KP_Enter>', self.validateHost)
         self.ent_hostname.grid(row=0, column=1)
-        lbl_port = ttk.Label(appFrame, test="Port : ")
+        lbl_port = ttk.Label(appFrame, text="Port : ")
         lbl_port.grid(row=1, column=0)
         self.ent_port = ttk.Entry(
             appFrame, width="5", validate="focusout", validatecommand=self.validateHost)
