@@ -8,8 +8,9 @@ import core.Components.Utils as Utils
 from bson import ObjectId
 from core.Components.Utils import JSONEncoder, JSONDecoder
 from shutil import copyfile
+from jose import jwt, JWTError
 
-proxies = {"http":"127.0.0.1:8080", "https":"127.0.0.1:8080"}
+proxies = {"http":"http://127.0.0.1:8080", "https":"https://127.0.0.1:8080"}
 proxies = {}
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
 config_dir = os.path.join(dir_path, "./../../config/")
@@ -37,6 +38,12 @@ class APIClient():
         if instance is None:
             APIClient()
         return APIClient.__instances[pid]
+    
+    @staticmethod
+    def setInstance(apiclient):
+        """ Set singleton for current pid"""
+        pid = os.getpid()
+        APIClient.__instances[pid] = apiclient
 
     def __init__(self):
         pid = os.getpid()  # HACK : One mongo per process.
@@ -44,6 +51,8 @@ class APIClient():
             raise Exception("This class is a singleton!")
         self.currentPentest = None
         self._observers = []
+        self.scope = []
+        self.userConnected = None
         APIClient.__instances[pid] = self
         self.headers = {'Content-Type': 'application/json'}
         host = cfg.get("host")
@@ -55,11 +64,55 @@ class APIClient():
         self.api_url_base = "http://"+host+":"+str(port)+"/api/v1/"
 
     def tryConnection(self, config=cfg):
-        response = requests.get(self.api_url_base, headers=self.headers)
+        response = requests.get(self.api_url_base+"", headers=self.headers)
+        return response.status_code == 200
+    
+    def isConnected(self):
+        return self.headers.get("Authorization", "") != ""
+    
+    def isAdmin(self):
+        return "admin" in self.scope
+
+    def getUser(self):
+        return self.userConnected
+    
+    def disconnect(self):
+        self.scope = []
+        self.userConnected = None
+        try:
+            del self.headers["Authorization"]
+        except KeyError:
+            pass
+
+    def login(self, username, passwd):
+        api_url = '{0}login'.format(self.api_url_base)
+        data = {"username":username, "pwd":passwd}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            self.headers["Authorization"] = "Bearer "+token
+            try:
+                jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
+                self.scope = jwt_decoded["scope"]
+                self.userConnected = username
+            except JWTError as e:
+                return False
         return response.status_code == 200
     
     def setCurrentPentest(self, newCurrentPentest):
-        self.currentPentest = newCurrentPentest
+        api_url = '{0}login/{1}'.format(self.api_url_base, newCurrentPentest)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            self.headers["Authorization"] = "Bearer "+token
+            try:
+                jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
+                self.scope = jwt_decoded["scope"]
+            except JWTError as e:
+                return False
+            self.currentPentest = newCurrentPentest
+            return True
+        return False
         
 
     def getCurrentPentest(self):
@@ -73,9 +126,9 @@ class APIClient():
         else:
             return None
 
-    def setWorkerExclusion(self, worker_name, isExcluded):
-        api_url = '{0}workers/{1}/setExclusion'.format(self.api_url_base, worker_name)
-        data = {"db":self.getCurrentPentest(), "setExcluded":isExcluded}
+    def setWorkerInclusion(self, worker_name, setInclusion):
+        api_url = '{0}workers/{1}/setInclusion'.format(self.api_url_base, worker_name)
+        data = {"db":self.getCurrentPentest(), "setInclusion":setInclusion}
         response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -329,7 +382,9 @@ class APIClient():
     def putProof(self, defect_iid, local_path):
         api_url = '{0}files/{1}/upload/proof/{2}'.format(self.api_url_base, self.getCurrentPentest(), defect_iid)
         with open(local_path,'rb') as f:
-            response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, proxies=proxies, verify=False)
+            h = self.headers
+            del h["Content-Type"]
+            response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, headers=h, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return None
@@ -342,10 +397,29 @@ class APIClient():
         return []
 
     def getResult(self, tool_iid, local_path):
-        return self._get("result", tool_iid, "resultfile", local_path)
+        resultfile = self.getFileName("result", tool_iid)
+        if resultfile is not None:
+            return self._get("result", tool_iid, resultfile, local_path)
+        return None
     
+
     def getProof(self, defect_iid, filename, local_path):
         return self._get("proof", defect_iid, filename, local_path)
+
+    def getFileName(self, filetype, attached_iid):
+        """Retrieve the list of filenames attached to a toolid
+        Args:
+            filetype: 'result' or 'proof' 
+            attached_iid: tool or defect iid depending on filetype
+        Returns : filename: remote file file name
+        """
+        api_url = '{0}files/{1}/download/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), filetype, str(attached_iid))
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            ret = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            if isinstance(ret, list) and ret:
+                return ret[0]
+        return None
 
     def _get(self, filetype, attached_iid, filename, local_path):
         """Download file affiliated with given iid and place it at given path
@@ -358,9 +432,12 @@ class APIClient():
         api_url = '{0}files/{1}/download/{2}/{3}/{4}'.format(self.api_url_base, self.getCurrentPentest(), filetype, attached_iid, filename)
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
+            if not os.path.exists(local_path):
+                os.makedirs(local_path)
+            local_path = os.path.join(local_path, filename)
             with open(local_path, 'wb') as f:
                 f.write(response.content)
-                return local_path
+            return local_path
         return None
 
     def rmProof(self, defect_iid, filename):
@@ -387,7 +464,9 @@ class APIClient():
         if not os.path.isfile(local_path):
             return "Failure to open provided file"
         with io.open(local_path, 'r', encoding='utf-8', errors="ignore") as f:
-            response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, proxies=proxies, verify=False)
+            h = self.headers
+            del h["Content-Type"]
+            response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, headers=h, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return response.content.decode('utf-8')
@@ -401,7 +480,7 @@ class APIClient():
     def importExistingResultFile(self, filepath, plugin):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, 'r', encoding='utf-8', errors="ignore") as f:
-            response = requests.post(api_url, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
+            response = requests.post(api_url, headers=self.headers, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -458,14 +537,18 @@ class APIClient():
     def importDb(self, filename):
         api_url = '{0}importDb'.format(self.api_url_base)
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
-            response = requests.post(api_url, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
+            h = self.headers
+            del h["Content-Type"]
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
             return response.status_code == 200
         return False
     
     def importCommands(self, filename):
         api_url = '{0}importCommands'.format(self.api_url_base)
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
-            response = requests.post(api_url, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
+            h = self.headers
+            del h["Content-Type"]
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
             return response.status_code == 200
         return False
 
@@ -516,3 +599,38 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return []
+
+    def getUsers(self):
+        api_url = '{0}admin/listUsers'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        return []
+
+    def registerUser(self, username, password):
+        api_url = '{0}user/register'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"username":username, "pwd":password}), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        return None
+
+    def deleteUser(self, username):
+        api_url = '{0}user/delete/{1}'.format(self.api_url_base, username)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        return None
+
+    def changeUserPassword(self, oldPwd, newPwd):
+        api_url = '{0}user/changePassword'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"oldPwd":oldPwd, "newPwd":newPwd}), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return ""
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+    def resetPassword(self, username, newPwd):
+        api_url = '{0}admin/resetPassword'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"username":username, "newPwd":newPwd}), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return ""
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)

@@ -51,7 +51,7 @@ class ChildDialogConnect:
             displayMsg: The message that will explain to the user what the form is.
         """
         self.parent = parent
-        self.app = tk.Toplevel(parent)
+        self.app = tk.Toplevel(parent, bg="white")
         self.app.resizable(False, False)
         appFrame = ttk.Frame(self.app)
         self.rvalue = None
@@ -78,10 +78,22 @@ class ChildDialogConnect:
         self.ent_port.grid(row=1, column=1)
         self.img_indicator = ttk.Label(appFrame, image=self.waitingIcon())
         self.img_indicator.grid(row=1, column=2)
+        
+        self.validateHost()
+        lbl_login = ttk.Label(appFrame, text="Login: ")
+        lbl_login.grid(row=2, column=0)
+        self.ent_login = ttk.Entry(
+            appFrame, width="20")
+        self.ent_login.grid(row=2, column=1)
+        lbl_passwd = ttk.Label(appFrame, text="Password: ")
+        lbl_passwd.grid(row=3, column=0)
+        self.password = tk.StringVar() 
+        self.ent_passwd = ttk.Entry(
+            appFrame, width="20", show="*", textvariable = self.password)
+        self.ent_passwd.grid(row=3, column=1)
         appFrame.pack(ipadx=10, ipady=10)
         self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk)
         self.ok_button.pack(pady=10)
-        self.validateHost()
         try:
             self.app.wait_visibility()
             self.app.transient(parent)
@@ -111,6 +123,9 @@ class ChildDialogConnect:
         self.img_indicator.config(image=self.waitingIcon())
         return  apiclient.tryConnection(config)
 
+    def valideLogin(self):
+        pass
+
     def onOk(self):
         """
         Called when the user clicked the validation button.
@@ -127,9 +142,13 @@ class ChildDialogConnect:
         self.rvalue = False
         if res:
             #  pylint: disable=len-as-condition
-            self.rvalue = len(apiclient.getPentestList()) > 0
-            for key, value in self.clientCfg.items():
-                if key not in config.keys():
-                    config[key] = value
-            saveClientConfig(config)
-            self.app.destroy()
+            loginRes = apiclient.login(self.ent_login.get(), self.password.get())
+            if loginRes:
+                self.rvalue = len(apiclient.getPentestList()) > 0
+                for key, value in self.clientCfg.items():
+                    if key not in config.keys():
+                        config[key] = value
+                saveClientConfig(config)
+                self.app.destroy()
+            else:
+                tk.messagebox.showerror("Connection failure", "The login/password you entered does not exists")

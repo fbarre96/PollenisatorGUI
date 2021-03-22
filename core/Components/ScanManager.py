@@ -36,7 +36,7 @@ class ScanManager:
     def startAutoscan(self):
         """Start an automatic scan. Will try to launch all undone tools."""
         apiclient = APIClient.getInstance()
-        workers = apiclient.getWorkers({"excludedDatabases":{"$nin":[apiclient.getCurrentPentest()]}})
+        workers = apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()})
         workers = [w for w in workers]
         if len(workers) == 0:
             tk.messagebox.showwarning("No selected worker found", "Check worker treeview to see if there are workers registered and double click on the disabled one to enable them")
@@ -69,12 +69,12 @@ class ScanManager:
         for worker in workers:
             workername = worker["name"]
             try:
-                if apiclient.getCurrentPentest() in worker.get("excludedDatabases", []):
-                    worker_node = self.workerTv.insert(
-                        '', 'end', workername, text=workername, image=self.nok_icon)
-                else:
+                if apiclient.getCurrentPentest() in worker.get("pentests", []):
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.ok_icon)
+                else:
+                    worker_node = self.workerTv.insert(
+                        '', 'end', workername, text=workername, image=self.nok_icon)
             except tk.TclError:
                 worker_node = self.workerTv.item(workername)
             worker_registered = apiclient.getWorker({"name":workername})
@@ -134,12 +134,12 @@ class ScanManager:
         for worker in workers:
             workername = worker["name"]
             try:
-                if apiclient.getCurrentPentest() in worker.get("excludedDatabases", []):
-                    worker_node = self.workerTv.insert(
-                        '', 'end', workername, text=workername, image=self.nok_icon)
-                else:
+                if apiclient.getCurrentPentest() in worker.get("pentests", []):
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.ok_icon)
+                else:
+                    worker_node = self.workerTv.insert(
+                        '', 'end', workername, text=workername, image=self.nok_icon)
             except tk.TclError:
                 pass
             commands_registered = apiclient.getRegisteredCommands(
@@ -255,8 +255,8 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         worker = apiclient.getWorker({"name":worker_hostname})
         if worker is not None:
-            isExcluded = apiclient.getCurrentPentest() in worker.get("excludedDatabases", [])
-            apiclient.setWorkerExclusion(worker_hostname, not (isExcluded))
+            isIncluded = apiclient.getCurrentPentest() in worker.get("pentests", [])
+            apiclient.setWorkerInclusion(worker_hostname, not (isIncluded))
 
     def launchTask(self, toolModel, parser="", checks=True, worker=""):
         apiclient = APIClient.getInstance()
@@ -264,7 +264,7 @@ class ScanManager:
         if worker == "" or worker == "localhost":
             thread = None
             thread = multiprocessing.Process(target=executeCommand, args=(
-                apiclient.getCurrentPentest(), str(launchableToolId), parser))
+                apiclient, str(launchableToolId), parser))
             thread.start()
             toolModel.markAsRunning(worker)
 

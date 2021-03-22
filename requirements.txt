@@ -5,4 +5,5 @@ lark-parser>=0.7.8
 netaddr>=0.7.19
 Pillow>=6.0.0
 pyperclip
+python-jose
 requests>=2.18.4

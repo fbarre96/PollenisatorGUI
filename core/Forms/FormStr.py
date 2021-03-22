@@ -104,7 +104,7 @@ class FormStr(Form):
         """
         self.val = tk.StringVar()
         self.entry = tk.Entry(parent.panel, textvariable=self.val, width=self.getKw(
-            "width", 20), state=self.getKw("state", "normal"))
+            "width", 20), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
 
         self.entry.bind("<Control-a>", self.selectAll)

@@ -34,7 +34,7 @@ class Dirsearch(Plugin):
             return
         ssl = self.port_m.infos.get("SSL", None) == "True" or ("https" in port_m.service or "ssl" in port_m.service)
         protocol = "https://" if ssl else "http://"
-        dirs = self.port_m.infos.get("200", [])
+        dirs = self.port_m.infos.get("Dirsearch_200", [])
         if len(dirs) > 10:
             return "Too much 200 to be opened this way"
         for finding in dirs:

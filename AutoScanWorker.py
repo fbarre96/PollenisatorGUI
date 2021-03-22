@@ -17,7 +17,7 @@ from core.Models.Tool import Tool
 from core.Models.Command import Command
 
 
-def executeCommand(calendarName, toolId, parser=""):
+def executeCommand(apiclient, toolId, parser=""):
     """
      remote task
     Execute the tool with the given toolId on the given calendar name.
@@ -25,7 +25,7 @@ def executeCommand(calendarName, toolId, parser=""):
     Any unhandled exception will result in a task-failed event in the class.
 
     Args:
-        calendarName: The calendar to search the given tool id for.
+        apiclient: the apiclient instance.
         toolId: the mongo Object id corresponding to the tool to execute.
         parser: plugin name to execute. If empty, the plugin specified in tools.d will be feteched.
     Raises:
@@ -35,8 +35,7 @@ def executeCommand(calendarName, toolId, parser=""):
         Exception: if a plugin considered a failure.
     """
     # Connect to given calendar
-    apiclient = APIClient.getInstance()
-    apiclient.setCurrentPentest(calendarName)
+    APIClient.setInstance(apiclient)
     toolModel = Tool.fetchObject({"_id":ObjectId(toolId)})
     command_o = toolModel.getCommand()
     msg = ""
@@ -46,7 +45,7 @@ def executeCommand(calendarName, toolId, parser=""):
         print(str(comm))
         toolModel.setStatus(["error"])
         return False, str(comm)
-    outputRelDir = toolModel.getOutputDir(calendarName)
+    outputRelDir = toolModel.getOutputDir(apiclient.getCurrentPentest())
     abs_path = os.path.dirname(os.path.abspath(__file__))
     toolFileName = toolModel.name+"_" + \
             str(time.time()) # ext already added in command

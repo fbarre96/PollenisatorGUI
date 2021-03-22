@@ -26,9 +26,11 @@ from core.Application.Dialogs.ChildDialogNewCalendar import ChildDialogNewCalend
 from core.Application.Dialogs.ChildDialogException import ChildDialogException
 from core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
+from core.Application.Dialogs.ChildDialogEditPassword import ChildDialogEditPassword
 from core.Application.StatusBar import StatusBar
 from core.Components.apiclient import APIClient
 from core.Components.ScanManager import ScanManager
+from core.Components.Admin import AdminView
 from core.Components.Settings import Settings
 from core.Components.Filter import Filter
 from core.Controllers.ScopeController import ScopeController
@@ -267,6 +269,8 @@ class Appli(ttk.Frame):
         self.settingViewFrame = None
         self.scanManager = None  #  Loaded when clicking on it if linux only
         self.scanViewFrame = None
+        self.admin = None
+        self.nbk = None
         self.main_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_main.png"))
         self.commands_tab_img = ImageTk.PhotoImage(
@@ -275,7 +279,10 @@ class Appli(ttk.Frame):
             Image.open(Utils.getIconDir()+"tab_scan.png"))
         self.settings_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_settings.png"))
+        self.admin_tab_img = ImageTk.PhotoImage(
+            Image.open(Utils.getIconDir()+"tab_admin.png"))
         self.initModules()
+        
 
         #### MAIN VIEW ####
         self.openedViewFrameId = None
@@ -301,16 +308,19 @@ class Appli(ttk.Frame):
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
-
+        self.openConnectionDialog()
+        
+    
+    def openConnectionDialog(self):
         # Connect to database and choose database to open
-        abandon = False
         apiclient = APIClient.getInstance()
-        while not apiclient.tryConnection() and not abandon:
+        abandon = False
+        while (not apiclient.tryConnection() or not apiclient.isConnected()) and not abandon:
             abandon = self.promptForConnection() is None
         if not abandon:
             apiclient.attach(self)
             self.initUI()
-            self.promptCalendarName()
+            # self.promptCalendarName(), called beacause tabSwitch is called
         else:
             self.onClosing()
             try:
@@ -362,6 +372,20 @@ class Appli(ttk.Frame):
         self.wait_window(connectDialog.app)
         return connectDialog.rvalue
 
+    def changeMyPassword(self):
+        """Allows the current user to change its password"""
+        apiclient = APIClient.getInstance()
+        connected_user = apiclient.getUser()
+        if connected_user is None:
+            tk.messagebox.showerror("Change password", "You are not connected")
+            return 
+        dialog = ChildDialogEditPassword(self.parent, connected_user)
+        self.wait_window(dialog.app)
+        
+    def disconnect(self):
+        """Remove the session cookie"""
+        APIClient.getInstance().disconnect()
+        self.openConnectionDialog()
 
     def submitIssue(self):
         """Open git issues in browser"""
@@ -446,11 +470,16 @@ class Appli(ttk.Frame):
         fileMenu2.add_command(label="Find unscanned port", command=self.findUnscannedPorts)
         fileMenu2.add_command(label="Refresh (F5)",
                               command=self.refreshView)
+        fileMenuUser = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        fileMenuUser.add_command(label="Change your password",
+                              command=self.changeMyPassword)
+        fileMenuUser.add_command(label="Disconnect", command=self.disconnect)
         fileMenu3 = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
         fileMenu3.add_command(label="Submit a bug or feature",
                               command=self.submitIssue)
         menubar.add_cascade(label="Database", menu=fileMenu)
         menubar.add_cascade(label="Scans", menu=fileMenu2)
+        menubar.add_cascade(label="User", menu=fileMenuUser)
         menubar.add_cascade(label="Help", menu=fileMenu3)
 
     def setStyle(self, _event=None):
@@ -479,6 +508,7 @@ class Appli(ttk.Frame):
         style.configure("Important.TLabel", background="#73B723", foreground="white")
         style.configure("TLabel", background="white")
         style.configure("TCombobox", background="white")
+        
         style.configure("TCheckbutton", background="white",
                         font=('Sans', '10', 'bold'))
         style.configure("TButton", background="#73B723",
@@ -593,6 +623,8 @@ class Appli(ttk.Frame):
         Args:
             _event: not used but mandatory
         """
+        if self.canvas is None:
+            return
         self.canvas.bind_all("<Button-4>", self._onMousewheelCommand)
         self.canvas.bind_all("<Button-5>", self._onMousewheelCommand)
 
@@ -601,6 +633,8 @@ class Appli(ttk.Frame):
         Unbind the command scrollbar button on linux to the command canvas
         Args:
             _event: not used but mandatory"""
+        if self.canvas is None:
+            return
         self.canvas.unbind_all("<Button-4>")
         self.canvas.unbind_all("<Button-5>")
 
@@ -609,6 +643,8 @@ class Appli(ttk.Frame):
         Bind the main view scrollbar button on linux to the main view canvas
         Args:
             _event: not used but mandatory"""
+        if self.canvas is None:
+            return
         self.canvas.bind_all("<Button-4>", self._onMousewheelMain)
         self.canvas.bind_all("<Button-5>", self._onMousewheelMain)
 
@@ -640,6 +676,8 @@ class Appli(ttk.Frame):
             count = 1
         if event.num == 4 or event.delta == 120:
             count = -1
+        if self.canvas is None:
+            return
         self.canvas.yview_scroll(count, "units")
 
     def scrollFrameMainFunc(self, _event):
@@ -648,6 +686,8 @@ class Appli(ttk.Frame):
 
     def scrollFrameFunc(self, _event):
         """make the command canvas scrollable"""
+        if self.canvas is None:
+            return
         self.canvas.configure(scrollregion=self.canvas.bbox("all"), width=20, height=200)
 
     def initCommandsView(self):
@@ -683,9 +723,11 @@ class Appli(ttk.Frame):
         self.nbk.add(self.commandsPageFrame, text=" Commands", image=self.commands_tab_img, compound=tk.TOP)
 
     def resizeCanvasFrame(self, event):
+        if self.canvas is None:
+            return
         canvas_width = event.width
         self.canvas.itemconfig(self.canvas_frame, width=canvas_width)
-    
+
     def resizeCanvasMainFrame(self, event):
         canvas_width = event.width
         self.canvasMain.itemconfig(self.canvas_main_frame, width=canvas_width)
@@ -713,7 +755,7 @@ class Appli(ttk.Frame):
         self.searchBar.quit()
         if tabName == "Commands":
             self.commandsTreevw.initUI()
-        if apiclient.getCurrentPentest() == "":
+        if apiclient.getCurrentPentest() is None or apiclient.getCurrentPentest == "":
             opened = self.promptCalendarName()
             if opened is None:
                 return
@@ -722,6 +764,8 @@ class Appli(ttk.Frame):
                 self.scanManager.initUI(self.scanViewFrame)
         elif tabName == "Settings":
             self.settings.reloadUI()
+        elif tabName == "Admin":
+            self.admin.initUI(self.adminViewFrame)
         else:
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
@@ -740,15 +784,25 @@ class Appli(ttk.Frame):
         self.scanViewFrame = ttk.Frame(self.nbk)
         self.nbk.add(self.scanViewFrame, text="     Scan      ", image=self.scan_tab_img, compound=tk.TOP)
 
+    def initAdminView(self):
+        """Add the admin button to the notebook"""
+        self.admin = AdminView(self.nbk)
+        self.adminViewFrame = ttk.Frame(self.nbk)
+        self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
+
     def initUI(self):
         """
         initialize all the main windows objects. (Bar Menu, contextual menu, treeview, editing pane)
         """
+        if self.nbk is not None:
+            self.refreshUI()
+            return
         self.nbk = ttk.Notebook(self.parent)
         self.statusbar = StatusBar(self.parent, Settings.getTags(), self)
         self.statusbar.pack(fill=tk.X)
         self.nbk.enable_traversal()
         self.initMainView()
+        self.initAdminView()
         self.initCommandsView()
         self.initScanView()
         self.initSettingsView()
@@ -757,7 +811,19 @@ class Appli(ttk.Frame):
             self.nbk.add(module["view"], text=module["name"],image=module["img"],compound=tk.TOP)
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
+        self.refreshUI()
 
+    def refreshUI(self):
+        apiclient = APIClient.getInstance()
+        tab_names = [self.nbk.tab(i, option="text").strip() for i in self.nbk.tabs()]
+
+        if apiclient.isAdmin():
+            self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
+            self.nbk.add(self.commandsPageFrame, text=" Commands", image=self.commands_tab_img, compound=tk.TOP)
+        else:
+            self.nbk.hide(tab_names.index("Admin"))
+            self.nbk.hide(tab_names.index("Commands"))
+    
     def newSearch(self, _event=None):
         """Called when the searchbar is validated (click on search button or enter key pressed).
         Perform a filter on the main treeview.
@@ -946,7 +1012,7 @@ class Appli(ttk.Frame):
         calendars = apiclient.getPentestList()
         if calendars is None:
             calendars = []
-        dialog = ChildDialogCombo(self, ["New database"]+calendars[::-1], "Please select a database")
+        dialog = ChildDialogCombo(self, ["New database"]+calendars[::-1], "Select a database")
         self.wait_window(dialog.app)
         if dialog.rvalue is None:
             return None
@@ -1031,8 +1097,10 @@ class Appli(ttk.Frame):
             if self.notifications_timers is not None:
                 self.notifications_timers.cancel()
                 self.notifications_timers = None
-            apiclient.setCurrentPentest(calendarName)
-            
+            res = apiclient.setCurrentPentest(calendarName)
+            if not res:
+                tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
+                return
             for widget in self.viewframe.winfo_children():
                 widget.destroy()
             for module in self.modules:

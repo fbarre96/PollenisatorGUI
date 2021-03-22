@@ -320,7 +320,7 @@ class Settings:
         
         frame_term = ttk.LabelFrame(self.settingsFrame, text="Terminals:")
         self.text_terms = tk.scrolledtext.ScrolledText(
-            frame_term, relief=tk.SUNKEN, height=4, width=130)
+            frame_term, relief=tk.SUNKEN, height=4, width=130, font = ("Sans", 10))
         self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
         frame_fav_term = ttk.Frame(frame_term)
         lbl_fav_term = ttk.Label(frame_term, text="Favorite term:")
@@ -354,7 +354,7 @@ class Settings:
             lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()), state="readonly")
         self.box_pentest_type.grid(row=1, column=1, sticky=tk.W)
         self.text_pentesters = tk.scrolledtext.ScrolledText(
-            lblframe_pentest_params, relief=tk.SUNKEN, height=3)
+            lblframe_pentest_params, relief=tk.SUNKEN, height=3, font = ("Sans", 10))
         lbl_pentesters = ttk.Label(
             lblframe_pentest_params, text="Pentester names:")
         lbl_pentesters.grid(row=2, column=0, sticky=tk.E)
@@ -367,13 +367,13 @@ class Settings:
             lblframe_global_params, text="Pentests possible types:")
         lbl_pentest_types.grid(row=0, column=0, sticky=tk.E)
         self.text_pentest_types = tk.scrolledtext.ScrolledText(
-            lblframe_global_params, relief=tk.SUNKEN, height=6)
+            lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
         self.text_pentest_types.grid(row=0, column=1, sticky=tk.W)
         lbl_tags = ttk.Label(
             lblframe_global_params, text="Registered tags:")
         lbl_tags.grid(row=1, column=0, sticky=tk.E)
         self.text_tags = tk.scrolledtext.ScrolledText(
-            lblframe_global_params, relief=tk.SUNKEN, height=6)
+            lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
         self.text_tags.grid(row=1, column=1, sticky=tk.W)
         btn_save = ttk.Button(parent, text="Save", command=self.on_ok)
         btn_save.grid(row=1, column=0, padx=10, pady=10, sticky="s")

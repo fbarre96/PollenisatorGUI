@@ -381,7 +381,7 @@ class CalendarTreeview(PollenisatorTreeview):
             _event: not used but mandatory
         """
         apiclient = APIClient.getInstance()
-        workers = apiclient.getWorkers({"excludedDatabases":{"$nin":[apiclient.getCurrentPentest()]}})
+        workers = apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()})
         workers.append("localhost")
         dialog = ChildDialogCustomCommand(
                     self, workers, "localhost")
