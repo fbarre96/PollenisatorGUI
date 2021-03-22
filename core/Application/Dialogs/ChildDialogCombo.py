@@ -8,7 +8,6 @@ class ChildDialogCombo:
     """
     Open a child dialog of a tkinter application to ask a user a calendar name.
     """
-
     def __init__(self, parent, options, displayMsg="Choose a database to open:", default=None):
         """
         Open a child dialog of a tkinter application to ask a combobox option.

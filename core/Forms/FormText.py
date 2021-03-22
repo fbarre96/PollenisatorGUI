@@ -86,7 +86,7 @@ class FormText(Form):
         """
 
         self.text = tkinter.scrolledtext.ScrolledText(
-            parent.panel, relief=tk.SUNKEN, height=self.getKw("height", 20))
+            parent.panel, relief=tk.SUNKEN, height=self.getKw("height", 20), font = ("Sans", 10))
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
         try:

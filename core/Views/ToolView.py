@@ -131,7 +131,7 @@ class ToolView(ViewElement):
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
-        hasWorkers = len(apiclient.getWorkers({"excludedDatabases":{"$nin":[apiclient.getCurrentPentest()]}}))
+        hasWorkers = len(apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()}))
         #Ready is legacy, OOS and/or OOT should be used
         if "ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or len(self.controller.getStatus()) == 0:
             actions_panel.addFormButton(
@@ -220,7 +220,7 @@ class ToolView(ViewElement):
         abs_path = os.path.dirname(os.path.abspath(__file__))
         outputDir = os.path.join(abs_path, "../../results")
         path = self.controller.getOutputDir(apiclient.getCurrentPentest())
-        path = apiclient.getResult(self.controller.getDbId(), os.path.join(outputDir,path, str(self)))
+        path = apiclient.getResult(self.controller.getDbId(), os.path.join(outputDir,path))
         dialog.destroy()
         if path is not None:
             if os.path.isfile(path):
