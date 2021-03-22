@@ -58,8 +58,7 @@ class Settings:
         apiclient = APIClient.getInstance()
         if cls.tags_cache is not None:
             return cls.tags_cache
-        tags = apiclient.findInDb(
-            "pollenisator", "settings", {"key": "tags"}, False)
+        tags = apiclient.getSettings({"key": "tags"})
         if tags is not None:
             if isinstance(tags["value"], dict):
                 cls.tags_cache = tags["value"]
@@ -76,8 +75,7 @@ class Settings:
         """
         apiclient = APIClient.getInstance()
         if cls.__pentest_types is None:
-            pentest_types = apiclient.findInDb(
-                "pollenisator", "settings", {"key": "pentest_types"}, False)
+            pentest_types = apiclient.getSettings({"key": "pentest_types"})
             if pentest_types is not None:
                 if isinstance(pentest_types["value"], str):
                     cls.__pentest_types = json.loads(pentest_types["value"])
