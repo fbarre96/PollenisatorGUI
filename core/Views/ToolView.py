@@ -59,7 +59,7 @@ class ToolView(ViewElement):
             cache = self.__class__.cached_done_icon
             ui = self.__class__.done_icon
             iconStatus = "done"
-        elif "error" in status:
+        elif "error" in status or "timedout" in status:
             cache = self.__class__.cached_error_icon
             ui = self.__class__.error_icon
             iconStatus = "error"
@@ -133,7 +133,7 @@ class ToolView(ViewElement):
         apiclient = APIClient.getInstance()
         hasWorkers = len(apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()}))
         #Ready is legacy, OOS and/or OOT should be used
-        if "ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or len(self.controller.getStatus()) == 0:
+        if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
             actions_panel.addFormButton(
                 "Local launch", self.localLaunchCallback, side="right")
             if hasWorkers:

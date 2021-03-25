@@ -78,7 +78,8 @@ def executeCommand(apiclient, toolId, parser=""):
         # Execute the command with a timeout
         returncode = Utils.execute(comm, timeLimit, True)
         if returncode == -1:
-            raise Exception("Tool Timeout")
+            toolModel.setStatus(["timedout"])
+            return False, str(e)
     except Exception as e:
         print(str(e))
         toolModel.setStatus(["error"])
