@@ -148,7 +148,7 @@ class DashBoard:
         dialog.update(8)
         for tool_id in sorted(list(tools_dashboard.keys())):
             self.treevwtools.insert('', 'end', None, text=str(
-                tool_id), values=(tools_dashboard[tool_id].get("ready", 0), tools_dashboard[tool_id].get("running", 0), tools_dashboard[tool_id].get("done", 0), tools_dashboard[tool_id].get("error", 0)))
+                tool_id), values=(tools_dashboard[tool_id].get("ready", 0), tools_dashboard[tool_id].get("running", 0), tools_dashboard[tool_id].get("done", 0), tools_dashboard[tool_id].get("error", 0)+tools_dashboard[tool_id].get("timedout", 0)))
         dialog.update(9)
         # Defect Part
         # reset defect TW
