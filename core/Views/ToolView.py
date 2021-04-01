@@ -291,7 +291,7 @@ class ToolView(ViewElement):
             answer = dialog.rvalue
             if answer == "Yes":
                 apiclient = APIClient.getInstance()
-                apiclient.sendLaunchTask(self.controller.model.getId())
+                apiclient.sendLaunchTask(self.controller.model.getId(), "", False)
         if res:
             self.form.clear()
             for widget in self.appliViewFrame.winfo_children():
