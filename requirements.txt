@@ -7,3 +7,4 @@ Pillow>=6.0.0
 pyperclip
 python-jose
 requests>=2.18.4
+pymongo
