@@ -235,7 +235,7 @@ class Settings:
             existing_settings[setting["key"]] = setting
         for k, v in self.db_settings.items():
             if k in existing_settings:
-                apiclient.updateInDb(apiclient.getCurrentPentest(), "settings", existing_settings[k]["_id"], {"value": v})
+                apiclient.updateInDb(apiclient.getCurrentPentest(), "settings", {"key":k}, {"$set":{"value": v}})
 
     def save(self):
         """
