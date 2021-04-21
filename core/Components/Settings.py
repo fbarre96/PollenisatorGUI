@@ -230,11 +230,12 @@ class Settings:
     def savePentestSettings(self):
         apiclient = APIClient.getInstance()
         settings = apiclient.find("settings")
-        existing_settings = [x["key"] for x in settings]
+        existing_settings = {}
+        for setting in settings:
+            existing_settings[setting["key"]] = setting
         for k, v in self.db_settings.items():
             if k in existing_settings:
-                apiclient.update("settings", {
-                    "key": k}, {"$set": {"value": v}})
+                apiclient.update("settings", existing_settings[k]["_id"], {"value": v})
 
     def save(self):
         """
