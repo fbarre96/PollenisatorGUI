@@ -68,6 +68,11 @@ class APIClient():
         response = requests.get(self.api_url_base, headers=self.headers)
         return response.status_code == 200
     
+    def reportError(self, err):
+        api_url = '{0}issue'.format(self.api_url_base)
+        requests.post(api_url, headers=self.headers, data=json.dumps({"error":err}, proxies=proxies, verify=False))
+        
+
     def isConnected(self):
         return self.headers.get("Authorization", "") != ""
     
