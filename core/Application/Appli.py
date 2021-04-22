@@ -354,6 +354,8 @@ class Appli(ttk.Frame):
             err = traceback.format_exception(args[0], args[1], args[2])
             dialog = ChildDialogException(self, 'Exception occured', err)
             try:
+                apiclient = APIClient.getInstance()
+                apiclient.reportError(err)
                 self.wait_window(dialog.app)
             except tk.TclError:
                 sys.exit(1)
