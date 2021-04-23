@@ -70,7 +70,7 @@ class APIClient():
     
     def reportError(self, err):
         api_url = '{0}issue'.format(self.api_url_base)
-        requests.post(api_url, headers=self.headers, data=json.dumps({"error":err}, proxies=proxies, verify=False))
+        requests.post(api_url, headers=self.headers, data=json.dumps({"error":err}), proxies=proxies, verify=False)
         
 
     def isConnected(self):
