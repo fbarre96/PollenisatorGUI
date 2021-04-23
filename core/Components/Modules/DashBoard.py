@@ -144,7 +144,10 @@ class DashBoard:
         for tool_result in result:
             tool_id = tool_result["_id"].get("wave","")+"::"+tool_result["_id"]["name"]
             tools_dashboard[tool_id] = tools_dashboard.get(tool_id, {})
-            tools_dashboard[tool_id][tool_result["_id"].get("status", "ready")[0]] = tool_result["count"]
+            tool_status = list(tool_result["_id"].get("status", "ready"))
+            if not tool_status:
+                tool_status = ["ready"]
+            tools_dashboard[tool_id][tool_status[0]] = tool_result["count"]
         dialog.update(8)
         for tool_id in sorted(list(tools_dashboard.keys())):
             self.treevwtools.insert('', 'end', None, text=str(
