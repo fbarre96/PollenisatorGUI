@@ -90,6 +90,9 @@ class Report:
         """
         Reload informations and reload them into the widgets
         """
+        templates = APIClient.getInstance().getTemplateList()
+        self.docx_models = [f for f in templates if f.endswith(".docx")]
+        self.pptx_models = [f for f in templates if f.endswith(".pptx")]
         self.settings.reloadSettings()
         pentest_type = self.settings.getPentestType().lower()
         
