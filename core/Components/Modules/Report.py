@@ -93,6 +93,8 @@ class Report:
         templates = APIClient.getInstance().getTemplateList()
         self.docx_models = [f for f in templates if f.endswith(".docx")]
         self.pptx_models = [f for f in templates if f.endswith(".pptx")]
+        self.combo_word.configure(values=self.docx_models)
+        self.combo_pptx.configure(values=self.pptx_models)
         self.settings.reloadSettings()
         pentest_type = self.settings.getPentestType().lower()
         
