@@ -606,6 +606,14 @@ class APIClient():
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return []
 
+    def moveDefect(self, defect_id, target_id):
+        api_url = '{0}report/{1}/defects/move/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), defect_id, target_id)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        return response.content.decode("utf-8")
+
+
     def getUsers(self):
         api_url = '{0}admin/listUsers'.format(self.api_url_base)
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)

@@ -48,6 +48,7 @@ class Report:
         self.combo_word = None
         self.combo_pptx = None
         self.btn_template_photo = None
+        self.lastMovedTo = None
         return
 
     def open(self):
@@ -127,7 +128,7 @@ class Report:
         self.style = ttk.Style()
         self.style.configure('Report.Treeview', rowheight=self.rowHeight)
         self.frameTw = ttk.Frame(self.paned)
-        self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0)
+        self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0,selectmode='none')
         self.treevw['columns'] = ('ease', 'impact', 'risk', 'type', 'redactor')
         self.treevw.heading("#0", text='Title', anchor=tk.W)
         self.treevw.column("#0", anchor=tk.W, width=150)
@@ -151,6 +152,9 @@ class Report:
             "Mineur", background="yellow", foreground="black")
         self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
         self.treevw.bind("<Delete>", self.deleteSelectedItem)
+        self.treevw.bind("<ButtonPress-1>",self.bDown)
+        self.treevw.bind("<ButtonRelease-1>",self.bUp, add='+')
+        self.treevw.bind("<B1-Motion>",self.bMove, add='+')
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel = ttk.Scrollbar(self.frameTw,
                                 orient=tk.VERTICAL,
@@ -220,6 +224,29 @@ class Report:
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.reportFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
         self.fillWithDefects()
+
+    def bDown(self, event):
+        tv = event.widget
+        if tv.identify_row(event.y) not in tv.selection():
+            tv.selection_set(tv.identify_row(event.y))    
+            self.movingSelection = tv.identify_row(event.y)
+
+    def bUp(self, event):
+        tv = event.widget
+        apiclient = APIClient.getInstance()
+        if tv.identify_row(event.y) in tv.selection():
+            apiclient.moveDefect(self.movingSelection, self.lastMovedTo)
+            self.movingSelection = None
+            self.lastMovedTo = None
+
+    def bMove(self, event):
+        tv = event.widget
+        rowToMove = tv.identify_row(event.y)
+        moveto = tv.index(rowToMove)    
+        self.lastMovedTo = rowToMove if rowToMove != self.movingSelection else self.lastMovedTo
+        for s in tv.selection():
+            tv.move(s, '', moveto)
+            
 
     def reset(self):
         """
