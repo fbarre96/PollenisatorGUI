@@ -232,6 +232,8 @@ class Report:
             self.movingSelection = tv.identify_row(event.y)
 
     def bUp(self, event):
+        if self.movingSelection is None or self.lastMovedTo is None:
+            return
         tv = event.widget
         apiclient = APIClient.getInstance()
         if tv.identify_row(event.y) in tv.selection():
