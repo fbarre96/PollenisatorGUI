@@ -90,6 +90,7 @@ class ChildDialogConnect:
         self.password = tk.StringVar() 
         self.ent_passwd = ttk.Entry(
             appFrame, width="20", show="*", textvariable = self.password)
+        self.ent_passwd.bind('<Return>', self.onOk)
         self.ent_passwd.grid(row=3, column=1)
         appFrame.pack(ipadx=10, ipady=10)
         self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk)
@@ -127,7 +128,7 @@ class ChildDialogConnect:
     def valideLogin(self):
         pass
 
-    def onOk(self):
+    def onOk(self, event=None):
         """
         Called when the user clicked the validation button.
         Try a full connection with authentication to the host given.
