@@ -93,6 +93,7 @@ class ChildDialogConnect:
         self.ent_passwd.grid(row=3, column=1)
         appFrame.pack(ipadx=10, ipady=10)
         self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk)
+        self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(pady=10)
         try:
             self.app.wait_visibility()
