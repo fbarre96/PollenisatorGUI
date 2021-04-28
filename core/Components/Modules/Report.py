@@ -49,6 +49,7 @@ class Report:
         self.combo_pptx = None
         self.btn_template_photo = None
         self.lastMovedTo = None
+        self.movingSelection = None
         return
 
     def open(self):
