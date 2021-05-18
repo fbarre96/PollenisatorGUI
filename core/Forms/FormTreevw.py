@@ -243,7 +243,7 @@ class FormTreevw(Form):
             self.treevw.delete(selected)
         self.resetOddTags()
 
-    def addItem(self, parent, insertPos, iid, **kwargs):
+    def addItem(self, parent="", insertPos="0", iid=None, **kwargs):
         self.treevw.insert(parent, insertPos, iid, **kwargs)
         self.resetOddTags()
 
@@ -308,11 +308,14 @@ class FormTreevw(Form):
             item = self.treevw.item(child)
             if not item["values"]:
                 children_list = self.treevw.get_children(child)
-                for child_list in children_list:
-                    ret[item["text"]] = ret.get(item["text"], [])
-                    item_child_list = self.treevw.item(child_list)
-                    if item_child_list["values"]:
-                        ret[item["text"]].append(item_child_list["values"][0])
+                if children_list:
+                    for child_list in children_list:
+                        ret[item["text"]] = ret.get(item["text"], [])
+                        item_child_list = self.treevw.item(child_list)
+                        if item_child_list["values"]:
+                            ret[item["text"]].append(item_child_list["values"][0])
+                else:
+                    ret[item["text"]] = ""
             else:
                 ret[item["text"]] = item["values"]
         return ret

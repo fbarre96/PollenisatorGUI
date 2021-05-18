@@ -93,16 +93,24 @@ class ChildDialogConnect:
         self.ent_passwd.bind('<Return>', self.onOk)
         self.ent_passwd.grid(row=3, column=1)
         appFrame.pack(ipadx=10, ipady=10)
+        self.ent_login.focus_set()
+
         self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(pady=10)
         try:
             self.app.wait_visibility()
             self.app.transient(parent)
+            self.app.focus_force()
             self.app.grab_set()
+            self.app.lift()
+
         except tk.TclError:
             pass
-
+        appFrame.tkraise()
+        self.ent_login.focus_set()
+        appFrame.tkraise()
+        
     def getForm(self):
         """Return the content of this form
         Returns:

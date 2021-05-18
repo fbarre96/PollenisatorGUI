@@ -32,17 +32,25 @@ class ChildDialogCombo:
         if default is not None:
             self.box_template.set(default)
         self.box_template.pack(padx=10, pady=5)
+        self.box_template.focus_set()
         self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk)
+        self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(padx=10, pady=5)
         appFrame.pack(ipadx=10, ipady=5)
         try:
             self.app.wait_visibility()
             self.app.transient(parent)
             self.app.grab_set()
+            self.app.focus_force()
+            self.app.lift()
         except tk.TclError:
             pass
+        self.box_template.after(50, self.openCombo)
 
-    def onOk(self):
+    def openCombo(self):
+        self.box_template.event_generate('<Button-1>')
+
+    def onOk(self, event=""):
         """
         Called when the user clicked the validation button. Set the rvalue attributes to the value selected and close the window.
         """
