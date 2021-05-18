@@ -324,7 +324,7 @@ class Appli(ttk.Frame):
         else:
             self.onClosing()
             try:
-                parent.destroy()
+                self.parent.destroy()
             except tk.TclError:
                 pass
     

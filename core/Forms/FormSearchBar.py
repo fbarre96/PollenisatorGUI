@@ -55,7 +55,7 @@ class FormSearchBar(Form):
             self.combo_search.set(self.default)
         self.combo_search.grid(column=1, row=1)
         self.entry.bind('<Key-Return>', self.updateValues)
-        if self.getKw("autofocus", True):
+        if self.getKw("autofocus", False):
             self.entry.focus_set()
         if parent.gridLayout:
             frame.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), **self.kwargs)
@@ -93,11 +93,16 @@ class FormSearchBar(Form):
                     for subform_depth in subform.subforms:
                         if getattr(subform_depth, "subforms", None) is None:
                             if subform_depth.name.lower() in selected.keys():
-                                subform_depth.setValue(selected[subform_depth.name.lower()])
+                                if getattr(subform_depth, "addItem", None) is None:
+                                    subform_depth.setValue(selected[subform_depth.name.lower()])
+                                else:
+                                    subform_depth.addItem(text=selected[subform_depth.name.lower()])
                 else:
                     if subform.name.lower() in selected.keys():
-                        subform.setValue(selected[subform.name.lower()])
-
+                        if getattr(subform, "addItem", None) is None:
+                            subform.setValue(selected[subform.name.lower()])
+                        else:
+                            subform.addItem(text=selected[subform.name.lower()])
 
     def getValue(self):
         """

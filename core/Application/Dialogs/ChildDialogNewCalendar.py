@@ -6,7 +6,7 @@ from datetime import datetime
 from core.Forms.FormPanel import FormPanel
 from core.Views.ViewElement import ViewElement
 from core.Components.Settings import Settings
-
+from core.Components.apiclient import APIClient
 
 class ChildDialogNewCalendar:
     """
@@ -47,23 +47,31 @@ class ChildDialogNewCalendar:
             "Scope", "", default.get("scope", ""), height=5, column=1, sticky=tk.E, pady=5)
         form2.addFormHelper(
             "You can declare network ip as IP/MASKSIZE, ips or domains", column=2, sticky=tk.W)
-        form2.addFormLabel("Pentester names", row=1, sticky=tk.E)
-        form2.addFormText(
-            "Pentester names", "", default.get("pentesters", ""),  row=1, column=1, sticky=tk.W, height=3, pady=5)
         form3 = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
+        form3.addFormSearchBar("Pentester search", self.searchCallback, ["Pentester names"], side=tk.TOP)
+        form3.addFormLabel("Pentesters added", side=tk.LEFT)
+        form3.addFormTreevw(
+            "Pentester names", ("Pentesters", "added"), default.get("pentesters", []), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+        form4 = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         default_settings = []
         for key, val in default.get("settings", {}).items():
             if val == 1:
                 default_settings.append(key)
-        form3.addFormChecklist("Settings", ["Add domains whose IP are in scope",
+        form4.addFormChecklist("Settings", ["Add domains whose IP are in scope",
                                             "Add domains who have a parent domain in scope", "Add all domains found"], default_settings, side=tk.TOP, fill=tk.X, pady=5)
-        form3.addFormButton("Create", self.onOk, side=tk.BOTTOM)
+        form4.addFormButton("Create", self.onOk, side=tk.BOTTOM)
         self.form.constructView(mainFrame)
-        self.form.setFocusOn("Database name")
+        form1.setFocusOn("Database name")
         mainFrame.pack(fill=tk.BOTH, ipadx=10, ipady=10)
         self.app.transient(parent)
         self.app.wait_visibility()
         self.app.grab_set()
+
+    def searchCallback(self, searchreq):
+        apiclient = APIClient.getInstance()
+        users = apiclient.searchUsers(searchreq)
+        ret = [{"title":user, "pentester names":user} for user in users]
+        return ret
 
     def onOk(self, _event):
         """
@@ -77,13 +85,14 @@ class ChildDialogNewCalendar:
         if res:
             form_values = self.form.getValue()
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
+            print(form_values_as_dicts)
             self.rvalue = {"name": form_values_as_dicts["Database name"],
                            "type": form_values_as_dicts.get("Pentest type", ""),
                            "start": form_values_as_dicts["startd"],
                            "end": form_values_as_dicts["endd"],
                            "settings": form_values_as_dicts["Settings"],
                            "scope": form_values_as_dicts["Scope"],
-                           "pentesters": form_values_as_dicts["Pentester names"]}
+                           "pentesters": "\n".join([x for x in form_values_as_dicts["Pentester names"] if x != ""])}
             self.app.destroy()
         else:
             tk.messagebox.showwarning(
