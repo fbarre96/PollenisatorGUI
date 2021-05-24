@@ -19,9 +19,6 @@ class ChildDialogInfo:
             msg: Message to show to the user
         """
         self.app = tk.Toplevel(parent)
-        self.app.transient(parent)
-        self.app.wait_visibility()
-        self.app.grab_set()
         self.app.resizable(False, False)
         self.app.title(title)
         appFrame = ttk.Frame(self.app)
@@ -30,6 +27,14 @@ class ChildDialogInfo:
         lbl = ttk.Label(appFrame, text=msg)
         lbl.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         appFrame.pack(fill=tk.BOTH)
+        try:
+            self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.focus_force()
+            self.app.grab_set()
+            self.app.lift()
+        except tk.TclError:
+            pass
 
     def show(self):
         """Start displaying this window."""

@@ -45,10 +45,12 @@ class ChildDialogDefectView:
         cancel_button.pack(side="right", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)
         appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10)
-        self.app.transient(parent)
         try:
             self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.focus_force()
             self.app.grab_set()
+            self.app.lift()
         except tk.TclError:
             pass
 

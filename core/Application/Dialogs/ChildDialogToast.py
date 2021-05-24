@@ -49,6 +49,14 @@ class ChildDialogToast(tk.Toplevel):
         fadingTime = self.kwargs.get("fadingTime", 1.0)
         self.timer_fade = threading.Timer(fadingTime, self.fade)
         self.timer_fade.start()
+        try:
+            self.wait_visibility()
+            self.transient(self.parent)
+            self.focus_force()
+            self.grab_set()
+            self.lift()
+        except tk.TclError:
+            pass
 
     def fade(self):
         try:

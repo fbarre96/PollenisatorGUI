@@ -78,20 +78,24 @@ class ChildDialogConnect:
         self.ent_port.grid(row=1, column=1)
         self.img_indicator = ttk.Label(appFrame, image=self.waitingIcon())
         self.img_indicator.grid(row=1, column=2)
-        
+        self.var_https = tk.IntVar()
+        lbl_https = ttk.Label(appFrame, text="https: ")
+        lbl_https.grid(row=2, column=0)
+        self.check_https = ttk.Checkbutton(appFrame, variable=self.var_https, onvalue=True, offvalue=False, command=self.validateHost)
+        self.check_https.grid(row=2, column=1)
         self.validateHost()
         lbl_login = ttk.Label(appFrame, text="Login: ")
-        lbl_login.grid(row=2, column=0)
+        lbl_login.grid(row=3, column=0)
         self.ent_login = ttk.Entry(
             appFrame, width="20")
-        self.ent_login.grid(row=2, column=1)
+        self.ent_login.grid(row=3, column=1)
         lbl_passwd = ttk.Label(appFrame, text="Password: ")
-        lbl_passwd.grid(row=3, column=0)
+        lbl_passwd.grid(row=4, column=0)
         self.password = tk.StringVar() 
         self.ent_passwd = ttk.Entry(
             appFrame, width="20", show="*", textvariable = self.password)
         self.ent_passwd.bind('<Return>', self.onOk)
-        self.ent_passwd.grid(row=3, column=1)
+        self.ent_passwd.grid(row=4, column=1)
         appFrame.pack(ipadx=10, ipady=10)
         self.ent_login.focus_set()
 
@@ -119,6 +123,7 @@ class ChildDialogConnect:
         config = {}
         config["host"] = self.ent_hostname.get()
         config["port"] = self.ent_port.get()
+        config["https"] = self.var_https.get()
         return config
 
 

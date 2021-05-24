@@ -31,9 +31,14 @@ class ChildDialogExportSelection:
         self.rvalue = None
         self.form.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=10)
-        self.app.transient(parent)
-        self.app.wait_visibility()
-        self.app.grab_set()
+        try:
+            self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.focus_force()
+            self.app.grab_set()
+            self.app.lift()
+        except tk.TclError:
+            pass
 
     def onOk(self, _event=None):
         """Called the the Export button is pressed.
