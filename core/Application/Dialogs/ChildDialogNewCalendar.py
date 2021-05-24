@@ -51,7 +51,7 @@ class ChildDialogNewCalendar:
         form3.addFormSearchBar("Pentester search", self.searchCallback, ["Pentester names"], side=tk.TOP)
         form3.addFormLabel("Pentesters added", side=tk.LEFT)
         form3.addFormTreevw(
-            "Pentester names", ("Pentesters", "added"), default.get("pentesters", []), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+            "Additional pentesters names", ("Additional Pentesters", "added"), default.get("pentesters", [""]), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
         form4 = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         default_settings = []
         for key, val in default.get("settings", {}).items():
