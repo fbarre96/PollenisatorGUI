@@ -63,9 +63,14 @@ class ChildDialogNewCalendar:
         self.form.constructView(mainFrame)
         form1.setFocusOn("Database name")
         mainFrame.pack(fill=tk.BOTH, ipadx=10, ipady=10)
-        self.app.transient(parent)
-        self.app.wait_visibility()
-        self.app.grab_set()
+        try:
+            self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.focus_force()
+            self.app.grab_set()
+            self.app.lift()
+        except tk.TclError:
+            pass
 
     def searchCallback(self, searchreq):
         apiclient = APIClient.getInstance()

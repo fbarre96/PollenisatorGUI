@@ -38,7 +38,10 @@ class ChildDialogProgress:
         appFrame.pack(fill=tk.BOTH)
         try:
             self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.focus_force()
             self.app.grab_set()
+            self.app.lift()
         except tk.TclError:
             pass
 

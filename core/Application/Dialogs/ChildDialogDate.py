@@ -29,8 +29,14 @@ class ChildDialogDate:
         self.rvalue = None
         self.parent = parent
         self.appFrame.pack(expand=1, fill='both')
-        self.app.wait_visibility()
-        self.app.grab_set()
+        try:
+            self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.focus_force()
+            self.app.grab_set()
+            self.app.lift()
+        except tk.TclError:
+            pass
 
 
     def show(self):

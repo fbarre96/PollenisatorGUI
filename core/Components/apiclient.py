@@ -65,7 +65,14 @@ class APIClient():
         self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
 
     def tryConnection(self, config=cfg):
-        response = requests.get(self.api_url_base, headers=self.headers)
+        try:
+            http_proto = "https" if cfg.get("https", True) else "http"
+            host = config.get("host")
+            port = config.get("port")
+            self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
+            response = requests.get(self.api_url_base, headers=self.headers)
+        except requests.exceptions.RequestException as e:
+            return False
         return response.status_code == 200
     
     def reportError(self, err):
@@ -106,6 +113,11 @@ class APIClient():
         return response.status_code == 200
     
     def setCurrentPentest(self, newCurrentPentest):
+        if newCurrentPentest.strip() == "":
+            self.headers["Authorization"] = ""
+            self.scope = []
+            self.currentPentest = ""
+            return False
         api_url = '{0}login/{1}'.format(self.api_url_base, newCurrentPentest)
         response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
@@ -584,7 +596,10 @@ class APIClient():
 
     def getTemplateList(self):
         api_url = '{0}report/templates'.format(self.api_url_base)
-        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        try:
+            response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        except ConnectionError as e:
+            raise e
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return []

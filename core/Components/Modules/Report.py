@@ -31,7 +31,10 @@ class Report:
         """
         Constructor
         """
-        templates = APIClient.getInstance().getTemplateList()
+        try:
+            templates = APIClient.getInstance().getTemplateList()
+        except:
+            templates = []
         self.docx_models = [f for f in templates if f.endswith(".docx")]
         self.pptx_models = [f for f in templates if f.endswith(".pptx")]
         self.mainRedac = "N/A"
