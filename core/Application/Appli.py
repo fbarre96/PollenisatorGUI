@@ -757,7 +757,7 @@ class Appli(ttk.Frame):
         self.searchBar.quit()
         if tabName == "Commands":
             self.commandsTreevw.initUI()
-        if apiclient.getCurrentPentest() is None or apiclient.getCurrentPentest == "":
+        if apiclient.getCurrentPentest() is None or apiclient.getCurrentPentest() == "":
             opened = self.promptCalendarName()
             if opened is None:
                 return
