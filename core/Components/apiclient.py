@@ -233,7 +233,7 @@ class APIClient():
     def findInDb(self, pentest, collection, pipeline=None, multi=True):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}find/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder)).replace("'","\""), "many":multi}
+        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder)), "many":multi}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -249,7 +249,7 @@ class APIClient():
     def insertInDb(self, pentest, collection, pipeline=None, parent="", notify=False):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}insert/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder).replace("'","\""), "parent":parent, "notify":notify}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "parent":parent, "notify":notify}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -267,7 +267,7 @@ class APIClient():
     def updateInDb(self, pentest, collection, pipeline, updatePipeline, many=False, notify=False):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}update/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder).replace("'","\""), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -285,7 +285,7 @@ class APIClient():
     def deleteFromDb(self, pentest, collection, pipeline, many=False, notify=False):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}delete/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder).replace("'","\""), "many":many, "notify":notify}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "many":many, "notify":notify}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -305,7 +305,7 @@ class APIClient():
     def count(self, collection, pipeline=None):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}count/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), collection)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder).replace("'","\"")}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder)}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -315,7 +315,7 @@ class APIClient():
     def getWorkers(self, pipeline=None):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}workers'.format(self.api_url_base)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder).replace("'","\"")}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder)}
         response = requests.get(api_url, headers=self.headers, params=data)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -344,7 +344,7 @@ class APIClient():
             params={}
         else:
             api_url = '{0}settings/search'.format(self.api_url_base)
-            params = {"pipeline":json.dumps(pipeline, cls=JSONEncoder).replace("'","\"")}
+            params = {"pipeline":json.dumps(pipeline, cls=JSONEncoder)}
         response = requests.get(api_url, headers=self.headers, params=params)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
