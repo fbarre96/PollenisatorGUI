@@ -71,9 +71,9 @@ class FormSearchBar(Form):
         return "break"
     
     def updateValues(self, _event=None):
-        self._results = self.searchCallback(self.val.get())
+        self._results, err_msg = self.searchCallback(self.val.get())
         if self._results is None:
-            tkinter.messagebox.showinfo("SearchBar is not responding", "Error while searching. Check internet connection or request.")
+            tkinter.messagebox.showinfo("SearchBar is not responding", err_msg)
             self.combo_search['values'] = [self.val.get()]
             self.combo_search.set(self.val.get())
             return
