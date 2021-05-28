@@ -10,7 +10,7 @@ import tkinter.ttk as ttk
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from core.Components.Settings import Settings
-
+from core.Components.apiclient import APIClient
 from core.Components.Filter import Filter, ParseError
 from core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 
@@ -260,10 +260,23 @@ class PollenisatorTreeview(ttk.Treeview):
         self.wait_window(dialog.app)
         if dialog.rvalue != "Delete":
             return
-        for selected in self.selection():
-            view = self.getViewFromId(selected)
-            if view is not None:
-                view.delete(None, False)
+        if n == 1:
+            view = self.getViewFromId(self.selection()[0])
+            if view is None:
+                return
+            view.delete(None, False)
+        else:
+            toDelete = {}
+            for selected in self.selection():
+                view = self.getViewFromId(selected)
+                if view is not None:
+                    viewtype = view.controller.model.coll_name
+                    if viewtype not in toDelete:
+                        toDelete[viewtype] = []
+                    toDelete[viewtype].append(view.controller.getDbId())
+            apiclient = APIClient.getInstance()
+            apiclient.bulkDelete(toDelete)
+                
 
     def load(self, _event=None):
         """To be overriden

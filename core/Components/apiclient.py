@@ -281,6 +281,15 @@ class APIClient():
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
             return None
+
+    def bulkDelete(self, dictToDelete):
+        api_url = '{0}delete/{1}/bulk'.format(self.api_url_base, self.getCurrentPentest())
+        data = dictToDelete
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        else:
+            return None
         
     def deleteFromDb(self, pentest, collection, pipeline, many=False, notify=False):
         pipeline = {} if pipeline is None else pipeline
