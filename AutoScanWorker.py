@@ -17,7 +17,7 @@ from core.Models.Tool import Tool
 from core.Models.Command import Command
 
 
-def executeCommand(apiclient, toolId, parser=""):
+def executeCommand(apiclient, toolId, parser="", local=True):
     """
      remote task
     Execute the tool with the given toolId on the given calendar name.
@@ -40,11 +40,22 @@ def executeCommand(apiclient, toolId, parser=""):
     command_o = toolModel.getCommand()
     msg = ""
     ##
-    success, comm, fileext = apiclient.getCommandline(toolId, parser)
+    success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
     if not success:
         print(str(comm))
         toolModel.setStatus(["error"])
         return False, str(comm)
+    if local:
+        tools_infos = loadToolsConfig()
+        if plugin.strip() == "":
+            if toolModel.name not in list(tools_infos.keys()):
+                return "This tool has no plugin configured and no plugin was specified", 400
+        # Read file to execute for given tool and prepend to final command
+        if tools_infos.get(toolModel.name, None) is not None:
+            bin_path_local = tools_infos[toolModel.name].get("bin")
+            if bin_path_local is not None:
+                bin_path
+        comm.replace(bin_path_server, bin_path_local)
     outputRelDir = toolModel.getOutputDir(apiclient.getCurrentPentest())
     abs_path = os.path.dirname(os.path.abspath(__file__))
     toolFileName = toolModel.name+"_" + \

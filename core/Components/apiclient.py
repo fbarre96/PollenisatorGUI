@@ -483,8 +483,8 @@ class APIClient():
         response = requests.get(api_url, headers=self.headers, params={"plugin":parser}, proxies=proxies, verify=False)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            return True, data["comm"], data["ext"]
-        return False, response.content.decode('utf-8'), ""
+            return True, data["comm"], data["ext"], data["bin"]
+        return False, response.content.decode('utf-8'), "", ""
     
     def importToolResult(self, tool_iid, parser, local_path):
         api_url = '{0}tools/{1}/importResult/{2}'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)

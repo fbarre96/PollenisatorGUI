@@ -76,7 +76,7 @@ def main():
         tool.updateInfos({"args":args.execCmd})
         res, iid = tool.addInDb()
         if res:
-            slave.executeCommand(apiclient, str(iid), "auto-detect")
+            slave.executeCommand(apiclient, str(iid), "auto-detect", True)
         return
     print("""
 .__    ..              ,       

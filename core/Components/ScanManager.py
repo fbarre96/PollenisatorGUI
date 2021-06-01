@@ -264,7 +264,7 @@ class ScanManager:
         if worker == "" or worker == "localhost":
             thread = None
             thread = multiprocessing.Process(target=executeCommand, args=(
-                apiclient, str(launchableToolId), parser))
+                apiclient, str(launchableToolId), parser, True))
             thread.start()
             toolModel.markAsRunning(worker)
 
