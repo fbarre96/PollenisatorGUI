@@ -51,7 +51,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
         if tools_infos.get(toolModel.name, None) is not None:
             bin_path_local = tools_infos[toolModel.name].get("bin")
             if bin_path_local is not None:
-                comm.replace(bin_path_server, bin_path_local)
+                comm = comm.replace(bin_path_server, bin_path_local)
     outputRelDir = toolModel.getOutputDir(apiclient.getCurrentPentest())
     abs_path = os.path.dirname(os.path.abspath(__file__))
     toolFileName = toolModel.name+"_" + \
