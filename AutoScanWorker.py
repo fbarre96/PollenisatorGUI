@@ -71,7 +71,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
     outputDir = os.path.join(outputDir, toolFileName)
     comm = comm.replace("|outputDir|", outputDir)
     # Get tool's wave time limit searching the wave intervals
-    if toolModel.wave == "Custom commands":
+    if toolModel.wave == "Custom commands" or local:
         timeLimit = None
     else:
         timeLimit = getWaveTimeLimit(toolModel.wave)
