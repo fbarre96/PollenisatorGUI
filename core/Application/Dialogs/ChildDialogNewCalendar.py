@@ -92,14 +92,13 @@ class ChildDialogNewCalendar:
         if res:
             form_values = self.form.getValue()
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
-            print(form_values_as_dicts)
             self.rvalue = {"name": form_values_as_dicts["Database name"],
                            "type": form_values_as_dicts.get("Pentest type", ""),
                            "start": form_values_as_dicts["startd"],
                            "end": form_values_as_dicts["endd"],
                            "settings": form_values_as_dicts["Settings"],
                            "scope": form_values_as_dicts["Scope"],
-                           "pentesters": "\n".join([x for x in form_values_as_dicts["Pentester names"] if x != ""])}
+                           "pentesters": "\n".join([x for x in form_values_as_dicts["Additional pentesters names"] if x != ""])}
             self.app.destroy()
         else:
             tk.messagebox.showwarning(
