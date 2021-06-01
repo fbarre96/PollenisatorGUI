@@ -53,6 +53,7 @@ class DefectController(ControllerElement):
         impact = values["Impact"]
         redactor = values["Redactor"]
         mtype_dict = values["Type"]
+        risk = values["Risk"]
         mtype = [k for k, v in mtype_dict.items() if v == 1]
         ip = values["ip"]
         port = values.get("port", None)
@@ -64,7 +65,8 @@ class DefectController(ControllerElement):
                              "Modérée": {"Mineur": "Important", "Important": "Important", "Majeur": "Majeur", "Critique": "Critique"},
                              "Difficile": {"Mineur": "Mineur", "Important": "Important", "Majeur": "Majeur", "Critique": "Majeur"},
                              "Très difficile": {"Mineur": "Mineur", "Important": "Mineur", "Majeur": "Important", "Critique": "Important"}}
-        risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
+        if risk == "" or risk == "N/A":
+            risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
         self.model.initialize(ip, port, proto, title, ease,
                               impact, risk, redactor, mtype, notes, proofs)
         ret, _ = self.model.addInDb()
