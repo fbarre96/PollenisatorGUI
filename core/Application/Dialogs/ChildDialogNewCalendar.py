@@ -75,8 +75,10 @@ class ChildDialogNewCalendar:
     def searchCallback(self, searchreq):
         apiclient = APIClient.getInstance()
         users = apiclient.searchUsers(searchreq)
+        if users is None:
+            return [], "Invalid response from API"
         ret = [{"title":user, "pentester names":user} for user in users]
-        return ret
+        return ret, ""
 
     def onOk(self, _event):
         """
