@@ -47,9 +47,6 @@ def executeCommand(apiclient, toolId, parser="", local=True):
         return False, str(comm)
     if local:
         tools_infos = Utils.loadToolsConfig()
-        if plugin.strip() == "":
-            if toolModel.name not in list(tools_infos.keys()):
-                return "This tool has no plugin configured and no plugin was specified", 400
         # Read file to execute for given tool and prepend to final command
         if tools_infos.get(toolModel.name, None) is not None:
             bin_path_local = tools_infos[toolModel.name].get("bin")
