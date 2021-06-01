@@ -46,7 +46,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
         toolModel.setStatus(["error"])
         return False, str(comm)
     if local:
-        tools_infos = loadToolsConfig()
+        tools_infos = Utils.loadToolsConfig()
         if plugin.strip() == "":
             if toolModel.name not in list(tools_infos.keys()):
                 return "This tool has no plugin configured and no plugin was specified", 400
