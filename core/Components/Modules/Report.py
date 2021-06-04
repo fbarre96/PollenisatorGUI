@@ -17,7 +17,10 @@ from core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
+from core.Application.Dialogs.ChildDialogRemarkView import ChildDialogRemarkView
 from core.Forms.FormHelper import FormHelper
+from core.Models.Remark import Remark	
+from core.Views.RemarkView import RemarkView
 
 class Report:
     """
@@ -122,17 +125,48 @@ class Report:
         if self.parent is not None:  # Already initialized
             self.reset()
             self.fillWithDefects()
+            self.fillWithRemarks()
             return
         self.parent = parent
         ### MAIN PAGE FRAME ###
-        self.reportFrame = ttk.LabelFrame(parent, text="Defects table")
-        self.paned = tk.PanedWindow(self.reportFrame, orient=tk.VERTICAL, height=800)
+        self.reportFrame = ttk.Frame(parent)
+
         ### DEFECT TABLE ###
         self.rowHeight = 20
         self.style = ttk.Style()
         self.style.configure('Report.Treeview', rowheight=self.rowHeight)
+        # REMARK TREEVW	
+        self.remarksFrame = ttk.LabelFrame(self.reportFrame, text="Remarks table")	
+        self.paned_remarks = tk.PanedWindow(self.remarksFrame, orient=tk.VERTICAL, height=900)	
+        self.remarkframeTw = ttk.Frame(self.paned_remarks)	
+        self.remarks_treevw = ttk.Treeview(self.remarkframeTw, style='Report.Treeview', height=0)	
+        self.remarks_treevw["columns"] = ["Title", "Type"]	
+        self.remarks_treevw.heading("#0", text='Title', anchor=tk.W)	
+        self.remarks_treevw.column("#0", width=150, anchor=tk.W)	
+        self.remarks_treevw.bind("<Delete>", self.deleteSelectedRemarkItem)	
+        
+        self.remarks_treevw.grid(row=0, column=0, sticky=tk.NSEW)	
+        scbVSel = ttk.Scrollbar(self.remarkframeTw,	
+                                orient=tk.VERTICAL,	
+                                command=self.remarks_treevw.yview)	
+        self.remarks_treevw.configure(yscrollcommand=scbVSel.set)	
+        scbVSel.grid(row=0, column=1, sticky=tk.NS)	
+        self.remarkframeTw.columnconfigure(0, weight=1)	
+        self.remarkframeTw.rowconfigure(0, weight=1)	
+        self.remarkframeTw.pack(side=tk.TOP, fill=tk.BOTH, pady=5, expand=1, padx=5)	
+        frameAllBelow = ttk.Frame(self.paned_remarks)	
+        frameBtnRemarks = ttk.Frame(frameAllBelow)	
+        btn_addRemark = ttk.Button(	
+            frameBtnRemarks, text="Add remark", command=self.addRemarkCallback)	
+        btn_addRemark.pack(side=tk.TOP, pady=5)	
+        frameBtnRemarks.pack(side=tk.TOP)	
+            
+        # DEFECT TREEVW	
+        defectLabelFrame = ttk.LabelFrame(frameAllBelow, text="Defects table")	
+        self.paned = tk.PanedWindow(defectLabelFrame, orient=tk.VERTICAL, height=800)
+
         self.frameTw = ttk.Frame(self.paned)
-        self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0,selectmode='none')
+        self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0)
         self.treevw['columns'] = ('ease', 'impact', 'risk', 'type', 'redactor')
         self.treevw.heading("#0", text='Title', anchor=tk.W)
         self.treevw.column("#0", anchor=tk.W, width=150)
@@ -165,7 +199,7 @@ class Report:
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
-        self.frameTw.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
+        self.frameTw.pack(side=tk.TOP, fill=tk.BOTH, padx=5, pady=10)
         self.frameTw.columnconfigure(0, weight=1)
         self.frameTw.rowconfigure(0, weight=1)
         ### OFFICE EXPORT FRAME ###
@@ -176,9 +210,12 @@ class Report:
         btn_addDefect = ttk.Button(
             frameBtn, text="Add a security defect", command=self.addDefectCallback)
         btn_addDefect.pack(side=tk.RIGHT, padx=5)
+        btn_browseDefects = ttk.Button(	
+	            frameBtn, text="Browse defects", command=self.browseDefectsCallback)	
+        btn_browseDefects.pack(side=tk.RIGHT, padx=5)
         btn_setMainRedactor = ttk.Button(
             frameBtn, text="Set main redactor", command=self.setMainRedactor)
-        btn_setMainRedactor.pack(side=tk.RIGHT)
+        btn_setMainRedactor.pack(side=tk.RIGHT, padx=5)
         frameBtn.pack(side=tk.TOP, pady=5)
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###
@@ -221,13 +258,21 @@ class Report:
         btn_ppt = ttk.Button(
             templatesFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint, width=30)
         btn_ppt.grid(row=1, column=3, sticky=tk.E)
-        templatesFrame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
+        templatesFrame.pack(side=tk.TOP, fill=tk.X, pady=10)
         officeFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)
+        belowFrame.pack(side=tk.TOP, fill=tk.BOTH)
         self.paned.add(self.frameTw)
         self.paned.add(belowFrame)
         self.paned.pack(fill=tk.BOTH, expand=1)
-        self.reportFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10)
+        defectLabelFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)	
+        frameAllBelow.pack(side=tk.TOP, fill=tk.BOTH)
+        self.paned_remarks.add(self.remarkframeTw)	
+        self.paned_remarks.add(frameAllBelow)	
+        self.paned_remarks.pack(fill=tk.BOTH, expand=1)	
+        self.remarksFrame.pack(side=tk.TOP, fill=tk.BOTH)
+        self.reportFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10, expand=1)
         self.fillWithDefects()
+        self.fillWithRemarks()
 
     def bDown(self, event):
         tv = event.widget
@@ -253,13 +298,19 @@ class Report:
         for s in tv.selection():
             tv.move(s, '', moveto)
             
-
     def reset(self):
         """
         reset defect treeview by deleting every item inside.
         """
         for item in self.treevw.get_children():
             self.treevw.delete(item)
+
+    def reset_remarks(self):	
+        """	
+        reset defect treeview by deleting every item inside.	
+        """	
+        for item in self.remarks_treevw.get_children():	
+            self.remarks_treevw.delete(item)
 
     def deleteSelectedItem(self, _event=None):
         """
@@ -269,6 +320,18 @@ class Report:
         """
         selected = self.treevw.selection()[0]
         self.removeItem(selected)
+
+    def deleteSelectedRemarkItem(self, _event=None):	
+        """	
+        Remove selected remark from treeview	
+        Args:	
+            _event: not used but mandatory	
+        """	
+        selected = self.remarks_treevw.selection()[0]	
+        self.remarks_treevw.delete(selected)	
+        remark = Remark.fetchObject({"title":selected})	
+        remark.delete()	
+        self.resizeDefectTreeview()
 
     def removeItem(self, toDeleteIid):
         """
@@ -291,11 +354,37 @@ class Report:
             defectToDelete.delete()
             self.resizeDefectTreeview()
 
+    def removeRemarkItem(self, toDeleteIid):	
+        """	
+        Remove remark from given iid in defect treeview	
+        Args:	
+            toDeleteIid: database ID of defect to delete	
+        """	
+        item = self.remarks_treevw.item(toDeleteIid)	
+        dialog = ChildDialogQuestion(self.parent,	
+                                        "DELETE WARNING", "Are you sure you want to delete remark "+str(item["text"])+" ?", ["Delete", "Cancel"])	
+        self.parent.wait_window(dialog.app)	
+        if dialog.rvalue != "Delete":	
+            return	
+        self.remarks_treevw.delete(toDeleteIid)	
+        remarkToDelete = Remark.fetchObject({"title": item["text"]})	
+        if remarkToDelete is not None:	
+            remarkToDelete.delete()	
+            self.resizeRemarkTreeview()
 
     def addDefectCallback(self):
         """Open an insert defect view form in a child window"""
         dialog = ChildDialogDefectView(self.parent, self.settings)
         self.parent.wait_window(dialog.app)
+
+    def browseDefectsCallback(self):	
+        """Open an multiview insert defect view form in a child window"""	
+        dialog = ChildDialogDefectView(self.parent, self.settings, None, True)	
+        self.parent.wait_window(dialog.app)	
+		
+    def addRemarkCallback(self):	
+        """Open an insert defect view form in a child window"""	
+        dialog = ChildDialogRemarkView(self.parent)
 
     def setMainRedactor(self):
         """Sets a main redactor for a pentest. Each not assigned defect will be assigned to him/her"""
@@ -337,11 +426,10 @@ class Report:
         newValues[columnRisk] = defect_m.risk
         newValues[columnType] = ", ".join(defect_m.mtype)
         newValues[columnRedactor] = defect_m.redactor
-
-        self.treevw.item(defect_m.getId(), text=defect_m.title,
-                         tags=(newRisk), values=newValues)
-        self.treevw.move(str(defect_m.getId()), '',
-                            int(defect_m.index))
+        self.treevw.item(defect_m.getId(), text=defect_m.title, tags=(newRisk), values=newValues)
+        if oldRisk != newRisk:	
+            self.treevw.move(defect_m.getId(), '',	
+                            self.findInsertIndex(defect_m))
 
     def OnDoubleClick(self, event):
         """
@@ -365,7 +453,33 @@ class Report:
         for line in Defect.getDefectTable():
             self.addDefect(Defect(line))
 
+    def fillWithRemarks(self):	
+        """	
+        Fetch remarks and fill the remarks table with them.	
+        """	
+        remarks = Remark.fetchObjects({})	
+        for remark in remarks:	
+            self.addRemark(remark)
     
+    def addRemark(self, remark_o):	
+        type_of_remark = remark_o.type	
+        already_inserted = False	
+        already_inserted_iid = None	
+        children = self.remarks_treevw.get_children()	
+        for child in children:	
+            title = self.remarks_treevw.item(child)["text"]	
+            if title == remark_o.title:	
+                break	
+        if not already_inserted:	
+            try:	
+                self.remarks_treevw.insert('', 'end', remark_o.title, values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))	
+            except tk.TclError:	
+                # The defect already exists	
+                pass	
+        self.resizeRemarkTreeview()	
+                    
+	
+	
     def addDefect(self, defect_o):
         """
         Add the given defect object in the treeview
@@ -414,6 +528,14 @@ class Report:
             sx, sy = self.paned.sash_coord(0)
             if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:
                 self.paned.paneconfigure(self.frameTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
+    
+    def resizeRemarkTreeview(self):	
+        currentHeight = len(self.remarks_treevw.get_children())	
+        if currentHeight <= 5:	
+            self.remarks_treevw.config(height=currentHeight)	
+            sx, sy = self.paned_remarks.sash_coord(0)	
+            if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:	
+                self.paned_remarks.paneconfigure(self.remarkframeTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
 
     def generateReportPowerpoint(self):
         if self.ent_client.get().strip() == "":
@@ -514,3 +636,10 @@ class Report:
             if collection == "defects":
                 defect_m = Defect.fetchObject({"_id":ObjectId(iid)})
                 self.updateDefectInTreevw(defect_m, )
+        elif action == "insert":	
+            view = None	
+            res = Defect.fetchObject({"_id": ObjectId(iid)})	
+            # Defect insertion takes place in calendarTreeview,	
+            # Remarks don't appear in the treeview, only in this module, so must notify here	
+            if collection == "remarks":	
+                self.addRemark(Remark.fetchObject({"_id":ObjectId(iid)}))

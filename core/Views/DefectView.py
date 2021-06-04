@@ -5,6 +5,8 @@ import tkinter as tk
 from core.Views.ViewElement import ViewElement
 from core.Models.Defect import Defect
 import core.Components.Utils as Utils
+from core.Components.apiclient import APIClient
+from PIL import ImageTk, Image
 from shutil import which
 import os
 import sys
@@ -43,6 +45,8 @@ class DefectView(ViewElement):
         settings = self.mainApp.settings
         settings.reloadSettings()
         modelData = self.controller.getData()
+        self.form.addFormSearchBar("Search Defect", APIClient.searchDefect, [
+            "Title", "Ease", "Impact", "Type"])
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Title")
         topPanel.addFormStr("Title", r".+", "", column=1, width=50)
@@ -84,6 +88,49 @@ class DefectView(ViewElement):
         else:
             self.showForm()
 
+    def openMultiInsertWindow(self, addButtons=True):
+        """
+        Creates a tkinter form using Forms classes. This form aims to insert many Defects
+        Args:
+            addButtons: boolean value indicating that insertion buttons should be visible. Default to True
+        """
+        settings = self.mainApp.settings
+        settings.reloadSettings()
+        results, msg = APIClient.searchDefect("")
+        default_values = {}
+        
+        if results is not None:
+            for result in results:
+                if result is not None:
+                    default_values[result["title"]] = result["risk"]
+            self.browse_top_treevw = self.form.addFormTreevw("Defects", ("Title", "Risk"),
+                                default_values, side="top", fill="both", width=400, height=8, status="readonly")
+        self.buttonUpImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'up-arrow.png'))
+        self.buttonDownImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'down-arrow.png'))
+        # use self.buttonPhoto
+        buttonPan = self.form.addFormPanel(side="top", anchor="center", fill="none")
+        btn_down = buttonPan.addFormButton("V", self.moveDownMultiTreeview, side="left", anchor="center", image=self.buttonDownImage)
+        btn_down = buttonPan.addFormButton("Î", self.moveUpMultiTreeview, side="right", anchor="center", image=self.buttonUpImage)
+        default_values = {}
+        self.browse_down_treevw = self.form.addFormTreevw("Defects", ("Title", "Risk"),
+                            default_values, side="bottom", fill="both", width=400, height=8, status="readonly")
+        if addButtons:
+            self.completeInsertWindow()
+        else:
+            self.showForm()
+
+    def moveDownMultiTreeview(self, _event):
+        iid = self.browse_top_treevw.selection()[0]
+        item = self.browse_top_treevw.item(iid)
+        self.browse_down_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
+        self.browse_top_treevw.deleteItem()
+
+    def moveUpMultiTreeview(self, _event):
+        iid = self.browse_down_treevw.selection()[0]
+        item = self.browse_down_treevw.item(iid)
+        self.browse_top_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
+        self.browse_down_treevw.deleteItem()
+
     def openModifyWindow(self, addButtons=True):
         """
         Creates a tkinter form using Forms classes.
@@ -109,6 +156,9 @@ class DefectView(ViewElement):
                 topPanel.addFormStr(
                     "Port", '', port_str, None, column=1, row=row, state="readonly")
                 row += 1
+        topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, [
+            "Title", "Ease", "Impact", "Type"], row=row, column=1, autofocus=False)
+        row += 1
         topPanel.addFormLabel("Title", row=row, column=0)
         topPanel.addFormStr(
             "Title", ".+", modelData["title"], width=50, row=row, column=1)
@@ -223,6 +273,19 @@ class DefectView(ViewElement):
             widget.destroy()
         self.openModifyWindow()
 
+    def beforeDelete(self, iid=None):
+        """Called before defect deletion.
+        Will attempt to remove this defect from global defect table.
+        Args:
+            iid: the mongo ID of the deleted defect
+        """
+        if iid is None:
+            if self.controller is not None:
+                iid = self.controller.getDbId()
+        if iid is not None:
+            for module in self.mainApp.modules:
+                if callable(getattr(module["object"], "removeItem", None)):
+                    module["object"].removeItem(iid)
     def addInTreeview(self, parentNode=None, _addChildren=True):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
@@ -276,6 +339,19 @@ class DefectView(ViewElement):
             the parent object mongo id as string
         """
         return str(treeviewId).split("|")[0]
+
+    def multi_insert(self):
+        values = self.browse_down_treevw.getValue()
+        for title in values:
+            results, msg = APIClient.searchDefect(title)
+            if results is not None:
+                result = results[0]
+                d_o = Defect()
+                types = result["type"].split(",")
+                d_o.initialize("", "", "", result["title"],
+                            result["ease"], result["impact"], result["risk"], "N/A", types)
+                d_o.addInDb()
+        return True
 
     def insertReceived(self):
         """Called when a defect insertion is received by notification.
