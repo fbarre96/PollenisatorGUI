@@ -1,46 +1,36 @@
-"""This class pop a defect view form in a subdialog"""
+"""This class pop a remark view form in a subdialog"""
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from core.Views.DefectView import DefectView
-from core.Controllers.DefectController import DefectController
-from core.Models.Defect import Defect
+from core.Views.RemarkView import RemarkView
+from core.Controllers.RemarkController import RemarkController
+from core.Models.Remark import Remark
 
-class DummyMainApp:
-    def __init__(self, settings):
-        self.settings = settings
 
-class ChildDialogDefectView:
+class ChildDialogRemarkView:
     """
     Open a child dialog of a tkinter application to answer a question.
     """
-    def __init__(self, parent, settings, defectModel=None, multi=False):
+    def __init__(self, parent, remarkModel=None):
         """
-        Open a child dialog of a tkinter application to choose autoscan settings.
 
         Args:
             parent: the tkinter parent view to use for this window construction.
-            defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
+            remarkModel : A Remark Model object to load default values. None to have empty fields, default is None.
         """
         self.app = tk.Toplevel(parent)
-        self.app.title("Add a security defect")
+        self.app.title("Add a remark")
         self.app.resizable(False, False)
         self.rvalue = None
         appFrame = ttk.Frame(self.app)
-        self.isInsert = defectModel is None
-        self.multi = multi
+        self.isInsert = remarkModel is None
         if self.isInsert:
-            defectModel = Defect()
-
-        self.defect_vw = DefectView(None, appFrame, DummyMainApp(settings),
-                                    DefectController(defectModel))
+            remarkModel = Remark()
+        self.remark_vw = RemarkView(appFrame, RemarkController(remarkModel))
         if self.isInsert:
-            if multi:
-                self.defect_vw.openMultiInsertWindow(addButtons=False)
-            else:
-                self.defect_vw.openInsertWindow(addButtons=False)
+            self.remark_vw.openInsertWindow(addButtons=False)
         else:
-            self.defect_vw.openModifyWindow(addButtons=False)
+            self.remark_vw.openModifyWindow(addButtons=False)
 
         ok_button = ttk.Button(appFrame, text="OK")
         ok_button.pack(side="right", padx=5, pady=10)
@@ -70,17 +60,14 @@ class ChildDialogDefectView:
     def okCallback(self, _event=None):
         """called when pressing the validating button
         Close the window if the form is valid.
-        Set rvalue to True and perform the defect update/insert if validated.
+        Set rvalue to True and perform the remark update/insert if validated.
         Args:
             _event: Not used but mandatory"""
         
         if self.isInsert:
-            if self.multi:
-                res = self.defect_vw.multi_insert()
-            else:
-                res, _ = self.defect_vw.insert()
+            res, _ = self.remark_vw.insert()
         else:
-            res, _ = self.defect_vw.update()
+            res, _ = self.remark_vw.update()
         if res:
             self.rvalue = True
             self.app.destroy()
