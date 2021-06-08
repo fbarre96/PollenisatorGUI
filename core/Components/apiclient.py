@@ -17,9 +17,9 @@ config_dir = os.path.join(dir_path, "./../../config/")
 if not os.path.isfile(os.path.join(config_dir, "client.cfg")):
     if os.path.isfile(os.path.join(config_dir, "clientSample.cfg")):
         copyfile(os.path.join(config_dir, "clientSample.cfg"), os.path.join(config_dir, "client.cfg"))
-
-if os.path.isfile(os.path.join(config_dir, "client.cfg")):
-    cfg = Utils.loadCfg(os.path.join(config_dir, "client.cfg"))
+configClientPath = os.path.join(config_dir, "client.cfg")
+if os.path.isfile(configClientPath):
+    cfg = Utils.loadCfg(configClientPath)
 else:
     print("No client config file found under "+str(config_dir))
     sys.exit(1)
@@ -88,7 +88,12 @@ class APIClient():
         http_proto = "https" if cfg.get("https", True) else "http"
         self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
 
-    def tryConnection(self, config=cfg):
+    def tryConnection(self, config=None):
+        if config is None:
+            if os.path.isfile(configClientPath):
+                config = Utils.loadCfg(configClientPath)
+        if config is None:
+            raise FileNotFoundError(str(configClientPath)+" does not exist")
         try:
             http_proto = "https" if cfg.get("https", True) else "http"
             host = config.get("host")
