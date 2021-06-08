@@ -157,6 +157,8 @@ class Summary:
         for ipCIDR in nonEmptyIps:
             step += 1
             ip = Ip.fetchObject({"ip": ipCIDR["_id"]})
+            if ip is None:
+                continue
             if ip.in_scopes:
                 dialog.update(step)
                 self.insertIp(ip.ip)
