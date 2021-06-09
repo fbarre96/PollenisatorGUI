@@ -48,10 +48,10 @@ class ChildDialogNewCalendar:
         form2.addFormHelper(
             "You can declare network ip as IP/MASKSIZE, ips or domains", column=2, sticky=tk.W)
         form3 = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-        form3.addFormSearchBar("Pentester search", self.searchCallback, ["Pentester names"], side=tk.TOP)
+        form3.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
         form3.addFormLabel("Pentesters added", side=tk.LEFT)
         form3.addFormTreevw(
-            "Additional pentesters names", ("Additional Pentesters", "added"), default.get("pentesters", [""]), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+            "Additional pentesters names", ("Additional pentesters names", "added"), default.get("pentesters", [""]), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
         form4 = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         default_settings = []
         for key, val in default.get("settings", {}).items():
@@ -77,7 +77,7 @@ class ChildDialogNewCalendar:
         users = apiclient.searchUsers(searchreq)
         if users is None:
             return [], "Invalid response from API"
-        ret = [{"title":user, "pentester names":user} for user in users]
+        ret = [{"title":user, "additional pentesters names":user} for user in users]
         return ret, ""
 
     def onOk(self, _event):

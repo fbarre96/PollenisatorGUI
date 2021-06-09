@@ -11,7 +11,7 @@ from shutil import copyfile
 from jose import jwt, JWTError
 
 proxies = {"http":"http://127.0.0.1:8080", "https":"https://127.0.0.1:8080"}
-proxies = {}
+#proxies = {}
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
 config_dir = os.path.join(dir_path, "./../../config/")
 if not os.path.isfile(os.path.join(config_dir, "client.cfg")):
