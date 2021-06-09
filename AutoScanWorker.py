@@ -76,7 +76,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
     else:
         timeLimit = getWaveTimeLimit(toolModel.wave)
     # adjust timeLimit if the command has a lower timeout
-    if command_o is not None:
+    if command_o is not None and timeLimit is not None:
         timeLimit = min(datetime.now()+timedelta(0, int(command_o.get("timeout", 0))), timeLimit)
     ##
     try:

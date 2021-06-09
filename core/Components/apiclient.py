@@ -11,7 +11,7 @@ from shutil import copyfile
 from jose import jwt, JWTError
 
 proxies = {"http":"http://127.0.0.1:8080", "https":"https://127.0.0.1:8080"}
-#proxies = {}
+proxies = {}
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
 config_dir = os.path.join(dir_path, "./../../config/")
 if not os.path.isfile(os.path.join(config_dir, "client.cfg")):
@@ -314,7 +314,7 @@ class APIClient():
     def bulkDelete(self, dictToDelete):
         api_url = '{0}delete/{1}/bulk'.format(self.api_url_base, self.getCurrentPentest())
         data = dictToDelete
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), verify=False, proxies=proxies)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
