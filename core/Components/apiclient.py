@@ -99,7 +99,7 @@ class APIClient():
             host = config.get("host")
             port = config.get("port")
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
-            response = requests.get(self.api_url_base, headers=self.headers)
+            response = requests.get(self.api_url_base, headers=self.headers, proxies=proxies, verify=False)
         except requests.exceptions.RequestException as e:
             return False
         return response.status_code == 200
@@ -167,7 +167,7 @@ class APIClient():
 
     def unregisterWorker(self, worker_name):
         api_url = '{0}workers/{1}/unregister'.format(self.api_url_base, worker_name)
-        response = requests.post(api_url, headers=self.headers)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -176,7 +176,7 @@ class APIClient():
     def setWorkerInclusion(self, worker_name, setInclusion):
         api_url = '{0}workers/{1}/setInclusion'.format(self.api_url_base, worker_name)
         data = {"db":self.getCurrentPentest(), "setInclusion":setInclusion}
-        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -184,7 +184,7 @@ class APIClient():
 
     def getRegisteredCommands(self, workerName):
         api_url = '{0}workers/{1}/getRegisteredCommands'.format(self.api_url_base, workerName)
-        response = requests.get(api_url, headers=self.headers)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -224,7 +224,7 @@ class APIClient():
 
     def fetchNotifications(self, pentest, fromTime):
         api_url = '{0}notification/{1}'.format(self.api_url_base, pentest)
-        response = requests.get(api_url, headers=self.headers, params={"fromTime":fromTime})
+        response = requests.get(api_url, headers=self.headers, params={"fromTime":fromTime}, proxies=proxies, verify=False)
         if response.status_code == 200:
             notifications = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return notifications
@@ -233,7 +233,7 @@ class APIClient():
 
     def getPentestList(self):
         api_url = '{0}pentests'.format(self.api_url_base)
-        response = requests.get(api_url, headers=self.headers)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -241,7 +241,7 @@ class APIClient():
     
     def doDeletePentest(self, pentest):
         api_url = '{0}pentest/{1}/delete'.format(self.api_url_base, pentest)
-        response = requests.delete(api_url, headers=self.headers)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -279,7 +279,7 @@ class APIClient():
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}insert/{1}/{2}'.format(self.api_url_base, pentest, collection)
         data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "parent":parent, "notify":notify}
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -297,7 +297,7 @@ class APIClient():
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}update/{1}/{2}'.format(self.api_url_base, pentest, collection)
         data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify}
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -305,7 +305,7 @@ class APIClient():
 
     def delete(self, collection, iid):
         api_url = '{0}{1}/{2}/{3}'.format(self.api_url_base, collection, self.getCurrentPentest(), iid)
-        response = requests.delete(api_url, headers=self.headers)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -324,7 +324,7 @@ class APIClient():
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}delete/{1}/{2}'.format(self.api_url_base, pentest, collection)
         data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "many":many, "notify":notify}
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -334,7 +334,7 @@ class APIClient():
         pipelines = [] if pipelines is None else pipelines
         api_url = '{0}aggregate/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), collection)
         data = pipelines
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -344,7 +344,7 @@ class APIClient():
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}count/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), collection)
         data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder)}
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -354,7 +354,7 @@ class APIClient():
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}workers'.format(self.api_url_base)
         data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder)}
-        response = requests.get(api_url, headers=self.headers, params=data)
+        response = requests.get(api_url, headers=self.headers, params=data, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code == 204:
@@ -370,7 +370,7 @@ class APIClient():
     def sendEditToolConfig(self, worker, command_name, remote_bin, plugin):
         api_url = '{0}workers/{1}/setCommandConfig'.format(self.api_url_base, worker)
         data = {"command_name":command_name, "remote_bin":remote_bin, "plugin":plugin}
-        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -383,7 +383,7 @@ class APIClient():
         else:
             api_url = '{0}settings/search'.format(self.api_url_base)
             params = {"pipeline":json.dumps(pipeline, cls=JSONEncoder)}
-        response = requests.get(api_url, headers=self.headers, params=params)
+        response = requests.get(api_url, headers=self.headers, params=params, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code == 404:
@@ -394,7 +394,7 @@ class APIClient():
     def createSetting(self, key, value):
         api_url = '{0}settings/add'.format(self.api_url_base)
         data = {"key":key, "value":json.dumps(value)}
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -403,7 +403,7 @@ class APIClient():
     def updateSetting(self, key, value):
         api_url = '{0}settings/update'.format(self.api_url_base)
         data = {"key":key, "value":json.dumps(value)}
-        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         else:
@@ -447,7 +447,7 @@ class APIClient():
 
     def listProofs(self, defect_iid):
         api_url = '{0}files/{1}/download/proof/{2}'.format(self.api_url_base, self.getCurrentPentest(), defect_iid)
-        response = requests.get(api_url, headers=self.headers)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return []
@@ -500,7 +500,7 @@ class APIClient():
         """Remove file affiliated with given iid 
         """
         api_url = '{0}files/{1}/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), defect_iid, filename)
-        response = requests.delete(api_url, headers=self.headers)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return None
