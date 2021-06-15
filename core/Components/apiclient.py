@@ -95,7 +95,8 @@ class APIClient():
         if config is None:
             raise FileNotFoundError(str(configClientPath)+" does not exist")
         try:
-            http_proto = "https" if cfg.get("https", True) else "http"
+            is_https = config.get("https", True)
+            http_proto = "https" if str(is_https).lower() == "true" or is_https == 1 else "http"
             host = config.get("host")
             port = config.get("port")
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
