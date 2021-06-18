@@ -42,5 +42,5 @@ class Terminal:
             else:
                 tkinter.messagebox.showerror("Terminal settings invalid", "Check your terminal settings")
         else:
-            tkinter.messagebox.showerror("Terminal settings invalid", "The selected favorite terminal is not available on this computer.")
+            tkinter.messagebox.showerror("Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
         return False
