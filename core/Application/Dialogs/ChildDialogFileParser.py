@@ -3,7 +3,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import io
 import os
-from core.Components.Utils import listPlugin
 from core.Components.apiclient import APIClient
 from core.Forms.FormPanel import FormPanel
 from core.Views.ViewElement import ViewElement
@@ -31,6 +30,7 @@ class ChildDialogFileParser:
         self.rvalue = None
         self.parent = parent
         appFrame = ttk.Frame(self.app)
+        apiclient = APIClient.getInstance()
         self.form = FormPanel()
         self.form.addFormLabel(
             "Import one file or choose a directory", "", side=tk.TOP)
@@ -38,7 +38,7 @@ class ChildDialogFileParser:
                               side=tk.TOP, mode="file|directory")
         self.form.addFormLabel("Plugins", side=tk.TOP)
         self.form.addFormCombo(
-            "Plugin", ["auto-detect"]+listPlugin(), "auto-detect", side=tk.TOP)
+            "Plugin", ["auto-detect"]+apiclient.getPlugins(), "auto-detect", side=tk.TOP)
         self.form.addFormButton("Parse", self.onOk, side=tk.TOP)
 
         self.form.constructView(appFrame)

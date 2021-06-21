@@ -2,7 +2,7 @@
 
 from core.Components.apiclient import APIClient
 from bson.objectid import ObjectId
-from core.Components.Settings import Settings
+import core.Components.Settings as Settings
 
 class Element(object):
     """
@@ -130,7 +130,7 @@ class Element(object):
         Returns:
             List of list of strings
         """
-        tags = Settings.getTags()
+        tags = Settings.Settings.getTags()
         return [tags, ["hidden"]]
 
     def addTag(self, newTag, overrideGroupe=True):

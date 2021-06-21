@@ -4,7 +4,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from core.Forms.Form import Form
 import pyperclip
-
+from core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
 
 class FormTreevw(Form):
     """
@@ -20,6 +20,12 @@ class FormTreevw(Form):
             headings: table headers
             default_values: default values for the Table as a dict, default is None
             kwargs: same keyword args as you would give to ttk.Treeview
+                    Plus:
+                        - doubleClickBinds : list of values to edit columns as:
+                                        - None : Not editable
+                                        - string : ask user to input a string
+                                        - list : ask user to choose in a combo box one value in the list 
+
         """
         super().__init__(name)
         self.headings = headings
@@ -30,6 +36,7 @@ class FormTreevw(Form):
         self.scbVSel = None
         self.widgetMenuOpen = None
         self.contextualMenu = kwargs.get("contextualMenu", None)
+        self.doubleClickBinds = kwargs.get("doubleClickBinds", None)
         self.f = None
 
     def _initContextualMenu(self, parent):
@@ -88,12 +95,14 @@ class FormTreevw(Form):
                     * If it is a dict : Recurse
                     * If it is a list : Add key without value and list values as subchildren
                     * If it is a str : Insert into parent
+                    * If it is a tuple : Insert first value as text and other values as values in the same line
             parent: the parent node treeview id to insert values into
             columnsLen: a table with the width of each column as list of 2 int
             odd: insert value as an odd value (the line will be tagged odd and change color). Default is False
         Returns:
             Final size of columns as list of two int
         """
+        child_odd = False
         if columnsLen is None:
             columnsLen = [0, 0]
         sorted_keys = sorted(list(values.keys()))
@@ -120,6 +129,15 @@ class FormTreevw(Form):
                     columnsLen[1] = min(1000, max(
                         columnsLen[1], self.f.measure(str(listValue))))
                     child_odd = not child_odd
+            elif isinstance(value, tuple):
+                self.treevw.insert(root, tk.END, None, text=str(value[0]), values=list(value[1:]), tags=("odd") if child_odd else ())
+                for i in range(len(value)):
+                    try:
+                        columnsLen[i] = min(1000, max(
+                            columnsLen[i], self.f.measure(str(value[i]))))
+                    except IndexError:
+                        columnsLen.insert(i, min(1000, self.f.measure(str(value[i]))))
+                child_odd = not child_odd
             elif isinstance(value, dict):
                 parent = self.treevw.insert(
                     root, tk.END, None, text=key, tags=("odd") if odd else ())
@@ -261,8 +279,20 @@ class FormTreevw(Form):
             oldVal = self.treevw.item(item)["text"]
         else:
             oldVal = values[columnNb-1]
-        newVal = tk.simpledialog.askstring(
-            "Modify infos", "New value for "+self.headings[columnNb].lower(), initialvalue=oldVal)
+        if self.doubleClickBinds is None:
+            newVal = tk.simpledialog.askstring(
+                "Modify infos", "New value for "+self.headings[columnNb].lower(), initialvalue=oldVal)
+        else:
+            binding = self.doubleClickBinds[columnNb]
+            if binding is None:
+                return
+            elif isinstance(binding, str):
+                newVal = tk.simpledialog.askstring(
+                    "Modify infos", "New value for "+self.headings[columnNb].lower(), initialvalue=oldVal)
+            elif isinstance(binding, list):
+                dialog = ChildDialogCombo(None, binding, "Choose a plugin:")
+                dialog.app.wait_window(dialog.app)
+                newVal = dialog.rvalue
         if newVal is None:
             return
         if newVal.strip() == "" or newVal.strip() == oldVal.strip():
