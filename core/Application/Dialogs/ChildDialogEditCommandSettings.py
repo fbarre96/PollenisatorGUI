@@ -3,7 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from core.Forms.FormPanel import FormPanel
-from core.Components.Utils import listPlugin
+from core.Components.apiclient import APIClient
 from core.Views.ViewElement import ViewElement
 
 class ChildDialogEditCommandSettings:
@@ -32,7 +32,8 @@ class ChildDialogEditCommandSettings:
         optionsFrame.addFormLabel("Remote bin path", row=0, column=0)
         optionsFrame.addFormStr("bin", r".+", row=0, column=1)
         optionsFrame.addFormLabel("Plugin", row=1, column=0)
-        optionsFrame.addFormCombo("plugin", tuple(listPlugin()), row=1, column=1)
+        apiclient = APIClient.getInstance()
+        optionsFrame.addFormCombo("plugin", tuple(apiclient.getPlugins()), row=1, column=1)
         self.form.addFormButton("Cancel", self.onError)
         self.form.addFormButton("OK", self.onOk)
         self.form.constructView(appFrame)

@@ -27,7 +27,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
     Args:
         apiclient: the apiclient instance.
         toolId: the mongo Object id corresponding to the tool to execute.
-        parser: plugin name to execute. If empty, the plugin specified in tools.d will be feteched.
+        parser: plugin name to execute. If empty, the plugin specified in tools.d will be fetched.
     Raises:
         Terminated: if the task gets terminated
         OSError: if the output directory cannot be created (not if it already exists)
@@ -40,18 +40,28 @@ def executeCommand(apiclient, toolId, parser="", local=True):
     command_o = toolModel.getCommand()
     msg = ""
     ##
-    success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
-    if not success:
-        print(str(comm))
-        toolModel.setStatus(["error"])
-        return False, str(comm)
     if local:
         tools_infos = Utils.loadToolsConfig()
         # Read file to execute for given tool and prepend to final command
         if tools_infos.get(toolModel.name, None) is not None:
             bin_path_local = tools_infos[toolModel.name].get("bin")
-            if bin_path_local is not None:
-                comm = comm.replace(bin_path_server, bin_path_local)
+            parser = tools_infos[toolModel.name].get("plugin", "Default.py")
+            success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
+            if bin_path_server == "":
+                comm = bin_path_local +" "+comm
+            else:
+                comm.replace(bin_path_server, bin_path_local)
+            success = True
+        else:
+            success = False
+            comm = "This tool is not configured for local usage; Please check Settings"
+    else:
+        success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
+    if not success:
+        print(str(comm))
+        toolModel.setStatus(["error"])
+        return False, str(comm)
+    
     outputRelDir = toolModel.getOutputDir(apiclient.getCurrentPentest())
     abs_path = os.path.dirname(os.path.abspath(__file__))
     toolFileName = toolModel.name+"_" + \

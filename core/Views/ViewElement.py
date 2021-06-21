@@ -1,7 +1,7 @@
 """View parent object. Handle node in treeview and present forms to user when interacted with."""
 
 from core.Forms.FormPanel import FormPanel
-from core.Components.Settings import Settings
+import core.Components.Settings as Settings
 from core.Application.Dialogs.ChildDialogToast import ChildDialogToast
 import tkinter.messagebox
 from tkinter import ttk
@@ -168,7 +168,7 @@ class ViewElement(object):
         pan.addFormButton("Submit", self.update)
         pan.addFormButton("Delete", self.delete)
         
-        registeredTags = Settings.getTags()
+        registeredTags = Settings.Settings.getTags()
         keys = list(registeredTags.keys())
         column = 0
         item_no = 0

@@ -77,21 +77,6 @@ def loadPlugin(pluginName):
         __import__("Default")
         return REGISTRY["Default"]
 
-def listPlugin():
-    """
-    List the plugins.
-    Returns:
-        return the list of plugins file names.
-    """
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    path = os.path.join(dir_path, "../plugins/")
-    # Load plugins
-    sys.path.insert(0, path)
-    plugin_list = os.listdir(path)
-    plugin_list = [x for x in plugin_list if x.endswith(
-        ".py") and x != "__pycache__" and x != "__init__.py" and x != "plugin.py"]
-    return plugin_list
-
 
 def isIp(domain_or_networks):
     """

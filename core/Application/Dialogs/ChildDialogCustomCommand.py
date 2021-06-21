@@ -2,7 +2,7 @@
 Ask the user to enter a command and select a worker and plugin to launch it."""
 import tkinter as tk
 import tkinter.ttk as ttk
-from core.Components.Utils import listPlugin
+from core.Components.apiclient import APIClient
 
 
 class ChildDialogCustomCommand:
@@ -37,7 +37,8 @@ class ChildDialogCustomCommand:
         self.ent_customCommand.pack()
         lbl2 = ttk.Label(appFrame, text="Select the parser:")
         lbl2.pack()
-        parsers = listPlugin()
+        apiclient = APIClient.getInstance()
+        parsers = apiclient.getPlugins()
         self.box_template = ttk.Combobox(
             appFrame, values=tuple(parsers), state="readonly")
         self.box_template.set("Default.py")
