@@ -7,6 +7,7 @@ import json
 from core.Components.apiclient import APIClient
 from core.Application.Dialogs.ChildDialogEditLocalTools import ChildDialogEditLocalTools
 from shutil import which
+from core.Forms.FormPanel import FormPanel
 
 
 class Settings:
@@ -44,9 +45,10 @@ class Settings:
         self.visual_search_show_hidden = None
         self.visual_search_exact_match = None
         self.visual_include_all_domains = None
-        self.text_pentesters = None
+        #self.text_pentesters = None
         self.box_favorite_term = None
         self.text_terms = None
+        self.pentesters_treevw = None
 
     @classmethod
     def getTags(cls):
@@ -190,10 +192,12 @@ class Settings:
         self.text_terms.delete('1.0', tk.END)
         terms_cmd = self.getTerms()
         self.text_terms.insert(tk.INSERT, "\n".join(terms_cmd))
-        self.text_pentesters.delete('1.0', tk.END)
-        self.text_pentesters.insert(
-            tk.INSERT, "\n".join(
-                self.db_settings.get("pentesters", [])))
+        #self.text_pentesters.delete('1.0', tk.END)
+        #self.text_pentesters.insert(
+        #    tk.INSERT, "\n".join(
+        #        self.db_settings.get("pentesters", [])))
+        self.pentesters_treevw.reset()
+        self.pentesters_treevw.recurse_insert({"Pentesters":self.db_settings.get("pentesters", [""])})
         terms_name = [term_cmd.split(" ")[0] for term_cmd in terms_cmd]
         self.box_favorite_term.config(values=terms_name)
         fav_term = self.getFavoriteTerm()
@@ -359,12 +363,22 @@ class Settings:
         self.box_pentest_type = ttk.Combobox(
             lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()), state="readonly")
         self.box_pentest_type.grid(row=1, column=1, sticky=tk.W)
-        self.text_pentesters = tk.scrolledtext.ScrolledText(
-            lblframe_pentest_params, relief=tk.SUNKEN, height=3, font = ("Sans", 10))
-        lbl_pentesters = ttk.Label(
-            lblframe_pentest_params, text="Pentester names:")
-        lbl_pentesters.grid(row=2, column=0, sticky=tk.E)
-        self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
+        # self.text_pentesters = tk.scrolledtext.ScrolledText(
+        #     lblframe_pentest_params, relief=tk.SUNKEN, height=3, font = ("Sans", 10))
+        # lbl_pentesters = ttk.Label(
+        #     lblframe_pentest_params, text="Pentester names:")
+        # lbl_pentesters.grid(row=2, column=0, sticky=tk.E)
+        # self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
+        form_pentesters_panel = ttk.Frame(self.settingsFrame)
+        self.form_pentesters = FormPanel(side=tk.TOP, fill=tk.X, pady=5)
+        self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
+        self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
+        self.pentesters_treevw = self.form_pentesters.addFormTreevw(
+            "Additional pentesters names", ("Additional pentesters names", "added"), [""], height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+        
+        self.form_pentesters.constructView(form_pentesters_panel)
+        form_pentesters_panel.pack(
+            padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
         lblframe_global_params = ttk.LabelFrame(
             self.settingsFrame, text="Global parameters:")
         lblframe_global_params.pack(
@@ -386,6 +400,13 @@ class Settings:
         self.settingsFrame.pack(fill=tk.BOTH, expand=1)
 
         #self.reloadUI()
+    def searchCallback(self, searchreq):
+        apiclient = APIClient.getInstance()
+        users = apiclient.searchUsers(searchreq)
+        if users is None:
+            return [], "Invalid response from API"
+        ret = [{"title":user, "additional pentesters names":user} for user in users]
+        return ret, ""
 
     def onEditLocalPaths(self):
         dialog = ChildDialogEditLocalTools(self.canvas)

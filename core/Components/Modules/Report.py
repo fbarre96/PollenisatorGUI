@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 import tkinter as tk
 import tkinter.messagebox
 import os
+from PIL import ImageTk, Image
 from shutil import which
 from os.path import isfile, join
 from bson.objectid import ObjectId
@@ -158,7 +159,10 @@ class Report:
         frameBtnRemarks = ttk.Frame(frameAllBelow)	
         btn_addRemark = ttk.Button(	
             frameBtnRemarks, text="Add remark", command=self.addRemarkCallback)	
-        btn_addRemark.pack(side=tk.TOP, pady=5)	
+        btn_addRemark.pack(side=tk.LEFT, pady=5)	
+        btn_delRemark = ttk.Button(	
+            frameBtnRemarks, text="Remove selected", command=self.deleteSelectedRemarkItem)	
+        btn_delRemark.pack(side=tk.LEFT, pady=5)	
         frameBtnRemarks.pack(side=tk.TOP)	
             
         # DEFECT TREEVW	
@@ -190,9 +194,11 @@ class Report:
             "Mineur", background="yellow", foreground="black")
         self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
         self.treevw.bind("<Delete>", self.deleteSelectedItem)
-        self.treevw.bind("<ButtonPress-1>",self.bDown)
-        self.treevw.bind("<ButtonRelease-1>",self.bUp, add='+')
-        self.treevw.bind("<B1-Motion>",self.bMove, add='+')
+        self.treevw.bind("<Alt-Down>",self.bDown)
+        self.treevw.bind("<Alt-Up>",self.bUp)
+        self.treevw.bind("<ButtonPress-1>",self.dragStart)
+        self.treevw.bind("<ButtonRelease-1>",self.dragRelease, add='+')
+        self.treevw.bind("<B1-Motion>",self.dragMove, add='+')
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel = ttk.Scrollbar(self.frameTw,
                                 orient=tk.VERTICAL,
@@ -207,6 +213,16 @@ class Report:
         frameBtn = ttk.Frame(belowFrame)
         #lbl_help = FormHelper("DefectHelper", "Use del to delete a defect, use Alt+Arrows to order them")
         #lbl_help.constructView(frameBtn)
+        self.buttonUpImage = ImageTk.PhotoImage(Image.open(getIconDir()+'up-arrow.png'))
+        self.buttonDownImage = ImageTk.PhotoImage(Image.open(getIconDir()+'down-arrow.png'))
+        # use self.buttonPhoto
+        btn_down = ttk.Button(frameBtn, image=self.buttonDownImage, command=self.bDown)
+        btn_down.pack(side="left", anchor="center")
+        btn_up = ttk.Button(frameBtn, image=self.buttonUpImage, command=self.bUp)
+        btn_up.pack(side="left", anchor="center")
+        btn_delDefect = ttk.Button(
+            frameBtn, text="Remove selection", command=self.deleteSelectedItem)
+        btn_delDefect.pack(side=tk.RIGHT, padx=5)
         btn_addDefect = ttk.Button(
             frameBtn, text="Add a security defect", command=self.addDefectCallback)
         btn_addDefect.pack(side=tk.RIGHT, padx=5)
@@ -274,13 +290,40 @@ class Report:
         self.fillWithDefects()
         self.fillWithRemarks()
 
-    def bDown(self, event):
+    def bDown(self, event=None):
+        item_iid = self.treevw.selection()[0]
+        children = self.treevw.get_children()
+        iid_moving = children.index(item_iid)
+        try:
+            iid_moved_by = children[iid_moving+1]
+            apiclient = APIClient.getInstance()
+            apiclient.moveDefect(item_iid, iid_moved_by)
+            self.treevw.move(item_iid, '', iid_moving+1)
+        except IndexError:
+            pass
+        return "break"
+
+
+    def bUp(self, event=None):
+        item_iid = self.treevw.selection()[0]
+        children = self.treevw.get_children()
+        iid_moving = children.index(item_iid)
+        try:
+            iid_moved_by = children[iid_moving-1]
+            apiclient = APIClient.getInstance()
+            apiclient.moveDefect(item_iid, iid_moved_by)
+            self.treevw.move(item_iid, '', iid_moving-1)
+        except IndexError:
+            pass
+        return "break"
+
+    def dragStart(self, event):
         tv = event.widget
         if tv.identify_row(event.y) not in tv.selection():
             tv.selection_set(tv.identify_row(event.y))    
             self.movingSelection = tv.identify_row(event.y)
 
-    def bUp(self, event):
+    def dragRelease(self, event):
         if self.movingSelection is None or self.lastMovedTo is None:
             return
         tv = event.widget
@@ -290,14 +333,14 @@ class Report:
             self.movingSelection = None
             self.lastMovedTo = None
 
-    def bMove(self, event):
+    def dragMove(self, event):
         tv = event.widget
         rowToMove = tv.identify_row(event.y)
         moveto = tv.index(rowToMove)    
         self.lastMovedTo = rowToMove if rowToMove != self.movingSelection else self.lastMovedTo
         for s in tv.selection():
             tv.move(s, '', moveto)
-            
+
     def reset(self):
         """
         reset defect treeview by deleting every item inside.
@@ -427,8 +470,9 @@ class Report:
         newValues[columnType] = ", ".join(defect_m.mtype)
         newValues[columnRedactor] = defect_m.redactor
         self.treevw.item(defect_m.getId(), text=defect_m.title, tags=(newRisk), values=newValues)
-        self.treevw.move(defect_m.getId(), '', defect_m.index)
-
+        if self.movingSelection is None:
+            self.treevw.move(defect_m.getId(), '', int(defect_m.index))
+      
     def OnDoubleClick(self, event):
         """
         Callback for double click on treeview.
