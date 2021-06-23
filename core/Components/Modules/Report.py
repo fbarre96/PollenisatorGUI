@@ -427,9 +427,7 @@ class Report:
         newValues[columnType] = ", ".join(defect_m.mtype)
         newValues[columnRedactor] = defect_m.redactor
         self.treevw.item(defect_m.getId(), text=defect_m.title, tags=(newRisk), values=newValues)
-        if oldRisk != newRisk:	
-            self.treevw.move(defect_m.getId(), '',	
-                            self.findInsertIndex(defect_m))
+        self.treevw.move(defect_m.getId(), '', defect_m.index)
 
     def OnDoubleClick(self, event):
         """
