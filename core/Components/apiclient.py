@@ -440,7 +440,7 @@ class APIClient():
         api_url = '{0}files/{1}/upload/proof/{2}'.format(self.api_url_base, self.getCurrentPentest(), defect_iid)
         with open(local_path,'rb') as f:
             h = self.headers
-            del h["Content-Type"]
+            h.pop("Content-Type", None)
             response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, headers=h, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -522,7 +522,7 @@ class APIClient():
             return "Failure to open provided file"
         with io.open(local_path, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers
-            del h["Content-Type"]
+            h.pop("Content-Type", None)
             response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, headers=h, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -537,7 +537,9 @@ class APIClient():
     def importExistingResultFile(self, filepath, plugin):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, 'r', encoding='utf-8', errors="ignore") as f:
-            response = requests.post(api_url, headers=self.headers, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
+            h = self.headers
+            h.pop("Content-Type", None)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -595,7 +597,7 @@ class APIClient():
         api_url = '{0}importDb'.format(self.api_url_base)
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers
-            del h["Content-Type"]
+            h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
             return response.status_code == 200
         return False
@@ -604,7 +606,7 @@ class APIClient():
         api_url = '{0}importCommands'.format(self.api_url_base)
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers
-            del h["Content-Type"]
+            h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
             return response.status_code == 200
         return False
