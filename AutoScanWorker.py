@@ -50,7 +50,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
             if bin_path_server == "":
                 comm = bin_path_local +" "+comm
             else:
-                comm.replace(bin_path_server, bin_path_local)
+                comm = comm.replace(bin_path_server, bin_path_local)
             success = True
         else:
             success = False
