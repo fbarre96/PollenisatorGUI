@@ -73,6 +73,46 @@ class Defect(Element):
         return self
 
     @classmethod
+    def getEases(cls):
+        """
+        Returns: 
+            Returns a list of ease of exploitation levels for a security defect.
+        """
+        return ["Easy", "Moderate", "Difficult", "Arduous", "N/A"]
+
+    @classmethod
+    def getImpacts(cls):
+        """
+        Returns: 
+            Returns a list of impact levels for a security defect.
+        """
+        return ["Critical", "Major", "Important", "Minor", "N/A"]
+
+    @classmethod
+    def getRisks(cls):
+        """
+        Returns: 
+            Returns a list of risk levels for a security defect.
+        """
+        return ["Critical", "Major", "Important", "Minor", "N/A"]
+
+    @classmethod
+    def getTypes(cls):
+        """
+        Returns: 
+            Returns a list of type for a security defect.
+        """
+        return ["Base", "Application", "Policy", "Active Directory", "Infrastructure", "Data"]
+
+    @classmethod
+    def getTableRiskFromEase(cls):
+        return {"Easy": {"Minor": "Major", "Important": "Major", "Major": "Critical", "Critical": "Critical"},
+                             "Moderate": {"Minor": "Important", "Important": "Important", "Major": "Major", "Critical": "Critical"},
+                             "Difficult": {"Minor": "Minor", "Important": "Important", "Major": "Major", "Critical": "Major"},
+                             "Arduous": {"Minor": "Minor", "Important": "Minor", "Major": "Important", "Critical": "Important"}}
+            
+
+    @classmethod
     def getRisk(cls, ease, impact):
         """Dict to find a risk level given an ease and an impact.
         Args:
@@ -81,11 +121,8 @@ class Defect(Element):
         Returns:
             A dictionnary of dictionnary. First dict keys are eases of exploitation. Second key are impact strings.
         """
-        risk_from_ease = {"Facile": {"Mineur": "Majeur", "Important": "Majeur", "Majeur": "Critique", "Critique": "Critique"},
-                          "Modérée": {"Mineur": "Important", "Important": "Important", "Majeur": "Majeur", "Critique": "Critique"},
-                          "Difficile": {"Mineur": "Mineur", "Important": "Important", "Majeur": "Majeur", "Critique": "Majeur"},
-                          "Très difficile": {"Mineur": "Mineur", "Important": "Mineur", "Majeur": "Important", "Critique": "Important"}}
-        return risk_from_ease.get(ease, {}).get(impact, "N/A")
+        
+        return cls.getTableRiskFromEase().get(ease, {}).get(impact, "N/A")
 
     def delete(self):
         """

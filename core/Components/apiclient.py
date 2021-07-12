@@ -273,8 +273,11 @@ class APIClient():
     def insert(self, collection, data):
         api_url = '{0}{1}/{2}'.format(self.api_url_base, collection, self.getCurrentPentest())
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
-        res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-        return res["res"], res["iid"]
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res["res"], res["iid"]
+        else:
+            return None
         
     def insertInDb(self, pentest, collection, pipeline=None, parent="", notify=False):
         pipeline = {} if pipeline is None else pipeline

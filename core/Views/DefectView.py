@@ -53,15 +53,15 @@ class DefectView(ViewElement):
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Ease")
         self.easeForm = topPanel.addFormCombo(
-            "Ease", ['Facile', "Modérée", "Difficile", "Très difficile", "N/A"], column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Ease", Defect.getEases(), column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", column=2)
         topPanel.addFormLabel("Impact", row=1)
         self.impactForm = topPanel.addFormCombo(
-            "Impact", ["Mineur", "Important", "Majeur", "Critique", "N/A"], row=1, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Impact", Defect.getImpacts(), row=1, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=1, column=2)
         topPanel.addFormLabel("Risk", row=2)
         self.riskForm = topPanel.addFormCombo(
-            "Risk", ["Mineur", "Important", "Majeur", "Critique", "N/A"], modelData["risk"], row=2, column=1)
+            "Risk", Defect.getRisks(), modelData["risk"], row=2, column=1)
         topPanel.addFormHelper(
             "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=2, column=2)
         topPanel.addFormLabel("Redactor", row=3)
@@ -167,17 +167,17 @@ class DefectView(ViewElement):
         row = 0
         topPanel.addFormLabel("Ease", row=row)
         self.easeForm = topPanel.addFormCombo(
-            "Ease", ['Facile', "Modérée", "Difficile", "Très difficile", "N/A"], modelData["ease"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Ease", Defect.getEases(), modelData["ease"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", row=row, column=2)
         row += 1
         topPanel.addFormLabel("Impact", row=row)
         self.impactForm = topPanel.addFormCombo(
-            "Impact", ["Mineur", "Important", "Majeur", "Critique", "N/A"], modelData["impact"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Impact", Defect.getImpacts(), modelData["impact"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=row, column=2)
         row += 1
         topPanel.addFormLabel("Risk", row=row)
         self.riskForm = topPanel.addFormCombo(
-            "Risk", ["Mineur", "Important", "Majeur", "Critique", "N/A"], modelData["risk"], row=row, column=1)
+            "Risk", Defect.getRisks(), modelData["risk"], row=row, column=1)
         topPanel.addFormHelper(
             "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=row, column=2)
         row += 1
