@@ -7,6 +7,7 @@ import json
 from core.Components.apiclient import APIClient
 from core.Application.Dialogs.ChildDialogEditLocalTools import ChildDialogEditLocalTools
 from shutil import which
+from core.Views.ViewElement import ViewElement
 from core.Forms.FormPanel import FormPanel
 
 
@@ -73,7 +74,7 @@ class Settings:
         """
         Returns pentest types and associeted defect type defined in settings.
         Returns:
-            If none are defined returns {"Web":["Socle", "Application", "Données", "Politique"], "LAN":["Infrastructure", "Active Directory", "Données", "Politique"]}
+            If none are defined returns {"Web":["Base", "Application", "Data", "Policy"], "LAN":["Infrastructure", "Active Directory", "Data", "Policy"]}
             otherwise returns a dict with defined key values
         """
         apiclient = APIClient.getInstance()
@@ -85,9 +86,9 @@ class Settings:
                 elif isinstance(pentest_types["value"], dict):
                     cls.__pentest_types = pentest_types["value"]
                 else:
-                    cls.__pentest_types = {"Web":["Socle", "Application", "Données", "Politique"], "LAN":["Infrastructure", "Active Directory", "Données", "Politique"]}
+                    cls.__pentest_types = {"Web":["Base", "Application", "Data", "Policy"], "LAN":["Infrastructure", "Active Directory", "Data", "Policy"]}
             else:
-                cls.__pentest_types = {"Web":["Socle", "Application", "Données", "Politique"], "LAN":["Infrastructure", "Active Directory", "Données", "Politique"]}
+                cls.__pentest_types = {"Web":["Base", "Application", "Data", "Policy"], "LAN":["Infrastructure", "Active Directory", "Data", "Policy"]}
         return cls.__pentest_types
 
 
@@ -197,7 +198,11 @@ class Settings:
         #    tk.INSERT, "\n".join(
         #        self.db_settings.get("pentesters", [])))
         self.pentesters_treevw.reset()
-        self.pentesters_treevw.recurse_insert({"Pentesters":self.db_settings.get("pentesters", [""])})
+        pentesters_as_list = self.db_settings.get("pentesters", [""])
+        dict_for_tw = {}
+        for pentester in pentesters_as_list:
+            dict_for_tw[pentester] = tuple([pentester])
+        self.pentesters_treevw.recurse_insert(dict_for_tw)
         terms_name = [term_cmd.split(" ")[0] for term_cmd in terms_cmd]
         self.box_favorite_term.config(values=terms_name)
         fav_term = self.getFavoriteTerm()
@@ -374,7 +379,7 @@ class Settings:
         self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
         self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
         self.pentesters_treevw = self.form_pentesters.addFormTreevw(
-            "Additional pentesters names", ("Additional pentesters names", "added"), [""], height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+            "Additional pentesters names", ["Additional pentesters names"], (""), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
         
         self.form_pentesters.constructView(form_pentesters_panel)
         form_pentesters_panel.pack(
@@ -424,11 +429,9 @@ class Settings:
         self.db_settings["include_domains_with_topdomain_in_scope"] = self.visual_include_domains_with_topdomain_in_scope.get(
         ) == 1
         self.db_settings["pentesters"] = []
-        for pentester in self.text_pentesters.get('1.0', tk.END).split(
-                "\n"):
-            if pentester.strip() != "":
-                self.db_settings["pentesters"].append(
-                    pentester.strip())
+        form_values = self.form_pentesters.getValue()
+        form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
+        self.db_settings["pentesters"] = [x for x in form_values_as_dicts["Additional pentesters names"] if x != ""]
         self.local_settings["search_show_hidden"] = self.visual_search_show_hidden.get(
         ) == 1
         self.local_settings["search_exact_match"] = self.visual_search_exact_match.get(

@@ -130,7 +130,10 @@ class FormTreevw(Form):
                         columnsLen[1], self.f.measure(str(listValue))))
                     child_odd = not child_odd
             elif isinstance(value, tuple):
-                self.treevw.insert(root, tk.END, None, text=str(value[0]), values=list(value[1:]), tags=("odd") if child_odd else ())
+                if len(value) == 0:
+                    continue
+                value_arr = list(value[1:]) if len(value) > 1 else []
+                self.treevw.insert(root, tk.END, None, text=str(value[0]), values=value_arr, tags=("odd") if child_odd else ())
                 for i in range(len(value)):
                     try:
                         columnsLen[i] = min(1000, max(

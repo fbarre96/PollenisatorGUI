@@ -63,37 +63,7 @@ class Report:
         self.refreshUI()
         return True
 
-    @classmethod
-    def getEases(cls):
-        """
-        Returns: 
-            Returns a list of ease of exploitation levels for a security defect.
-        """
-        return ["Facile", "Modérée", "Difficile", "Très difficile", "N/A"]
-
-    @classmethod
-    def getImpacts(cls):
-        """
-        Returns: 
-            Returns a list of impact levels for a security defect.
-        """
-        return ["Critique", "Majeur", "Important", "Mineur", "N/A"]
-
-    @classmethod
-    def getRisks(cls):
-        """
-        Returns: 
-            Returns a list of risk levels for a security defect.
-        """
-        return ["Critique", "Majeur", "Important", "Mineur", "N/A"]
-
-    @classmethod
-    def getTypes(cls):
-        """
-        Returns: 
-            Returns a list of type for a security defect.
-        """
-        return ["Socle", "Application", "Politique", "Active Directory", "Infrastructure", "Données"]
+    
 
     def refreshUI(self):
         """
@@ -185,13 +155,13 @@ class Report:
         self.treevw.heading('redactor', text='Redactor')
         self.treevw.column('redactor', anchor='center', width=20)
         self.treevw.tag_configure(
-            "Critique", background="black", foreground="white")
+            "Critical", background="black", foreground="white")
         self.treevw.tag_configure(
-            "Majeur", background="red", foreground="white")
+            "Major", background="red", foreground="white")
         self.treevw.tag_configure(
             "Important", background="orange", foreground="white")
         self.treevw.tag_configure(
-            "Mineur", background="yellow", foreground="black")
+            "Minor", background="yellow", foreground="black")
         self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
         self.treevw.bind("<Delete>", self.deleteSelectedItem)
         self.treevw.bind("<Alt-Down>",self.bDown)
