@@ -167,3 +167,5 @@ class ChildDialogConnect:
                 self.app.destroy()
             else:
                 tk.messagebox.showerror("Connection failure", "The login/password you entered does not exists")
+        else:
+            tk.messagebox.showerror("Connection failure", "The host is not responding. Check if server is alive or if you have a local proxy configured.")
