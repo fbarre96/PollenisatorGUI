@@ -515,6 +515,7 @@ class Appli(ttk.Frame):
                         font=('Sans', '10', 'bold'))
         style.configure("TButton", background="#73B723",
                         foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
+        style.configure("icon.TButton", background="white", borderwidth=0)
         style.configure("TNotebook", background="#73B723", foreground="white", font=(
             'Sans', '10', 'bold'), tabposition='wn', borderwidth=0, width=100)
 
@@ -568,11 +569,14 @@ class Appli(ttk.Frame):
         self.searchBar.bind('<Control-a>', self.searchbarSelectAll)
         # searchBar.bind("<Button-3>", self.do_popup)
         self.searchBar.pack(side="left", fill="x", expand=True)
-        btnSearchBar = ttk.Button(searchFrame, text="Search", command=self.newSearch)
+        btnSearchBar = ttk.Button(searchFrame, style="icon.TButton")
+        self.search_icon = tk.PhotoImage(file=Utils.getIcon("search.png"))
+        btnSearchBar.config(image=self.search_icon, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
-        btnReset = ttk.Button(searchFrame, text="Reset",command=self.resetButtonClicked)
+        self.reset_icon = tk.PhotoImage(file=Utils.getIcon("delete.png"))
+        btnReset = ttk.Button(searchFrame, image=self.reset_icon,command=self.resetButtonClicked, style="icon.TButton")
         btnReset.pack(side="left", fill="x")
-        self.btnHelp = ttk.Button(searchFrame)
+        self.btnHelp = ttk.Button(searchFrame, style="icon.TButton")
         self.photo = tk.PhotoImage(file=Utils.getHelpIconPath())
         self.helpFrame = None
         self.btnHelp.config(image=self.photo, command=self.showSearchHelp)

@@ -370,7 +370,12 @@ def getWaitingMarkIconPath():
         os.path.realpath(__file__)), "../../icon/waiting.png")
     return p
 
-
+def getIcon(name):
+    """Returns : the path to an specified icon name
+    """
+    return os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), "../../icon/", name)
+        
 def getHelpIconPath():
     """Returns:
          a help icon path

@@ -4,7 +4,7 @@ from core.Application.Dialogs.ChildDialogEditPassword import ChildDialogEditPass
 import tkinter as tk
 import tkinter.ttk as ttk
 from PIL import Image, ImageTk
-
+import core.Components.Utils as Utils
 
 
 
@@ -52,8 +52,9 @@ class AdminView:
         self.confirmpassword = tk.StringVar() 
         entryAddConfirmPwd = ttk.Entry(addUserFrame, width=20, show="*", textvariable=self.confirmpassword)
         entryAddConfirmPwd.grid(row=2, column=1, sticky=tk.W)
+        self.add_user_icon = tk.PhotoImage(file=Utils.getIcon("add_user.png"))
         btn_addUser = ttk.Button(
-                addUserFrame, text="Add user", command=self.addUser)
+                addUserFrame, image=self.add_user_icon, command=self.addUser, style='icon.TButton')
         btn_addUser.grid(row=3, column = 2, sticky=tk.W)
         addUserFrame.pack()
         lblAddUsername.pack()
