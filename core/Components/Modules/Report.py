@@ -35,12 +35,10 @@ class Report:
         """
         Constructor
         """
-        try:
-            templates = APIClient.getInstance().getTemplateList()
-        except:
-            templates = []
-        self.docx_models = [f for f in templates if f.endswith(".docx")]
-        self.pptx_models = [f for f in templates if f.endswith(".pptx")]
+        self.langs = ["en"]
+        self.docx_models = []
+        self.curr_lang = "en"
+        self.pptx_models = []
         self.mainRedac = "N/A"
         self.settings = settings
         self.dragging = None
@@ -63,31 +61,16 @@ class Report:
         self.refreshUI()
         return True
 
-    
 
     def refreshUI(self):
         """
         Reload informations and reload them into the widgets
         """
-        templates = APIClient.getInstance().getTemplateList()
-        self.docx_models = [f for f in templates if f.endswith(".docx")]
-        self.pptx_models = [f for f in templates if f.endswith(".pptx")]
-        self.combo_word.configure(values=self.docx_models)
-        self.combo_pptx.configure(values=self.pptx_models)
-        self.settings.reloadSettings()
-        pentest_type = self.settings.getPentestType().lower()
+        self.langs = APIClient.getInstance().getLangList()
+        self.combo_lang.configure(values=self.langs)
+        self.combo_lang.set("en")
+        self.langChange(None)
         
-        pentesttype_docx_models = [f for f in self.docx_models if pentest_type in f.lower()]
-        if pentesttype_docx_models:
-            self.combo_word.set(pentesttype_docx_models[0])
-        elif self.docx_models:
-            self.combo_word.set(self.docx_models[0])
-
-        pentesttype_pptx_models = [f for f in self.pptx_models if pentest_type in f.lower()]
-        if pentesttype_pptx_models:
-            self.combo_pptx.set(pentesttype_pptx_models[0])
-        elif self.pptx_models:
-            self.combo_pptx.set(self.pptx_models[0])
 
     def initUI(self, parent, nbk, treevw):
         """
@@ -214,6 +197,12 @@ class Report:
         lbl_contract.grid(row=1, column=0, sticky=tk.E)
         self.ent_contract = ttk.Entry(informations_frame, width=50)
         self.ent_contract.grid(row=1, column=1, sticky=tk.W)
+
+        lbl_lang = ttk.Label(informations_frame, text="Lang :")
+        lbl_lang.grid(row=2, column=0, sticky=tk.E)
+        self.combo_lang = ttk.Combobox(informations_frame, values=self.langs, width=10)
+        self.combo_lang.grid(row=2, column=1, sticky=tk.W)
+        self.combo_lang.bind("<<ComboboxSelected>>", self.langChange)
         informations_frame.pack(side=tk.TOP, pady=10)
         ### WORD EXPORT FRAME ###
         templatesFrame = ttk.Frame(officeFrame)
@@ -259,6 +248,28 @@ class Report:
         self.reportFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10, expand=1)
         self.fillWithDefects()
         self.fillWithRemarks()
+
+    def langChange(self, event):
+        self.curr_lang = self.combo_lang.get()
+        templates = APIClient.getInstance().getTemplateList(self.curr_lang)
+        self.docx_models = [f for f in templates if f.endswith(".docx")]
+        self.pptx_models = [f for f in templates if f.endswith(".pptx")]
+        self.combo_word.configure(values=self.docx_models)
+        self.combo_pptx.configure(values=self.pptx_models)
+        self.settings.reloadSettings()
+        pentest_type = self.settings.getPentestType().lower()
+        
+        pentesttype_docx_models = [f for f in self.docx_models if pentest_type in f.lower()]
+        if pentesttype_docx_models:
+            self.combo_word.set(pentesttype_docx_models[0])
+        elif self.docx_models:
+            self.combo_word.set(self.docx_models[0])
+
+        pentesttype_pptx_models = [f for f in self.pptx_models if pentest_type in f.lower()]
+        if pentesttype_pptx_models:
+            self.combo_pptx.set(pentesttype_pptx_models[0])
+        elif self.pptx_models:
+            self.combo_pptx.set(self.pptx_models[0])
 
     def bDown(self, event=None):
         item_iid = self.treevw.selection()[0]
@@ -565,7 +576,7 @@ class Report:
             dialog = ChildDialogInfo(
                 self.parent, "PowerPoint Report", "Creating report . Please wait.")
             dialog.show()
-            out_name = apiclient.generateReport(modele_pptx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac)
+            out_name = apiclient.generateReport(modele_pptx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang)
             dialog.destroy()
             tkinter.messagebox.showinfo(
                 "Success", "The document was generated in "+str(out_name))
@@ -595,7 +606,7 @@ class Report:
             dialog = ChildDialogInfo(
                 self.parent, "Word Report", "Creating report . Please wait.")
             dialog.show()
-            res = apiclient.generateReport(modele_docx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac)
+            res = apiclient.generateReport(modele_docx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang)
             dialog.destroy()
             if res == None:
                 tkinter.messagebox.showerror(
@@ -616,7 +627,7 @@ class Report:
 
     def _download_and_open_template(self, templateName):
         apiclient = APIClient.getInstance()
-        path = apiclient.downloadTemplate(templateName)
+        path = apiclient.downloadTemplate(self.curr_lang, templateName)
         if which("xdg-open") is not None:
             dialog = ChildDialogQuestion(self.parent,
                                         "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])

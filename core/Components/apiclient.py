@@ -624,9 +624,9 @@ class APIClient():
 
     
     
-    def generateReport(self, templateName, clientName, contractName, mainRedac):
+    def generateReport(self, templateName, clientName, contractName, mainRedac, lang):
         api_url = '{0}report/{1}/generate'.format(self.api_url_base, self.getCurrentPentest())
-        response = requests.get(api_url, headers=self.headers, params={"templateName":templateName, "contractName":contractName, "clientName":clientName, "mainRedactor":mainRedac}, proxies=proxies, verify=False)
+        response = requests.get(api_url, headers=self.headers, params={"templateName":templateName, "contractName":contractName, "clientName":clientName, "mainRedactor":mainRedac, "lang":lang}, proxies=proxies, verify=False)
         if response.status_code == 200:
             timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
             ext = os.path.splitext(templateName)[-1]
@@ -638,8 +638,8 @@ class APIClient():
                 return os.path.normpath(out_path)
         return response.content.decode("utf-8")
 
-    def getTemplateList(self):
-        api_url = '{0}report/templates'.format(self.api_url_base)
+    def getTemplateList(self, lang):
+        api_url = '{0}report/{1}/templates'.format(self.api_url_base, lang)
         try:
             response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         except ConnectionError as e:
@@ -647,9 +647,19 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         return []
+
+    def getLangList(self):
+        api_url = '{0}report/langs'.format(self.api_url_base)
+        try:
+            response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        except ConnectionError as e:
+            raise e
+        if response.status_code == 200:
+            return json.loads(response.content.decode("utf-8"), cls=JSONDecoder)
+        return ["en"]
     
-    def downloadTemplate(self, templateName):
-        api_url = '{0}report/templates/download'.format(self.api_url_base)
+    def downloadTemplate(self, lang, templateName):
+        api_url = '{0}report/{1}/templates/download'.format(self.api_url_base, lang)
         response = requests.get(api_url, headers=self.headers, params={"templateName":templateName},proxies=proxies, verify=False)
         if response.status_code == 200:
             out_path = os.path.join(dir_path, "../../exports/",templateName)
