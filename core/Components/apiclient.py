@@ -554,6 +554,14 @@ class APIClient():
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return data
         return None
+
+    def deleteWorker(self, worker_name):
+        api_url = '{0}workers/{1}'.format(self.api_url_base, worker_name)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return data
+        return None
     
     def deleteWorkerInstruction(self, worker_name, instruction_iid):
         api_url = '{0}workers/{1}/instructions/{2}'.format(self.api_url_base, worker_name, instruction_iid)

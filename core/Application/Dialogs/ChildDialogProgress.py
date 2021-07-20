@@ -9,7 +9,7 @@ class ChildDialogProgress:
     Open a child dialog of a tkinter application to inform the user about a ongoing process.
     """
 
-    def __init__(self, parent, title, msg, length=200, progress_mode="indeterminate"):
+    def __init__(self, parent, title, msg, length=200, progress_mode="indeterminate", show_logs=False):
         """
         Open a child dialog of a tkinter application to display a progress bar.
 
@@ -29,9 +29,13 @@ class ChildDialogProgress:
         appFrame = ttk.Frame(self.app)
         self.rvalue = None
         self.parent = parent
-        lbl = ttk.Label(appFrame, text=msg)
-        lbl.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
+        self.lbl = ttk.Label(appFrame, text=msg)
+        self.lbl.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.mode = progress_mode
+        self.show_logs = show_logs
+        self.text_log = tk.scrolledtext.ScrolledText(
+            appFrame, relief=tk.SUNKEN, height=20, font = ("Sans", 10))
+        self.text_log.pack(side=tk.BOTTOM, padx=10,pady=10,fill=tk.X)
         self.progressbar = ttk.Progressbar(appFrame, orient="horizontal",
                                            length=length, mode=progress_mode)
         self.progressbar.pack(side=tk.BOTTOM, padx=10, pady=10, fill=tk.X)
@@ -40,7 +44,7 @@ class ChildDialogProgress:
             self.app.wait_visibility()
             self.app.transient(parent)
             self.app.focus_force()
-            self.app.grab_set()
+            #self.app.grab_set()
             self.app.lift()
         except tk.TclError:
             pass
@@ -58,7 +62,7 @@ class ChildDialogProgress:
             self.progressbar["maximum"] = maximum
         self.app.update()
 
-    def update(self, value=None):
+    def update(self, value=None, msg=None, log=None):
         """Update the progressbar and show progression value.
         Call this regularly if on inderminate mode.
         Args:
@@ -75,6 +79,11 @@ class ChildDialogProgress:
                 self.progressbar["value"] += 1
             else:
                 self.progressbar["value"] = value
+        if msg is not None:
+            self.lbl.configure(text=str(msg))
+        if self.show_logs and log is not None:
+            self.text_log.insert(tk.END, log)
+            self.text_log.see(tk.END)
         self.app.update()
 
     def destroy(self):

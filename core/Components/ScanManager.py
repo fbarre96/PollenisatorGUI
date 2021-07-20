@@ -3,16 +3,20 @@ from core.Components.apiclient import APIClient
 import tkinter as tk
 import tkinter.ttk as ttk
 import multiprocessing
+import threading
 from core.Models.Command import Command
 from core.Models.Tool import Tool
 from core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
 from core.Application.Dialogs.ChildDialogEditCommandSettings import ChildDialogEditCommandSettings
+from core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from AutoScanWorker import executeCommand
 from PIL import Image, ImageTk
+import core.Components.Utils as Utils
 import os
-
-
-
+import docker
+import re
+import git
+import shutil
 
 class ScanManager:
     """Scan model class"""
@@ -22,7 +26,7 @@ class ScanManager:
         self.nbk = nbk
         self.settings = settings
         self.btn_autoscan = None
-        
+        self.btn_docker_worker = None
         self.parent = None
         self.workerTv = None
         self.linkTw = linkedTreeview
@@ -128,6 +132,9 @@ class ScanManager:
         self.workerTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.workerTv.bind("<Double-Button-1>", self.OnWorkerDoubleClick)
         self.workerTv.bind("<Delete>", self.OnWorkerDelete)
+        self.docker_image = tk.PhotoImage(file=Utils.getIcon("baleine.png"))
+        self.btn_docker_worker = ttk.Button(self.parent, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
+        self.btn_docker_worker.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
         total_registered_commands = 0
         registeredCommands = set()
@@ -281,3 +288,56 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         if "@" in str(self.workerTv.selection()[0]):
             apiclient.deleteWorker(self.workerTv.selection()[0]) 
+
+    
+
+    def launchDockerWorker(self, event=None):
+        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="determinate", show_logs=True)
+        dialog.show(4)
+        x = threading.Thread(target=start_docker, args=(dialog,))
+        x.start()
+
+def start_docker(dialog):
+        if not os.path.isdir(os.path.join(Utils.getMainDir(), "PollenisatorWorker")):
+            git.Git(Utils.getMainDir()).clone("https://github.com/fbarre96/PollenisatorWorker.git")
+            
+        shutil.copyfile(os.path.join(Utils.getMainDir(), "config/client.cfg"), os.path.join(Utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
+        dialog.update(1, msg="Docker not found: Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
+        client = docker.from_env()
+        clientAPI = docker.APIClient()
+        image = client.images.list("pollenisatorworker")
+        if len(image) == 0:
+            try:
+                log_generator = clientAPI.build(path=os.path.join(Utils.getMainDir(), "PollenisatorWorker/"), rm=True, tag="pollenisatorworker")
+                change_max = None
+                for byte_log in log_generator:
+                    updated_dialog = False
+                    log_line = byte_log.decode("utf-8").strip()
+                    if log_line.startswith("{\"stream\":\""):
+                        log_line = log_line[len("{\"stream\":\""):-4]
+                        matches = re.search(r"Step (\d+)/(\d+)", log_line)
+                        if matches is not None:
+                            if change_max is None:
+                                change_max = int(matches.group(2))
+                                dialog.progressbar["maximum"] = change_max
+                            dialog.update(int(matches.group(1)), log=log_line+"\n")
+                            updated_dialog = True
+            except docker.errors.BuildError as e:
+                dialog.destroy()
+                tk.messagebox.showerror("Build docker error", "Building error:\n"+str(e))
+                return
+            image = client.images.list("pollenisatorworker")
+        if len(image) == 0:
+            tk.messagebox.showerror("Building docker failed", "The docker build command failed, try to install manually...")
+            return
+        dialog.update(2, msg="Starting worker docker ...")
+        clientCfg = Utils.loadClientConfig()
+        if clientCfg["host"] == "localhost" or clientCfg["host"] == "127.0.0.1":
+            network_mode = "host"
+        else:
+            network_mode = None
+        container = client.containers.run(image=image[0], network_mode=network_mode, volumes={os.path.join(Utils.getMainDir(), "PollenisatorWorker"):{'bind':'/home/Pollenisator', 'mode':'rw'}}, detach=True)
+        dialog.update(3, msg="Checking if worker is running")
+        print(container.id)
+        print(container.logs())
+        dialog.destroy()

@@ -8,3 +8,5 @@ pyperclip
 python-jose
 requests>=2.18.4
 pymongo
+docker
+GitPython
