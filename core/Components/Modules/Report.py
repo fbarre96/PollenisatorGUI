@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 import tkinter as tk
 import tkinter.messagebox
 import os
+import threading
 from PIL import ImageTk, Image
 from shutil import which
 from os.path import isfile, join
@@ -576,16 +577,8 @@ class Report:
             dialog = ChildDialogInfo(
                 self.parent, "PowerPoint Report", "Creating report . Please wait.")
             dialog.show()
-            out_name = apiclient.generateReport(modele_pptx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang)
-            dialog.destroy()
-            tkinter.messagebox.showinfo(
-                "Success", "The document was generated in "+str(out_name))
-            if which("xdg-open"):
-                os.system("xdg-open "+os.path.dirname(out_name))
-            elif which("explorer"):
-                os.system("explorer "+os.path.dirname(out_name))
-            elif which("open"):
-                os.system("open "+os.path.dirname(out_name))
+            x = threading.Thread(target=generateReport, args=(dialog, modele_pptx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang))
+            x.start()
 
     def generateReportWord(self):
         """
@@ -606,19 +599,10 @@ class Report:
             dialog = ChildDialogInfo(
                 self.parent, "Word Report", "Creating report . Please wait.")
             dialog.show()
-            res = apiclient.generateReport(modele_docx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang)
-            dialog.destroy()
-            if res == None:
-                tkinter.messagebox.showerror(
-                    "Failure", str(res))
-            tkinter.messagebox.showinfo(
-                "Success", "The document was generated in "+str(res))
-            if which("xdg-open"):
-                os.system("xdg-open "+os.path.dirname(res))
-            elif which("explorer"):
-                os.system("explorer "+os.path.dirname(res))
-            elif which("open"):
-                os.system("open "+os.path.dirname(res))
+            x = threading.Thread(target=generateReport, args=(dialog, modele_docx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang))
+            x.start()
+            
+
     def downloadWordTemplate(self):
         self._download_and_open_template(self.combo_word.get())
 
@@ -666,3 +650,20 @@ class Report:
             # Remarks don't appear in the treeview, only in this module, so must notify here	
             if collection == "remarks":	
                 self.addRemark(Remark.fetchObject({"_id":ObjectId(iid)}))
+
+
+def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):
+    apiclient = APIClient.getInstance()
+    res = apiclient.generateReport(modele, client, contract, mainRedac, curr_lang)
+    dialog.destroy()
+    if res == None:
+        tkinter.messagebox.showerror(
+            "Failure", str(res))
+    tkinter.messagebox.showinfo(
+        "Success", "The document was generated in "+str(res))
+    if which("xdg-open"):
+        os.system("xdg-open "+os.path.dirname(res))
+    elif which("explorer"):
+        os.system("explorer "+os.path.dirname(res))
+    elif which("open"):
+        os.system("open "+os.path.dirname(res))
