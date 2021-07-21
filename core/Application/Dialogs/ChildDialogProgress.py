@@ -33,9 +33,10 @@ class ChildDialogProgress:
         self.lbl.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.mode = progress_mode
         self.show_logs = show_logs
-        self.text_log = tk.scrolledtext.ScrolledText(
-            appFrame, relief=tk.SUNKEN, height=20, font = ("Sans", 10))
-        self.text_log.pack(side=tk.BOTTOM, padx=10,pady=10,fill=tk.X)
+        if self.show_logs:
+            self.text_log = tk.scrolledtext.ScrolledText(
+                appFrame, relief=tk.SUNKEN, height=20, font = ("Sans", 10))
+            self.text_log.pack(side=tk.BOTTOM, padx=10,pady=10,fill=tk.X)
         self.progressbar = ttk.Progressbar(appFrame, orient="horizontal",
                                            length=length, mode=progress_mode)
         self.progressbar.pack(side=tk.BOTTOM, padx=10, pady=10, fill=tk.X)
