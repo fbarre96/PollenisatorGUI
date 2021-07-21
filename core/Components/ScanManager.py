@@ -25,8 +25,13 @@ def start_docker(dialog):
         
     shutil.copyfile(os.path.join(Utils.getMainDir(), "config/client.cfg"), os.path.join(Utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
     dialog.update(1, msg="Docker not found: Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
-    client = docker.from_env()
-    clientAPI = docker.APIClient()
+    try:
+        client = docker.from_env()
+        clientAPI = docker.APIClient()
+    except Exception as e:
+        dialog.destroy()
+        tk.messagebox.showerror("Unable to launch docker", e)
+        return
     image = client.images.list("pollenisatorworker")
     if len(image) == 0:
         try:
