@@ -92,4 +92,4 @@ class AdminView:
         apiclient = APIClient.getInstance()
         username = self.userTv.selection()[0]
         apiclient.deleteUser(username) 
-        self.userTv.remove(username)
+        self.userTv.delete(username)
