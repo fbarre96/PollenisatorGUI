@@ -86,6 +86,7 @@ class APIClient():
         if port is None:
             raise KeyError("config/client.cfg : missing API port value")
         http_proto = "https" if cfg.get("https", True) else "http"
+        self.api_url = http_proto+"://"+host+":"+str(port)+"/"
         self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
 
     def tryConnection(self, config=None):

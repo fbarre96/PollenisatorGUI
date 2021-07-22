@@ -12,10 +12,12 @@ import sys
 from tkinter import TclError
 import datetime
 import os
+import json
 import re
 from PIL import ImageTk, Image
 import importlib
 import pkgutil
+import socketio
 import core.Components.Utils as Utils
 from core.Application.Treeviews.CalendarTreeview import CalendarTreeview
 from core.Application.Treeviews.CommandsTreeview import CommandsTreeview
@@ -40,7 +42,6 @@ from core.Models.Wave import Wave
 from core.Models.Interval import Interval
 from core.Models.Port import Port
 import core.Components.Modules
-
 
 class FloatingHelpWindow(tk.Toplevel):
     """floating basic window with helping text inside
@@ -256,9 +257,6 @@ class Appli(ttk.Frame):
         #           Used to separate the treeview frame and view frame.
         
         self.parent = parent  #  parent tkinter window
-        #  already read notifications from previous notification reading iteration
-        self.lastNotifReadTime = datetime.datetime.now()
-        self.notifications_timers = None
         tk.Tk.report_callback_exception = self.show_error
         self.setStyle()
         # HISTORY : Main view and command where historically in the same view;
@@ -319,6 +317,11 @@ class Appli(ttk.Frame):
             abandon = self.promptForConnection() is None
         if not abandon:
             apiclient.attach(self)
+            self.sio = socketio.Client()
+            @self.sio.event
+            def notif(data):
+                self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
+            self.sio.connect(apiclient.api_url)
             self.initUI()
             # self.promptCalendarName(), called beacause tabSwitch is called
         else:
@@ -394,36 +397,21 @@ class Appli(ttk.Frame):
         import webbrowser
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
+    def handleNotif(self, notification):
+        if notification["db"] == "pollenisator":
+            if notification["collection"] == "workers":
+                self.scanManager.notify(notification["iid"], notification["action"])
+            elif "commands" in notification["collection"]:
+                self.commandsTreevw.notify(notification["db"], notification["collection"], notification["iid"], notification["action"], notification.get("parent", ""))
+        else:
+            self.treevw.notify(notification["db"], notification["collection"],
+                            notification["iid"], notification["action"], notification.get("parent", ""))
+            for module in self.modules:
+                if callable(getattr(module["object"], "notify", None)):
+                    module["object"].notify(notification["db"], notification["collection"],
+                            notification["iid"], notification["action"], notification.get("parent", ""))
 
-    def readNotifications(self):
-        """
-        Read notifications from database every 5 or so second. Notifications are used to exchange informations between applications.
-        """
-        apiclient = APIClient.getInstance()
-        try:
-            lastNotifReadTimeLocal = datetime.datetime.now()-datetime.timedelta(seconds=5)
-            notifications = apiclient.fetchNotifications(apiclient.getCurrentPentest(), self.lastNotifReadTime)
-            self.lastNotifReadTime = lastNotifReadTimeLocal
-            sortedNotifications = sorted(list(notifications), key=lambda notif:datetime.datetime.strptime(notif["time"], "%Y-%m-%d %H:%M:%S.%f"))
-            for notification in sortedNotifications:
-                if notification["db"] == "pollenisator":
-                    if notification["collection"] == "workers":
-                        self.scanManager.notify(notification["iid"], notification["action"])
-                    elif "commands" in notification["collection"]:
-                        self.commandsTreevw.notify(notification["db"], notification["collection"], notification["iid"], notification["action"], notification.get("parent", ""))
-                else:
-                    self.treevw.notify(notification["db"], notification["collection"],
-                                    notification["iid"], notification["action"], notification.get("parent", ""))
-                    for module in self.modules:
-                        if callable(getattr(module["object"], "notify", None)):
-                            module["object"].notify(notification["db"], notification["collection"],
-                                    notification["iid"], notification["action"], notification.get("parent", ""))
-        except Exception as e:
-            print(str(e))
-        
-        self.notifications_timers = threading.Timer(
-            5, self.readNotifications)
-        self.notifications_timers.start()
+   
 
     def onClosing(self):
         """
@@ -431,10 +419,8 @@ class Appli(ttk.Frame):
         """
         apiclient = APIClient.getInstance()
         apiclient.dettach(self)
-        print("Stopping notifications...")
-        if self.notifications_timers is not None:
-            self.notifications_timers.cancel()
         print("Stopping application...")
+        self.sio.disconnect()
         self.quit()
 
     def _initMenuBar(self):
@@ -1100,9 +1086,6 @@ class Appli(ttk.Frame):
         elif filename != "":
             calendarName = filename.split(".")[0].split("/")[-1]
         if calendarName is not None:
-            if self.notifications_timers is not None:
-                self.notifications_timers.cancel()
-                self.notifications_timers = None
             res = apiclient.setCurrentPentest(calendarName)
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
@@ -1113,9 +1096,6 @@ class Appli(ttk.Frame):
                 module["object"].initUI(module["view"], self.nbk, self.treevw)
             self.statusbar.reset()
             self.treevw.refresh()
-            self.notifications_timers = threading.Timer(
-                5, self.readNotifications)
-            self.notifications_timers.start()
             self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
             
 
