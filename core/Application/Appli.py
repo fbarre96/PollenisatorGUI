@@ -269,6 +269,7 @@ class Appli(ttk.Frame):
         self.scanViewFrame = None
         self.admin = None
         self.nbk = None
+        self.sio = None #socketio client
         self.main_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_main.png"))
         self.commands_tab_img = ImageTk.PhotoImage(
@@ -420,7 +421,8 @@ class Appli(ttk.Frame):
         apiclient = APIClient.getInstance()
         apiclient.dettach(self)
         print("Stopping application...")
-        self.sio.disconnect()
+        if self.sio is not None:
+            self.sio.disconnect()
         self.quit()
 
     def _initMenuBar(self):

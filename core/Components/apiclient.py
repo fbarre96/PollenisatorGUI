@@ -100,8 +100,9 @@ class APIClient():
             http_proto = "https" if str(is_https).lower() == "true" or is_https == 1 else "http"
             host = config.get("host")
             port = config.get("port")
+            self.api_url = http_proto+"://"+host+":"+str(port)+"/"
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
-            response = requests.get(self.api_url_base, headers=self.headers, proxies=proxies, verify=False)
+            response = requests.get(self.api_url_base, headers=self.headers, proxies=proxies, verify=False, timeout=2)
         except requests.exceptions.RequestException as e:
             return False
         return response.status_code == 200
