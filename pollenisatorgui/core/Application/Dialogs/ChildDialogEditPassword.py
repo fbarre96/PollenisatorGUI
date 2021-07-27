@@ -32,7 +32,7 @@ class ChildDialogEditPassword:
             self.form.addFormLabel("Old password")
             self.form.addFormStr("Old password", ".+", show="*")
         self.form.addFormLabel("New Password")
-        self.form.addFormStr("New password", ".{8,}", show="*")
+        self.form.addFormStr("New password", ".{8,}", show="*", error_msg="New password must be at least 8 characters long")
         self.form.addFormButton("OK", self.onOk)
         self.rvalue = None
         self.form.constructView(appFrame)
@@ -64,12 +64,13 @@ class ChildDialogEditPassword:
                 msg = apiclient.changeUserPassword(oldPwd, newPwd)
             else:
                 msg = apiclient.resetPassword(username, newPwd)
+            if msg != "":
+                tk.messagebox.showwarning(
+                    "Change password", msg, parent=self.app)
         else:
             tk.messagebox.showwarning(
                 "Form not validated", msg, parent=self.app)
-        if msg != "":
-             tk.messagebox.showwarning(
-                "Change password", msg, parent=self.app)
+        
         self.app.destroy()
         
 
