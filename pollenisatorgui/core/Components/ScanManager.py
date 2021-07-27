@@ -22,8 +22,7 @@ import shutil
 def start_docker(dialog):
     if not os.path.isdir(os.path.join(Utils.getMainDir(), "PollenisatorWorker")):
         git.Git(Utils.getMainDir()).clone("https://github.com/fbarre96/PollenisatorWorker.git")
-        
-    shutil.copyfile(os.path.join(Utils.getMainDir(), "config/client.cfg"), os.path.join(Utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
+    shutil.copyfile(os.path.join(Utils.getConfigFolder(), "client.cfg"), os.path.join(Utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
     dialog.update(1, msg="Docker not found: Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
     try:
         client = docker.from_env()

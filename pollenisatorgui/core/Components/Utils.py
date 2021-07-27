@@ -324,23 +324,31 @@ def saveServerConfig(configDict):
     with open(configFile, "w") as f:
         f.write(json.dumps(configDict))
 
+def getConfigFolder():
+    from os.path import expanduser
+    home = expanduser("~")
+    config = os.path.join(home,".config/pollenisator-gui/")
+    return config
+
 def loadClientConfig():
     """Return data converted from json inside config/client.cfg
     Returns:
         Json converted data inside config/client.cfg
     """
-    config = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/client.cfg")
+    config = os.path.join(getConfigFolder(), "client.cfg")
     return loadCfg(config)
-
 
 def saveClientConfig(configDict):
     """Saves data in configDict to config/client.cfg as json
     Args:
         configDict: data to be stored in config/client.cfg
     """
-    configFile = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/client.cfg")
+    config_folder = getConfigFolder()
+    try:
+        os.makedirs(config_folder)
+    except:
+        pass
+    configFile = os.path.join(config_folder, "client.cfg")
     with open(configFile, "w") as f:
         f.write(json.dumps(configDict))
         

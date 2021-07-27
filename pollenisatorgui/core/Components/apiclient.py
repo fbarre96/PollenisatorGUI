@@ -11,19 +11,24 @@ from shutil import copyfile
 from jose import jwt, JWTError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
-config_dir = os.path.join(dir_path, "./../../config/")
-if not os.path.isfile(os.path.join(config_dir, "client.cfg")):
-    if os.path.isfile(os.path.join(config_dir, "clientSample.cfg")):
-        copyfile(os.path.join(config_dir, "clientSample.cfg"), os.path.join(config_dir, "client.cfg"))
+config_dir = Utils.getConfigFolder()
+sample_file = os.path.join(Utils.getMainDir(), "config/clientSample.cfg")
 configClientPath = os.path.join(config_dir, "client.cfg")
+if not os.path.isfile(configClientPath):
+    if os.path.isfile(sample_file):
+        try:
+            os.makedirs(config_dir)
+        except:
+            pass
+        copyfile(sample_file, configClientPath)
 if os.path.isfile(configClientPath):
-    cfg = Utils.loadCfg(configClientPath)
+    cfg = Utils.loadClientConfig()
+    proxies = cfg.get("proxies")
 else:
-    print("No client config file found under "+str(config_dir))
+    print("No client config file found under "+str(configClientPath))
     sys.exit(1)
 
 
-proxies = cfg.get("proxies")
 
 
 class APIClient():
