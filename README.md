@@ -18,8 +18,13 @@ pip install .
 
 Check if you have a warning message saying that pip default install forder is out of your PATH.
 
-If it is the case, change install folder with `pip install -t '/PATH/TO/PACKAGES/' .`
-or add the install folder to your PATH.
+If it is the case do one of these:
+
+*  change install folder with `pip install -t '/PATH/TO/PACKAGES/' .`
+*  add the install folder to your PATH
+*  create a symlink/shortcut 
+
+Once in your PATH, execute it:
 
 ```
 pollenisator-gui
