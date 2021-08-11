@@ -67,7 +67,6 @@ class Remark(Element):
         base["type"] = self.type
         base["title"] = self.title
         # Get parent for notifications
-        print("Inserting "+str(base)+" type:"+str(type(base)))
         res = apiclient.insertInDb(apiclient.getCurrentPentest(), "remarks", base, notify=True)
         self._id = ObjectId(res)
         return True, self._id

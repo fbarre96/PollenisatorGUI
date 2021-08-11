@@ -57,7 +57,6 @@ class ChildDialogEditLocalTools:
         if res:
             form_values = self.form.getValue()
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
-            print(str(form_values_as_dicts))
             tools = form_values_as_dicts["tools"]
             new_config = {}
             for tool, values in tools.items():

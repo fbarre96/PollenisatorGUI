@@ -357,6 +357,9 @@ class ToolView(ViewElement):
         """Called when a tool update is received by notification.
         Update the tool treeview item (resulting in icon reloading)
         """
-        self.appliTw.item(str(self.controller.getDbId()), text=str(
-            self.controller.getModelRepr()), image=self.getIcon())
+        try:
+            self.appliTw.item(str(self.controller.getDbId()), text=str(
+                self.controller.getModelRepr()), image=self.getIcon())
+        except tk.TclError:
+            print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
         super().updateReceived()

@@ -65,7 +65,8 @@ def start_docker(dialog):
     container = client.containers.run(image=image[0], network_mode=network_mode, volumes={os.path.join(Utils.getMainDir(), "PollenisatorWorker"):{'bind':'/home/Pollenisator', 'mode':'rw'}}, detach=True)
     dialog.update(3, msg="Checking if worker is running")
     print(container.id)
-    print(container.logs())
+    if container.logs() != b"":
+        print(container.logs())
     dialog.destroy()
     
 class ScanManager:
@@ -116,7 +117,10 @@ class ScanManager:
         for children in self.scanTv.get_children():
             self.scanTv.delete(children)
         for running_scan in running_scans:
-            self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
+            try:
+                self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
+            except tk.TclError:
+                pass
         for children in self.workerTv.get_children():
             self.workerTv.delete(children)
         registeredCommands = set()
