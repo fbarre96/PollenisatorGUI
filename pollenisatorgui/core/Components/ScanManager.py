@@ -134,14 +134,14 @@ class ScanManager:
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.nok_icon)
             except tk.TclError:
-                worker_node = self.workerTv.item(workername)
+                worker_node = self.workerTv.item(workername)["text"]
             worker_registered = apiclient.getWorker({"name":workername})
             commands_registered = worker_registered["registeredCommands"]
             for command in commands_registered:
                 try:
                     self.workerTv.insert(
-                        worker_node, 'end', 'registered|'+command, text=command, image=self.tool_icon)
-                except tk.TclError:
+                        worker_node, 'end', 'registered|'+command+"|"+workername, text=command, image=self.tool_icon)
+                except tk.TclError as e:
                     pass
                 registeredCommands.add(str(command))
             allCommands = Command.getList(None, apiclient.getCurrentPentest())
@@ -149,12 +149,12 @@ class ScanManager:
                 if command not in registeredCommands:
                     try:
                         self.workerTv.insert(
-                            worker_node, '0', 'notRegistered|'+command, text=command, image=self.nok_icon)
+                            worker_node, '0', 'notRegistered|'+command+"|"+workername, text=command, image=self.nok_icon)
                     except tk.TclError:
                         pass
                 else:
                     try:
-                        self.workerTv.delete('notRegistered|'+command)
+                        self.workerTv.delete('notRegistered|'+command+"|"+workername)
                     except tk.TclError:
                         pass
         if len(registeredCommands) > 0 and self.btn_autoscan is None:
@@ -186,6 +186,8 @@ class ScanManager:
         self.workerTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.workerTv.bind("<Double-Button-1>", self.OnWorkerDoubleClick)
         self.workerTv.bind("<Delete>", self.OnWorkerDelete)
+        self.btn_setInclusion = ttk.Button(self.parent, text="Include/exclude selected worker", command=self.setWorkerInclusion)
+        self.btn_setInclusion.pack(side=tk.TOP, padx=10, pady=5) 
         self.docker_image = tk.PhotoImage(file=Utils.getIcon("baleine.png"))
         self.btn_docker_worker = ttk.Button(self.parent, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
         self.btn_docker_worker.pack(side=tk.TOP, padx=10, pady=5)
@@ -207,9 +209,9 @@ class ScanManager:
                 workername)
             for command in commands_registered:
                 try:
-                    self.workerTv.insert(worker_node, 'end', 'registered|'+str(command),
+                    self.workerTv.insert(worker_node, 'end', 'registered|'+str(command)+"|"+workername,
                                     text=command, image=self.tool_icon)
-                except tk.TclError:
+                except tk.TclError as e:
                     pass
                 registeredCommands.add(str(command))
             allCommands = Command.getList(None, apiclient.getCurrentPentest())
@@ -217,8 +219,8 @@ class ScanManager:
                 if command not in registeredCommands:
                     try:
                         self.workerTv.insert(worker_node, '0', 'notRegistered|' +
-                                        str(command), text=str(command), image=self.nok_icon)
-                    except tk.TclError:
+                                        str(command)+"|"+workername, text=str(command), image=self.nok_icon)
+                    except tk.TclError as e:
                         pass
             total_registered_commands += len(registeredCommands)
         #### TREEVIEW SCANS : overview of ongoing auto scan####
@@ -300,8 +302,9 @@ class ScanManager:
             event: used to identified which link was clicked. Auto filled
         """
         if self.workerTv is not None:
-            tv = event.widget
-            item = tv.identify("item", event.x, event.y)
+            if event:
+                tv = event.widget
+                item = tv.identify("item", event.x, event.y)
             parent = self.workerTv.parent(item)
             if str(parent) != "": # child node = tool
                 command_name = item.split("|")[1]
@@ -310,6 +313,12 @@ class ScanManager:
                 if isinstance(dialog.rvalue, tuple):
                     self.sendEditToolConfig(parent, command_name, dialog.rvalue[0], dialog.rvalue[1])
             else: # no parent node = worker node
+                self.setUseForPentest(item)
+    
+    def setWorkerInclusion(self):
+        items = self.workerTv.selection()
+        for item in items:
+            if "|" not in self.workerTv.item(item)["text"]: # exclude tools and keep worker nodes
                 self.setUseForPentest(item)
     
     def setUseForPentest(self, worker_hostname):

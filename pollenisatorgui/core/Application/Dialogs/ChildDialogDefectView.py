@@ -24,7 +24,7 @@ class ChildDialogDefectView:
         """
         self.app = tk.Toplevel(parent)
         self.app.title("Add a security defect")
-        self.app.resizable(False, False)
+        self.app.resizable(True, True)
         self.rvalue = None
         appFrame = ttk.Frame(self.app)
         self.isInsert = defectModel is None
@@ -48,7 +48,7 @@ class ChildDialogDefectView:
         cancel_button = ttk.Button(appFrame, text="Cancel")
         cancel_button.pack(side="right", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)
-        appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10)
+        appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
         self.app.transient(parent)
         try:
             self.app.wait_visibility()

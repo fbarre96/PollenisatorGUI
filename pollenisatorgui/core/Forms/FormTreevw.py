@@ -210,7 +210,7 @@ class FormTreevw(Form):
             self._initContextualMenu(self.treevw)
         if parent.gridLayout:
             self.tvFrame.grid(row=self.getKw("row", 0), column=self.getKw(
-                "column", 0), sticky=self.getKw("sticky", tk.NSEW))
+                "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "none"), expand=self.getKw("expand", True))
 
         else:
             self.tvFrame.pack(side=self.getKw("side", ""), padx=self.getKw(
