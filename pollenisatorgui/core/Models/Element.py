@@ -168,7 +168,7 @@ class Element(object):
         if tagToDelete in tags:
             del tags[tags.index(tagToDelete)]
             notify = tagToDelete != "hidden"
-            apiclient.update(self.__class__.coll_name, ObjectId(self._id), {"tags": tags}, False, notify)
+            apiclient.update(self.__class__.coll_name, ObjectId(self._id), {"tags": tags})
 
     def setTags(self, tags):
         """Change all tags for the given new ones  and update database

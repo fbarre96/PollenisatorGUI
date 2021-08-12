@@ -59,14 +59,14 @@ class ToolView(ViewElement):
             cache = self.__class__.cached_done_icon
             ui = self.__class__.done_icon
             iconStatus = "done"
-        elif "error" in status or "timedout" in status:
-            cache = self.__class__.cached_error_icon
-            ui = self.__class__.error_icon
-            iconStatus = "error"
         elif "running" in status:
             ui = self.__class__.running_icon
             cache = self.__class__.cached_running_icon
             iconStatus = "running"
+        elif "error" in status or "timedout" in status:
+            cache = self.__class__.cached_error_icon
+            ui = self.__class__.error_icon
+            iconStatus = "error"
         elif "OOS" not in status and "OOT" not in status:
             ui = self.__class__.ready_icon
             cache = self.__class__.cached_ready_icon
