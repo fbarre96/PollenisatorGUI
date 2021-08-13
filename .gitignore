@@ -54,19 +54,15 @@ docs/_build/
 target/
 
 # Application
-results/*
-local/*
-local/states/*
-centralizedResults/*
+pollenisatorgui/results/*
+pollenisatorgui/local/*
+pollenisatorgui/local/states/*
+pollenisatorgui/centralizedResults/*
 *.pyc
 ssl/*
 !ssl/initServerSSL.ssh
-core/*.pyc
-core/Models/*.pyc
-core/Views/*.pyc
-core/Forms/*.pyc
-core/Components/*.pyc
 exports/*
+pollenisatorgui/exports
 !exports/pollenisator_commands.gz
 !exports/pollenisator_group_commands.gz
 config/tools.d/*

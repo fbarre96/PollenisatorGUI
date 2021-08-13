@@ -1,7 +1,0 @@
-docs
-LICENSE
-MANIFEST.in
-pollenisatorgui
-README.md
-requirements.txt
-setup.py
