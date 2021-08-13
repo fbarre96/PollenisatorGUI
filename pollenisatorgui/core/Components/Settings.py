@@ -49,6 +49,7 @@ class Settings:
         #self.text_pentesters = None
         self.box_favorite_term = None
         self.text_terms = None
+        self.visual_trap_commands = None
         self.pentesters_treevw = None
 
     @classmethod
@@ -124,6 +125,15 @@ class Settings:
                     fav = term_name
         return fav
 
+    def isTrapCommand(self):
+        self._reloadLocalSettings()
+        return self.local_settings.get("trap_commands", False)
+    
+    def setTrapCommand(self):
+        self._reloadLocalSettings()
+        self.local_settings["trap_commands"] = self.visual_trap_commands.get()
+        self.saveLocalSettings()
+
     def setFavoriteTerm(self):
         """
         Change favorite term 
@@ -190,6 +200,7 @@ class Settings:
             self.local_settings.get("search_show_hidden", True))
         self.visual_search_exact_match.set(
             self.local_settings.get("search_exact_match", False))
+        self.visual_trap_commands.set(self.local_settings.get("trap_commands", False))
         self.text_terms.delete('1.0', tk.END)
         terms_cmd = self.getTerms()
         self.text_terms.insert(tk.INSERT, "\n".join(terms_cmd))
@@ -309,6 +320,7 @@ class Settings:
         self.visual_include_domains_with_topdomain_in_scope = tk.BooleanVar()
         self.visual_search_show_hidden = tk.BooleanVar()
         self.visual_search_exact_match = tk.BooleanVar()
+        self.visual_trap_commands = tk.BooleanVar()
 
         lbl_domains = ttk.LabelFrame(
             self.settingsFrame, text="Discovered domains options:")
@@ -332,11 +344,14 @@ class Settings:
         self.text_terms = tk.scrolledtext.ScrolledText(
             frame_term, relief=tk.SUNKEN, height=4, width=130, font = ("Sans", 10))
         self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
+        chkbox_trap_commands = ttk.Checkbutton(frame_term, text="Trap every command (instead of using pollex)", variable=self.visual_trap_commands)
+        chkbox_trap_commands.pack(side=tk.TOP, pady=5)
         frame_fav_term = ttk.Frame(frame_term)
         lbl_fav_term = ttk.Label(frame_fav_term, text="Favorite term:")
         lbl_fav_term.grid(row=0, column=0, sticky=tk.E, pady=5)
         self.box_favorite_term = ttk.Combobox(frame_fav_term, values=(self.getTerms()), state="readonly")
         self.box_favorite_term.grid(row=0, column=1, sticky=tk.W, pady=5)
+        
         lbl_localTools = ttk.Label(frame_fav_term, text="Edit local tool Paths")
         lbl_localTools.grid(row=1, column=0, sticky=tk.E, pady=5)
         self.btn_localTools = ttk.Button(frame_fav_term, text="Edit local tool paths", command=self.onEditLocalPaths)
@@ -438,6 +453,7 @@ class Settings:
         ) == 1
         self.local_settings["terms"] = [x.strip() for x in self.text_terms.get('1.0', tk.END).split("\n") if x.strip() != ""]
         self.local_settings["fav_term"] = self.box_favorite_term.get().strip()
+        self.local_settings["trap_commands"] = self.visual_trap_commands.get() == 1
         self.global_settings["pentest_types"] = {}
         for type_of_pentest in self.text_pentest_types.get('1.0', tk.END).split(
                 "\n"):

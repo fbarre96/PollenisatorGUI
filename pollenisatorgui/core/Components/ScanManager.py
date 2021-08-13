@@ -19,11 +19,14 @@ import git
 import shutil
 
 
-def start_docker(dialog):
-    if not os.path.isdir(os.path.join(Utils.getMainDir(), "PollenisatorWorker")):
+def start_docker(dialog, force_reinstall):
+    worker_subdir = os.path.join(Utils.getMainDir(), "PollenisatorWorker")
+    if os.path.isdir(worker_subdir) and force_reinstall:
+        shutil.rmtree(worker_subdir)
+    if not os.path.isdir(worker_subdir):
         git.Git(Utils.getMainDir()).clone("https://github.com/fbarre96/PollenisatorWorker.git")
     shutil.copyfile(os.path.join(Utils.getConfigFolder(), "client.cfg"), os.path.join(Utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
-    dialog.update(1, msg="Docker not found: Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
+    dialog.update(1, msg="Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
     try:
         client = docker.from_env()
         clientAPI = docker.APIClient()
@@ -32,9 +35,11 @@ def start_docker(dialog):
         tk.messagebox.showerror("Unable to launch docker", e)
         return
     image = client.images.list("pollenisatorworker")
-    if len(image) == 0:
+    if len(image) > 0 and force_reinstall:
+        force_reinstall = tk.messagebox.askyesno("Force reinstall", "A pollenisator worker image has been found. Are you sure you want to rebuild it ?")
+    if len(image) == 0 or force_reinstall:
         try:
-            log_generator = clientAPI.build(path=os.path.join(Utils.getMainDir(), "PollenisatorWorker/"), rm=True, tag="pollenisatorworker")
+            log_generator = clientAPI.build(path=os.path.join(Utils.getMainDir(), "PollenisatorWorker/"), rm=True, tag="pollenisatorworker", nocache=force_reinstall)
             change_max = None
             for byte_log in log_generator:
                 updated_dialog = False
@@ -186,11 +191,16 @@ class ScanManager:
         self.workerTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.workerTv.bind("<Double-Button-1>", self.OnWorkerDoubleClick)
         self.workerTv.bind("<Delete>", self.OnWorkerDelete)
-        self.btn_setInclusion = ttk.Button(self.parent, text="Include/exclude selected worker", command=self.setWorkerInclusion)
-        self.btn_setInclusion.pack(side=tk.TOP, padx=10, pady=5) 
+        btn_pane = ttk.Frame(self.parent)
+        self.btn_setInclusion = ttk.Button(btn_pane, text="Include/exclude selected worker", command=self.setWorkerInclusion)
+        self.btn_setInclusion.pack(padx=5, side=tk.RIGHT)
         self.docker_image = tk.PhotoImage(file=Utils.getIcon("baleine.png"))
-        self.btn_docker_worker = ttk.Button(self.parent, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
-        self.btn_docker_worker.pack(side=tk.TOP, padx=10, pady=5)
+        self.docker_download_image = tk.PhotoImage(file=Utils.getIcon("baleine_download.png"))
+        self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
+        self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
+        self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="icon.TButton")
+        self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
+        btn_pane.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
         total_registered_commands = 0
         registeredCommands = set()
@@ -357,5 +367,11 @@ class ScanManager:
     def launchDockerWorker(self, event=None):
         dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="determinate", show_logs=True)
         dialog.show(4)
-        x = threading.Thread(target=start_docker, args=(dialog,))
+        x = threading.Thread(target=start_docker, args=(dialog, False))
+        x.start()
+
+    def installDockerWorker(self, event=None):
+        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="determinate", show_logs=True)
+        dialog.show(4)
+        x = threading.Thread(target=start_docker, args=(dialog, True))
         x.start()

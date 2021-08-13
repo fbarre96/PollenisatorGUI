@@ -21,7 +21,7 @@ class ChildDialogQuestion:
         """
         self.app = tk.Toplevel(parent)
         self.app.title(title)
-        self.app.resizable(False, False)
+        self.app.resizable(True, True)
         appFrame = ttk.Frame(self.app)
         self.rvalue = None
         self.parent = parent

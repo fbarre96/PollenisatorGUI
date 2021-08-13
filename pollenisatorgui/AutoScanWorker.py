@@ -17,7 +17,7 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Command import Command
 
 
-def executeCommand(apiclient, toolId, parser="", local=True):
+def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=False):
     """
      remote task
     Execute the tool with the given toolId on the given calendar name.
@@ -28,6 +28,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
         apiclient: the apiclient instance.
         toolId: the mongo Object id corresponding to the tool to execute.
         parser: plugin name to execute. If empty, the plugin specified in tools.d will be fetched.
+        local: boolean, set the execution in a local context
     Raises:
         Terminated: if the task gets terminated
         OSError: if the output directory cannot be created (not if it already exists)
@@ -51,6 +52,9 @@ def executeCommand(apiclient, toolId, parser="", local=True):
                 comm = bin_path_local +" "+comm
             else:
                 comm = comm.replace(bin_path_server, bin_path_local)
+            success = True
+        elif allowAnyCommand:
+            success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
             success = True
         else:
             success = False
@@ -93,10 +97,10 @@ def executeCommand(apiclient, toolId, parser="", local=True):
         print(('TASK STARTED:'+toolModel.name))
         print("Will timeout at "+str(timeLimit))
         # Execute the command with a timeout
-        returncode = Utils.execute(comm, timeLimit, True)
+        returncode, stdout = Utils.execute(comm, timeLimit, True)
         if returncode == -1:
             toolModel.setStatus(["timedout"])
-            return False, str(e)
+            return False, "timedout"
     except Exception as e:
         print(str(e))
         toolModel.setStatus(["error"])
@@ -117,7 +121,7 @@ def executeCommand(apiclient, toolId, parser="", local=True):
                 str(float(command_o.get("sleep_between", 0)))+")"
         print(msg)
         time.sleep(float(command_o.get("sleep_between", 0)))
-    return True, ""
+    return True, outputfile
     
 def getWaveTimeLimit(waveName):
     """

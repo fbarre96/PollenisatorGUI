@@ -423,6 +423,9 @@ class Appli(ttk.Frame):
         print("Stopping application...")
         if self.sio is not None:
             self.sio.disconnect()
+        for module in self.modules:
+            if callable(getattr(module["object"], "onClosing", None)):
+                module["object"].onClosing()
         self.quit()
 
     def _initMenuBar(self):
@@ -562,7 +565,7 @@ class Appli(ttk.Frame):
         btnSearchBar.config(image=self.search_icon, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
         self.reset_icon = tk.PhotoImage(file=Utils.getIcon("delete.png"))
-        btnReset = ttk.Button(searchFrame, image=self.reset_icon,command=self.resetButtonClicked, style="icon.TButton")
+        btnReset = ttk.Button(searchFrame, image=self.reset_icon, command=self.resetButtonClicked, style="icon.TButton")
         btnReset.pack(side="left", fill="x")
         self.btnHelp = ttk.Button(searchFrame, style="icon.TButton")
         self.photo = tk.PhotoImage(file=Utils.getHelpIconPath())

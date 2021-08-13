@@ -8,14 +8,13 @@
 """
 import tkinter as tk
 import os
-import argparse
+import sys
+import shlex
 import signal
-import time
+from multiprocessing.connection import Client
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Appli import Appli
-import pollenisatorgui.AutoScanWorker as slave
-from pollenisatorgui.core.Models.Wave import Wave
-from pollenisatorgui.core.Models.Tool import Tool
+
 
 class GracefulKiller:
     """
@@ -54,30 +53,24 @@ class GracefulKiller:
 #######################################
 ############## MAIN ###################
 #######################################
-
+def pollex():
+    """Send a command to execute for pollenisator-gui running instance
+    """
+    address = ('localhost', 10817)
+    password = os.environ["POLLEX_PASS"]
+    conn = Client(address, authkey=password.encode())
+    conn.send(shlex.join(sys.argv[1:]).encode())
+    try:
+        resp = conn.recv()
+        os.system(f"cat {resp}")
+    except:
+        pass
+    conn.close()
 
 def main():
     """Main function. Start pollenisator application
     """
-    parser = argparse.ArgumentParser(
-        description="Edit database stored in mongo database")
-    parser.add_argument("--calendar", dest="calendarName", action="store")
-    parser.add_argument("--exec", dest="execCmd", action="store")
-    args, remainingArgs = parser.parse_known_args()
-    if args.execCmd and args.calendarName:
-        apiclient = APIClient.getInstance()
-        apiclient.setCurrentPentest(args.calendarName)
-        cmdName = os.path.splitext(os.path.basename(args.execCmd.split(" ")[0]))[0]
-        cmdName +="::"+str(time.time()).replace(" ","-")
-        wave = Wave().initialize("Custom commands")
-        wave.addInDb()
-        tool = Tool()
-        tool.initialize(cmdName, "Custom commands", "", None, None, None, "wave", args.execCmd+" "+(" ".join(remainingArgs)), dated="None", datef="None", scanner_ip="localhost")
-        tool.updateInfos({"args":args.execCmd})
-        res, iid = tool.addInDb()
-        if res:
-            slave.executeCommand(apiclient, str(iid), "auto-detect", True)
-        return
+    
     print("""
 .__    ..              ,       
 [__) _ || _ ._ * __ _.-+- _ ._.

@@ -449,7 +449,7 @@ class APIClient():
     def putProof(self, defect_iid, local_path):
         api_url = '{0}files/{1}/upload/proof/{2}'.format(self.api_url_base, self.getCurrentPentest(), defect_iid)
         with open(local_path,'rb') as f:
-            h = self.headers
+            h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, headers=h, proxies=proxies, verify=False)
             if response.status_code == 200:
@@ -531,7 +531,7 @@ class APIClient():
         if not os.path.isfile(local_path):
             return "Failure to open provided file"
         with io.open(local_path, 'r', encoding='utf-8', errors="ignore") as f:
-            h = self.headers
+            h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, headers=h, proxies=proxies, verify=False)
             if response.status_code == 200:
@@ -547,7 +547,7 @@ class APIClient():
     def importExistingResultFile(self, filepath, plugin):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, 'r', encoding='utf-8', errors="ignore") as f:
-            h = self.headers
+            h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
             if response.status_code == 200:
@@ -614,7 +614,7 @@ class APIClient():
     def importDb(self, filename):
         api_url = '{0}importDb'.format(self.api_url_base)
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
-            h = self.headers
+            h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
             return response.status_code == 200
@@ -623,7 +623,7 @@ class APIClient():
     def importCommands(self, filename):
         api_url = '{0}importCommands'.format(self.api_url_base)
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
-            h = self.headers
+            h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
             return response.status_code == 200

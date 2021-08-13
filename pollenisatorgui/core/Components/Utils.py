@@ -214,7 +214,7 @@ def execute(command, timeout=None, printStdout=True):
         except Exception as e:
             print(str(e))
             proc.kill()
-            return -1
+            return -1, ""
         finally:
             if timeout is not None:
                 if isinstance(timeout, float):
@@ -222,7 +222,7 @@ def execute(command, timeout=None, printStdout=True):
                 else:
                     if timeout.year < datetime.now().year+1:
                         timer.cancel()
-        return proc.returncode
+        return proc.returncode, stdout
     except KeyboardInterrupt as e:
         raise e
 

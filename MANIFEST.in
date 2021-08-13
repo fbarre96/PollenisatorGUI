@@ -4,4 +4,5 @@ recursive-include pollenisatorgui/config *
 recursive-include pollenisatorgui/icon *
 include pollenisatorgui/exports/pollenisator_commands.gz
 include pollenisatorgui/exports/pollenisator_group_commands.gz
+include pollenisatorgui/setupTerminalForPentest.sh
 
