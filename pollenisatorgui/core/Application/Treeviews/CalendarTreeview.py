@@ -490,6 +490,7 @@ class CalendarTreeview(PollenisatorTreeview):
                 self, self.appli.viewframe, self.appli)
             for viewFound in viewsFound:
                 viewFound.addInTreeview('', False)
+        self.configureTags()
         self.loadState(apiclient.getCurrentPentest())
 
     def refresh(self):

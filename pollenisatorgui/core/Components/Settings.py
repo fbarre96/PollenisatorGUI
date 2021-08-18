@@ -39,6 +39,7 @@ class Settings:
         self.global_settings = {}
         self.text_pentest_types = None
         self.text_tags = None
+        self.text_db_tags = None
         self.box_pentest_type = None
         self.visual_include_domains_with_ip_in_scope = None
         self.visual_include_domains_with_topdomain_in_scope = None
@@ -52,7 +53,17 @@ class Settings:
         self.pentesters_treevw = None
 
     @classmethod
-    def getTags(cls):
+    def getPentestTags(cls):
+        apiclient = APIClient.getInstance()
+        db_tags = apiclient.find("settings", {"key":"tags"}, False)
+        if db_tags is None:
+            db_tags = {}
+        else:
+            db_tags = db_tags["value"]
+        return db_tags
+
+    @classmethod
+    def getTags(cls, onlyGlobal=False, **kwargs):
         """
         Returns tags defined in settings.
         Returns:
@@ -60,17 +71,24 @@ class Settings:
             otherwise returns a dict with defined key values
         """
         apiclient = APIClient.getInstance()
-        if cls.tags_cache is not None:
-            return cls.tags_cache
-        tags = apiclient.getSettings({"key": "tags"})
-        if tags is not None:
-            if isinstance(tags["value"], dict):
-                cls.tags_cache = tags["value"]
-            elif isinstance(tags["value"], str):
-                cls.tags_cache = json.loads(tags["value"])
+        if kwargs.get("ignoreCache", False): #Check if ignore cache is true
+            cls.tags_cache = None
+        if cls.tags_cache is not None and not onlyGlobal:
             return cls.tags_cache
         cls.tags_cache = {"todo":"orange", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
-        return cls.tags_cache
+        global_tags = apiclient.getSettings({"key": "tags"})
+        if global_tags is not None:
+            if isinstance(global_tags["value"], dict):
+               global_tags = global_tags["value"]
+            elif isinstance(global_tags["value"], str):
+                global_tags = json.loads(global_tags["value"])
+        if global_tags is None:
+            global_tags = {}
+        if not onlyGlobal:
+            db_tags = cls.getPentestTags()
+            cls.tags_cache = {**global_tags, **db_tags}
+            return cls.tags_cache
+        return global_tags
 
     @classmethod
     def getPentestTypes(cls):
@@ -164,6 +182,7 @@ class Settings:
         dbSettings = apiclient.find("settings", {})
         if dbSettings is None:
             dbSettings = {}
+        self.__class__.tags_cache = None
         for settings_dict in dbSettings:
             try:
                 self.db_settings[settings_dict["key"]] = settings_dict["value"]
@@ -231,11 +250,18 @@ class Settings:
         self.text_pentest_types.insert(
             tk.INSERT, buffer)
         self.text_tags.delete('1.0', tk.END)
-        tagsRegistered = Settings.getTags()
+        tagsRegistered = Settings.getTags(onlyGlobal=True)
         buffer = ""
         for tagName, tagColor in tagsRegistered.items():
             buffer += tagName +" : "+ tagColor+"\n"
         self.text_tags.insert(
+            tk.INSERT, buffer)
+        self.text_db_tags.delete('1.0', tk.END)
+        tagsPentestRegistered = Settings.getPentestTags()
+        buffer = ""
+        for tagName, tagColor in tagsPentestRegistered.items():
+            buffer += tagName +" : "+ tagColor+"\n"
+        self.text_db_tags.insert(
             tk.INSERT, buffer)
         self.canvas.bind('<Enter>', self.boundToMousewheel)
         self.canvas.bind('<Leave>', self.unboundToMousewheel)
@@ -397,13 +423,13 @@ class Settings:
         self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
         self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
         self.pentesters_treevw = self.form_pentesters.addFormTreevw(
-            "Additional pentesters names", ["Additional pentesters names"], (""), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+            "Additional pentesters names", ["Additional pentesters names"], (""), height=30, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
         
         self.form_pentesters.constructView(form_pentesters_panel)
         form_pentesters_panel.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
         lblframe_global_params = ttk.LabelFrame(
-            self.settingsFrame, text="Global parameters:")
+            self.settingsFrame, text="Other parameters:")
         lblframe_global_params.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
         lbl_pentest_types = ttk.Label(
@@ -418,8 +444,14 @@ class Settings:
         self.text_tags = tk.scrolledtext.ScrolledText(
             lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
         self.text_tags.grid(row=1, column=1, sticky=tk.W)
+        lbl_db_tags = ttk.Label(
+            lblframe_global_params, text="Pentest only tags:")
+        lbl_db_tags.grid(row=2, column=0, sticky=tk.E)
+        self.text_db_tags = tk.scrolledtext.ScrolledText(
+            lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
+        self.text_db_tags.grid(row=2, column=1, sticky=tk.W)
         btn_save = ttk.Button(parent, text="Save", command=self.on_ok)
-        btn_save.grid(row=1, column=0, padx=10, pady=10, sticky="s")
+        btn_save.grid(row=3, column=0, padx=10, pady=10, sticky="s")
         self.settingsFrame.pack(fill=tk.BOTH, expand=1)
 
         #self.reloadUI()
@@ -451,6 +483,14 @@ class Settings:
         form_values = self.form_pentesters.getValue()
         form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
         self.db_settings["pentesters"] = [x for x in form_values_as_dicts["Additional pentesters names"] if x != ""]
+        self.db_settings["tags"] = {}
+        for tagRegistered in self.text_db_tags.get('1.0', tk.END).split(
+                "\n"):
+            if tagRegistered.strip() != "":
+                line_splitted = tagRegistered.strip().split(":")
+                if len(line_splitted) == 2:
+                    self.db_settings["tags"][line_splitted[0].strip()] = line_splitted[1].strip()
+
         self.local_settings["search_show_hidden"] = self.visual_search_show_hidden.get(
         ) == 1
         self.local_settings["search_exact_match"] = self.visual_search_exact_match.get(
@@ -492,3 +532,5 @@ class Settings:
     def notify(self, db, iid, action):
         if db == "pollenisator":
             self._reloadGlobalSettings()
+        else:
+            self._reloadDbSettings()

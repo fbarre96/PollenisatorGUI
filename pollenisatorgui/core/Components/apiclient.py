@@ -420,9 +420,9 @@ class APIClient():
         else:
             return None
 
-    def registerTag(self, name, color):
+    def registerTag(self, name, color, isGlobal=False):
         api_url = '{0}settings/registerTag'.format(self.api_url_base)
-        data = {"name":name, "color":color}
+        data = {"name":name, "color":color, "global":isGlobal}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)

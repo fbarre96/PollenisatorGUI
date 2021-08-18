@@ -410,7 +410,10 @@ class Appli(ttk.Frame):
                 self.treevw.notify(notification["db"],  notification["collection"], notification["iid"], notification["action"], "")
                 self.statusbar.refreshTags(Settings.getTags())
         else:
-            self.treevw.notify(notification["db"], notification["collection"],
+            if notification["collection"] == "settings":
+                self.settings.notify(notification["db"], notification["iid"], notification["action"])
+            else:
+                self.treevw.notify(notification["db"], notification["collection"],
                             notification["iid"], notification["action"], notification.get("parent", ""))
             for module in self.modules:
                 if callable(getattr(module["object"], "notify", None)):
@@ -1108,6 +1111,7 @@ class Appli(ttk.Frame):
                 widget.destroy()
             for module in self.modules:
                 module["object"].initUI(module["view"], self.nbk, self.treevw)
+            self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()
             self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)

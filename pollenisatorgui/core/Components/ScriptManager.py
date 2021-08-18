@@ -79,7 +79,9 @@ class ScriptManager:
         script_dir = self.getScriptsDir()
         if self.__class__.folder_icon is None:
             self.__class__.folder_icon = ImageTk.PhotoImage(Image.open(Utils.getIcon("folder.png")))
-        parent = self.treevw.insert("", "end", " ", text="Scripts", image=self.__class__.folder_icon)
+        parent = self.treevw.insert("", "end", " ", text="Scripts", image=self.__class__.folder_icon, open=True)
+        self.treevw.focus(parent)
+        self.treevw.selection_set(parent)
         for root, subFolders, files in os.walk(script_dir):
             root_name = root.replace(script_dir, "")
             for folder in subFolders:
@@ -117,6 +119,7 @@ class ScriptManager:
             scriptName = os.path.basename(script)
             category_name = os.path.dirname(script.replace(script_dir, ""))
             self.file_tree.insert("", "end", script, text=scriptName, values=(category_name))
+        
 
     def executedSelectedScripts(self):
         for selected in self.file_tree.get_checked():
