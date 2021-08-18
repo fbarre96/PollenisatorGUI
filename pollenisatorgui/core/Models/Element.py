@@ -171,7 +171,7 @@ class Element(object):
             apiclient.update(self.__class__.coll_name, ObjectId(self._id), {"tags": tags})
 
     def setTags(self, tags):
-        """Change all tags for the given new ones  and update database
+        """Change all tags for the given new ones and update database
         Args:
             tags: a list of tag string
         """

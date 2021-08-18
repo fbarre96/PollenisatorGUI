@@ -15,6 +15,7 @@ import string
 from shutil import which
 import subprocess
 import signal
+from PIL import ImageTk, Image
 
 class Terminal:
     iconName = "tab_terminal.png"
@@ -24,12 +25,23 @@ class Terminal:
         self.settings = settings
         self.proc = None
         self.s = None
+        self.img = ImageTk.PhotoImage(Image.open(Utils.getIcon("help.png")))
         manager = Manager()
         self.exiting = manager.Value('i', 0)
 
     def initUI(self, parent, nbk, treevw):
-        lbl = tk.ttk.Label(parent, text="You can use the 'pollex' command in the terminal that opened to launch tools and auto-import results.")
-        lbl.pack(pady=50)
+        if self.settings.isTrapCommand():
+            settings_text = "Setting trap command is ON\nEvery command typed here will be executed through pollenisator and will be logged / imported depending on the tools called.\nYou can disable the trap setting in the Settings to change this behaviour."
+        else:
+            settings_text = "Setting trap command is OFF\ntype 'pollex <YOUR COMMAND with --args>' to execute it through pollenisator\n(plugins will autocomplete the output file and import it once done).\n You can enable the trap setting in the Settings to auto-import each commands without prepending pollex."
+        frame = tk.ttk.Frame(parent)
+        s = tk.ttk.Style()
+        s.configure('big.TLabel', font=('Helvetica', 12), background="white")
+        lbl = tk.ttk.Label(frame, image = self.img)
+        lbl.pack(anchor=tk.CENTER, side=tk.LEFT)
+        lbl = tk.ttk.Label(frame, text = settings_text,  style='big.TLabel')
+        lbl.pack(anchor=tk.CENTER, side=tk.RIGHT)
+        frame.place(relx=.5, rely=.5, anchor="c")
         return
 
     def open(self):

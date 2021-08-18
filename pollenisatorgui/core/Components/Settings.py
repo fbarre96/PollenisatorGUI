@@ -5,7 +5,6 @@ import tkinter as tk
 import tkinter.messagebox
 import json
 from pollenisatorgui.core.Components.apiclient import APIClient
-from pollenisatorgui.core.Application.Dialogs.ChildDialogEditLocalTools import ChildDialogEditLocalTools
 from shutil import which
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Forms.FormPanel import FormPanel
@@ -57,7 +56,7 @@ class Settings:
         """
         Returns tags defined in settings.
         Returns:
-            If none are defined returns {"todo":"orange", "unscanned":"yellow", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
+            If none are defined returns {"todo":"orange", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
             otherwise returns a dict with defined key values
         """
         apiclient = APIClient.getInstance()
@@ -67,7 +66,10 @@ class Settings:
         if tags is not None:
             if isinstance(tags["value"], dict):
                 cls.tags_cache = tags["value"]
-        cls.tags_cache = {"todo":"orange", "unscanned":"yellow", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
+            elif isinstance(tags["value"], str):
+                cls.tags_cache = json.loads(tags["value"])
+            return cls.tags_cache
+        cls.tags_cache = {"todo":"orange", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
         return cls.tags_cache
 
     @classmethod
@@ -174,6 +176,7 @@ class Settings:
         """
         apiclient = APIClient.getInstance()
         globalSettings = apiclient.getSettings()
+        self.__class__.tags_cache = None
         for settings_dict in globalSettings:
             self.global_settings[settings_dict["key"]] = settings_dict["value"]
 
@@ -429,6 +432,7 @@ class Settings:
         return ret, ""
 
     def onEditLocalPaths(self):
+        from pollenisatorgui.core.Application.Dialogs.ChildDialogEditLocalTools import ChildDialogEditLocalTools
         dialog = ChildDialogEditLocalTools(self.canvas)
         self.canvas.wait_window(dialog.app)
 
@@ -484,3 +488,7 @@ class Settings:
         Returns:
             List of pentesters names"""
         return self.db_settings.get("pentesters", [])
+
+    def notify(self, db, iid, action):
+        if db == "pollenisator":
+            self._reloadGlobalSettings()

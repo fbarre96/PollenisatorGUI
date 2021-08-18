@@ -39,11 +39,18 @@ class PollenisatorTreeview(ttk.Treeview):
         self._hidden = []  #  Hidden objects reference
         self.views = {}  # Dict of views stored in this treeview.
         self.contextualMenu = None
+        self.configureTags()
+
+    def configureTags(self):
         self.tag_configure('OOS', background="grey")
         tags = Settings.getTags()
         for tag, color in tags.items():
-            self.tag_configure(tag, background=color)
-
+            try:
+                self.tag_configure(tag, background=color)
+            except tk.TclError:
+                #color does not exist
+                pass
+            
     def resetTags(self, dbId):
         """
         Remove all tags of the node with given id.

@@ -179,6 +179,11 @@ class ViewElement(object):
             if column == 0:
                 panTags = self.form.addFormPanel(pady=0)
             s = ttk.Style(self.mainApp.parent)
+            try: # CHECK IF COLOR IS VALID
+                ttk.Label(self.mainApp.parent, background=color)
+            except tkinter.TclError as e:
+                #color incorrect
+                color = "white"
             s.configure(""+color+".TButton", background=color, foreground="black")
             s.map(""+color+".TButton", foreground=[('active', "dark gray")], background=[('active', color)])
             btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no], side="left", padx=0, pady=0)

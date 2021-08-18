@@ -262,6 +262,10 @@ class CalendarTreeview(PollenisatorTreeview):
         apiclient = APIClient.getInstance()
         if not apiclient.getCurrentPentest() != "":
             return
+        if db == "pollenisator":
+            if collection == "settings":
+                self.configureTags()
+                return
         if apiclient.getCurrentPentest() != db:
             return
         # Delete

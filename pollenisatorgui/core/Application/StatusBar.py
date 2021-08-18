@@ -35,12 +35,22 @@ class StatusBar(ttk.Frame):
         self.statusbarController = statusbarController
         self.tagsCount = {}
         self.labelsTags = {}
+        self.refreshUI()
+
+    def refreshUI(self):
+        for widget in self.winfo_children():
+            widget.destroy()
         column = 1
         keys = list(self.registeredTags.keys())
         listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
-        for registeredTag, color in registeredTags.items():
-            self.tagsCount[registeredTag] = 0
-            self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black")
+        for registeredTag, color in self.registeredTags.items():
+            self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
+            try:
+                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black")
+            except tk.TclError:
+                #color does not exist
+                color = "white"
+                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black")
             self.labelsTags[registeredTag].grid(column=column, row=0, padx=1)
             self.labelsTags[registeredTag].bind('<Button-1>', listOfLambdas[column-1])
             column += 1
@@ -73,6 +83,10 @@ class StatusBar(ttk.Frame):
         Update all tags label to tags count
         """
         for tag, label in self.labelsTags.items():
-            label.config(text=tag+" : "+str(self.tagsCount[tag]))
+            label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
             label.update_idletasks()
+
+    def refreshTags(self, tags):
+        self.registeredTags = tags
+        self.refreshUI()
 

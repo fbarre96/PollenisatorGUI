@@ -33,6 +33,7 @@ from pollenisatorgui.core.Application.StatusBar import StatusBar
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.ScanManager import ScanManager
 from pollenisatorgui.core.Components.Admin import AdminView
+from pollenisatorgui.core.Components.ScriptManager import ScriptManager
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Components.Filter import Filter
 from pollenisatorgui.core.Controllers.ScopeController import ScopeController
@@ -404,6 +405,10 @@ class Appli(ttk.Frame):
                 self.scanManager.notify(notification["iid"], notification["action"])
             elif "commands" in notification["collection"]:
                 self.commandsTreevw.notify(notification["db"], notification["collection"], notification["iid"], notification["action"], notification.get("parent", ""))
+            elif "settings" in notification["collection"]:
+                self.settings.notify(notification["db"], notification["iid"], notification["action"])
+                self.treevw.notify(notification["db"],  notification["collection"], notification["iid"], notification["action"], "")
+                self.statusbar.refreshTags(Settings.getTags())
         else:
             self.treevw.notify(notification["db"], notification["collection"],
                             notification["iid"], notification["action"], notification.get("parent", ""))
@@ -460,7 +465,6 @@ class Appli(ttk.Frame):
                               command=self.importExistingTools)
         fileMenu2.add_command(label="Reset unfinished tools",
                               command=self.resetUnfinishedTools)
-        fileMenu2.add_command(label="Find unscanned port", command=self.findUnscannedPorts)
         fileMenu2.add_command(label="Refresh (F5)",
                               command=self.refreshView)
         fileMenuUser = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
@@ -472,6 +476,7 @@ class Appli(ttk.Frame):
                               command=self.submitIssue)
         menubar.add_cascade(label="Database", menu=fileMenu)
         menubar.add_cascade(label="Scans", menu=fileMenu2)
+        menubar.add_command(label="Scripts...", command=self.openScriptModule)
         menubar.add_cascade(label="User", menu=fileMenuUser)
         menubar.add_cascade(label="Help", menu=fileMenu3)
 
@@ -786,6 +791,10 @@ class Appli(ttk.Frame):
         self.admin = AdminView(self.nbk)
         self.adminViewFrame = ttk.Frame(self.nbk)
         self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
+
+    def openScriptModule(self):
+        """Open the script window"""
+        self.scriptManager = ScriptManager(self.parent)
 
     def initUI(self):
         """
