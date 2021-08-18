@@ -25,7 +25,7 @@ class ScriptManager:
         self.rvalue = None
         appFrame = ttk.Frame(self.app)
          #PANED PART
-        self.paned = tk.PanedWindow(appFrame, height=800)
+        self.paned = tk.PanedWindow(appFrame, height=300)
         #RIGHT PANE : TAble
         self.viewframe = ttk.Frame(self.paned)
         self.file_tree = CheckboxTreeview(self.viewframe)
