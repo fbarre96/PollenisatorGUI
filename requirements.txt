@@ -11,3 +11,4 @@ pymongo
 docker
 GitPython
 python-socketio[client]
+ttkwidgets

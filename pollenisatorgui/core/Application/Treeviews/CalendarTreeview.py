@@ -38,7 +38,6 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogCustomCommand import Ch
 from pollenisatorgui.core.Application.Dialogs.ChildDialogExportSelection import ChildDialogExportSelection
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
 
-
 class CalendarTreeview(PollenisatorTreeview):
     """Inherit PollenisatorTreeview.
     Ttk treeview class with added functions to handle the main view objects.
