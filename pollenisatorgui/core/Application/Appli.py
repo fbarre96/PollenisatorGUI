@@ -2,7 +2,6 @@
 Pollenisator client GUI window.
 """
 import traceback
-import threading
 import tkinter.filedialog
 import tkinter as tk
 import tkinter.messagebox
@@ -11,7 +10,6 @@ import tkinter.ttk as ttk
 import sys
 from tkinter import TclError
 import datetime
-import os
 import json
 import re
 from PIL import ImageTk, Image
@@ -30,17 +28,12 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialog
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogEditPassword import ChildDialogEditPassword
 from pollenisatorgui.core.Application.StatusBar import StatusBar
-from pollenisatorgui.core.Components.apiclient import APIClient
+from pollenisatorgui.core.Components.apiclient import APIClient, ErrorHTTP
 from pollenisatorgui.core.Components.ScanManager import ScanManager
 from pollenisatorgui.core.Components.Admin import AdminView
 from pollenisatorgui.core.Components.ScriptManager import ScriptManager
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Components.Filter import Filter
-from pollenisatorgui.core.Controllers.ScopeController import ScopeController
-from pollenisatorgui.core.Models.Command import Command
-from pollenisatorgui.core.Models.Scope import Scope
-from pollenisatorgui.core.Models.Wave import Wave
-from pollenisatorgui.core.Models.Interval import Interval
 from pollenisatorgui.core.Models.Port import Port
 import pollenisatorgui.core.Components.Modules
 
@@ -319,6 +312,8 @@ class Appli(ttk.Frame):
             abandon = self.promptForConnection() is None
         if not abandon:
             apiclient.attach(self)
+            if self.sio is not None:
+                self.sio.disconnect()
             self.sio = socketio.Client()
             @self.sio.event
             def notif(data):
@@ -357,6 +352,11 @@ class Appli(ttk.Frame):
         """
         try:
             err = traceback.format_exception(args[0], args[1], args[2])
+            if args[0] is ErrorHTTP: # args[0] is class of ecx
+                if args[1].response.status_code == 401:
+                    tk.messagebox.showerror("Disconnected", "You are not connected.")
+                    self.openConnectionDialog()
+                    return
             dialog = ChildDialogException(self, 'Exception occured', err)
             apiclient = APIClient.getInstance()
             apiclient.reportError("\n".join(err))
