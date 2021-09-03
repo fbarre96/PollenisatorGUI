@@ -11,7 +11,7 @@ sudo apt-get install python3-pip git python3-pil python3-tk python3-pil.imagetk
 **Installation** :
 
 ```
-git clone https://github.com/AlgoSecure/PollenisatorGUI
+git clone https://github.com/fbarre96/PollenisatorGUI
 cd PollenisatorGUI
 pip install .
 ```
