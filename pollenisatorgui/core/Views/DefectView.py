@@ -351,6 +351,8 @@ class DefectView(ViewElement):
                 d_o.initialize("", "", "", result["title"],
                             result["ease"], result["impact"], result["risk"], "N/A", types)
                 d_o.addInDb()
+            else:
+                tk.messagebox.showerror("Could not saerch defect", msg)
         return True
 
     def insertReceived(self):

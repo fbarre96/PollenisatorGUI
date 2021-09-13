@@ -79,6 +79,8 @@ class APIClient():
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder), ""
         elif response.status_code == 204:
             return None, "There is no external knowledge database to query. Check documentation if you have one ready."
+        elif response.status_code == 503:
+            return None, "Error : "+response.text
         else:
             return None, "Unexpected server response "+str(response.status_code)+"\n"+response.text    
 
