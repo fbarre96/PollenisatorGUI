@@ -6,6 +6,11 @@
 # Major version released: 09/2019
 # @version: 1.0
 """
+from datetime import datetime
+from pollenisatorgui.AutoScanWorker import executeCommand
+from pollenisatorgui.core.Models.Tool import Tool
+from pollenisatorgui.core.Models.Wave import Wave
+import time
 import tkinter as tk
 import os
 import sys
@@ -56,16 +61,25 @@ class GracefulKiller:
 def pollex():
     """Send a command to execute for pollenisator-gui running instance
     """
-    address = ('localhost', 10817)
-    password = os.environ["POLLEX_PASS"]
-    conn = Client(address, authkey=password.encode())
-    conn.send(shlex.join(sys.argv[1:]).encode())
-    try:
-        resp = conn.recv()
-        os.system(f"cat {resp}")
-    except:
-        pass
-    conn.close()
+    apiclient = APIClient.getInstance()
+    apiclient.tryConnection()
+    execCmd = shlex.join(sys.argv[1:])
+    cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
+    args = shlex.join(shlex.split(execCmd)[1:])
+    cmdName +="::"+str(time.time()).replace(" ","-")
+    wave = Wave().initialize("Custom commands")
+    wave.addInDb()
+    tool = Tool()
+    tool.initialize(cmdName, "Custom commands", "", None, None, None, "wave", execCmd, dated=datetime.now().strftime("%d/%m/%Y %H:%M:%S"), datef="None", scanner_ip="localhost")
+    tool.updateInfos({"args":args})
+    res, iid = tool.addInDb()
+    if res:
+        ret_code, outputstr = executeCommand(apiclient, str(iid), "auto-detect", True, True)
+        if not ret_code:
+            print(outputstr)
+        else:
+            print(f"Output created here : {outputstr}")
+            
 
 def main():
     """Main function. Start pollenisator application

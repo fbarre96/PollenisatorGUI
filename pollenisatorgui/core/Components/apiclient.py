@@ -1,4 +1,5 @@
 import json
+from tkinter.constants import FALSE
 import requests
 import os
 import io
@@ -44,7 +45,6 @@ def handle_api_errors(func):
         except ErrorHTTP as err:
             if err.response.status_code == 401:
                 raise err
-
             else:
                 return err.ret_values
         return res
@@ -100,7 +100,7 @@ class APIClient():
         pid = os.getpid()  # HACK : One mongo per process.
         if APIClient.__instances.get(pid, None) is not None:
             raise Exception("This class is a singleton!")
-        self.currentPentest = None
+        self.currentPentest = ""
         self._observers = []
         self.scope = []
         self.userConnected = None
@@ -116,7 +116,7 @@ class APIClient():
         self.api_url = http_proto+"://"+host+":"+str(port)+"/"
         self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
 
-    def tryConnection(self, config=None):
+    def tryConnection(self, config=None, force=False):
         if config is None:
             if os.path.isfile(configClientPath):
                 config = Utils.loadCfg(configClientPath)
@@ -127,11 +127,17 @@ class APIClient():
             http_proto = "https" if str(is_https).lower() == "true" or is_https == 1 else "http"
             host = config.get("host")
             port = config.get("port")
+            token = None
+            if not force:
+                token = config.get("token", None)
             self.api_url = http_proto+"://"+host+":"+str(port)+"/"
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
             response = requests.get(self.api_url_base, headers=self.headers, proxies=proxies, verify=False, timeout=2)
         except requests.exceptions.RequestException as e:
             return False
+        if response.status_code == 200:
+            if token:
+                return self.setConnection(token)
         return response.status_code == 200
     
     def reportError(self, err):
@@ -151,10 +157,33 @@ class APIClient():
     def disconnect(self):
         self.scope = []
         self.userConnected = None
+        self.token = ""
+        client_config = Utils.loadClientConfig()
+        client_config["token"] = self.token
+        Utils.saveClientConfig(client_config)
         try:
             del self.headers["Authorization"]
         except KeyError:
             pass
+
+    def setConnection(self, token):
+        try:
+            jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
+            self.scope = jwt_decoded["scope"]
+            self.userConnected = jwt_decoded.get("sub", None)
+            self.token = token
+            self.headers["Authorization"] = "Bearer "+token
+            self.currentPentest = ""
+            for scope in self.scope:
+                if scope not in ["pentester", "admin", "user", "owner", "worker"]:
+                    self.currentPentest = scope
+            client_config = Utils.loadClientConfig()
+            client_config["token"] = self.token
+            Utils.saveClientConfig(client_config)
+            
+        except JWTError as e:
+            return False
+        return True
 
     def login(self, username, passwd):
         api_url = '{0}login'.format(self.api_url_base)
@@ -162,13 +191,7 @@ class APIClient():
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            self.headers["Authorization"] = "Bearer "+token
-            try:
-                jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
-                self.scope = jwt_decoded["scope"]
-                self.userConnected = username
-            except JWTError as e:
-                return False
+            return self.setConnection(token)
         return response.status_code == 200
     
     @handle_api_errors
@@ -182,18 +205,11 @@ class APIClient():
         response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            self.headers["Authorization"] = "Bearer "+token
-            try:
-                jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
-                self.scope = jwt_decoded["scope"]
-            except JWTError as e:
-                return False
-            self.currentPentest = newCurrentPentest
+            self.setConnection(token)
             return True
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False)
         return False
-        
 
     def getCurrentPentest(self):
         return self.currentPentest

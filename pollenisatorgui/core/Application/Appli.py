@@ -301,17 +301,22 @@ class Appli(ttk.Frame):
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
+        apiclient = APIClient.getInstance()
+        apiclient.appli = self
         self.openConnectionDialog()
         
     
-    def openConnectionDialog(self):
+    def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
         apiclient = APIClient.getInstance()
         abandon = False
-        while (not apiclient.tryConnection() or not apiclient.isConnected()) and not abandon:
+        if force:
+            apiclient.disconnect()
+        while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
             abandon = self.promptForConnection() is None
         if not abandon:
             apiclient.attach(self)
+            
             if self.sio is not None:
                 self.sio.disconnect()
             self.sio = socketio.Client()
@@ -320,6 +325,8 @@ class Appli(ttk.Frame):
                 self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
             self.sio.connect(apiclient.api_url)
             self.initUI()
+            if apiclient.getCurrentPentest() != "":
+                self.openCalendar(apiclient.getCurrentPentest())
             # self.promptCalendarName(), called beacause tabSwitch is called
         else:
             self.onClosing()
@@ -355,7 +362,7 @@ class Appli(ttk.Frame):
             if args[0] is ErrorHTTP: # args[0] is class of ecx
                 if args[1].response.status_code == 401:
                     tk.messagebox.showerror("Disconnected", "You are not connected.")
-                    self.openConnectionDialog()
+                    self.openConnectionDialog(force=True)
                     return
             dialog = ChildDialogException(self, 'Exception occured', err)
             apiclient = APIClient.getInstance()
@@ -392,7 +399,8 @@ class Appli(ttk.Frame):
     def disconnect(self):
         """Remove the session cookie"""
         APIClient.getInstance().disconnect()
-        self.openConnectionDialog()
+        
+        self.openConnectionDialog(force=True)
 
     def submitIssue(self):
         """Open git issues in browser"""

@@ -46,15 +46,6 @@ class Terminal:
 
     def open(self):
         apiclient = APIClient.getInstance()
-        if self.proc is None:
-            password = os.environ.get("POLLEX_PASS", None)
-            if password is None:
-                characters = string.ascii_letters + string.digits + string.punctuation
-                password = ''.join(random.choice(characters) for i in range(15))
-            os.environ["POLLEX_PASS"] = password
-            self.proc = Process(target=self.takeCommands, args=(apiclient, self.exiting))
-            self.proc.daemon = True
-            self.proc.start()
         favorite = self.settings.getFavoriteTerm()
         if favorite is None:
             tk.messagebox.showerror("Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
@@ -84,35 +75,4 @@ class Terminal:
         if self.s:
             self.s.close()
 
-    def takeCommands(self, apiclient, exiting):
-        APIClient.setInstance(apiclient)
-        signal.signal(signal.SIGINT, self.onClosing)
-        address = ('localhost', 10817)
-        password = os.environ["POLLEX_PASS"]
-        excludedCommands = ["echo"]
-        # LISTEN
-        self.s = Listener(address, authkey=password.encode())
-        while not exiting.value:
-            try:
-                connection = self.s.accept()
-            except:
-                return False
-            execCmd = connection.recv().decode()
-            cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
-            if cmdName in excludedCommands:
-                connection.close()
-                continue
-            args = shlex.join(shlex.split(execCmd)[1:])
-            cmdName +="::"+str(time.time()).replace(" ","-")
-            wave = Wave().initialize("Custom commands")
-            wave.addInDb()
-            tool = Tool()
-            tool.initialize(cmdName, "Custom commands", "", None, None, None, "wave", execCmd, dated=datetime.now().strftime("%d/%m/%Y %H:%M:%S"), datef="None", scanner_ip="localhost")
-            tool.updateInfos({"args":args})
-            res, iid = tool.addInDb()
-            if res:
-                ret_code, outputfile = slave.executeCommand(apiclient, str(iid), "auto-detect", True, True)
-            connection.send(outputfile)
-            connection.close()
-        self.s.close()
-        return True
+   

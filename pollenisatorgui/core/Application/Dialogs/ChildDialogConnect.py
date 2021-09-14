@@ -162,10 +162,7 @@ class ChildDialogConnect:
             loginRes = apiclient.login(self.ent_login.get(), self.password.get())
             if loginRes:
                 self.rvalue = len(apiclient.getPentestList()) > 0
-                for key, value in self.clientCfg.items():
-                    if key not in config.keys():
-                        config[key] = value
-                saveClientConfig(config)
+                
                 self.app.destroy()
             else:
                 tk.messagebox.showerror("Connection failure", "The login/password you entered does not exists")
