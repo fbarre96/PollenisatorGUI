@@ -161,8 +161,7 @@ class ChildDialogConnect:
             #  pylint: disable=len-as-condition
             loginRes = apiclient.login(self.ent_login.get(), self.password.get())
             if loginRes:
-                self.rvalue = len(apiclient.getPentestList()) > 0
-                
+                self.rvalue = True
                 self.app.destroy()
             else:
                 tk.messagebox.showerror("Connection failure", "The login/password you entered does not exists")

@@ -7,7 +7,7 @@ from datetime import datetime
 import sys
 import pollenisatorgui.core.Components.Utils as Utils
 from bson import ObjectId
-from pollenisatorgui.core.Components.Utils import JSONEncoder, JSONDecoder
+from pollenisatorgui.core.Components.Utils import JSONEncoder, JSONDecoder, saveClientConfig
 from shutil import copyfile
 from jose import jwt, JWTError
 from functools import wraps
@@ -52,8 +52,6 @@ def handle_api_errors(func):
 
 class APIClient():
     __instances = dict()
-
-
     @staticmethod
     def getInstance():
         """ Singleton Static access method.
@@ -136,6 +134,7 @@ class APIClient():
         except requests.exceptions.RequestException as e:
             return False
         if response.status_code == 200:
+            saveClientConfig(config)
             if token:
                 return self.setConnection(token)
         return response.status_code == 200
