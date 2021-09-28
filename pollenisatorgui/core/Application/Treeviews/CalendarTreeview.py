@@ -318,7 +318,8 @@ class CalendarTreeview(PollenisatorTreeview):
             try:
                 view = self.getViewFromId(str(iid))
                 if view is not None:
-                    oldTags = self.item(str(iid))["tags"]
+                    item = self.item(str(iid))
+                    oldTags = item["tags"]
                     view.controller.actualize()
                     self.appli.statusbar.notify(view.controller.getTags(), oldTags)
                     self.item(str(iid), text=str(

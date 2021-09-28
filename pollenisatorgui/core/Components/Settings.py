@@ -4,8 +4,8 @@ import tkinter.ttk as ttk
 import tkinter as tk
 import tkinter.messagebox
 import json
-from pollenisatorgui.core.Components.apiclient import APIClient
-from shutil import which
+from pollenisatorgui.core.Components.apiclient import APIClient, ErrorHTTP
+from shutil import Error, which
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Forms.FormPanel import FormPanel
 
@@ -76,7 +76,10 @@ class Settings:
         if cls.tags_cache is not None and not onlyGlobal:
             return cls.tags_cache
         cls.tags_cache = {"todo":"orange", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
-        global_tags = apiclient.getSettings({"key": "tags"})
+        try:
+            global_tags = apiclient.getSettings({"key": "tags"})
+        except ErrorHTTP:
+            global_tags = None
         if global_tags is not None:
             if isinstance(global_tags["value"], dict):
                global_tags = global_tags["value"]
@@ -85,7 +88,10 @@ class Settings:
         if global_tags is None:
             global_tags = {}
         if not onlyGlobal:
-            db_tags = cls.getPentestTags()
+            try:
+                db_tags = cls.getPentestTags()
+            except ErrorHTTP:
+                db_tags = {}
             cls.tags_cache = {**global_tags, **db_tags}
             return cls.tags_cache
         return global_tags
@@ -285,7 +291,18 @@ class Settings:
             existing_settings[setting["key"]] = setting
         for k, v in self.db_settings.items():
             if k in existing_settings:
-                apiclient.updateInDb(apiclient.getCurrentPentest(), "settings", {"key":k}, {"$set":{"value": v}})
+                if k == "tags":
+                    for line_key, line_value in v.items():
+                        tag, color = line_key, line_value
+                        if tag not in existing_settings["tags"]:
+                            apiclient.registerTag(tag, color, False)
+                        else:
+                            apiclient.updateTag(tag, color, False)
+                    for tag in existing_settings["tags"].get("value",{}):
+                        if tag not in v:
+                            apiclient.unregisterTag(tag, False)
+                else:
+                    apiclient.updateInDb(apiclient.getCurrentPentest(), "settings", {"key":k}, {"$set":{"value": v}})
 
     def save(self):
         """

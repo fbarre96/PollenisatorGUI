@@ -131,7 +131,7 @@ class ScriptManager:
         script_name = ".".join(os.path.splitext(os.path.basename(script_path))[:-1])
         module = os.path.join("pollenisatorgui/scripts/",category_name, script_name).replace("/", '.')
         imported = importlib.import_module(module)
-        success, res = imported.main()
+        success, res = imported.main(APIClient.getInstance())
         if success:
             tk.messagebox.showinfo("Script finished", f"Script {script_name} finished.\n{res}")
         else:

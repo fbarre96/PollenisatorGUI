@@ -416,10 +416,13 @@ class Appli(ttk.Frame):
             elif "settings" in notification["collection"]:
                 self.settings.notify(notification["db"], notification["iid"], notification["action"])
                 self.treevw.notify(notification["db"],  notification["collection"], notification["iid"], notification["action"], "")
-                self.statusbar.refreshTags(Settings.getTags())
+                self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
+                self.treevw.configureTags()
         else:
             if notification["collection"] == "settings":
                 self.settings.notify(notification["db"], notification["iid"], notification["action"])
+                
+                self.statusbar.refreshUI()
             else:
                 self.treevw.notify(notification["db"], notification["collection"],
                             notification["iid"], notification["action"], notification.get("parent", ""))
@@ -815,7 +818,7 @@ class Appli(ttk.Frame):
             self.refreshUI()
             return
         self.nbk = ttk.Notebook(self.parent)
-        self.statusbar = StatusBar(self.parent, Settings.getTags(), self)
+        self.statusbar = StatusBar(self.parent, self)
         self.statusbar.pack(fill=tk.X)
         self.nbk.enable_traversal()
         self.initMainView()

@@ -3,8 +3,8 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Components.apiclient import APIClient
 
 
-def main():
-	apiclient = APIClient.getInstance()
+def main(apiclient):
+	APIClient.setInstance(apiclient)
 	apiclient.registerTag("unscanned", "yellow")
 	ports = Port.fetchObjects({})
 	n = 0

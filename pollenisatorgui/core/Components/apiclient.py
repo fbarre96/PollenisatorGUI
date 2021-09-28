@@ -44,6 +44,10 @@ def handle_api_errors(func):
             res = func(self, *args, **kwargs)
         except ErrorHTTP as err:
             if err.response.status_code == 401:
+                cfg = Utils.loadClientConfig()
+                cfg["token"] = ""
+                saveClientConfig(cfg)
+                err.with_traceback = False
                 raise err
             else:
                 return err.ret_values
@@ -536,6 +540,30 @@ class APIClient():
         api_url = '{0}settings/registerTag'.format(self.api_url_base)
         data = {"name":name, "color":color, "global":isGlobal}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+    
+    @handle_api_errors
+    def unregisterTag(self, name, isGlobal=False):
+        api_url = '{0}settings/unregisterTag'.format(self.api_url_base)
+        data = {"name":name, "global":isGlobal}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def updateTag(self, name, color, isGlobal=False):
+        api_url = '{0}settings/registerTag'.format(self.api_url_base)
+        data = {"name":name, "color":color, "global":isGlobal}
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:

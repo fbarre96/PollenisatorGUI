@@ -2,7 +2,7 @@
 """
 import tkinter as tk
 import tkinter.ttk as ttk
-
+from pollenisatorgui.core.Components.Settings import Settings
 
 class StatusBar(ttk.Frame):
     """StatusBar class. Show tagged numbers to user.
@@ -16,12 +16,11 @@ class StatusBar(ttk.Frame):
         """
         return lambda _event: self.statusbarController.statusbarClicked(name)
 
-    def __init__(self, master, registeredTags, statusbarController):
+    def __init__(self, master, statusbarController):
         """
         Constructor of the status bar
         Args:
             master: parent tkinter window
-            registeredTags: a list of tag names registred in settings
             statusbarController: a controller to handle clicks on status bar.
                                 It has to delcare a statusbarClicked function taking 1 arg : a tag name
         """
@@ -31,7 +30,7 @@ class StatusBar(ttk.Frame):
         label = ttk.Label(self, text="Tagged:", relief=None,
                                 style="Important.TLabel")
         label.grid(column=0, row=0)
-        self.registeredTags = registeredTags
+        self.registeredTags = []
         self.statusbarController = statusbarController
         self.tagsCount = {}
         self.labelsTags = {}
@@ -40,6 +39,7 @@ class StatusBar(ttk.Frame):
     def refreshUI(self):
         for widget in self.winfo_children():
             widget.destroy()
+        self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())
         listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
@@ -83,8 +83,11 @@ class StatusBar(ttk.Frame):
         Update all tags label to tags count
         """
         for tag, label in self.labelsTags.items():
-            label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
-            label.update_idletasks()
+            try:
+                label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
+                label.update_idletasks()
+            except Exception:
+                pass
 
     def refreshTags(self, tags):
         self.registeredTags = tags
