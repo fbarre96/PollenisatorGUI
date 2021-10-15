@@ -932,7 +932,12 @@ class Appli(ttk.Frame):
         Dump a pentest database to an archive file gunzip.
         """
         apiclient = APIClient.getInstance()
-        dialog = ChildDialogCombo(self, apiclient.getPentestList()[::-1], "Choose a pentest to dump:")
+        pentests = apiclient.getPentestList()
+        if pentests is None:
+            pentests = []
+        else:
+            pentests = [x["nom"] for x in pentests][::-1]
+        dialog = ChildDialogCombo(self, pentests, "Choose a pentest to dump:")
         self.wait_window(dialog.app)
         if isinstance(dialog.rvalue, str):
             success, msg = apiclient.dumpDb(dialog.rvalue)
@@ -1029,10 +1034,12 @@ class Appli(ttk.Frame):
             datababase name otherwise
         """
         apiclient = APIClient.getInstance()
-        calendars = apiclient.getPentestList()
-        if calendars is None:
-            calendars = []
-        dialog = ChildDialogCombo(self, ["New database"]+calendars[::-1], "Select a database")
+        pentests = apiclient.getPentestList()
+        if pentests is None:
+            pentests = []
+        else:
+            pentests = [x["nom"] for x in pentests][::-1]
+        dialog = ChildDialogCombo(self, ["New database"]+pentests, "Select a database")
         self.wait_window(dialog.app)
         if dialog.rvalue is None:
             return None
@@ -1048,8 +1055,13 @@ class Appli(ttk.Frame):
         Ask a user a calendar name then delete it.
         """
         apiclient = APIClient.getInstance()
+        pentests = apiclient.getPentestList()
+        if pentests is None:
+            pentests = []
+        else:
+            pentests = [x["nom"] for x in pentests][::-1]
         dialog = ChildDialogCombo(
-            self, apiclient.getPentestList()[::-1], "Choose a database to delete:")
+            self, pentests, "Choose a database to delete:")
         self.wait_window(dialog.app)
         if isinstance(dialog.rvalue, str):
             calendarName = dialog.rvalue
