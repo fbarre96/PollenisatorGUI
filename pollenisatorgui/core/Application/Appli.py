@@ -972,7 +972,7 @@ class Appli(ttk.Frame):
         else:
             filename = name
         success = apiclient.importDb(filename)
-        if not success:
+        if success:
             tkinter.messagebox.showerror("Database import ", "Database import suceeded")
         else:
             tkinter.messagebox.showinfo("Database import ", "Database import failed")
