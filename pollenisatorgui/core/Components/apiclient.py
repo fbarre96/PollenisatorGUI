@@ -842,7 +842,7 @@ class APIClient():
     @handle_api_errors
     def importCommands(self, filename):
         api_url = '{0}importCommands'.format(self.api_url_base)
-        with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
+        with io.open(filename, 'rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, "application/gzip")}, proxies=proxies, verify=False)
