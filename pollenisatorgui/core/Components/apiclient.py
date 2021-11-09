@@ -845,7 +845,7 @@ class APIClient():
         with io.open(filename, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f)}, proxies=proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, "application/gzip")}, proxies=proxies, verify=False)
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200
