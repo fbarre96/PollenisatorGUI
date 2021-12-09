@@ -325,7 +325,12 @@ class Appli(ttk.Frame):
                 self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
             self.sio.connect(apiclient.api_url)
             self.initUI()
-            if apiclient.getCurrentPentest() != "":
+            pentests = apiclient.getPentestList()
+            if pentests is None:
+                pentests = []
+            else:
+                pentests = [x["nom"] for x in pentests][::-1]
+            if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
                 self.openCalendar(apiclient.getCurrentPentest())
             # self.promptCalendarName(), called beacause tabSwitch is called
         else:

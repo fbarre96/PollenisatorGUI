@@ -26,11 +26,20 @@ class AdminView:
         self.parent = parent
         ### WORKER TREEVIEW : Which worker knows which commands
         self.userTv = ttk.Treeview(self.parent)
-        self.userTv['columns'] = ('Username', 'Admin')
+        self.headings = ["Username", "Password", "Admin", "Name", "Surname", "Email"]
+        self.userTv['columns'] = self.headings
         self.userTv.heading("#0", text='Username', anchor="nw")
         self.userTv.column("#0", anchor="nw")
-        self.userTv.heading("#1", text='Admin', anchor="nw")
-        self.userTv.column("#1", anchor="nw")
+        self.userTv.heading("#1", text='Password', anchor="nw")
+        self.userTv.column("#1", anchor="nw", width=20)
+        self.userTv.heading("#2", text='Admin', anchor="nw")
+        self.userTv.column("#2", anchor="nw", width=20)
+        self.userTv.heading("#3", text='Name', anchor="nw")
+        self.userTv.column("#3", anchor="nw", width=20)
+        self.userTv.heading("#4", text='Surname', anchor="nw")
+        self.userTv.column("#4", anchor="nw", width=20)
+        self.userTv.heading("#5", text='Email', anchor="nw")
+        self.userTv.column("#5", anchor="nw", width=100)
         self.userTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.userTv.bind("<Double-Button-1>", self.OnUserDoubleClick)
         self.userTv.bind("<Delete>", self.OnUserDelete)
@@ -52,10 +61,22 @@ class AdminView:
         self.confirmpassword = tk.StringVar() 
         entryAddConfirmPwd = ttk.Entry(addUserFrame, width=20, show="*", textvariable=self.confirmpassword)
         entryAddConfirmPwd.grid(row=2, column=1, sticky=tk.W)
+        lblName = ttk.Label(addUserFrame, text="Name:")
+        lblName.grid(row=3, column=0, sticky=tk.E)
+        self.name = ttk.Entry(addUserFrame, width=20)
+        self.name.grid(row=3, column=1, sticky=tk.W)
+        lblSurname = ttk.Label(addUserFrame, text="Surname:")
+        lblSurname.grid(row=4, column=0, sticky=tk.E)
+        self.surname = ttk.Entry(addUserFrame, width=20)
+        self.surname.grid(row=4, column=1, sticky=tk.W)
+        lblEmail = ttk.Label(addUserFrame, text="Email:")
+        lblEmail.grid(row=5, column=0, sticky=tk.E)
+        self.email = ttk.Entry(addUserFrame, width=30)
+        self.email.grid(row=5, column=1, sticky=tk.W)
         self.add_user_icon = tk.PhotoImage(file=Utils.getIcon("add_user.png"))
         btn_addUser = ttk.Button(
                 addUserFrame, image=self.add_user_icon, command=self.addUser, style='icon.TButton')
-        btn_addUser.grid(row=3, column = 2, sticky=tk.W)
+        btn_addUser.grid(row=6, column = 2, sticky=tk.W)
         addUserFrame.pack()
         lblAddUsername.pack()
         self.refreshUI()
@@ -67,10 +88,13 @@ class AdminView:
             self.userTv.delete(children)
         for user in users:
             username = user["username"]
+            name = user.get("name", "")
+            surname = user.get("surname", "")
+            email = user.get("email", "")
             admin = "Admin" if "admin" in user["scope"] else ""
             try:
                 user_node = self.userTv.insert(
-                    '', 'end', username, text=username, values=(admin))
+                    '', 'end', username, text=username, values=("Change pass", admin, name, surname, email))
             except tk.TclError:
                 pass
        
@@ -78,12 +102,44 @@ class AdminView:
         apiclient = APIClient.getInstance()
         if self.confirmpassword.get() != self.password.get():
             tk.messagebox.showerror("Add user failed", "The password does not match the confirmation")
-        apiclient.registerUser(self.entryAddUser.get(), self.password.get())
+        username = self.entryAddUser.get()
+        passw = self.password.get()
+        name = self.name.get()
+        surname = self.surname.get()
+        email = self.email.get()
+        apiclient.registerUser(username, passw, name, surname, email)
+        self.userTv.insert('', 'end', username, text=username, values=("Change pass", '', name, surname, email,))
 
     def OnUserDoubleClick(self, event):
-        tv = event.widget
-        item = tv.identify("item", event.x, event.y)
+        treevw = event.widget
+        item = treevw.identify("item", event.x, event.y)
         username = str(item)
+        column = treevw.identify_column(event.x)
+        columnNb = int(column[1:])
+        values = treevw.item(item)["values"]
+        if columnNb == 0:
+            pass
+        elif columnNb == 1:
+            self.openEditPassword(username)
+        elif columnNb > 1:
+            oldVal = values[columnNb-1]
+            newVal = tk.simpledialog.askstring(
+                "Modify infos", "New value for "+self.headings[columnNb].lower(), initialvalue=oldVal)
+            if newVal is None:
+                return
+            if newVal.strip() == "" or newVal.strip() == oldVal.strip():
+                return
+            newVals = list(values)
+            newVals[columnNb-1] = newVal.strip()
+            treevw.item(item, values=newVals)
+            values = treevw.item(item)["values"]
+            newName = values[self.headings.index("Name") - 1]
+            newSurname = values[self.headings.index("Surname") - 1]
+            newEMail = values[self.headings.index("Email") - 1]
+            apiclient = APIClient.getInstance()
+            apiclient.updateUserInfos(username, newName, newSurname, newEMail)
+
+    def openEditPassword(self, username):
         dialog = ChildDialogEditPassword(self.parent, username, askOldPwd=False)
         self.parent.wait_window(dialog.app)
         self.refreshUI()
