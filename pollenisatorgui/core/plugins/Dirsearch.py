@@ -32,7 +32,7 @@ class Dirsearch(Plugin):
         """
         if self.port_m is None:
             return
-        ssl = self.port_m.infos.get("SSL", None) == "True" or ("https" in port_m.service or "ssl" in port_m.service)
+        ssl = self.port_m.infos.get("SSL", None) == "True" or ("https" in self.port_m.service or "ssl" in self.port_m.service)
         protocol = "https://" if ssl else "http://"
         dirs = self.port_m.infos.get("Dirsearch_200", [])
         if len(dirs) > 10:

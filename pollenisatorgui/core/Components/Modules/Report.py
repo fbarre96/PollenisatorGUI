@@ -474,7 +474,8 @@ class Report:
         """
         Fetch defects that are global (not assigned to an ip) and fill the defect table with them.
         """
-        for line in Defect.getDefectTable():
+        table = Defect.getDefectTable()
+        for line in table:
             self.addDefect(Defect(line))
 
     def fillWithRemarks(self):	

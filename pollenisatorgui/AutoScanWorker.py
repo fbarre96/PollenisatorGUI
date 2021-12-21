@@ -47,20 +47,17 @@ def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=Fal
         if tools_infos.get(toolModel.name, None) is not None:
             bin_path_local = tools_infos[toolModel.name].get("bin")
             parser = tools_infos[toolModel.name].get("plugin", "Default.py")
-            success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
-            if bin_path_server == "":
-                comm = bin_path_local +" "+comm
-            else:
-                comm = comm.replace(bin_path_server, bin_path_local)
+            success, comm, fileext = apiclient.getCommandline(toolId, parser)
+            comm = bin_path_local +" "+comm
             success = True
         elif allowAnyCommand:
-            success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
+            success, comm, fileext = apiclient.getCommandline(toolId, parser)
             success = True
         else:
             success = False
             comm = "This tool is not configured for local usage; Please check Settings"
     else:
-        success, comm, fileext, bin_path_server = apiclient.getCommandline(toolId, parser)
+        success, comm, fileext = apiclient.getCommandline(toolId, parser)
     if not success:
         print(str(comm))
         toolModel.setStatus(["error"])

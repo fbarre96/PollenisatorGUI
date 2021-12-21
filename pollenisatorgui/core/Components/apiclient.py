@@ -706,10 +706,10 @@ class APIClient():
         response = requests.get(api_url, headers=self.headers, params={"plugin":parser}, proxies=proxies, verify=False)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            return True, data["comm"], data["ext"], data["bin"]
+            return True, data["comm"], data["ext"]
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, False, response.content.decode('utf-8'), "", "")
-        return False, response.content.decode('utf-8'), "", ""
+            raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
+        return False, response.content.decode('utf-8'), ""
     
     @handle_api_errors
     def importToolResult(self, tool_iid, parser, local_path):
