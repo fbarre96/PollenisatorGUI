@@ -10,5 +10,5 @@ requests>=2.18.4
 pymongo
 docker
 GitPython
-python-socketio[client]
+python-socketio[client]>=5.1.0
 ttkwidgets
