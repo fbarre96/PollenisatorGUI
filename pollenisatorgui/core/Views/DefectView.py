@@ -46,7 +46,7 @@ class DefectView(ViewElement):
         settings.reloadSettings()
         modelData = self.controller.getData()
         self.form.addFormSearchBar("Search Defect", APIClient.searchDefect, [
-            "Title", "Ease", "Impact", "Type"])
+            "Title", "Ease", "Impact", "Type", "Synthesis"])
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Title")
         topPanel.addFormStr("Title", r".+", "", column=1, width=50)
@@ -66,6 +66,8 @@ class DefectView(ViewElement):
             "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=2, column=2)
         topPanel.addFormLabel("Redactor", row=3)
         topPanel.addFormCombo("Redactor", self.mainApp.settings.getPentesters()+["N/A"], "N/A", row=3, column=1)
+        topPanel = self.form.addFormPanel()
+        topPanel.addFormText("Synthesis", r"", "Synthesis",  height=3, state="disabled")
         chklistPanel = self.form.addFormPanel(grid=True)
         defectTypes = settings.getPentestTypes()
         if defectTypes is not None:

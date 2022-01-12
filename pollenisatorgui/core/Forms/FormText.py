@@ -84,15 +84,18 @@ class FormText(Form):
         Args:
             parent: parent FormPanel.
         """
-
+        state = self.getKw("state", "normal")
+        background = "white" if state == "normal" else "light grey"
         self.text = tkinter.scrolledtext.ScrolledText(
-            parent.panel, relief=tk.SUNKEN, height=self.getKw("height", 20), font = ("Sans", 10))
+            parent.panel, relief=tk.SUNKEN, height=self.getKw("height", 20), font=("Sans", 10), background=background)
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
         try:
             self.text.insert(tk.INSERT, self.default)
         except tk.TclError as e:
             self.text.insert(tk.INSERT, "Error :\n"+str(e))
+        if state == "disabled":
+            self.text.config(state="disabled")
         if parent.gridLayout:
             self.text.grid(row=self.getKw("row", 0), column=self.getKw(
                 "column", 0), sticky=self.getKw("sticky", tk.EW), **self.kwargs)
@@ -118,6 +121,18 @@ class FormText(Form):
             Return the entry value as string.
         """
         return self.text.get('1.0', 'end-1c')
+
+    def setValue(self, newval):
+        """
+        Set the text value.
+        Args:
+            newval: the new value to be set inside the text
+        """
+        state = self.text.cget("state")
+        self.text.config(state="normal")
+        self.text.delete("1.0", "end")
+        self.text.insert("1.0", newval)
+        self.text.config(state=state)
 
     def checkForm(self):
         """
