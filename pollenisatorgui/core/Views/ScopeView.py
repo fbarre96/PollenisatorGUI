@@ -56,8 +56,11 @@ class ScopeView(ViewElement):
                 self.controller.getParentId(), 0, parentNode, text="Scopes", image=self.getClassIcon())
         except TclError:  #  trigger if tools list node already exist
             pass
-        self.appliTw.insert(parentNode, "end", str(
-            self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        try:
+            self.appliTw.insert(parentNode, "end", str(
+                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        except:
+            pass
         if addChildren:
             tools = self.controller.getTools()
             for tool in tools:
