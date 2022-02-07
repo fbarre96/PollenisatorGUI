@@ -15,7 +15,11 @@ import pollenisatorgui.core.Components.Utils as Utils
 import os
 import docker
 import re
-import git
+try:
+    import git
+    git_available = True
+except:
+    git_available = False
 import shutil
 
 
@@ -196,10 +200,11 @@ class ScanManager:
         self.btn_setInclusion.pack(padx=5, side=tk.RIGHT)
         self.docker_image = tk.PhotoImage(file=Utils.getIcon("baleine.png"))
         self.docker_download_image = tk.PhotoImage(file=Utils.getIcon("baleine_download.png"))
-        self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
-        self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
-        self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="icon.TButton")
-        self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
+        if git_available:
+            self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
+            self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
+            self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="icon.TButton")
+            self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
         btn_pane.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
         total_registered_commands = 0

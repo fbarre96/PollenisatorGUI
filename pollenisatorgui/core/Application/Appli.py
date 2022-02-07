@@ -413,6 +413,7 @@ class Appli(ttk.Frame):
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
     def handleNotif(self, notification):
+        print(notification)
         if notification["db"] == "pollenisator":
             if notification["collection"] == "workers":
                 self.scanManager.notify(notification["iid"], notification["action"])
@@ -978,9 +979,9 @@ class Appli(ttk.Frame):
             filename = name
         success = apiclient.importDb(filename)
         if success:
-            tkinter.messagebox.showerror("Database import ", "Database import suceeded")
+            tkinter.messagebox.showinfo("Database import ", "Database import suceeded")
         else:
-            tkinter.messagebox.showinfo("Database import ", "Database import failed")
+            tkinter.messagebox.showerror("Database import ", "Database import failed")
 
     def findUnscannedPorts(self):
         ports = Port.fetchObjects({})
