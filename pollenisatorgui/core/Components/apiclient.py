@@ -196,6 +196,15 @@ class APIClient():
             token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return self.setConnection(token)
         return response.status_code == 200
+
+    @handle_api_errors
+    def getVersion(self):
+        api_url = '{0}version'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            version = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return version
+        raise ErrorHTTP(response)
     
     @handle_api_errors
     def setCurrentPentest(self, newCurrentPentest):

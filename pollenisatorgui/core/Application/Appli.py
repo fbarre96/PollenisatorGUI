@@ -234,7 +234,7 @@ class Appli(ttk.Frame):
     """
     Main tkinter graphical application object.
     """
-
+    version_compatible = "1.1.*"
     def __init__(self, parent):
         """
         Initialise the application
@@ -249,7 +249,7 @@ class Appli(ttk.Frame):
         # canvas : a canvas object (useful to attach a scrollbar to a frame)
         # paned : a Paned widget is used to separate two other widgets and display a one over the other if desired
         #           Used to separate the treeview frame and view frame.
-        
+        self.quitting = False
         self.parent = parent  #  parent tkinter window
         tk.Tk.report_callback_exception = self.show_error
         self.setStyle()
@@ -305,10 +305,18 @@ class Appli(ttk.Frame):
         apiclient.appli = self
         self.openConnectionDialog()
         
-    
+    def quit(self):
+        super().quit()
+        self.quitting = True
+        return
+
+    def forceUpdate(self):
+        tkinter.messagebox.showwarning("Update necessary", "You have to update this client to use this API.")
+
     def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
         apiclient = APIClient.getInstance()
+        
         abandon = False
         if force:
             apiclient.disconnect()
@@ -316,7 +324,15 @@ class Appli(ttk.Frame):
             abandon = self.promptForConnection() is None
         if not abandon:
             apiclient.attach(self)
-            
+            srv_version = apiclient.getVersion()
+            if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
+                self.forceUpdate()
+                self.onClosing()
+                return
+            if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
+                self.forceUpdate()
+                self.onClosing()
+                return
             if self.sio is not None:
                 self.sio.disconnect()
             self.sio = socketio.Client()

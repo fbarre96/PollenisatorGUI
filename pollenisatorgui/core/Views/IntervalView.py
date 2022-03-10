@@ -11,7 +11,6 @@ class IntervalView(ViewElement):
     """
 
     icon = 'date.png'
-
     def openModifyWindow(self):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Interval
@@ -64,8 +63,11 @@ class IntervalView(ViewElement):
         except TclError:  #  trigger if tools list node already exist
             pass
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-        self.appliTw.insert(parentNode, "end", str(
-            self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        try:
+            self.appliTw.insert(parentNode, "end", str(
+                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        except:
+            pass
         if "hidden" in self.controller.getTags():
             self.hide()
 

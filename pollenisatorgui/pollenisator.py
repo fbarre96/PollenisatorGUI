@@ -107,7 +107,8 @@ def main():
     try:
         root.protocol("WM_DELETE_WINDOW", app.onClosing)
         gc = GracefulKiller(app)
-        root.mainloop()
+        if not app.quitting:
+            root.mainloop()
         print("Exiting tkinter main loop")
     except tk.TclError:
         pass

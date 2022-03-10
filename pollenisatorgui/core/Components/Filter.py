@@ -200,6 +200,7 @@ type == "ip" and infos.key == "ABC"
                 phrase += children.lower()+" "
         phrase = phrase.replace("false","False")
         phrase = phrase.replace("true","True")
+        phrase = phrase.replace("none","None")
         return eval(phrase)
 
     def getIds(self, appTw):
