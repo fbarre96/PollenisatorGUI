@@ -429,7 +429,6 @@ class Appli(ttk.Frame):
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
     def handleNotif(self, notification):
-        print(notification)
         if notification["db"] == "pollenisator":
             if notification["collection"] == "workers":
                 self.scanManager.notify(notification["iid"], notification["action"])
@@ -861,10 +860,8 @@ class Appli(ttk.Frame):
 
         if apiclient.isAdmin():
             self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
-            self.nbk.add(self.commandsPageFrame, text=" Commands", image=self.commands_tab_img, compound=tk.TOP)
         else:
             self.nbk.hide(tab_names.index("Admin"))
-            self.nbk.hide(tab_names.index("Commands"))
     
     def newSearch(self, _event=None):
         """Called when the searchbar is validated (click on search button or enter key pressed).

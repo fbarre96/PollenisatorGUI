@@ -18,7 +18,7 @@ class Command(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}), name(""), sleep_between("0"), priority("0),
-                        max_thread("1"), text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300"
+                        max_thread("1"), text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", users=[]
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
@@ -30,9 +30,10 @@ class Command(Element):
                         valuesFromDb.get("text", ""), valuesFromDb.get(
                             "lvl", "network"),
                         valuesFromDb.get("ports", ""),
-                        bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), valuesFromDb.get("infos", {}))
+                        bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), 
+                        valuesFromDb.get("users", []), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, sleep_between=0, priority=0, max_thread=1, text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, infos=None):
+    def initialize(self, name, sleep_between=0, priority=0, max_thread=1, text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, users=None, infos=None):
         """Set values of command
         Args:
             name: the command name
@@ -46,6 +47,7 @@ class Command(Element):
             types: type for the command. Lsit of string. Default to None.
             indb: db name : global (pollenisator database) or  local pentest database
             timeout: a timeout to kill stuck tools and retry them later. Default is 300 (in seconds)
+            users: lsit of users having choosen this command
             infos: a dictionnary with key values as additional information. Default to None
         Returns:
             this object
@@ -62,6 +64,7 @@ class Command(Element):
         self.indb = indb
         self.timeout = timeout
         self.types = types if types is not None else []
+        self.users = users if users is not None else []
         return self
 
     def delete(self):
@@ -85,7 +88,7 @@ class Command(Element):
         apiclient = APIClient.getInstance()
         res, id = apiclient.insert("commands", {"name": self.name, "lvl": self.lvl, "priority": int(self.priority),
                                                                            "sleep_between": int(self.sleep_between), "max_thread": int(self.max_thread), "text": self.text,
-                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout)})
+                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout), "users": self.users})
         if not res:
             return False, id
         self._id = id
@@ -148,6 +151,30 @@ class Command(Element):
             return None
         for d in ds:
             yield Command(d)
+    
+    @classmethod
+    def getMyCommands(cls):
+        """Fetch many commands from database and return a Cursor to iterate over Command objects
+        Args:
+            pipeline: a Mongo search pipeline (dict)
+        Returns:
+            Returns a cursor to iterate on Command objects
+        """
+        apiclient = APIClient.getInstance()
+        user = apiclient.getUser()
+        ds = apiclient.findInDb("pollenisator", "commands", {"users":user}, True)
+        if ds is None:
+            return None
+        for d in ds:
+            yield Command(d)    
+
+    def addToMyCommands(self):
+        apiclient = APIClient.getInstance()
+        apiclient.addCommandToMyCommands(self.getId())
+
+    def removeFromMyCommands(self):
+        apiclient = APIClient.getInstance()
+        apiclient.removeCommandFromMyCommands(self.getId())
 
     def __str__(self):
         """

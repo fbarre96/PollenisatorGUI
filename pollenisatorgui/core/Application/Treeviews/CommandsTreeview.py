@@ -6,6 +6,7 @@ from pollenisatorgui.core.Models.Command import Command
 from pollenisatorgui.core.Models.CommandGroup import CommandGroup
 from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
 from pollenisatorgui.core.Views.CommandView import CommandView
+from pollenisatorgui.core.Views.MultiCommandView import MultiCommandView
 from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
 from pollenisatorgui.core.Controllers.CommandController import CommandController
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
@@ -54,18 +55,34 @@ class CommandsTreeview(PollenisatorTreeview):
         Args:
             event: filled with the callback, contains data about line clicked
         """
-        item = super().onTreeviewSelect(event)
-        if isinstance(item, str):
-            if str(item) == "commands":
-                objView = CommandView(
-                    self, self.appli.commandsViewFrame, self.appli, CommandController(Command()))
-                objView.openInsertWindow()
-            elif str(item) == "command_groups":
-                objView = CommandGroupView(
-                    self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup()))
-                objView.openInsertWindow()
-        else:
-            self.openModifyWindowOf(item)
+        selection = self.selection()
+        if len(selection) == 1:
+            item = super().onTreeviewSelect(event)
+            if isinstance(item, str):
+                if str(item) == "commands":
+                    objView = CommandView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command()))
+                    objView.openInsertWindow()
+                if str(item) == "mycommands":
+                    apiclient = APIClient.getInstance()
+                    user = apiclient.getUser()
+                    objView = CommandView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"users":[user]})))
+                    objView.openInsertWindow()
+                elif str(item) == "command_groups":
+                    objView = CommandGroupView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup()))
+                    objView.openInsertWindow()
+            else:
+                self.openModifyWindowOf(item)
+        elif len(selection) > 1:
+            # Multi select:
+            multiView = MultiCommandView(self, self.appli.commandsViewFrame, self.appli)
+            for widget in self.appli.commandsViewFrame.winfo_children():
+                widget.destroy()
+            multiView.form.clear()
+            multiView.openModifyWindow()
+
 
     def doPopup(self, event):
         """Open the popup 
@@ -108,8 +125,10 @@ class CommandsTreeview(PollenisatorTreeview):
         """
         Load the treeview with database information
         """
+        self.my_commands_node = self.insert(
+            "", "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
         self.commands_node = self.insert(
-            "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
+            "", "end", "commands", text="Other Commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({})
         for command in commands:
             command_vw = CommandView(
@@ -122,6 +141,10 @@ class CommandsTreeview(PollenisatorTreeview):
             command_group_vw = CommandGroupView(
                 self, self.appli.commandsViewFrame, self.appli, CommandGroupController(command_group))
             command_group_vw.addInTreeview()
+        
+        commands = Command.getMyCommands()
+        for command in commands:
+            self.move(command.getId(), self.my_commands_node, "end")
 
     def refresh(self):
         """Alias to self.load method"""

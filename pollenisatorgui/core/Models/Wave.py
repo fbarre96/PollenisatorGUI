@@ -140,7 +140,9 @@ class Wave(Element):
                 return True
         return False
 
-    
+    def addMyCommandsToWave(self):
+        apiclient = APIClient.getInstance()
+        apiclient.addMyCommandsToWave(self.getId())    
 
     @classmethod
     def listWaves(cls):

@@ -1,5 +1,6 @@
 """View for command object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Components.Settings import Settings
 import pollenisatorgui.core.Components.Utils as Utils
@@ -31,6 +32,7 @@ class CommandView(ViewElement):
         Args:
             default: a dict of default values for inputs (sleep_between, priority, max_thread). Default to empty respectively "0", "0", "1"
         """
+        self.form.addFormHidden("users", default.get("users", []))
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Timeout (in secondes)")
         panel_bottom.addFormStr("Timeout", r"\d+", default.get("timeout", "300"), width=10, column=1)
@@ -82,9 +84,14 @@ class CommandView(ViewElement):
         if modelData["lvl"] == "port":
             panel_bottom.addFormLabel("Ports/Services", column=0)
             panel_bottom.addFormStr(
-                "Ports/Services", r"^(\d{1,5}|[^\,]+)(?:,(\d{1,5}|[^\,]+))*$", modelData["ports"], self.popup, width=50, column=1)
+                "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", modelData["ports"], self.popup, width=50, column=1)
             panel_bottom.addFormHelper(
                 "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...",column=2)
+        user = APIClient.getInstance().getUser()
+        if user in self.controller.model.users:
+            panel_bottom.addFormButton("Remove from my commands", self.controller.removeFromMyCommands)
+        else:
+            panel_bottom.addFormButton("Add to my commands", self.controller.addToMyCommands)
         self._commonWindowForms(modelData)
         self.completeModifyWindow()
 
@@ -122,11 +129,11 @@ class CommandView(ViewElement):
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Ports/Services")
         panel_bottom.addFormStr(
-            "Ports/Services", r"^[^, ]+(?:,[^, ]+)*", "", width=50, column=1)
+            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", "", width=50, column=1)
         panel_bottom.addFormHelper(
             "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
 
-        self._commonWindowForms()
+        self._commonWindowForms(self.controller.getData())
         self.completeInsertWindow()
 
     def addInTreeview(self, parentNode=None):
@@ -149,6 +156,9 @@ class CommandView(ViewElement):
         Returns:
             return the saved command_node node inside the Appli class.
         """
+        apiclient = APIClient.getInstance()
+        if apiclient.getUser() in self.controller.model.users:
+            return self.appliTw.my_commands_node
         return self.appliTw.commands_node
 
     def _initContextualMenu(self):
@@ -230,6 +240,24 @@ class CommandView(ViewElement):
         insert the port variable inside the a tkinter widget stored in appli widgetMenuOpen attribute.
         """
         self.widgetMenuOpen.insert(tk.INSERT, "|port|")
+
+    def updateReceived(self):
+        """Called when a command update is received by notification.
+        Update the command treeview item (resulting in icon reloading)
+        """
+        user = APIClient.getInstance().getUser()
+        if user in self.controller.model.users:
+            try:
+                self.appliTw.move(str(self.controller.model.getId()), self.appliTw.my_commands_node, "end")
+            except tk.TclError:
+                print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
+        else:
+            try:
+                self.appliTw.move(str(self.controller.model.getId()), self.appliTw.commands_node, "end")
+            except tk.TclError:
+                print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
+        
+        super().updateReceived()
 
     def key(self):
         """Returns a key for sorting this node

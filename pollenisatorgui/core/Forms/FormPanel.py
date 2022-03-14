@@ -15,6 +15,7 @@ from pollenisatorgui.core.Forms.FormTreevw import FormTreevw
 from pollenisatorgui.core.Forms.FormCheckbox import FormCheckbox
 from pollenisatorgui.core.Forms.FormHelper import FormHelper
 from pollenisatorgui.core.Forms.FormSearchBar import FormSearchBar
+
 from pollenisatorgui.core.Forms.Form import Form
 
 
@@ -98,7 +99,7 @@ class FormPanel(Form):
         for form in self.subforms:
             val = form.getValue()
             if val is not None:
-                if type(val) is list:
+                if isinstance(form, FormPanel):
                     res += val
                 else:
                     res.append((form.name, val))

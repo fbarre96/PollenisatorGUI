@@ -32,6 +32,7 @@ class WaveView(ViewElement):
             "If you select a previously unselected command,\n it will be added to every object of its level.\nIf you unselect a previously selected command,\n it will remove only tools that are not already done.")
         self.form.addFormChecklist(
             "Commands", Command.getList(None, APIClient.getInstance().getCurrentPentest()), modelData["wave_commands"])
+        self.form.addFormButton("Add my commands to wave", self.addMyCommandsToWave)
         self.completeModifyWindow()
 
     def openInsertWindow(self):
@@ -105,3 +106,5 @@ class WaveView(ViewElement):
         return self.appliTw.waves_node
 
 
+    def addMyCommandsToWave(self):
+        self.controller.addMyCommandsToWave()

@@ -271,6 +271,28 @@ class APIClient():
         else:
             return None
 
+    @handle_api_errors
+    def removeCommandFromMyCommands(self, iid):
+        api_url = '{0}commands/removeFromMyCommands/{1}'.format(self.api_url_base, iid)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def addCommandToMyCommands(self, iid):
+        api_url = '{0}commands/addToMyCommands/{1}'.format(self.api_url_base, iid)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
     def reinitConnection(self):
         self.setCurrentPentest("")
 
@@ -545,6 +567,17 @@ class APIClient():
         else:
             return None
 
+    @handle_api_errors
+    def addMyCommandsToWave(self, wave_iid):
+        api_url = '{0}waves/addMyCommandsToWave/{1}/{2}"/update'.format(self.api_url_base, self.getCurrentPentest(), str(wave_iid))
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+            
     @handle_api_errors
     def registerTag(self, name, color, isGlobal=False):
         api_url = '{0}settings/registerTag'.format(self.api_url_base)

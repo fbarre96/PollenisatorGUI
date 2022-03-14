@@ -1,4 +1,5 @@
 """Controller for command object. Mostly handles conversion between mongo data and python objects"""
+from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Controllers.ControllerElement import ControllerElement
 import bson
 
@@ -30,6 +31,7 @@ class CommandController(ControllerElement):
         types = values.get("Types", {})
         types = [k for k, v in types.items() if v == 1]
         self.model.types = list(types)
+        self.model.users = list(values.get("users", []))
         # Update in database
         self.model.update()
 
@@ -61,9 +63,10 @@ class CommandController(ControllerElement):
         types = values["Types"]
         indb = values["indb"]
         timeout = values["Timeout"]
+        users = values["users"]
         types = [k for k, v in types.items() if v == 1]
         self.model.initialize(name, sleep_between, priority, max_thread,
-                              text, lvl, ports, safe, list(types), indb, timeout)
+                              text, lvl, ports, safe, list(types), indb, timeout, users)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:
@@ -80,7 +83,7 @@ class CommandController(ControllerElement):
         """
         return {"name": self.model.name, "lvl": self.model.lvl, "safe": bool(self.model.safe), "text": self.model.text,
                 "ports": self.model.ports, "sleep_between": self.model.sleep_between, "timeout": self.model.timeout,
-                "max_thread": self.model.max_thread, "priority": self.model.priority, "types": self.model.types, "indb":self.model.indb, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
+                "max_thread": self.model.max_thread, "priority": self.model.priority, "types": self.model.types, "indb":self.model.indb, "users": self.model.users, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
         """Return a string describing the type of object
@@ -94,3 +97,13 @@ class CommandController(ControllerElement):
         if self.model is not None:
             self.model = self.model.__class__.fetchObject(
                 {"_id": bson.ObjectId(self.model.getId())}, self.model.indb)
+
+    def addToMyCommands(self, event=None):
+        """Add command to current user's commands
+        """
+        self.model.addToMyCommands()
+
+    def removeFromMyCommands(self, event=None):
+        """Remove command from current user's commands
+        """
+        self.model.removeFromMyCommands()
