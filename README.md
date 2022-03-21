@@ -3,19 +3,19 @@
  
 
 ## INSTALL ##
-**Prérequis** : 
+### Prérequis 
 
-### Ubuntu ###
+#### Ubuntu
 ```
 sudo apt-get install python3-pip git python3-pil python3-tk python3-pil.imagetk
 ```
 
-### Archlinux ###
+#### Archlinux
 ```
 pacman -S python tk git
 ```
 
-**Installation** :
+### Installation :
 
 ```
 git clone https://github.com/fbarre96/PollenisatorGUI
