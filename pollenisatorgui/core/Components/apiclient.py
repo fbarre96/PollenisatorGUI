@@ -41,14 +41,20 @@ def handle_api_errors(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
+            print("calling function "+str(func))
             res = func(self, *args, **kwargs)
         except ErrorHTTP as err:
             if err.response.status_code == 401:
                 cfg = Utils.loadClientConfig()
                 cfg["token"] = ""
                 saveClientConfig(cfg)
+                if "Authorization" in self.headers:
+                    del self.headers["Authorization"] 
                 err.with_traceback = False
-                raise err
+                if self.appli.initialized:
+                    raise err
+                else:
+                    return err.ret_values
             else:
                 return err.ret_values
         return res

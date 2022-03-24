@@ -157,9 +157,14 @@ class CommandView(ViewElement):
             return the saved command_node node inside the Appli class.
         """
         apiclient = APIClient.getInstance()
-        if apiclient.getUser() in self.controller.model.users:
-            return self.appliTw.my_commands_node
-        return self.appliTw.commands_node
+        if self.controller.model.indb == "pollenisator":
+            if apiclient.getUser() in self.controller.model.users:
+                return self.appliTw.my_commands_node
+            return self.appliTw.others_commands_node
+        else:
+            if apiclient.getUser() in self.controller.model.users:
+                return self.appliTw.my_commands_node
+            return self.appliTw.others_commands_node
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""

@@ -91,29 +91,20 @@ def main():
 |   (_)||(/,[ )|_) (_] | (_)[  
                                
 """)
-    root = tk.Tk()
-    root.resizable(True, True)
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dir_path = os.path.join(dir_path, "icon/favicon.png")
-    img = tk.PhotoImage(file=dir_path)
-    root.iconphoto(True, img)
-
-    root.minsize(width=400, height=400)
-    root.resizable(True, True)
-    root.title("Pollenisator")
-    root.geometry("1220x830")
+   
+    
     gc = None
-    app = Appli(root)
+    app = Appli()
     try:
-        root.protocol("WM_DELETE_WINDOW", app.onClosing)
+        
         gc = GracefulKiller(app)
         if not app.quitting:
-            root.mainloop()
+            app.mainloop()
         print("Exiting tkinter main loop")
     except tk.TclError:
         pass
     try:
-        root.destroy()
+        app.destroy()
         print("Destroying app window")
     except tk.TclError:
         pass

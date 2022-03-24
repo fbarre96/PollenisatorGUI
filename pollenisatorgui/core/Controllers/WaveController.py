@@ -96,4 +96,4 @@ class WaveController(ControllerElement):
         return "wave"
 
     def addMyCommandsToWave(self):
-        self.addMyCommandsToWave()
+        self.model.addMyCommandsToWave()

@@ -8,6 +8,7 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import tkinter.ttk as ttk
 import sys
+import os
 from tkinter import TclError
 import datetime
 import json
@@ -230,17 +231,15 @@ def iter_namespace(ns_pkg):
     # the name.
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-class Appli(ttk.Frame):
+class Appli(tk.Tk):
     """
     Main tkinter graphical application object.
     """
     version_compatible = "1.1.*"
-    def __init__(self, parent):
+    def __init__(self):
         """
         Initialise the application
 
-        Args:
-            parent: The main tk window.
         """
         # Lexic:
         # view frame : the frame in the tab that will hold forms.
@@ -249,21 +248,16 @@ class Appli(ttk.Frame):
         # canvas : a canvas object (useful to attach a scrollbar to a frame)
         # paned : a Paned widget is used to separate two other widgets and display a one over the other if desired
         #           Used to separate the treeview frame and view frame.
+        super().__init__()
         self.quitting = False
-        self.parent = parent  #  parent tkinter window
-        tk.Tk.report_callback_exception = self.show_error
-        self.setStyle()
-        # HISTORY : Main view and command where historically in the same view;
-        # This results in lots of widget here with a confusing naming style
-        ttk.Frame.__init__(self, parent)
-        #### core components (Tab menu on the left objects)####
-        self.settings = Settings()
         self.settingViewFrame = None
         self.scanManager = None  #  Loaded when clicking on it if linux only
         self.scanViewFrame = None
         self.admin = None
         self.nbk = None
         self.sio = None #socketio client
+        self.initialized = False
+        self.setStyle()
         self.main_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_main.png"))
         self.commands_tab_img = ImageTk.PhotoImage(
@@ -274,9 +268,9 @@ class Appli(ttk.Frame):
             Image.open(Utils.getIconDir()+"tab_settings.png"))
         self.admin_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_admin.png"))
-        self.initModules()
-        
-
+        # HISTORY : Main view and command where historically in the same view;
+        # This results in lots of widget here with a confusing naming style
+        #### core components (Tab menu on the left objects)####
         #### MAIN VIEW ####
         self.openedViewFrameId = None
         self.mainPageFrame = None
@@ -301,9 +295,30 @@ class Appli(ttk.Frame):
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = os.path.join(dir_path, "../../icon/favicon.png")
+    
+        img = tk.PhotoImage(file=dir_path)
+        self.resizable(True, True)
+        self.iconphoto(True, img)
+        self.minsize(width=400, height=400)
+        self.resizable(True, True)
+        self.title("Pollenisator")
+        self.geometry("1220x830")
+        self.protocol("WM_DELETE_WINDOW", self.onClosing)
+        self.settings = Settings()
+        self.initModules()
         apiclient = APIClient.getInstance()
         apiclient.appli = self
-        self.openConnectionDialog()
+        opened = self.openConnectionDialog()
+        if not opened:
+            self.wait_visibility()
+            self.openConnectionDialog(force=True)
+            self.promptCalendarName()
+            
+    # OVERRIDE tk.Tk.report_callback_exception
+    def report_callback_exception(self, exc, val, tb):
+        self.show_error(exc, val, tb)
         
     def quit(self):
         super().quit()
@@ -316,7 +331,6 @@ class Appli(ttk.Frame):
     def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
         apiclient = APIClient.getInstance()
-        
         abandon = False
         if force:
             apiclient.disconnect()
@@ -348,13 +362,15 @@ class Appli(ttk.Frame):
                 pentests = [x["nom"] for x in pentests][::-1]
             if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
                 self.openCalendar(apiclient.getCurrentPentest())
+            self.initialized = True
             # self.promptCalendarName(), called beacause tabSwitch is called
         else:
             self.onClosing()
             try:
-                self.parent.destroy()
+                self.destroy()
             except tk.TclError:
                 pass
+        return apiclient.isConnected()
     
     def initModules(self):
         discovered_plugins = {
@@ -365,7 +381,7 @@ class Appli(ttk.Frame):
         self.modules = []
         for name, module in discovered_plugins.items():
             module_class = getattr(module, name.split(".")[-1])
-            module_obj = module_class(self.parent, self.settings)
+            module_obj = module_class(self, self.settings)
             self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":ImageTk.PhotoImage(Image.open(Utils.getIconDir()+module_obj.iconName))})
 
     def show_error(self, *args):
@@ -403,7 +419,7 @@ class Appli(ttk.Frame):
             The number of pollenisator database found, 0 if the connection failed."""
         apiclient = APIClient.getInstance()
         apiclient.reinitConnection()
-        connectDialog = ChildDialogConnect(self.parent)
+        connectDialog = ChildDialogConnect(self)
         self.wait_window(connectDialog.app)
         return connectDialog.rvalue
 
@@ -414,7 +430,7 @@ class Appli(ttk.Frame):
         if connected_user is None:
             tk.messagebox.showerror("Change password", "You are not connected")
             return 
-        dialog = ChildDialogEditPassword(self.parent, connected_user)
+        dialog = ChildDialogEditPassword(self, connected_user)
         self.wait_window(dialog.app)
         
     def disconnect(self):
@@ -472,11 +488,11 @@ class Appli(ttk.Frame):
         """
         Create the bar menu on top of the screen.
         """
-        menubar = tk.Menu(self.parent, tearoff=0, bd=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
-        self.parent.config(menu=menubar)
+        menubar = tk.Menu(self, tearoff=0, bd=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        self.config(menu=menubar)
 
-        self.parent.bind('<F5>', self.refreshView)
-        self.parent.bind('<Control-o>', self.promptCalendarName)
+        self.bind('<F5>', self.refreshView)
+        self.bind('<Control-o>', self.promptCalendarName)
         fileMenu = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
         fileMenu.add_command(label="New", command=self.selectNewCalendar)
         fileMenu.add_command(label="Open (Ctrl+o)",
@@ -521,7 +537,7 @@ class Appli(ttk.Frame):
         Args:
             _event: not used but mandatory
         """
-        style = ttk.Style(self.parent)
+        style = ttk.Style(self)
         style.theme_use("clam")
         try:
             style.element_create('Plain.Notebook.tab', "from", 'default')
@@ -829,7 +845,7 @@ class Appli(ttk.Frame):
 
     def openScriptModule(self):
         """Open the script window"""
-        self.scriptManager = ScriptManager(self.parent)
+        self.scriptManager = ScriptManager(self)
 
     def initUI(self):
         """
@@ -838,8 +854,8 @@ class Appli(ttk.Frame):
         if self.nbk is not None:
             self.refreshUI()
             return
-        self.nbk = ttk.Notebook(self.parent)
-        self.statusbar = StatusBar(self.parent, self)
+        self.nbk = ttk.Notebook(self)
+        self.statusbar = StatusBar(self, self)
         self.statusbar.pack(fill=tk.X)
         self.nbk.enable_traversal()
         self.initMainView()
@@ -1113,7 +1129,7 @@ class Appli(ttk.Frame):
         validCalendar = False
         default = {}
         while not validCalendar:
-            dialog = ChildDialogNewCalendar(self.parent, default)
+            dialog = ChildDialogNewCalendar(self, default)
             self.wait_window(dialog.app)
             if isinstance(dialog.rvalue, dict):
                 default = dialog.rvalue
@@ -1175,5 +1191,5 @@ class Appli(ttk.Frame):
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser(self.parent)
-        self.parent.wait_window(dialog.app)
+        dialog = ChildDialogFileParser(self)
+        self.wait_window(dialog.app)

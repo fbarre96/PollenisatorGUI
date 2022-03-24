@@ -527,6 +527,10 @@ class CalendarTreeview(PollenisatorTreeview):
 
         self.commands_node = self.insert(
             "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
+        self.my_commands_node = self.insert(
+            self.commands_node, "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
+        self.others_commands_node = self.insert(
+            self.commands_node, "end", "otherscommands", text="Others commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({}, apiclient.getCurrentPentest())
         for command in commands:
             command_vw = CommandView(

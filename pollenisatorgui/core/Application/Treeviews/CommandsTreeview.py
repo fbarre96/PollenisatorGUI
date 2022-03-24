@@ -125,10 +125,12 @@ class CommandsTreeview(PollenisatorTreeview):
         """
         Load the treeview with database information
         """
-        self.my_commands_node = self.insert(
-            "", "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
         self.commands_node = self.insert(
-            "", "end", "commands", text="Other Commands", image=CommandView.getClassIcon())
+            "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
+        self.my_commands_node = self.insert(
+            self.commands_node, "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
+        self.others_commands_node = self.insert(
+            self.commands_node, "end", "commands", text="Others commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({})
         for command in commands:
             command_vw = CommandView(

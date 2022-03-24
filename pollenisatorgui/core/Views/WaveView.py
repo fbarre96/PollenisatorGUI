@@ -106,5 +106,5 @@ class WaveView(ViewElement):
         return self.appliTw.waves_node
 
 
-    def addMyCommandsToWave(self):
+    def addMyCommandsToWave(self, event=None):
         self.controller.addMyCommandsToWave()
