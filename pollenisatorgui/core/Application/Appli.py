@@ -988,10 +988,12 @@ class Appli(tk.Tk):
         Dump pollenisator from database to an archive file gunzip.
         """
         apiclient = APIClient.getInstance()
-        apiclient.dumpDb("pollenisator", "commands")
-        apiclient.dumpDb("pollenisator", "group_commands")
-        tkinter.messagebox.showinfo(
-            "Export pollenisator database", "Export completed in exports/pollenisator_commands.gz and exports/pollenisator_group_commands.gz")
+        res, msg = apiclient.exportCommands()
+        if res:
+            tkinter.messagebox.showinfo(
+                "Export pollenisator database", "Export completed in "+str(msg))
+        else:
+            tkinter.messagebox.showinfo(msg)
 
     def importCalendar(self, name=None):
         """
@@ -1035,7 +1037,7 @@ class Appli(tk.Tk):
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(defaultextension=".gz")
+            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
