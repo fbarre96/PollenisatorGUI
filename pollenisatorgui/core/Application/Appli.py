@@ -337,6 +337,7 @@ class Appli(tk.Tk):
         while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
             abandon = self.promptForConnection() is None
         if not abandon:
+            apiclient = APIClient.getInstance()
             apiclient.attach(self)
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
@@ -353,6 +354,7 @@ class Appli(tk.Tk):
             @self.sio.event
             def notif(data):
                 self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
+            
             self.sio.connect(apiclient.api_url)
             self.initUI()
             pentests = apiclient.getPentestList()

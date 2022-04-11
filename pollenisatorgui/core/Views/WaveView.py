@@ -1,4 +1,5 @@
 """View for wavr object. Handle node in treeview and present forms to user when interacted with."""
+import tkinter as tk
 
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Models.Command import Command
@@ -12,7 +13,7 @@ from pollenisatorgui.core.Controllers.ScopeController import ScopeController
 from pollenisatorgui.core.Controllers.ToolController import ToolController
 from pollenisatorgui.core.Components.apiclient import APIClient
 
-
+from bson import ObjectId
 
 class WaveView(ViewElement):
     """View for wavr object. Handle node in treeview and present forms to user when interacted with.
@@ -30,9 +31,20 @@ class WaveView(ViewElement):
         top_panel.addFormLabel("Wave", modelData["wave"])
         self.form.addFormHelper(
             "If you select a previously unselected command,\n it will be added to every object of its level.\nIf you unselect a previously selected command,\n it will remove only tools that are not already done.")
+        commands = Command.getList(None, APIClient.getInstance().getCurrentPentest())
+        commands_names = []
+        defaults = []
+        comms_values = []
+        for c in commands:
+            commands_names.append(str(c))
+            comms_values.append(c.getId())
+            if ObjectId(c.getId()) in modelData["wave_commands"]:
+                defaults.append(str(c))
         self.form.addFormChecklist(
-            "Commands", Command.getList(None, APIClient.getInstance().getCurrentPentest()), modelData["wave_commands"])
-        self.form.addFormButton("Add my commands to wave", self.addMyCommandsToWave)
+            "Commands", commands_names, defaults, values=comms_values)
+        panel = self.form.addFormPanel()
+        panel.addFormButton("Add my commands to wave", self.addMyCommandsToWave)
+        panel.addFormButton("Add Worker commands to wave", self.addWorkerCommandsToWave)
         self.completeModifyWindow()
 
     def openInsertWindow(self):
@@ -43,7 +55,13 @@ class WaveView(ViewElement):
         top_panel.addFormLabel("Wave")
         top_panel.addFormStr("Wave", r".+", "", column=1)
         self.form.addFormHelper("Only selected commands will be launchable.")
-        self.form.addFormChecklist("Commands", Command.getList(None, APIClient.getInstance().getCurrentPentest()), [])
+        commands = Command.getList(None, APIClient.getInstance().getCurrentPentest())
+        commands_names = []
+        comms_values = []
+        for c in commands:
+            commands_names.append(str(c))
+            comms_values.append(c.getId())
+        self.form.addFormChecklist("Commands", commands_names, [], values=comms_values)
         self.completeInsertWindow()
 
     def addChildrenBaseNodes(self, newNode):
@@ -108,3 +126,7 @@ class WaveView(ViewElement):
 
     def addMyCommandsToWave(self, event=None):
         self.controller.addMyCommandsToWave()
+
+    def addWorkerCommandsToWave(self, event=None):
+        self.controller.addWorkerCommandsToWave()
+

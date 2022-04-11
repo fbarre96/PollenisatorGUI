@@ -15,6 +15,9 @@ import pollenisatorgui.core.Components.Utils as Utils
 import os
 import docker
 import re
+import socketio
+from bson import ObjectId
+
 try:
     import git
     git_available = True
@@ -90,6 +93,7 @@ class ScanManager:
         self.parent = None
         self.workerTv = None
         self.linkTw = linkedTreeview
+        self.local_scans = dict()
         abs_path = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(abs_path, "../../icon/")
         self.tool_icon = ImageTk.PhotoImage(Image.open(path+"tool.png"))
@@ -124,14 +128,20 @@ class ScanManager:
         workers = apiclient.getWorkers()
         running_scans = Tool.fetchObjects({"status":"running"})
         for children in self.scanTv.get_children():
-            self.scanTv.delete(children)
+            try:
+                self.scanTv.delete(children)
+            except:
+                pass
         for running_scan in running_scans:
             try:
                 self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
             except tk.TclError:
                 pass
         for children in self.workerTv.get_children():
-            self.workerTv.delete(children)
+            try:
+                self.workerTv.delete(children)
+            except:
+                pass
         registeredCommands = set()
         for worker in workers:
             workername = worker["name"]
@@ -143,30 +153,11 @@ class ScanManager:
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.nok_icon)
             except tk.TclError:
-                worker_node = self.workerTv.item(workername)["text"]
-            worker_registered = apiclient.getWorker({"name":workername})
-            commands_registered = worker_registered["registeredCommands"]
-            for command in commands_registered:
                 try:
-                    self.workerTv.insert(
-                        worker_node, 'end', 'registered|'+command+"|"+workername, text=command, image=self.tool_icon)
-                except tk.TclError as e:
+                    worker_node = self.workerTv.item(workername)["text"]
+                except:
                     pass
-                registeredCommands.add(str(command))
-            allCommands = Command.getList(None, apiclient.getCurrentPentest())
-            for command in allCommands:
-                if command not in registeredCommands:
-                    try:
-                        self.workerTv.insert(
-                            worker_node, '0', 'notRegistered|'+command+"|"+workername, text=command, image=self.nok_icon)
-                    except tk.TclError:
-                        pass
-                else:
-                    try:
-                        self.workerTv.delete('notRegistered|'+command+"|"+workername)
-                    except tk.TclError:
-                        pass
-        if len(registeredCommands) > 0 and self.btn_autoscan is None:
+        if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = ttk.Button(
                     self.parent, text="Stop Scanning", command=self.stopAutoscan)
@@ -200,11 +191,16 @@ class ScanManager:
         self.btn_setInclusion.pack(padx=5, side=tk.RIGHT)
         self.docker_image = tk.PhotoImage(file=Utils.getIcon("baleine.png"))
         self.docker_download_image = tk.PhotoImage(file=Utils.getIcon("baleine_download.png"))
+        self.btn_ServerWorker = ttk.Button(btn_pane, command=self.runWorkerOnServer, text="Start remote worker")
+        self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
+        
         if git_available:
             self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
             self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="icon.TButton")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
+        self.btn_ServerWorker = ttk.Button(btn_pane, command=self.registerAsWorker, text="Register as worker")
+        self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         btn_pane.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
         total_registered_commands = 0
@@ -220,24 +216,6 @@ class ScanManager:
                         '', 'end', workername, text=workername, image=self.nok_icon)
             except tk.TclError:
                 pass
-            commands_registered = apiclient.getRegisteredCommands(
-                workername)
-            for command in commands_registered:
-                try:
-                    self.workerTv.insert(worker_node, 'end', 'registered|'+str(command)+"|"+workername,
-                                    text=command, image=self.tool_icon)
-                except tk.TclError as e:
-                    pass
-                registeredCommands.add(str(command))
-            allCommands = Command.getList(None, apiclient.getCurrentPentest())
-            for command in allCommands:
-                if command not in registeredCommands:
-                    try:
-                        self.workerTv.insert(worker_node, '0', 'notRegistered|' +
-                                        str(command)+"|"+workername, text=str(command), image=self.nok_icon)
-                    except tk.TclError as e:
-                        pass
-            total_registered_commands += len(registeredCommands)
         #### TREEVIEW SCANS : overview of ongoing auto scan####
         lblscan = ttk.Label(self.parent, text="Scan overview:")
         lblscan.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
@@ -251,15 +229,14 @@ class ScanManager:
         for running_scan in running_scans:
             self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
         #### BUTTONS FOR AUTO SCANNING ####
-        if total_registered_commands > 0:
-            if apiclient.getAutoScanStatus():
-                self.btn_autoscan = ttk.Button(
-                    self.parent, text="Stop Scanning", command=self.stopAutoscan)
-                self.btn_autoscan.pack()
-            else:
-                self.btn_autoscan = ttk.Button(
-                    self.parent, text="Start Scanning", command=self.startAutoscan)
-                self.btn_autoscan.pack()
+        if apiclient.getAutoScanStatus():
+            self.btn_autoscan = ttk.Button(
+                self.parent, text="Stop Scanning", command=self.stopAutoscan)
+            self.btn_autoscan.pack()
+        else:
+            self.btn_autoscan = ttk.Button(
+                self.parent, text="Start Scanning", command=self.startAutoscan)
+            self.btn_autoscan.pack()
         btn_parse_scans = ttk.Button(
             self.parent, text="Parse existing files", command=self.parseFiles)
         btn_parse_scans.pack()
@@ -306,10 +283,6 @@ class ScanManager:
         if self.workerTv is not None:
             self.refreshUI()
 
-    def sendEditToolConfig(self, worker, command_name, remote_bin, plugin):
-        apiclient = APIClient.getInstance()
-        apiclient.sendEditToolConfig(worker, command_name, remote_bin, plugin)
-
     def OnWorkerDoubleClick(self, event):
         """Callback for treeview double click.
         If a link treeview is defined, open mainview and focus on the item with same iid clicked.
@@ -321,14 +294,7 @@ class ScanManager:
                 tv = event.widget
                 item = tv.identify("item", event.x, event.y)
             parent = self.workerTv.parent(item)
-            if str(parent) != "": # child node = tool
-                command_name = item.split("|")[1]
-                dialog = ChildDialogEditCommandSettings(self.parent, "Edit worker tools config")
-                self.parent.wait_window(dialog.app)
-                if isinstance(dialog.rvalue, tuple):
-                    self.sendEditToolConfig(parent, command_name, dialog.rvalue[0], dialog.rvalue[1])
-            else: # no parent node = worker node
-                self.setUseForPentest(item)
+            self.setUseForPentest(item)
     
     def setWorkerInclusion(self):
         items = self.workerTv.selection()
@@ -343,18 +309,26 @@ class ScanManager:
             isIncluded = apiclient.getCurrentPentest() in worker.get("pentests", [])
             apiclient.setWorkerInclusion(worker_hostname, not (isIncluded))
 
-    def launchTask(self, toolModel, parser="", checks=True, worker=""):
+    def stopTask(self, toolId):
+        thread = self.local_scans.get(str(toolId), None)
+        if thread is None:
+            return False
+        thread.terminate()
+        return True
+
+    def launchTask(self, toolModel, checks=True, worker=""):
         apiclient = APIClient.getInstance()
         launchableToolId = toolModel.getId()
         if worker == "" or worker == "localhost":
             thread = None
             thread = multiprocessing.Process(target=executeCommand, args=(
-                apiclient, str(launchableToolId), parser, True))
+                apiclient, str(launchableToolId), True))
             thread.start()
+            self.local_scans[str(launchableToolId)] = thread
             toolModel.markAsRunning(worker)
 
         else:
-            apiclient.sendLaunchTask(toolModel.getId(), parser, checks, worker)
+            apiclient.sendLaunchTask(toolModel.getId(), checks, worker)
 
 
     def OnWorkerDelete(self, event):
@@ -374,9 +348,30 @@ class ScanManager:
         dialog.show(4)
         x = threading.Thread(target=start_docker, args=(dialog, False))
         x.start()
+        return x
 
     def installDockerWorker(self, event=None):
         dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="determinate", show_logs=True)
         dialog.show(4)
         x = threading.Thread(target=start_docker, args=(dialog, True))
         x.start()
+        return x
+
+    def runWorkerOnServer(self):
+        apiclient = APIClient.getInstance()
+        apiclient.getDockerForPentest(apiclient.getCurrentPentest())
+        return True, ""
+
+    def registerAsWorker(self):
+        self.sio = socketio.Client()
+        apiclient = APIClient.getInstance()
+        self.sio.connect(apiclient.api_url)
+        self.sio.emit("register", {"workerName":apiclient.getUser()})
+        @self.sio.event
+        def executeCommand(data):
+            toolId = data.get("toolId")
+            tool = Tool.fetchObject({"_id":ObjectId(toolId)})
+            if tool is None:
+                print("ERROR tool not found "+str(toolId))
+                return
+            self.launchTask(tool, True, "localhost")

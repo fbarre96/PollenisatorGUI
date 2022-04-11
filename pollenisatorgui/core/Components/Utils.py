@@ -11,6 +11,7 @@ import requests
 from netaddr import IPNetwork
 from netaddr.core import AddrFormatError
 from bson import ObjectId
+import signal
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -26,23 +27,19 @@ class JSONDecoder(json.JSONDecoder):
         
     def object_hook(self, dct):
         for k,v in dct.items():
-            if 'ObjectId|' in str(v):
-                dct[k] = ObjectId(v.split('ObjectId|')[1])
+            if isinstance(v, list):
+                new_lst = []
+                for item in v:
+                    if 'ObjectId|' in str(item):
+                        new_lst.append(ObjectId(item.split('ObjectId|')[1]))
+                    else:
+                        new_lst.append(item)
+                    dct[k] = new_lst
+            else:
+                if 'ObjectId|' in str(v):
+                    dct[k] = ObjectId(v.split('ObjectId|')[1])
         return dct
 
-def loadPluginByBin(binName):
-    """
-    Load a the plugin python corresponding to the given binary name.
-    Args:
-        binName: the binary name to load a plugin for
-    Returns:
-        return the module plugin loaded or default plugin if bin name was not found in conf file
-    """
-    toolsCfg = loadToolsConfig()
-    for conf in toolsCfg.values():
-        if binName == os.path.splitext(conf["bin"])[0]:
-            return loadPlugin(conf["plugin"])
-    return loadPlugin("Default")
 
 def loadPlugin(pluginName):
     """
@@ -171,6 +168,9 @@ def fitNowTime(dated, datef):
         return False
     return today > date_start and date_end > today
 
+def handleProcKill(proc):
+    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+    proc._killed = True
 
 def execute(command, timeout=None, printStdout=True):
     """
@@ -187,12 +187,16 @@ def execute(command, timeout=None, printStdout=True):
     Raises:
         Raise a KeyboardInterrupt if the command was interrupted by a KeyboardInterrupt (Ctrl+c)
     """
-
+   
     try:
         proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+        proc._killed = False
+        signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
+        signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
         time.sleep(1) #HACK Break if not there when launching fast custom tools on local host
         try:
+            timer = None
             if timeout is not None:
                 if isinstance(timeout, float):
                     timeout = (timeout-datetime.now()).total_seconds()
@@ -204,6 +208,10 @@ def execute(command, timeout=None, printStdout=True):
                         timer = Timer(timeout, proc.kill)
                         timer.start()
             stdout, stderr = proc.communicate(None, timeout)
+            if proc._killed:
+                if timer is not None:
+                    timer.cancel()
+                return -1, ""
             if printStdout:
                 stdout = stdout.decode('utf-8')
                 stderr = stderr.decode('utf-8')
@@ -253,76 +261,15 @@ def loadCfg(cfgfile):
     Returns:
         Return the json converted values of the config file.
     """
-    default_tools_infos = dict()
+    cf_infos = dict()
     try:
         with open(cfgfile, "r") as f:
-            default_tools_infos = json.loads(f.read())
+            cf_infos = json.loads(f.read())
     except FileNotFoundError as e:
         raise e
-
-    return default_tools_infos
-
-
-def loadToolsConfig():
-    """
-    Load tools config file in the config/tools.d/ folder starting with
-    config/tools.d/tools.json as default values
-    Args:
-        cfgfile: the path to a json config file
-    Returns:
-        Return the json converted values of the config file.
-    """
-    tool_config_folder = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/tools.d/")
-    default_tools_config = os.path.join(tool_config_folder, "tools.json")
-    default_tools_infos = None
-    try:
-        with open(default_tools_config) as f:
-            default_tools_infos = json.loads(f.read())
-    except Exception as e:
-        raise Exception("Error when loading tools to register : "+str(e))
-    for _r, _d, f in os.walk(tool_config_folder):
-        for fil in f:
-            if fil != "tools.json":
-                try:
-                    with open(default_tools_config) as f:
-                        tools_infos = json.loads(f.read())
-                        for key, value in tools_infos.items():
-                            default_tools_infos[key] = value
-                except json.JSONDecodeError:
-                    print("Invalid json file : "+str(fil))
-    return default_tools_infos
-
-def saveToolsConfig(dic):
-    """
-    Save tools config file in the config/tools.d/ in tools.json 
-    Args:
-        dic: a dictionnary to write values
-    """
-    tool_config_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../config/tools.d/")
-    default_tools_config = os.path.join(tool_config_folder, "tools.json")
-    with open(default_tools_config, "w") as f:
-        f.write(json.dumps(dic))
-
-def loadServerConfig():
-    """Return data converted from json inside config/server.cfg
-    Returns:
-        Json converted data inside config/server.cfg
-    """
-    config = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/server.cfg")
-    return loadCfg(config)
-
-
-def saveServerConfig(configDict):
-    """Saves data in configDict to config/server.cfg as json
-    Args:
-        configDict: data to be stored in config/server.cfg
-    """
-    configFile = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/server.cfg")
-    with open(configFile, "w") as f:
-        f.write(json.dumps(configDict))
+    except json.JSONDecodeError as e:
+        raise e
+    return cf_infos
 
 def getConfigFolder():
     from os.path import expanduser
@@ -336,7 +283,12 @@ def loadClientConfig():
         Json converted data inside config/client.cfg
     """
     config = os.path.join(getConfigFolder(), "client.cfg")
-    return loadCfg(config)
+    try:
+        res = loadCfg(config)
+        return res
+
+    except:
+        return {"host":"127.0.0.1", "port":"5000", "https":"False"}
 
 def saveClientConfig(configDict):
     """Saves data in configDict to config/client.cfg as json

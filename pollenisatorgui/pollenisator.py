@@ -74,7 +74,7 @@ def pollex():
     tool.updateInfos({"args":args})
     res, iid = tool.addInDb()
     if res:
-        ret_code, outputstr = executeCommand(apiclient, str(iid), "auto-detect", True, True)
+        ret_code, outputstr = executeCommand(apiclient, str(iid), True, True)
         if not ret_code:
             print(outputstr)
         else:

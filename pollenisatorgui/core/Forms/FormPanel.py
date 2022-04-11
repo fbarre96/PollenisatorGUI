@@ -132,7 +132,7 @@ class FormPanel(Form):
         self.subforms.append(formCombo)
         return formCombo
 
-    def addFormChecklist(self, name, choicesList, default=None, **kwargs):
+    def addFormChecklist(self, name, choicesList, default=None, values=None, **kwargs):
         """
         Add a form checklist to this panel.
         Args:
@@ -144,7 +144,7 @@ class FormPanel(Form):
         if default is None:
             default = []
         f = FormChecklist(
-            name, choicesList, default, **kwargs)
+            name, choicesList, default, values, **kwargs)
         self.subforms.append(f)
         return f
 

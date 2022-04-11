@@ -1,8 +1,11 @@
 """View for command group object. Handle node in treeview and present forms to user when interacted with."""
 
+from bson import ObjectId
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 import pollenisatorgui.core.Models.Command as Command
 import tkinter as tk
+from pollenisatorgui.core.Components.apiclient import APIClient
+
 
 class CommandGroupView(ViewElement):
     """
@@ -17,12 +20,28 @@ class CommandGroupView(ViewElement):
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing CommandGroup
         """
         modelData = self.controller.getData()
+        self.form.addFormHidden("indb", modelData["indb"])
         panel = self.form.addFormPanel(grid=True)
         panel.addFormLabel("Name")
         panel.addFormStr("Name", r".*\S.*", modelData["name"], column=1)
         panel = self.form.addFormPanel()
+        apiclient = APIClient.getInstance()
+        if modelData["indb"] == "pollenisator":
+            commands = apiclient.findCommand({"owner":modelData["owner"]})
+        else:
+            commands = apiclient.find("commands", {"owner":modelData["owner"]}, True)
+        commands_names = []
+        defaults = []
+        comms_values = []
+        comms_as_oid = [ObjectId(x) for x in modelData["commands"]]
+        for command_dict in commands:
+            c = Command.Command(command_dict)
+            commands_names.append(str(c))
+            comms_values.append(str(c.getId()))
+            if ObjectId(c.getId()) in comms_as_oid:
+                defaults.append(str(c))
         panel.addFormChecklist(
-            "Commands", Command.Command.getList(), modelData["commands"], side=tk.LEFT)
+            "Commands", commands_names, defaults, values=comms_values, side=tk.LEFT)
         panel = self.form.addFormPanel(grid=True)
         panel.addFormLabel("Delay")
         panel.addFormStr(
@@ -40,11 +59,25 @@ class CommandGroupView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new CommandGroup
         """
+        modelData = self.controller.getData()
+        self.form.addFormHidden("indb", modelData["indb"])
+        self.form.addFormHidden("owner", modelData.get("owner", None))
         panel = self.form.addFormPanel(grid=True)
         panel.addFormLabel("Name")
         panel.addFormStr("Name", r".*\S.*", "", column=1)
         panel = self.form.addFormPanel()
-        panel.addFormChecklist("Commands", Command.Command.getList(), [] ,side=tk.LEFT)
+        apiclient = APIClient.getInstance()
+        if modelData["indb"] == "pollenisator":
+            commands = apiclient.findCommand({"owner":modelData["owner"]})
+        else:
+            commands = apiclient.find("commands", {"owner":modelData["owner"]}, True)
+        commands_names = []
+        comms_values = []
+        for command_dict in commands:
+            c = Command.Command(command_dict)
+            commands_names.append(str(c))
+            comms_values.append(str(c.getId()))
+        panel.addFormChecklist("Commands", commands_names, [], values=comms_values,side=tk.LEFT)
         panel = self.form.addFormPanel(grid=True)
         panel.addFormLabel("Delay")
         panel.addFormStr("Delay", r"\d+", "0", width=5, column=1)
@@ -76,4 +109,15 @@ class CommandGroupView(ViewElement):
         Returns:
             return the saved group_command_node node inside the Appli class.
         """
+        apiclient = APIClient.getInstance()
+        if self.controller.model.indb == "pollenisator":
+            if self.controller.isMyCommandGroup():
+                return self.appliTw.my_group_command_node
+            elif self.controller.isWorkerCommandGroup():
+                return self.appliTw.worker_group_command_node
+        else:
+            if self.controller.isMyCommandGroup():
+                return self.appliTw.my_group_command_node
+            elif self.controller.isWorkerCommandGroup():
+                return self.appliTw.worker_group_command_node
         return self.appliTw.group_command_node

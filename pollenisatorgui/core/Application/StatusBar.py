@@ -38,7 +38,10 @@ class StatusBar(ttk.Frame):
 
     def refreshUI(self):
         for widget in self.winfo_children():
-            widget.destroy()
+            try:
+                widget.destroy()
+            except:
+                pass
         self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())

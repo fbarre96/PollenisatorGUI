@@ -386,7 +386,7 @@ class Settings:
         chkbox_include_all_domains.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
         
-        frame_term = ttk.LabelFrame(self.settingsFrame, text="Local tools and terminals:")
+        frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminals:")
         self.text_terms = tk.scrolledtext.ScrolledText(
             frame_term, relief=tk.SUNKEN, height=4, width=130, font = ("Sans", 10))
         self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
@@ -398,11 +398,7 @@ class Settings:
         self.box_favorite_term = ttk.Combobox(frame_fav_term, values=(self.getTerms()), state="readonly")
         self.box_favorite_term.grid(row=0, column=1, sticky=tk.W, pady=5)
         
-        lbl_localTools = ttk.Label(frame_fav_term, text="Edit local tool Paths")
-        lbl_localTools.grid(row=1, column=0, sticky=tk.E, pady=5)
-        self.btn_localTools = ttk.Button(frame_fav_term, text="Edit local tool paths", command=self.onEditLocalPaths)
-        self.btn_localTools.grid(row=1, column=1, sticky=tk.W, pady=5)
-
+      
         frame_fav_term.pack(padx=10, pady=10, side=tk.TOP,
                            anchor=tk.W, fill=tk.X, expand=tk.YES)
         frame_term.pack(padx=10, pady=10, side=tk.TOP,
@@ -479,11 +475,6 @@ class Settings:
             return [], "Invalid response from API"
         ret = [{"title":user, "additional pentesters names":user} for user in users]
         return ret, ""
-
-    def onEditLocalPaths(self):
-        from pollenisatorgui.core.Application.Dialogs.ChildDialogEditLocalTools import ChildDialogEditLocalTools
-        dialog = ChildDialogEditLocalTools(self.canvas)
-        self.canvas.wait_window(dialog.app)
 
     def on_ok(self):
         """Callback on click save button. loads some data and calls save.

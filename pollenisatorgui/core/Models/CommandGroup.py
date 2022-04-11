@@ -1,4 +1,5 @@
 """Command Group Model."""
+from tkinter import E
 from pollenisatorgui.core.Models.Element import Element
 from pollenisatorgui.core.Components.apiclient import APIClient
 from bson.objectid import ObjectId
@@ -17,17 +18,17 @@ class CommandGroup(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command group is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}),
-                        name(""), sleep_between("0"), commands([]),
+                        name(""), owner(""), sleep_between("0"), commands([]),
                         max_thread("1")
         """
         if valuesFromDb is None:
             valuesFromDb = {}
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("sleep_between", 0), valuesFromDb.get("commands", []),
-                        valuesFromDb.get("max_thread", 1), valuesFromDb.get("infos", {}))
+        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("owner", ""), valuesFromDb.get("sleep_between", 0), valuesFromDb.get("commands", []),
+                        valuesFromDb.get("max_thread", 1), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, sleep_between=0, commands=None, max_thread=1, infos=None):
+    def initialize(self, name, owner, sleep_between=0, commands=None, max_thread=1, indb="pollenisator", infos=None):
         """Set values of command group
         Args:
             name: the command group name
@@ -41,9 +42,11 @@ class CommandGroup(Element):
         if commands is None:
             commands = []
         self.name = name
+        self.owner = owner
         self.sleep_between = int(sleep_between)
         self.commands = commands
         self.max_thread = int(max_thread)
+        self.indb = indb
         self.infos = infos if infos is not None else {}
         return self
 
@@ -53,7 +56,10 @@ class CommandGroup(Element):
         """
         ret = self._id
         apiclient = APIClient.getInstance()
-        apiclient.delete("group_commands", ret)
+        if self.indb == "pollenisator":
+            apiclient.deleteCommandGroup(ret)
+        else:
+            apiclient.delete("group_commands", ret)
 
     def addInDb(self):
         """
@@ -64,8 +70,9 @@ class CommandGroup(Element):
                 * mongo ObjectId : already existing object if duplicate, create object id otherwise 
         """
         apiclient = APIClient.getInstance()
+        
         res, id = apiclient.insert("group_commands", {
-            "name": self.name, "sleep_between": int(self.sleep_between), "commands": self.commands, "max_thread": int(self.max_thread)})
+            "name": self.name, "indb":self.indb, "owner": self.owner, "sleep_between": int(self.sleep_between), "commands": self.commands, "max_thread": int(self.max_thread)})
         if not res:
             return False, id
         self._id = id
@@ -73,7 +80,7 @@ class CommandGroup(Element):
 
 
     @classmethod
-    def fetchObject(cls, pipeline):
+    def fetchObject(cls, pipeline, targetdb="pollenisator"):
         """Fetch one command from database and return the CommandGroup object 
         Args:
             pipeline: a Mongo search pipeline (dict)
@@ -81,14 +88,19 @@ class CommandGroup(Element):
             Returns a CommandGroup or None if nothing matches the pipeline.
         """
         apiclient = APIClient.getInstance()
-        d = apiclient.findInDb(
-            "pollenisator", "group_commands", pipeline, False)
+        if targetdb == "pollenisator":
+            d = apiclient.getCommandGroups(pipeline)
+            if isinstance(d, list):
+                if d:
+                    d = d[0]
+        else:
+            d = apiclient.findInDb(targetdb, "group_commands", pipeline, False)
         if d is None:
             return None
         return CommandGroup(d)
 
     @classmethod
-    def fetchObjects(cls, pipeline):
+    def fetchObjects(cls, pipeline, targetdb="pollenisator"):
         """Fetch many commands from database and return a Cursor to iterate over CommandGroup objects
         Args:
             pipeline: a Mongo search pipeline (dict)
@@ -96,8 +108,10 @@ class CommandGroup(Element):
             Returns a cursor to iterate on CommandGroup objects
         """
         apiclient = APIClient.getInstance()
-        ds = apiclient.findInDb(
-            "pollenisator", "group_commands", pipeline, True)
+        if targetdb == "pollenisator":
+            ds = apiclient.getCommandGroups(pipeline)
+        else:
+            ds = apiclient.findInDb(targetdb, "group_commands", pipeline, True)
         if ds is None:
             return None
         for d in ds:
@@ -111,7 +125,7 @@ class CommandGroup(Element):
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
             # Update in database
-            apiclient.update("group_commands", ObjectId(self._id), {"name": self.name, "sleep_between": int(self.sleep_between), "commands": self.commands, "max_thread": int(self.max_thread)})
+            apiclient.update("group_commands", ObjectId(self._id), {"name": self.name, "owner":self.owner, "sleep_between": int(self.sleep_between), "commands": self.commands, "max_thread": int(self.max_thread)})
         else:
             apiclient.update("group_commands",  ObjectId(self._id), pipeline_set)
 
@@ -124,7 +138,7 @@ class CommandGroup(Element):
             Returns the list of command groups name found inside the database. List may be empty.
         """
         apiclient = APIClient.getInstance()
-        gcommands = apiclient.findInDb("pollenisator", "group_commands")
+        gcommands = apiclient.getCommandGroups({"owner": apiclient.getUser()})
         ret = []
         for gcommand in gcommands:
             ret.append(gcommand["name"])
@@ -145,3 +159,10 @@ class CommandGroup(Element):
             A dict (1 key: "_id")
         """
         return {"_id": self._id}
+
+    def isMyCommandGroup(self):
+        user = APIClient.getInstance().getUser()
+        return user == self.owner
+        
+    def isWorkerCommandGroup(self):
+        return self.owner == "Worker"

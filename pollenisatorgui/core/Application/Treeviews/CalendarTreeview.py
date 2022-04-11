@@ -13,6 +13,7 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Wave import Wave
 from pollenisatorgui.core.Models.Defect import Defect
 from pollenisatorgui.core.Models.Command import Command
+from pollenisatorgui.core.Models.CommandGroup import CommandGroup
 from pollenisatorgui.core.Views.IntervalView import IntervalView
 from pollenisatorgui.core.Views.IpView import IpView
 from pollenisatorgui.core.Views.MultipleIpView import MultipleIpView
@@ -24,6 +25,7 @@ from pollenisatorgui.core.Views.ToolView import ToolView
 from pollenisatorgui.core.Views.WaveView import WaveView
 from pollenisatorgui.core.Views.DefectView import DefectView
 from pollenisatorgui.core.Views.CommandView import CommandView
+from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
 from pollenisatorgui.core.Controllers.WaveController import WaveController
 from pollenisatorgui.core.Controllers.PortController import PortController
 from pollenisatorgui.core.Controllers.ScopeController import ScopeController
@@ -32,6 +34,7 @@ from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Controllers.IpController import IpController
 from pollenisatorgui.core.Controllers.IntervalController import IntervalController
 from pollenisatorgui.core.Controllers.CommandController import CommandController
+from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCustomCommand import ChildDialogCustomCommand
@@ -306,6 +309,9 @@ class CalendarTreeview(PollenisatorTreeview):
             elif collection == "commands":
                 view = CommandView(self, self.appli.viewframe,
                                 self.appli, CommandController(Command(res)))
+            elif collection == "group_commands":
+                view = CommandGroupView(self, self.appli.viewframe,
+                                self.appli, CommandGroupController(CommandGroup(res)))
             try:
                 if view is not None:
                     view.addInTreeview()
@@ -413,7 +419,7 @@ class CalendarTreeview(PollenisatorTreeview):
                     tool.addInDb()
                     if tool is None:
                         return
-                    self.appli.scanManager.launchTask(tool, parser, False, worker)
+                    self.appli.scanManager.launchTask(tool, False, worker)
 
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
@@ -431,9 +437,23 @@ class CalendarTreeview(PollenisatorTreeview):
                     objView = WaveView(self, self.appli.viewframe,
                                     self.appli, WaveController(Wave()))
                     objView.openInsertWindow()
-                elif str(item) == "commands":
+                elif str(item) == "mycommands":
+                    user = apiclient.getUser()
                     objView = CommandView(
-                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest()})))
+                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owner":user})))
+                    objView.openInsertWindow()
+                elif str(item) == "workercommands":
+                    user = "Worker"
+                    objView = CommandView(
+                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owner":user})))
+                    objView.openInsertWindow()
+                elif str(item) == "mygroupcommands":
+                    objView = CommandGroupView(
+                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest(), "owner":apiclient.getUser()})))
+                    objView.openInsertWindow()
+                elif str(item) == "workergroupcommands":
+                    objView = CommandGroupView(
+                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest(), "owner":"Worker"})))
                     objView.openInsertWindow()
                 elif str(item) == "ips":
                     objView = MultipleIpView(
@@ -527,8 +547,16 @@ class CalendarTreeview(PollenisatorTreeview):
 
         self.commands_node = self.insert(
             "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
+        self.group_command_node = self.insert(
+            "", "end", "groupcommands", text="Command Groups", image=CommandGroupView.getClassIcon())
+        self.my_group_command_node = self.insert(
+            self.group_command_node, "end", "mygroupcommands", text="My Command Groups", image=CommandGroupView.getClassIcon())
+        self.worker_group_command_node = self.insert(
+            self.group_command_node, "end", "workergroupcommands", text="Worker Command Groups", image=CommandGroupView.getClassIcon())
         self.my_commands_node = self.insert(
             self.commands_node, "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
+        self.worker_commands_node = self.insert(
+            self.commands_node, "end", "workercommands", text="Worker commands", image=CommandView.getClassIcon())  
         self.others_commands_node = self.insert(
             self.commands_node, "end", "otherscommands", text="Others commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({}, apiclient.getCurrentPentest())
@@ -536,6 +564,11 @@ class CalendarTreeview(PollenisatorTreeview):
             command_vw = CommandView(
                 self, self.appli.viewframe, self.appli, CommandController(command))
             command_vw.addInTreeview()
+        group_commands = CommandGroup.fetchObjects({}, apiclient.getCurrentPentest())
+        for command_groupe_vw in group_commands:
+            command_groupe_vw = CommandGroupView(
+                self, self.appli.viewframe, self.appli, CommandGroupController(command_groupe_vw))
+            command_groupe_vw.addInTreeview()
         waves = Wave.fetchObjects({})
         for wave in waves:
             wave_o = WaveController(wave)
@@ -675,3 +708,8 @@ class CalendarTreeview(PollenisatorTreeview):
                 view_o.controller.addTag("hidden")
             self._hidden.append([nodeToHide, view_o.getParentNode()])
             self.detach(nodeToHide)
+
+    def showItem(self, item):
+        self.see(str(item))
+        self.selection_set(str(item))
+        self.focus(str(item))

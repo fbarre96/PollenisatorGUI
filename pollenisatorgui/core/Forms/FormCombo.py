@@ -39,12 +39,12 @@ class FormCombo(Form):
         Args:
             parent: parent FormPanel.
         """
-        self.val = tk.IntVar()
         self.box = ttk.Combobox(parent.panel, values=tuple(
-            self.choicesList), state=self.getKw("state", "readonly"))
+            self.choicesList), state=self.getKw("state", ""))
         if self.default is not None:
             self.box.set(self.default)
         binds = self.getKw("binds", {})
+        self.box.bind('<KeyRelease>', self.check_input)
         for bind in binds:
             self.box.bind(bind, binds[bind])
         if parent.gridLayout:
@@ -89,3 +89,18 @@ class FormCombo(Form):
         """Set the focus to the ttk combobox.
         """
         self.box.focus_set()
+
+    def check_input(self, event):
+        value = event.widget.get()
+        if value == '':
+            self.box['values'] = self.choicesList
+        else:
+            data = []
+            for item in self.choicesList:
+                if value.lower() in item.lower():
+                    data.append(item)
+
+            self.box['values'] = data
+            if len(data) == 1:
+                self.setValue(data)
+                self.box.event_generate("<Down>")

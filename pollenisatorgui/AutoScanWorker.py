@@ -1,15 +1,12 @@
 """worker module. Execute code and store results in database, files in the SFTP server.
 """
 
+from distutils import command
 import errno
 import os
-import ssl
-import sys
-import uuid
 import time
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
-from multiprocessing import Process
 from pollenisatorgui.core.Components.apiclient import APIClient
 import pollenisatorgui.core.Components.Utils as Utils
 from pollenisatorgui.core.Models.Interval import Interval
@@ -17,7 +14,7 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Command import Command
 
 
-def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=False):
+def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
     """
      remote task
     Execute the tool with the given toolId on the given calendar name.
@@ -27,7 +24,6 @@ def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=Fal
     Args:
         apiclient: the apiclient instance.
         toolId: the mongo Object id corresponding to the tool to execute.
-        parser: plugin name to execute. If empty, the plugin specified in tools.d will be fetched.
         local: boolean, set the execution in a local context
     Raises:
         Terminated: if the task gets terminated
@@ -38,26 +34,9 @@ def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=Fal
     # Connect to given calendar
     APIClient.setInstance(apiclient)
     toolModel = Tool.fetchObject({"_id":ObjectId(toolId)})
-    command_o = toolModel.getCommand()
+    command_dict = toolModel.getCommand()
     msg = ""
-    ##
-    if local:
-        tools_infos = Utils.loadToolsConfig()
-        # Read file to execute for given tool and prepend to final command
-        if tools_infos.get(toolModel.name, None) is not None:
-            bin_path_local = tools_infos[toolModel.name].get("bin")
-            parser = tools_infos[toolModel.name].get("plugin", "Default.py")
-            success, comm, fileext = apiclient.getCommandline(toolId, parser)
-            comm = bin_path_local +" "+comm
-            success = True
-        elif allowAnyCommand:
-            success, comm, fileext = apiclient.getCommandline(toolId, parser)
-            success = True
-        else:
-            success = False
-            comm = "This tool is not configured for local usage; Please check Settings"
-    else:
-        success, comm, fileext = apiclient.getCommandline(toolId, parser)
+    success, comm, fileext = apiclient.getCommandline(toolId)
     if not success:
         print(str(comm))
         toolModel.setStatus(["error"])
@@ -87,8 +66,8 @@ def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=Fal
     else:
         timeLimit = getWaveTimeLimit(toolModel.wave)
     # adjust timeLimit if the command has a lower timeout
-    if command_o is not None and timeLimit is not None:
-        timeLimit = min(datetime.now()+timedelta(0, int(command_o.get("timeout", 0))), timeLimit)
+    if command_dict is not None and timeLimit is not None:
+        timeLimit = min(datetime.now()+timedelta(0, int(command_dict.get("timeout", 0))), timeLimit)
     ##
     try:
         print(('TASK STARTED:'+toolModel.name))
@@ -104,7 +83,8 @@ def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=Fal
         return False, str(e)
     # Execute found plugin if there is one
     outputfile = outputDir+fileext
-    msg = apiclient.importToolResult(toolId, parser, outputfile)
+    plugin = "auto-detect" if command_dict["plugin"] == "" else command_dict["plugin"] 
+    msg = apiclient.importToolResult(toolId, plugin, outputfile)
     if msg != "Success":
         #toolModel.markAsNotDone()
         print(str(msg))
@@ -112,12 +92,12 @@ def executeCommand(apiclient, toolId, parser="", local=True, allowAnyCommand=Fal
         return False, str(msg)
           
     # Delay
-    if command_o is not None:
-        if float(command_o.get("sleep_between", 0)) > 0.0:
+    if command_dict is not None:
+        if float(command_dict.get("sleep_between", 0)) > 0.0:
             msg += " (will sleep for " + \
-                str(float(command_o.get("sleep_between", 0)))+")"
+                str(float(command_dict.get("sleep_between", 0)))+")"
         print(msg)
-        time.sleep(float(command_o.get("sleep_between", 0)))
+        time.sleep(float(command_dict.get("sleep_between", 0)))
     return True, outputfile
     
 def getWaveTimeLimit(waveName):

@@ -2,6 +2,7 @@
 """
 import tkinter as tk
 from bson.objectid import ObjectId
+from sqlalchemy import false
 from pollenisatorgui.core.Models.Command import Command
 from pollenisatorgui.core.Models.CommandGroup import CommandGroup
 from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
@@ -59,19 +60,26 @@ class CommandsTreeview(PollenisatorTreeview):
         if len(selection) == 1:
             item = super().onTreeviewSelect(event)
             if isinstance(item, str):
-                if str(item) == "commands":
-                    objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command()))
-                    objView.openInsertWindow()
+                apiclient = APIClient.getInstance()
                 if str(item) == "mycommands":
-                    apiclient = APIClient.getInstance()
                     user = apiclient.getUser()
                     objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"users":[user]})))
+                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"owner":user})))
                     objView.openInsertWindow()
-                elif str(item) == "command_groups":
+                elif str(item) == "workercommands":
+                    user = "Worker"
+                    objView = CommandView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"owner":user})))
+                    objView.openInsertWindow()
+                elif str(item) == "my_command_groups":
+                    user = apiclient.getUser()
                     objView = CommandGroupView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup()))
+                        self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup({"owner":user})))
+                    objView.openInsertWindow()
+                elif str(item) == "worker_command_groups":
+                    user = "Worker"
+                    objView = CommandGroupView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup({"owner":user})))
                     objView.openInsertWindow()
             else:
                 self.openModifyWindowOf(item)
@@ -129,24 +137,36 @@ class CommandsTreeview(PollenisatorTreeview):
             "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
         self.my_commands_node = self.insert(
             self.commands_node, "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
-        self.others_commands_node = self.insert(
-            self.commands_node, "end", "commands", text="Others commands", image=CommandView.getClassIcon())
-        commands = Command.fetchObjects({})
+        self.worker_commands_node = self.insert(
+            self.commands_node, "end", "workercommands", text="Worker commands", image=CommandView.getClassIcon())
+        commands = Command.fetchObjects({"owner":APIClient.getInstance().getUser()})
         for command in commands:
+            command_vw = CommandView(
+                self, self.appli.commandsViewFrame, self.appli, CommandController(command))
+            command_vw.addInTreeview()
+        worker_commands = Command.fetchObjects({"owner":"Worker"})
+        for command in worker_commands:
             command_vw = CommandView(
                 self, self.appli.commandsViewFrame, self.appli, CommandController(command))
             command_vw.addInTreeview()
         self.group_command_node = self.insert("", "end", str(
             "command_groups"), text="Command Groups", image=CommandGroupView.getClassIcon())
-        command_groups = CommandGroup.fetchObjects({})
+        self.my_group_command_node = self.insert(self.group_command_node, "end", str(
+            "my_command_groups"), text="My Command Groups", image=CommandGroupView.getClassIcon())
+        self.worker_group_command_node = self.insert(self.group_command_node, "end", str(
+            "worker_command_groups"), text="Worker Command Groups", image=CommandGroupView.getClassIcon())    
+        command_groups = CommandGroup.fetchObjects({"owner":APIClient.getInstance().getUser()})
         for command_group in command_groups:
             command_group_vw = CommandGroupView(
                 self, self.appli.commandsViewFrame, self.appli, CommandGroupController(command_group))
             command_group_vw.addInTreeview()
+        worker_command_groups = CommandGroup.fetchObjects({"owner":"Worker"})
+        for worker_command_group in worker_command_groups:
+            command_group_vw = CommandGroupView(
+                self, self.appli.commandsViewFrame, self.appli, CommandGroupController(worker_command_group))
+            command_group_vw.addInTreeview()
         
-        commands = Command.getMyCommands()
-        for command in commands:
-            self.move(command.getId(), self.my_commands_node, "end")
+       
 
     def refresh(self):
         """Alias to self.load method"""
@@ -175,17 +195,23 @@ class CommandsTreeview(PollenisatorTreeview):
         # Insert
         if action == "insert":
             if collection == "commands":
-                res = apiclient.findInDb(
-                    db, collection, {"_id": ObjectId(iid)}, False)
+                if db == "pollenisator":
+                    res = apiclient.findCommand({"_id": ObjectId(iid)})
+                    if res:
+                        res = Command(res[0])
+                else:
+                    res = Command.fetchObject({"_id": ObjectId(iid)})
                 view = CommandView(self, self.appli.commandsViewFrame,
-                                   self.appli, CommandController(Command(res)))
+                                   self.appli, CommandController(res))
                 parent = None
             elif collection == "group_commands":
-                res = apiclient.findInDb(
-                    db, collection, {"_id": ObjectId(iid)}, False)
-                view = CommandGroupView(self, self.appli.commandsViewFrame,
-                                        self.appli, CommandGroupController(CommandGroup(res)))
-                parent = None
+                res = apiclient.getCommandGroups({"_id": ObjectId(iid)})
+                if res is not None:
+                    if isinstance(res, list) and res:
+                        res = res[0]
+                        view = CommandGroupView(self, self.appli.commandsViewFrame,
+                                                self.appli, CommandGroupController(CommandGroup(res)))
+                        parent = None
             try:
                 view.addInTreeview(parent)
                 if view is not None:

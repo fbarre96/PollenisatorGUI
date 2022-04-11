@@ -191,7 +191,10 @@ class Summary:
         treeviewToUpdate = self.treeviews.get(port_data["ip"], None)
         if treeviewToUpdate is not None:
             if port_data.get("_id", None) is not None:
-                treeviewToUpdate.item(str(port_data["_id"]), tags=newTags)
+                try:
+                    treeviewToUpdate.item(str(port_data["_id"]), tags=newTags)
+                except:
+                    pass
 
     def insertPort(self, port_o):
         """Insert a new port in the summary

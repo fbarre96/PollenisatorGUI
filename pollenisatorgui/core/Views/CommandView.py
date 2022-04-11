@@ -3,9 +3,7 @@
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Components.Settings import Settings
-import pollenisatorgui.core.Components.Utils as Utils
 import tkinter as tk
-
 
 class CommandView(ViewElement):
     """
@@ -32,26 +30,38 @@ class CommandView(ViewElement):
         Args:
             default: a dict of default values for inputs (sleep_between, priority, max_thread). Default to empty respectively "0", "0", "1"
         """
-        self.form.addFormHidden("users", default.get("users", []))
+        self.form.addFormHidden("owner", default.get("owner", ""))
         panel_bottom = self.form.addFormPanel(grid=True)
-        panel_bottom.addFormLabel("Timeout (in secondes)")
-        panel_bottom.addFormStr("Timeout", r"\d+", default.get("timeout", "300"), width=10, column=1)
+        row = 0
+        panel_bottom.addFormLabel("Binary path", row=row)
+        panel_bottom.addFormStr("Bin path", r"", default.get("bin_path", ""), width=30, column=1, row=row)
         panel_bottom.addFormHelper(
-            "The tool will cancel itself when this duration in second is reached to be run again later.", column=2)
-        panel_bottom.addFormLabel("Delay", row=1)
-        panel_bottom.addFormStr("Delay", r"\d+", default.get("sleep_between", "0"), width=5, column=1, row=1)
+            "The local binary path to use for this command.", column=2, row=row)
+        row += 1
+        panel_bottom.addFormLabel("Plugin", row=row)
+        panel_bottom.addFormCombo("Plugin", APIClient.getInstance().getPlugins(), default.get("plugin", "Default") ,width=30, column=1, row=row)
         panel_bottom.addFormHelper(
-            "Delay in-between two launch of this command (in seconds)", column=2, row=1)
-        panel_bottom.addFormLabel("Priority", row=2)
+            "The plugin handling this command.", column=2, row=row)
+        row += 1
+        panel_bottom.addFormLabel("Timeout (in secondes)", row=row)
+        panel_bottom.addFormStr("Timeout", r"\d+", default.get("timeout", "300"), width=10, column=1, row=row)
+        panel_bottom.addFormHelper(
+            "The tool will cancel itself when this duration in second is reached to be run again later.", column=2, row=row)
+        row += 1
+        panel_bottom.addFormLabel("Delay", row=row)
+        panel_bottom.addFormStr("Delay", r"\d+", default.get("sleep_between", "0"), width=5, column=1, row=row)
+        panel_bottom.addFormHelper(
+            "Delay in-between two launch of this command (in seconds)", column=2, row=row)
+        panel_bottom.addFormLabel("Priority", row=row)
         panel_bottom.addFormStr("Priority", r"\d+", default.get("priority", "0"),
-                                width=2, row=2, column=1)
+                                width=2, row=row, column=1)
         panel_bottom.addFormHelper(
-            "Priority in queue (0 is HIGHEST)", row=2, column=2)
-        panel_bottom.addFormLabel("Threads", row=3)
+            "Priority in queue (0 is HIGHEST)", row=row, column=2)
+        panel_bottom.addFormLabel("Threads", row=row)
         panel_bottom.addFormStr("Threads", r"\d+", default.get("max_thread", "1"),
-                                width=2, row=3, column=1)
+                                width=2, row=row, column=1)
         panel_bottom.addFormHelper(
-            "Number of authorized parallel running of this command on one worker.", row=3, column=2)
+            "Number of authorized parallel running of this command on one worker.", row=row, column=2)
 
     def openModifyWindow(self):
         """
@@ -87,13 +97,12 @@ class CommandView(ViewElement):
                 "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", modelData["ports"], self.popup, width=50, column=1)
             panel_bottom.addFormHelper(
                 "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...",column=2)
-        user = APIClient.getInstance().getUser()
-        if user in self.controller.model.users:
-            panel_bottom.addFormButton("Remove from my commands", self.controller.removeFromMyCommands)
-        else:
-            panel_bottom.addFormButton("Add to my commands", self.controller.addToMyCommands)
+            panel_bottom = self.form.addFormPanel()
+
+        if not self.controller.isMyCommand():
+            panel_bottom.addFormButton("Duplicate to my commands", self.controller.addToMyCommands)
         self._commonWindowForms(modelData)
-        self.completeModifyWindow()
+        self.completeModifyWindow(self.controller.isMyCommand() or self.controller.isWorkerCommand())
 
     def openInsertWindow(self):
         """
@@ -158,13 +167,16 @@ class CommandView(ViewElement):
         """
         apiclient = APIClient.getInstance()
         if self.controller.model.indb == "pollenisator":
-            if apiclient.getUser() in self.controller.model.users:
+            if self.controller.isMyCommand():
                 return self.appliTw.my_commands_node
-            return self.appliTw.others_commands_node
+            elif self.controller.isWorkerCommand():
+                return self.appliTw.worker_commands_node
         else:
-            if apiclient.getUser() in self.controller.model.users:
+            if self.controller.isMyCommand():
                 return self.appliTw.my_commands_node
-            return self.appliTw.others_commands_node
+            elif self.controller.isWorkerCommand():
+                return self.appliTw.worker_commands_node
+        return self.appliTw.others_commands_node
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
@@ -246,21 +258,21 @@ class CommandView(ViewElement):
         """
         self.widgetMenuOpen.insert(tk.INSERT, "|port|")
 
+
     def updateReceived(self):
         """Called when a command update is received by notification.
         Update the command treeview item (resulting in icon reloading)
         """
-        user = APIClient.getInstance().getUser()
-        if user in self.controller.model.users:
-            try:
-                self.appliTw.move(str(self.controller.model.getId()), self.appliTw.my_commands_node, "end")
-            except tk.TclError:
-                print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
-        else:
-            try:
-                self.appliTw.move(str(self.controller.model.getId()), self.appliTw.commands_node, "end")
-            except tk.TclError:
-                print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
+        # if self.controller.isMyCommand():
+        #     try:
+        #         self.appliTw.move(str(self.controller.model.getId()), self.appliTw.my_commands_node, "end")
+        #     except tk.TclError:
+        #         print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
+        # else:
+        #     try:
+        #         self.appliTw.move(str(self.controller.model.getId()), self.appliTw.commands_node, "end")
+        #     except tk.TclError:
+        #         print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
         
         super().updateReceived()
 
