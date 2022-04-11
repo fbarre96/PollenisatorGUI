@@ -12,6 +12,7 @@ from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroup
 from pollenisatorgui.core.Controllers.CommandController import CommandController
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
 from pollenisatorgui.core.Components.apiclient import APIClient
+from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 
 
 class CommandsTreeview(PollenisatorTreeview):
@@ -166,7 +167,35 @@ class CommandsTreeview(PollenisatorTreeview):
                 self, self.appli.commandsViewFrame, self.appli, CommandGroupController(worker_command_group))
             command_group_vw.addInTreeview()
         
-       
+    def deleteSelected(self, _event):
+        """
+        Interface to delete a database object from an event.
+        Prompt the user a confirmation window.
+        Args:
+            _event: not used, a ttk Treeview event autofilled. Contains information on what treeview node was clicked.
+        """
+        n = len(self.selection())
+        dialog = ChildDialogQuestion(self.parentFrame,
+                                     "DELETE WARNING", "Becareful for you are about to delete "+str(n) + " entries and there is no turning back.", ["Delete", "Cancel"])
+        self.wait_window(dialog.app)
+        if dialog.rvalue != "Delete":
+            return
+        if n == 1:
+            view = self.getViewFromId(self.selection()[0])
+            if view is None:
+                return
+            view.delete(None, False)
+        else:
+            toDelete = {}
+            for selected in self.selection():
+                view = self.getViewFromId(selected)
+                if view is not None:
+                    viewtype = view.controller.model.coll_name
+                    if viewtype not in toDelete:
+                        toDelete[viewtype] = []
+                    toDelete[viewtype].append(view.controller.getDbId())
+            apiclient = APIClient.getInstance()
+            apiclient.bulkDeleteCommands(toDelete)
 
     def refresh(self):
         """Alias to self.load method"""
