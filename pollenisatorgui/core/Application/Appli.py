@@ -987,8 +987,10 @@ class Appli(tk.Tk):
         """
         Dump pollenisator from database to an archive file gunzip.
         """
+        dialog = ChildDialogQuestion(self, "Ask question", "Do you want to export your commands or Worker's commands.", ["My commands", "Worker"])
+        self.wait_window(dialog.app)
         apiclient = APIClient.getInstance()
-        res, msg = apiclient.exportCommands()
+        res, msg = apiclient.exportCommands(forWorker=dialog.rvalue == "Worker")
         if res:
             tkinter.messagebox.showinfo(
                 "Export pollenisator database", "Export completed in "+str(msg))
@@ -1044,8 +1046,10 @@ class Appli(tk.Tk):
         else:
             filename = name
         try:
+            dialog = ChildDialogQuestion(self, "Ask question", "Do you want to import these commands for you or the worker.", ["Me", "Worker"])
+            self.wait_window(dialog.app)
             apiclient = APIClient.getInstance()
-            success = apiclient.importCommands(filename)
+            success = apiclient.importCommands(filename, forWorker=dialog.rvalue == "Worker")
             self.commandsTreevw.refresh()
         except IOError:
             tkinter.messagebox.showerror(

@@ -54,6 +54,8 @@ def handle_api_errors(func):
                     raise err
                 else:
                     return err.ret_values
+            elif err.response.status_code == 500:
+                raise err
             else:
                 return err.ret_values
         return res
@@ -919,8 +921,10 @@ class APIClient():
         return None        
 
     @handle_api_errors
-    def exportCommands(self):
+    def exportCommands(self, forWorker=False):
         api_url = '{0}exportCommands'.format(self.api_url_base)
+        if forWorker:
+            api_url += "/worker"
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -963,8 +967,10 @@ class APIClient():
         return False
     
     @handle_api_errors
-    def importCommands(self, filename):
+    def importCommands(self, filename, forWorker=False):
         api_url = '{0}importCommands'.format(self.api_url_base)
+        if forWorker:
+            api_url += "/worker"
         with io.open(filename, 'rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
@@ -1147,6 +1153,9 @@ class APIClient():
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code == 403:
+            tk.messagebox.showerror("Docker error", "Docker could not start, check server installation of docker")
+            return None
         elif response.status_code >= 400:
             raise ErrorHTTP(response, [])
         return None
