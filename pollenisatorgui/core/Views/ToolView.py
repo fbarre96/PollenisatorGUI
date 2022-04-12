@@ -319,7 +319,7 @@ class ToolView(ViewElement):
         else:
             success_distant = apiclient.sendStopTask(self.controller.model.getId())
             delete_anyway = False
-            if not success_distant:
+            if success_distant != True: # it can be a tuple so this check is invalid if False and Tuple
                 delete_anyway = tkinter.messagebox.askyesno(
                     "Stop failed", """This tool cannot be stopped because its trace has been lost (The application has been restarted and the tool is still not finished).\n
                         Reset tool anyway?""")

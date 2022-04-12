@@ -687,7 +687,7 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, False)
+            raise ErrorHTTP(response, False,)
         else:
             return False
 
