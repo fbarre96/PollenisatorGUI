@@ -194,6 +194,9 @@ class APIClient():
             return False
         return True
 
+    def getToken(self):
+        return self.token
+
     def login(self, username, passwd):
         api_url = '{0}login'.format(self.api_url_base)
         data = {"username":username, "pwd":passwd}

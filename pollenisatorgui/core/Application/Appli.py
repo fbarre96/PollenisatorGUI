@@ -1181,7 +1181,7 @@ class Appli(tk.Tk):
             self.statusbar.reset()
             self.treevw.refresh()
             self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
-            
+            self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":calendarName})
 
     def wrapCopyDb(self, _event=None):
         """

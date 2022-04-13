@@ -162,6 +162,8 @@ class ToolView(ViewElement):
                 pluginActions = mod.getActions(self.controller.model)
             except KeyError:  # Happens when parsed an existing file.:
                 pluginActions = None
+            except Exception:
+                pluginActions = None
             if pluginActions is not None:
                 for pluginAction in pluginActions:
                     actions_panel.addFormButton(
