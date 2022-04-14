@@ -41,7 +41,7 @@ class ChildDialogCustomCommand:
         parsers = apiclient.getPlugins()
         self.box_template = ttk.Combobox(
             appFrame, values=tuple(parsers), state="readonly")
-        self.box_template.set("Default.py")
+        self.box_template.set("Default")
         self.box_template.pack()
         lbl3 = ttk.Label(appFrame, text="Select the worker:")
         lbl3.pack()

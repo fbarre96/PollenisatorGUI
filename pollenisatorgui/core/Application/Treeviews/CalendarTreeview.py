@@ -3,6 +3,7 @@ Ttk treeview class with added functions.
 """
 import tkinter as tk
 from bson.objectid import ObjectId
+from pollenisatorgui.core.Components.Modules.Terminal import Terminal
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Models.Interval import Interval
@@ -210,6 +211,8 @@ class CalendarTreeview(PollenisatorTreeview):
         self.contextualMenu.add_command(
             label="Custom command", command=self.customCommand)
         self.contextualMenu.add_command(
+            label="Attack from terminal", command=self.attackFromTerminal)
+        self.contextualMenu.add_command(
             label="Export selection", command=self.exportSelection)
         self.tagsMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
                                 foreground='white', activebackground='#A8CF4D', activeforeground='white')
@@ -384,6 +387,20 @@ class CalendarTreeview(PollenisatorTreeview):
                 self, "Export completed", "Your export just finished. You can find it here : "+csv_filename)
         self.wait_window(dialog.app)
 
+    def attackFromTerminal(self, _event=None):
+        for selected in self.selection():
+            view_o = self.getViewFromId(selected)
+            if view_o is not None:
+                lvl = "network" if isinstance(view_o, ScopeView) else None
+                lvl = "wave" if isinstance(view_o, WaveView) else lvl
+                lvl = "ip" if isinstance(view_o, IpView) else lvl
+                lvl = "port" if isinstance(view_o, PortView) else lvl
+                if lvl is not None:
+                    inst = view_o.controller.getData()
+                    Terminal.openTerminal(lvl+"|"+inst.get("wave","Imported")+"|"+inst.get("scope","")+"|"+inst.get("ip","")+"|"+inst.get("port","")+"|"+inst.get("proto",""))
+                else:
+                    tk.messagebox.showerror("ERROR : Wrong selection", "You have to select a object that may have tools")
+
     def customCommand(self, _event=None):
         """
         Ask the user for a custom tool to launch and which parser it will use.
@@ -391,7 +408,7 @@ class CalendarTreeview(PollenisatorTreeview):
             _event: not used but mandatory
         """
         apiclient = APIClient.getInstance()
-        workers = apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()})
+        workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()})
         workers.append("localhost")
         dialog = ChildDialogCustomCommand(
                     self, workers, "localhost")
@@ -414,8 +431,8 @@ class CalendarTreeview(PollenisatorTreeview):
                     if wave == "Custom commands":
                         Wave().initialize("Custom commands").addInDb()
                     tool = Tool()
-                    tool.initialize(commName, wave, inst.get("scope", ""), inst.get("ip", None), inst.get("port", None), inst.get(
-                        "proto", None), lvl, commArgs, dated="None", datef="None", scanner_ip="None", notes="Arguments: "+commArgs)
+                    tool.initialize("", wave, apiclient.getUser()+":"+commName, inst.get("scope", ""), inst.get("ip", None), inst.get("port", None), inst.get(
+                        "proto", None), lvl, commArgs, dated="None", datef="None", scanner_ip="None", status=None, notes="Arguments: "+commArgs, resultfile="", plugin_used=parser)
                     tool.addInDb()
                     if tool is None:
                         return

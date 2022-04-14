@@ -7,18 +7,21 @@
 # @version: 1.0
 """
 from datetime import datetime
+from distutils import cmd
 from pollenisatorgui.AutoScanWorker import executeCommand
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Wave import Wave
+from pollenisatorgui.core.Models.Command import Command
 import time
 import tkinter as tk
 import os
 import sys
 import shlex
 import signal
-from multiprocessing.connection import Client
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Appli import Appli
+import pollenisatorgui.core.Components.Utils as Utils
+import tempfile
 
 
 class GracefulKiller:
@@ -61,25 +64,62 @@ class GracefulKiller:
 def pollex():
     """Send a command to execute for pollenisator-gui running instance
     """
+    
+    execCmd = shlex.join(sys.argv[1:])
+    bin_name = shlex.split(execCmd)[0]
+    if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code"]:
+        return
+    cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
     apiclient = APIClient.getInstance()
     apiclient.tryConnection()
-    execCmd = shlex.join(sys.argv[1:])
-    cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
-    args = shlex.join(shlex.split(execCmd)[1:])
     cmdName +="::"+str(time.time()).replace(" ","-")
-    wave = Wave().initialize("Custom commands")
-    wave.addInDb()
-    tool = Tool()
-    tool.initialize(cmdName, "Custom commands", "", None, None, None, "wave", execCmd, dated=datetime.now().strftime("%d/%m/%Y %H:%M:%S"), datef="None", scanner_ip="localhost")
-    tool.updateInfos({"args":args})
-    res, iid = tool.addInDb()
-    if res:
-        ret_code, outputstr = executeCommand(apiclient, str(iid), True, True)
-        if not ret_code:
-            print(outputstr)
-        else:
-            print(f"Output created here : {outputstr}")
-            
+    commands = Command.fetchObjects({"bin_path":{'$regex':bin_name}})
+    choices = set()
+    if commands is not None:
+        for command in commands:
+            choices.add(command.plugin)
+    if len(choices) == 0:
+        plugin = "Default"
+    elif len(choices) == 1:
+        plugin = choices.pop()
+    else:
+        choice = -1
+        while choice == -1:
+            print("Choose plugin:")
+            for i, choice in enumerate(choices):
+                print(f"{i+1}. {choice}")
+            try:
+                choice_str = input()
+                choice = int(choice_str)
+            except ValueError as e:
+                print("You must type a valid number")
+            if choice > len(choices) or choice < 1:
+                choice = -1
+                print("You must type a number between 1 and "+str(len(choices)))
+        plugin = list(choices)[choice-1]
+    print("INFO : Executing plugin "+str(plugin))
+    success, comm, fileext = apiclient.getDesiredOutputForPlugin(execCmd, plugin)
+    if not success:
+        print("ERROR : An error as occured : "+str(comm))
+        return
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        outputFilePath = os.path.join(tmpdirname, cmdName)
+        comm = comm.replace("|outputDir|", outputFilePath)
+        returncode, stdout = Utils.execute(comm, None, True)
+        if stdout.strip() != "":
+            print(stdout.strip())
+        if not os.path.exists(outputFilePath):
+            if os.path.exists(outputFilePath+fileext):
+                outputFilePath+=fileext
+            else:
+                print(f"ERROR : Expected file was not generated {outputFilePath}")
+                return
+        print(f"INFO : Uploading results {outputFilePath}")
+        msg = apiclient.importExistingResultFile(outputFilePath, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
+        print(msg)
+        response = input("Show file content (Y/n)?\n")
+        if response.strip() != "n":
+            os.system(f"cat {outputFilePath}")
 
 def main():
     """Main function. Start pollenisator application

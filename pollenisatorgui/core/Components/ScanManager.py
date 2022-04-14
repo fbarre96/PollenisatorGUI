@@ -4,11 +4,12 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import multiprocessing
 import threading
-from pollenisatorgui.core.Models.Command import Command
+import time
+from pollenisatorgui.core.Models.Wave import Wave
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
-from pollenisatorgui.core.Application.Dialogs.ChildDialogEditCommandSettings import ChildDialogEditCommandSettings
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
+from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.AutoScanWorker import executeCommand
 from PIL import Image, ImageTk
 import pollenisatorgui.core.Components.Utils as Utils
@@ -104,7 +105,7 @@ class ScanManager:
     def startAutoscan(self):
         """Start an automatic scan. Will try to launch all undone tools."""
         apiclient = APIClient.getInstance()
-        workers = apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()})
+        workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()})
         workers = [w for w in workers]
         if len(workers) == 0:
             tk.messagebox.showwarning("No selected worker found", "Check worker treeview to see if there are workers registered and double click on the disabled one to enable them")
@@ -146,7 +147,7 @@ class ScanManager:
         for worker in workers:
             workername = worker["name"]
             try:
-                if apiclient.getCurrentPentest() in worker.get("pentests", []):
+                if apiclient.getCurrentPentest() == worker.get("pentest", ""):
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.ok_icon)
                 else:
@@ -208,7 +209,7 @@ class ScanManager:
         for worker in workers:
             workername = worker["name"]
             try:
-                if apiclient.getCurrentPentest() in worker.get("pentests", []):
+                if apiclient.getCurrentPentest() == worker.get("pentest", ""):
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.ok_icon)
                 else:
@@ -306,7 +307,7 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         worker = apiclient.getWorker({"name":worker_hostname})
         if worker is not None:
-            isIncluded = apiclient.getCurrentPentest() in worker.get("pentests", [])
+            isIncluded = apiclient.getCurrentPentest() == worker.get("pentest", "")
             apiclient.setWorkerInclusion(worker_hostname, not (isIncluded))
 
     def stopTask(self, toolId):
@@ -338,9 +339,10 @@ class ScanManager:
             event: Auto filled
         """
         apiclient = APIClient.getInstance()
-        if "@" in str(self.workerTv.selection()[0]):
-            apiclient.deleteWorker(self.workerTv.selection()[0]) 
-
+        dialog = ChildDialogProgress(self.parent, "Docker delete", "Waiting for worker to stop", progress_mode="indeterminate")
+        dialog.show()
+        apiclient.deleteWorker(self.workerTv.selection()[0]) 
+        dialog.destroy()
     
 
     def launchDockerWorker(self, event=None):
@@ -359,14 +361,36 @@ class ScanManager:
 
     def runWorkerOnServer(self):
         apiclient = APIClient.getInstance()
-        apiclient.getDockerForPentest(apiclient.getCurrentPentest())
-        return True, ""
+        waves = Wave.fetchObjects({})
+        waves_associations = {}
+        for wave in waves:
+            waves_associations[wave.wave] = str(wave.getId())
+        dialog = ChildDialogCombo(self.parent, list(waves_associations.keys()), "Choose a destination wave")
+        self.parent.wait_window(dialog.app)
+        if dialog.rvalue is None:
+            return False, "No selection made"
+        if isinstance(dialog.rvalue, str):
+            wave_target = dialog.rvalue
+            docker_name = apiclient.getDockerForPentest(apiclient.getCurrentPentest())
+            dialog = ChildDialogProgress(self.parent, "Start docker", "Waiting for docker to boot 0/4", progress_mode="indeterminate")
+            dialog.show()
+            nb_try = 0
+            max_try = 3
+            while docker_name not in self.workerTv.get_children() and nb_try < max_try:
+                dialog.update(msg=f"Waiting for docker to boot {nb_try+1}/{max_try+1}")
+                time.sleep(3)
+                nb_try += 1
+            dialog.destroy()
+            if docker_name not in self.workerTv.get_children():
+                return False, "Worker did not boot in time, cannot add commands to wave"
+            return apiclient.addWorkerCommandsToWave(waves_associations[wave_target])
+        return False, ""
 
     def registerAsWorker(self):
         self.sio = socketio.Client()
         apiclient = APIClient.getInstance()
         self.sio.connect(apiclient.api_url)
-        self.sio.emit("register", {"workerName":apiclient.getUser()})
+        self.sio.emit("register", {"name":apiclient.getUser()})
         @self.sio.event
         def executeCommand(data):
             toolId = data.get("toolId")

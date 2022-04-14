@@ -441,7 +441,6 @@ class APIClient():
     def insert(self, collection, data):
         api_url = '{0}{1}/{2}'.format(self.api_url_base, collection, self.getCurrentPentest())
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
-        print(response)
         if response.status_code == 200:
             res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res["res"], res["iid"]
@@ -810,7 +809,19 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def getCommandline(self, toolId):
+    def getDesiredOutputForPlugin(self, cmdline, plugin):
+        """Get full command line from cmd line and choosen plugin, a marker for |outputDir| is to be replaced
+        """
+        api_url = '{0}tools/getDesiredOutputForPlugin'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"plugin":plugin, "cmdline":cmdline}), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return True, data["command_line_options"], data["ext"]
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
+        return False, response.content.decode('utf-8'), ""
+    @handle_api_errors
+    def getCommandLine(self, toolId):
         """Get full command line from toolid and choosen parser, a marker for |outputDir| is to be replaced
         """
         api_url = '{0}tools/{1}/craftCommandLine/{2}'.format(self.api_url_base, self.getCurrentPentest(), toolId)
@@ -848,12 +859,12 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def importExistingResultFile(self, filepath, plugin):
+    def importExistingResultFile(self, filepath, plugin, default_target=""):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":default_target}, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             elif response.status_code >= 400:
@@ -981,7 +992,6 @@ class APIClient():
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200
-        return False
 
     @handle_api_errors
     def copyDb(self, fromDb, toDb=""):

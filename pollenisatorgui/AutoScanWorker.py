@@ -13,7 +13,6 @@ from pollenisatorgui.core.Models.Interval import Interval
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Command import Command
 
-
 def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
     """
      remote task
@@ -35,8 +34,10 @@ def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
     APIClient.setInstance(apiclient)
     toolModel = Tool.fetchObject({"_id":ObjectId(toolId)})
     command_dict = toolModel.getCommand()
+    if command_dict is None and toolModel.text != "":
+        command_dict = {"plugin":toolModel.plugin_used, "timeout":0}
     msg = ""
-    success, comm, fileext = apiclient.getCommandline(toolId)
+    success, comm, fileext = apiclient.getCommandLine(toolId)
     if not success:
         print(str(comm))
         toolModel.setStatus(["error"])

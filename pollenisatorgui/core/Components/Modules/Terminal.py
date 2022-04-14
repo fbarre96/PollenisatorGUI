@@ -1,6 +1,7 @@
 import os
 from multiprocessing.connection import Listener
 from multiprocessing import Process, Manager
+from pollenisatorgui.core.Components.Settings import Settings
 import pollenisatorgui.core.Components.Utils as Utils
 from pollenisatorgui.core.Components.apiclient import APIClient
 import time
@@ -45,23 +46,33 @@ class Terminal:
         return
 
     def open(self):
+        self.__class__.openTerminal()
+        return True
+
+    @classmethod
+    def openTerminal(cls, default_target=""):
         apiclient = APIClient.getInstance()
-        favorite = self.settings.getFavoriteTerm()
+        settings = Settings()
+        favorite = settings.getFavoriteTerm()
         if favorite is None:
             tk.messagebox.showerror("Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
             return False
         if which(favorite) is not None:
-            terms = self.settings.getTerms()
+            terms = settings.getTerms()
             terms_dict = {}
             for term in terms:
                 terms_dict[term.split(" ")[0]] = term
             command_term = terms_dict.get(favorite, None)
             if command_term is not None:
-                if self.settings.isTrapCommand():
+                if settings.isTrapCommand():
                     term_comm = terms_dict[favorite].replace("setupTerminalForPentest.sh", os.path.join(Utils.getMainDir(), "setupTerminalForPentest.sh"))
                 else:
                     term_comm = term
-                subprocess.Popen(term_comm, shell=True)
+                env = {
+                    **os.environ,
+                    "POLLENISATOR_DEFAULT_TARGET":default_target,
+                }
+                subprocess.Popen(term_comm, shell=True, env=env)
             else:
                 tk.messagebox.showerror("Terminal settings invalid", "Check your terminal settings")
         else:

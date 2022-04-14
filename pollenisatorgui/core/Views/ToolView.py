@@ -130,7 +130,7 @@ class ToolView(ViewElement):
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
-        hasWorkers = len(apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()}))
+        hasWorkers = len(apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()}))
         #Ready is legacy, OOS and/or OOT should be used
         if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
             if apiclient.getUser() in modelData["name"]:

@@ -202,7 +202,7 @@ class Command(Element):
         Returns:
             Returns the command's name string.
         """
-        return self.name
+        return self.owner+":"+self.name
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
