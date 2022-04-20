@@ -48,7 +48,7 @@ class ChildDialogNewCalendar:
         form2.addFormHelper(
             "You can declare network ip as IP/MASKSIZE, ips or domains", column=2, sticky=tk.W)
         form3 = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-        form3.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
+        form3.addFormSearchBar("Pentester search", self.searchCallback, self.form, side=tk.TOP)
         form3.addFormLabel("Pentesters added", side=tk.LEFT)
         form3.addFormTreevw(
             "Additional pentesters names", ("Additional pentesters names", "added"), default.get("pentesters", [""]), height=50, width=200, pady=5, fill=tk.X, side=tk.RIGHT)

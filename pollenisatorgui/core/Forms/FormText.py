@@ -75,7 +75,11 @@ class FormText(Form):
         buff = pyperclip.paste()
         if buff:
             insertIndex = self.text.index(tk.INSERT)
-            self.text.insert(insertIndex, buff)
+            self.text.insert(insertIndex, self.sanitize(buff))
+
+    def sanitize(self, string):
+        """remove unwanted things in text"""
+        return string.replace("\r","")
 
     def constructView(self, parent):
         """
@@ -91,7 +95,7 @@ class FormText(Form):
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
         try:
-            self.text.insert(tk.INSERT, self.default)
+            self.text.insert(tk.INSERT, self.sanitize(self.default))
         except tk.TclError as e:
             self.text.insert(tk.INSERT, "Error :\n"+str(e))
         if state == "disabled":
@@ -131,7 +135,7 @@ class FormText(Form):
         state = self.text.cget("state")
         self.text.config(state="normal")
         self.text.delete("1.0", "end")
-        self.text.insert("1.0", newval)
+        self.text.insert("1.0", self.sanitize(newval))
         self.text.config(state=state)
 
     def checkForm(self):

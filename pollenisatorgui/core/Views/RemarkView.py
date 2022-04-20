@@ -60,8 +60,7 @@ class RemarkView(ViewElement):
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
         modelData = self.controller.getData()
-        self.form.addFormSearchBar("Search Remark", APIClient.searchRemark, [
-            "Title", "Type"])
+        self.form.addFormSearchBar("Search Remark", APIClient.searchRemark, self.form)
         topPanel = self.form.addFormPanel(grid=True)
         self.imgTypeForm = topPanel.addFormImage(Utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
@@ -80,8 +79,7 @@ class RemarkView(ViewElement):
         """
         modelData = self.controller.getData()
         topPanel = self.form.addFormPanel(grid=True)
-        topPanel.addFormSearchBar("Search Remark", APIClient.searchRemark, [
-            "Title", "Type"], row=0, column=1, autofocus=False)
+        topPanel.addFormSearchBar("Search Remark", APIClient.searchRemark, topPanel, row=0, column=1, autofocus=False)
         self.imgTypeForm = topPanel.addFormImage(Utils.getIconDir()+RemarkView.getIconName(modelData["type"]), row=1)
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, row=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage})
         topPanel.addFormStr(

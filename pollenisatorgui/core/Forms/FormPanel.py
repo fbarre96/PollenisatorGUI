@@ -177,19 +177,19 @@ class FormPanel(Form):
         self.subforms.append(f)
         return f
 
-    def addFormSearchBar(self, name, searchCallback, list_of_forms_to_fill, default="", **kwargs):
+    def addFormSearchBar(self, name, searchCallback, panel_to_fill, default="", **kwargs):
         """
         Add a form String to this panel.
 
         Args:
             name: the string var desired name
             searchCallback: a callback
-            list_of_forms_to_fill: a list of form that this searchbar callback should be able to fill
+            panel_to_fill: panel to search for subforms with namse matching callback ret
             default: a default value for this input
             kwargs: keywords for FormSearchbar
         """
         f = FormSearchBar(
-            name, searchCallback, self, list_of_forms_to_fill, default, **kwargs)
+            name, searchCallback, panel_to_fill, None, default, **kwargs)
         self.subforms.append(f)
         return f
 

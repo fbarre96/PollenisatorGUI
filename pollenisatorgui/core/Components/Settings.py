@@ -433,7 +433,7 @@ class Settings:
         # self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
         form_pentesters_panel = ttk.Frame(self.settingsFrame)
         self.form_pentesters = FormPanel(side=tk.TOP, fill=tk.X, pady=5)
-        self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
+        self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, self.form_pentesters, side=tk.TOP)
         self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
         self.pentesters_treevw = self.form_pentesters.addFormTreevw(
             "Additional pentesters names", ["Additional pentesters names"], (""), height=30, width=200, pady=5, fill=tk.X, side=tk.RIGHT)

@@ -398,6 +398,7 @@ class Appli(tk.Tk):
         """
         try:
             err = traceback.format_exception(args[0], args[1], args[2])
+            err = "\n".join(err)
             if args[0] is ErrorHTTP: # args[0] is class of ecx
                 if args[1].response.status_code == 401:
                     tk.messagebox.showerror("Disconnected", "You are not connected.")
@@ -405,13 +406,13 @@ class Appli(tk.Tk):
                     return
             dialog = ChildDialogException(self, 'Exception occured', err)
             apiclient = APIClient.getInstance()
-            apiclient.reportError("\n".join(err))
+            apiclient.reportError(err)
             try:
                 self.wait_window(dialog.app)
             except tk.TclError:
                 sys.exit(1)
         except Exception as e:
-            print(e)
+            print("Exception in error handler "+str(e))
             sys.exit(1)
 
     def promptForConnection(self):
@@ -447,6 +448,7 @@ class Appli(tk.Tk):
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
     def handleNotif(self, notification):
+        print("GOT NOTIF : " +str(notification))
         if notification["db"] == "pollenisator":
             if notification["collection"] == "workers":
                 self.scanManager.notify(notification["iid"], notification["action"])
@@ -463,6 +465,7 @@ class Appli(tk.Tk):
                 
                 self.statusbar.refreshUI()
             else:
+                print("NOTIFY")
                 self.treevw.notify(notification["db"], notification["collection"],
                             notification["iid"], notification["action"], notification.get("parent", ""))
             for module in self.modules:

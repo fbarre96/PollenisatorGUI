@@ -111,6 +111,8 @@ class FormChecklist(Form):
         for i, v in enumerate(self.val):
             if self.checks[i].cget("text").lower() in newval.lower():
                 v.set(1)
+            else:
+                v.set(0)
 
     def checkForm(self):
         """
