@@ -17,6 +17,7 @@ class FormHidden(Form):
         """
         super().__init__(name)
         self.default = default
+        self.val = default
 
     def getValue(self):
         """
@@ -25,4 +26,12 @@ class FormHidden(Form):
         Returns:
             Return the form value.
         """
-        return self.default
+        return self.val
+
+    def setValue(self, newval):
+        """
+        Set the form value. Required for a form.
+        Args:
+           newval: new value to be setted
+        """
+        self.val = newval

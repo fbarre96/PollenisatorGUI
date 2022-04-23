@@ -30,7 +30,7 @@ class DefectController(ControllerElement):
             mtype = [k for k, v in mtype.items() if v == 1]
             self.model.mtype = mtype
         self.model.language = values.get("Language", self.model.language)
-        #self.model.notes = values.get("Notes", self.model.notes)
+        self.model.notes = values.get("Notes", self.model.notes)
         self.model.fixes = values.get("Fixes", self.model.fixes)
         self.model.infos = values.get("Infos", self.model.infos)
         for info in self.model.infos:
@@ -53,19 +53,19 @@ class DefectController(ControllerElement):
             }
         """
         title = values["Title"]
-        synthesis = values["Synthesis"]
-        description = values["Description"]
+        synthesis = values.get("Synthesis", "")
+        description = values.get("Description", "")
         ease = values["Ease"]
         impact = values["Impact"]
         redactor = values["Redactor"]
         mtype_dict = values["Type"]
         language = values["Language"]
         risk = values["Risk"]
+        notes = values.get("Notes", "")
         mtype = [k for k, v in mtype_dict.items() if v == 1]
         ip = values["ip"]
         port = values.get("port", None)
         proto = values.get("proto", None)
-        #notes = values["Notes"]
         proof = values["Proof"]
         proofs = []
         fixes = values["Fixes"]
@@ -74,7 +74,7 @@ class DefectController(ControllerElement):
         if risk == "" or risk == "N/A":
             risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
         self.model.initialize(ip, port, proto, title, synthesis, description, ease,
-                              impact, risk, redactor, mtype, language, "", fixes, proofs)
+                              impact, risk, redactor, mtype, language, notes, fixes, proofs)
         ret, _ = self.model.addInDb()
         # Update this instance.
         # Upload proof after insert on db cause we need its mongoid

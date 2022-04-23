@@ -51,15 +51,15 @@ class DefectView(ViewElement):
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Ease")
         self.easeForm = topPanel.addFormCombo(
-            "Ease", Defect.getEases(), column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Ease", Defect.getEases(), width=10, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", column=2)
         topPanel.addFormLabel("Impact", column=3)
         self.impactForm = topPanel.addFormCombo(
-            "Impact", Defect.getImpacts(), column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Impact", Defect.getImpacts(), width=10, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", column=5)
         topPanel.addFormLabel("Risk", column=6)
         self.riskForm = topPanel.addFormCombo(
-            "Risk", Defect.getRisks(), modelData["risk"], column=7)
+            "Risk", Defect.getRisks(), modelData["risk"], width=10, column=7)
         topPanel.addFormHelper(
             "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", column=8)
         topPanel = self.form.addFormPanel(grid=True)
@@ -81,11 +81,14 @@ class DefectView(ViewElement):
         proofsPanel = self.form.addFormPanel(grid=True)
         proofsPanel.addFormFile("Proof", r"")
         topPanel = self.form.addFormPanel()
-        topPanel.addFormText("Synthesis", r"", "Synthesis",  height=2, side="top")
-        topPanel.addFormText("Description", r"", "Description", side="top")
-        #notesPanel = self.form.addFormPanel()
-        #notesPanel.addFormLabel("Notes", side="top")
-        #notesPanel.addFormText("Notes", r"", notes, None, side="top")
+        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", height=2, side="top")
+        if not self.controller.isAssigned():
+            topPanel.addFormText("Description", r"", "Description", side="top")
+        else:
+            topPanel.addFormHidden("Description", modelData.get("description", ""))
+            notesPanel = self.form.addFormPanel()
+            notesPanel.addFormLabel("Notes", side="top")
+            notesPanel.addFormText("Notes", r"", notes, None, side="top")
         self.form.addFormHidden("ip", modelData["ip"])
         self.form.addFormHidden("proto", modelData["proto"])
         self.form.addFormHidden("port", modelData["port"])
@@ -164,45 +167,63 @@ class DefectView(ViewElement):
                 topPanel.addFormStr(
                     "Port", '', port_str, None, column=1, row=row, state="readonly")
                 row += 1
-        topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, globalPanel, row=row, column=1, autofocus=False)
-        row += 1
-        topPanel.addFormLabel("Title", row=row, column=0)
-        topPanel.addFormStr(
-            "Title", ".+", modelData["title"], width=50, row=row, column=1)
-        row += 1
-        topPanel = globalPanel.addFormPanel(grid=True)
-        row = 0
-        topPanel.addFormLabel("Ease", row=row)
-        self.easeForm = topPanel.addFormCombo(
-            "Ease", Defect.getEases(), modelData["ease"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
-        topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", row=row, column=2)
-        topPanel.addFormLabel("Impact", row=row, column=3)
-        self.impactForm = topPanel.addFormCombo(
-            "Impact", Defect.getImpacts(), modelData["impact"], row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
-        topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=row, column=5)
-        topPanel.addFormLabel("Risk", row=row, column=6)
-        self.riskForm = topPanel.addFormCombo(
-            "Risk", Defect.getRisks(), modelData["risk"], row=row, column=7)
-        topPanel.addFormHelper(
-            "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=row, column=8)
-        row += 1
-        chklistPanel = globalPanel.addFormPanel(grid=True)
-        defect_types = settings.getPentestTypes()[settings.getPentestType()]
-        for savedType in modelData["type"]:
-            if savedType.strip() not in defect_types:
-                defect_types.insert(0, savedType)
-        chklistPanel.addFormChecklist("Type", defect_types, modelData["type"])
-        topPanel = globalPanel.addFormPanel(grid = True)
-        row=0
-        topPanel.addFormLabel("Redactor", row=row)
-        topPanel.addFormCombo("Redactor", list(set(self.mainApp.settings.getPentesters()+["N/A"]+[modelData["redactor"]])), modelData["redactor"], row=row, column=1)
-        topPanel.addFormLabel("Language", row=row, column=2)
-        topPanel.addFormStr("Language", "", modelData["language"], row=row, column=3)
-        row += 1
-        topPanel = globalPanel.addFormPanel()
-        topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"),  height=2, side="top")
-        topPanel.addFormText("Description", r"", modelData.get("description","Description"), side="top")
-        topPanel.addFormButton("Edit fixes", self.openFixesWindow)
+        if not self.controller.isAssigned():
+            topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, globalPanel, row=row, column=1, autofocus=False)
+            row += 1
+            topPanel.addFormLabel("Title", row=row, column=0)
+            topPanel.addFormStr(
+                "Title", ".+", modelData["title"], width=50, row=row, column=1)
+            row += 1
+            topPanel = globalPanel.addFormPanel(grid=True)
+            row = 0
+            topPanel.addFormLabel("Ease", row=row)
+            self.easeForm = topPanel.addFormCombo(
+                "Ease", Defect.getEases(), modelData["ease"], width=10, row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", row=row, column=2)
+            topPanel.addFormLabel("Impact", row=row, column=3)
+            self.impactForm = topPanel.addFormCombo(
+                "Impact", Defect.getImpacts(), modelData["impact"], width=10, row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=row, column=5)
+            topPanel.addFormLabel("Risk", row=row, column=6)
+            self.riskForm = topPanel.addFormCombo(
+                "Risk", Defect.getRisks(), modelData["risk"], width=10, row=row, column=7)
+            topPanel.addFormHelper(
+                "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=row, column=8)
+            row += 1
+            chklistPanel = globalPanel.addFormPanel(grid=True)
+            defect_types = settings.getPentestTypes()[settings.getPentestType()]
+            for savedType in modelData["type"]:
+                if savedType.strip() not in defect_types:
+                    defect_types.insert(0, savedType)
+            chklistPanel.addFormChecklist("Type", defect_types, modelData["type"])
+            topPanel = globalPanel.addFormPanel(grid = True)
+            row=0
+            topPanel.addFormLabel("Redactor", row=row)
+            topPanel.addFormCombo("Redactor", list(set(self.mainApp.settings.getPentesters()+["N/A"]+[modelData["redactor"]])), modelData["redactor"], row=row, column=1)
+            topPanel.addFormLabel("Language", row=row, column=2)
+            topPanel.addFormStr("Language", "", modelData["language"], row=row, column=3)
+            row += 1
+            topPanel = globalPanel.addFormPanel()
+            topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=2, side="top")
+            topPanel.addFormText("Description", r"", modelData.get("description", "Description"), side="top")
+            topPanel.addFormButton("Edit fixes", self.openFixesWindow)
+        else:
+            topPanel.addFormHidden("Title", modelData.get("title", ""))
+            topPanel.addFormHidden("Ease", modelData.get("ease", ""))
+            topPanel.addFormHidden("Impact", modelData.get("impact", ""))
+            topPanel.addFormHidden("Risk", modelData.get("risk", ""))
+            types = modelData.get("type", [])
+            type_dict = dict()
+            for type in types:
+                type_dict[type] = 1
+            topPanel.addFormHidden("Type", type_dict)
+            topPanel.addFormHidden("Language", modelData.get("language", ""))
+            topPanel.addFormHidden("Synthesis", modelData.get("synthesis", ""))
+            topPanel.addFormHidden("Description", modelData.get("description", ""))
+            notesPanel = globalPanel.addFormPanel()
+            notesPanel.addFormLabel("Notes", side="top")
+            notesPanel.addFormText(
+                "Notes", r"", modelData["notes"], None, side="top", height=10)
         proofPanel = globalPanel.addFormPanel(grid=True)
         i = 0
         for proof in modelData["proofs"]:
@@ -215,11 +236,7 @@ class DefectView(ViewElement):
         proofPanel.addFormFile("Proof "+str(i), r"", "", row=i, column=0)
         proofPanel.addFormButton("Upload", lambda event, obj=i: self.addAProof(
             event, obj), row=i, column=1)
-        notesPanel = globalPanel.addFormPanel()
-        #notesPanel.addFormLabel("Notes", side="top")
-        #notesPanel.addFormText(
-        #    "Notes", r"", modelData["notes"], None, side="top", height=10)
-        self.form.addFormHidden("Fixes", modelData["fixes"])
+        self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if addButtons:
             self.completeModifyWindow()
         else:
@@ -228,6 +245,9 @@ class DefectView(ViewElement):
     def openFixesWindow(self, _event=None):
         dialog = ChildDialogFixes(None, self)
         dialog.app.wait_window(dialog.app)
+        if dialog.rvalue is None:
+            return
+        self.formFixes.setValue(dialog.rvalue)
 
     def updateRiskBox(self, _event=None):
         """Callback when ease or impact is modified.

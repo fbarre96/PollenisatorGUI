@@ -30,7 +30,7 @@ class Terminal:
         manager = Manager()
         self.exiting = manager.Value('i', 0)
 
-    def initUI(self, parent, nbk, treevw):
+    def initUI(self, parent, nbk, treevw, tkApp):
         if self.settings.isTrapCommand():
             settings_text = "Setting trap command is ON\nEvery command typed here will be executed through pollenisator and will be logged / imported depending on the tools called.\nYou can disable the trap setting in the Settings to change this behaviour."
         else:

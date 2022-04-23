@@ -31,11 +31,12 @@ class Report:
     iconName = "tab_report.png"
     tabName = "    Report    "
 
-    def __init__(self, parent, settings):
+    def __init__(self, _parent, settings):
 
         """
         Constructor
         """
+        self.tkApp = None
         self.langs = ["en"]
         self.docx_models = []
         self.curr_lang = "en"
@@ -50,6 +51,7 @@ class Report:
         self.style = None
         self.treevw = None
         self.ent_client = None
+        
         self.ent_contract = None
         self.combo_word = None
         self.combo_pptx = None
@@ -73,7 +75,7 @@ class Report:
         self.langChange(None)
         
 
-    def initUI(self, parent, nbk, treevw):
+    def initUI(self, parent, nbk, treevw, tkApp):
         """
         Initialize window and widgets.
         """
@@ -82,6 +84,7 @@ class Report:
             self.fillWithDefects()
             self.fillWithRemarks()
             return
+        self.tkApp = tkApp
         self.parent = parent
         ### MAIN PAGE FRAME ###
         self.reportFrame = ttk.Frame(parent)
@@ -399,12 +402,12 @@ class Report:
 
     def addDefectCallback(self):
         """Open an insert defect view form in a child window"""
-        dialog = ChildDialogDefectView(self.parent, self.settings)
+        dialog = ChildDialogDefectView(self.tkApp, self.settings)
         self.parent.wait_window(dialog.app)
 
     def browseDefectsCallback(self):	
         """Open an multiview insert defect view form in a child window"""	
-        dialog = ChildDialogDefectView(self.parent, self.settings, None, True)	
+        dialog = ChildDialogDefectView(self.tkApp, self.settings, None, True)	
         self.parent.wait_window(dialog.app)	
 		
     def addRemarkCallback(self):	
@@ -437,6 +440,8 @@ class Report:
             defect_m: a defect model with updated values
             redactor: a redactor name for this defect, can be None (default)
         """
+        if defect_m.isAssigned():
+            return ""
         columnEase = self.treevw['columns'].index("ease")
         columnImpact = self.treevw['columns'].index("impact")
         columnRisk = self.treevw['columns'].index("risk")
@@ -466,7 +471,7 @@ class Report:
         if item is None or item == '':
             return
         defect_m = Defect.fetchObject({"_id": ObjectId(item)})
-        dialog = ChildDialogDefectView(self.parent, self.settings, defect_m)
+        dialog = ChildDialogDefectView(self.tkApp, self.settings, defect_m)
         self.parent.wait_window(dialog.app)
         self.updateDefectInTreevw(defect_m)
 

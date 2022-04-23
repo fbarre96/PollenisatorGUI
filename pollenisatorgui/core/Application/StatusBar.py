@@ -87,7 +87,7 @@ class StatusBar(ttk.Frame):
         """
         for tag, label in self.labelsTags.items():
             try:
-                label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
+                label.config(text=tag) # TODO FIX not working +" : "+str(self.tagsCount.get(tag, 0))
                 label.update_idletasks()
             except Exception:
                 pass

@@ -121,7 +121,7 @@ class Summary:
         self.frameTw.pack(side=tk.LEFT, padx=10, pady=10)
         self.loadSummary()
 
-    def initUI(self, parent, nbk, linkTw):
+    def initUI(self, parent, nbk, linkTw, tkApp):
         """Initialize widgets of the summary
         Args:
             parent: parent tkinter container widget 
