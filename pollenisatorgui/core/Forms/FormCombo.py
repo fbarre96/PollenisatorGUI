@@ -40,7 +40,7 @@ class FormCombo(Form):
             parent: parent FormPanel.
         """
         self.box = ttk.Combobox(parent.panel, values=tuple(
-            self.choicesList), state=self.getKw("state", ""))
+            self.choicesList), state=self.getKw("state", ""), width=self.getKw("width", None))
         if self.default is not None:
             self.box.set(self.default)
         binds = self.getKw("binds", {})

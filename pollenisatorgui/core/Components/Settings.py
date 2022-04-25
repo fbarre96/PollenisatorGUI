@@ -67,7 +67,7 @@ class Settings:
         """
         Returns tags defined in settings.
         Returns:
-            If none are defined returns {"todo":"orange", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
+            If none are defined returns {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"white"}
             otherwise returns a dict with defined key values
         """
         apiclient = APIClient.getInstance()
@@ -75,7 +75,7 @@ class Settings:
             cls.tags_cache = None
         if cls.tags_cache is not None and not onlyGlobal:
             return cls.tags_cache
-        cls.tags_cache = {"todo":"orange", "P0wned!":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "Neutral":"white"}
+        cls.tags_cache = {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"white"}
         try:
             global_tags = apiclient.getSettings({"key": "tags"})
         except ErrorHTTP:
@@ -294,7 +294,7 @@ class Settings:
                 if k == "tags":
                     for line_key, line_value in v.items():
                         tag, color = line_key, line_value
-                        if tag not in existing_settings["tags"]:
+                        if tag not in existing_settings["tags"]["value"]:
                             apiclient.registerTag(tag, color, False)
                         else:
                             apiclient.updateTag(tag, color, False)
@@ -433,7 +433,7 @@ class Settings:
         # self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
         form_pentesters_panel = ttk.Frame(self.settingsFrame)
         self.form_pentesters = FormPanel(side=tk.TOP, fill=tk.X, pady=5)
-        self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, ["Additional pentesters names"], side=tk.TOP)
+        self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, self.form_pentesters, side=tk.TOP)
         self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
         self.pentesters_treevw = self.form_pentesters.addFormTreevw(
             "Additional pentesters names", ["Additional pentesters names"], (""), height=30, width=200, pady=5, fill=tk.X, side=tk.RIGHT)

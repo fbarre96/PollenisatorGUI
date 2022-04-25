@@ -391,6 +391,7 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         self.sio.connect(apiclient.api_url)
         self.sio.emit("register", {"name":apiclient.getUser()})
+        
         @self.sio.event
         def executeCommand(data):
             toolId = data.get("toolId")

@@ -53,7 +53,7 @@ class ToolView(ViewElement):
             Returns the icon representing this object.
         """
         status = self.controller.getStatus()
-        iconStatus = "not_ready"
+        iconStatus = "ready"
         if "done" in status:
             cache = self.__class__.cached_done_icon
             ui = self.__class__.done_icon

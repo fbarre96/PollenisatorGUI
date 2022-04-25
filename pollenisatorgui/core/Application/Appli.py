@@ -325,8 +325,8 @@ class Appli(tk.Tk):
         self.quitting = True
         return
 
-    def forceUpdate(self):
-        tkinter.messagebox.showwarning("Update necessary", "You have to update this client to use this API.")
+    def forceUpdate(self, version):
+        tkinter.messagebox.showwarning("Update necessary", f"You have to update this client to use this API (required minimal is {version}).")
 
     def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
@@ -341,11 +341,11 @@ class Appli(tk.Tk):
             apiclient.attach(self)
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
-                self.forceUpdate()
+                self.forceUpdate(".".join(srv_version.split(".")[:-1]))
                 self.onClosing()
                 return
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
-                self.forceUpdate()
+                self.forceUpdate(".".join(srv_version.split(".")[:-1]))
                 self.onClosing()
                 return
             if self.sio is not None:
@@ -398,6 +398,7 @@ class Appli(tk.Tk):
         """
         try:
             err = traceback.format_exception(args[0], args[1], args[2])
+            err = "\n".join(err)
             if args[0] is ErrorHTTP: # args[0] is class of ecx
                 if args[1].response.status_code == 401:
                     tk.messagebox.showerror("Disconnected", "You are not connected.")
@@ -405,13 +406,13 @@ class Appli(tk.Tk):
                     return
             dialog = ChildDialogException(self, 'Exception occured', err)
             apiclient = APIClient.getInstance()
-            apiclient.reportError("\n".join(err))
+            apiclient.reportError(err)
             try:
                 self.wait_window(dialog.app)
             except tk.TclError:
                 sys.exit(1)
         except Exception as e:
-            print(e)
+            print("Exception in error handler "+str(e))
             sys.exit(1)
 
     def promptForConnection(self):
@@ -881,7 +882,7 @@ class Appli(tk.Tk):
         else:
             self.nbk.hide(tab_names.index("Admin"))
     
-    def newSearch(self, _event=None):
+    def newSearch(self, _event=None, histo=True):
         """Called when the searchbar is validated (click on search button or enter key pressed).
         Perform a filter on the main treeview.
         Args:
@@ -891,13 +892,14 @@ class Appli(tk.Tk):
         success = self.treevw.filterTreeview(filterStr, self.settings)
         self.searchMode = (success and filterStr.strip() != "")
         if success:
-            histo_filters = self.settings.local_settings.get("histo_filters", [])
-            if filterStr.strip() != "":
-                histo_filters.insert(0, filterStr)
-                if len(histo_filters) > 10:
-                    histo_filters = histo_filters[:10]
-                self.settings.local_settings["histo_filters"] = histo_filters
-                self.settings.saveLocalSettings()
+            if histo:
+                histo_filters = self.settings.local_settings.get("histo_filters", [])
+                if filterStr.strip() != "":
+                    histo_filters.insert(0, filterStr)
+                    if len(histo_filters) > 10:
+                        histo_filters = histo_filters[:10]
+                    self.settings.local_settings["histo_filters"] = histo_filters
+                    self.settings.saveLocalSettings()
             if self.helpFrame is not None:
                 self.helpFrame.destroy()
                 self.helpFrame = None
@@ -910,7 +912,9 @@ class Appli(tk.Tk):
         # get the index of the mouse click
         self.nbk.select(0)
         self.searchMode = True
-        self.treevw.filterTreeview("\""+name+"\" in tags")
+        self.searchBar.delete(0, tk.END)
+        self.searchBar.insert(tk.END, "\""+name+"\" in tags")
+        self.newSearch(histo=False)
 
     def resetButtonClicked(self):
         """
@@ -1176,7 +1180,7 @@ class Appli(tk.Tk):
             for widget in self.viewframe.winfo_children():
                 widget.destroy()
             for module in self.modules:
-                module["object"].initUI(module["view"], self.nbk, self.treevw)
+                module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()

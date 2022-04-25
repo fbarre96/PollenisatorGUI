@@ -671,7 +671,7 @@ class APIClient():
 
     @handle_api_errors
     def updateTag(self, name, color, isGlobal=False):
-        api_url = '{0}settings/registerTag'.format(self.api_url_base)
+        api_url = '{0}settings/updateTag'.format(self.api_url_base)
         data = {"name":name, "color":color, "global":isGlobal}
         response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:

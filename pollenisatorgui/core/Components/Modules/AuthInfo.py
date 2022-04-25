@@ -4,7 +4,6 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
 from bson.objectid import ObjectId
-from PIL import Image, ImageTk
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 import pollenisatorgui.core.Components.Utils as Utils
@@ -24,8 +23,6 @@ class AuthInfo:
         self.parent = None
         self.treevw = None
         self.style = None
-
-        iconPath = Utils.getIconDir()
         self.icons = {}
     
     def open(self):
@@ -46,7 +43,6 @@ class AuthInfo:
         Fetch data from database
         """
         apiclient = APIClient.getInstance()
-
         self.auths = apiclient.find("auths")
 
     def displayData(self):
@@ -71,7 +67,7 @@ class AuthInfo:
         # Reset Port treeview
         dialog.destroy()
 
-    def initUI(self, parent, nbk, treevw):
+    def initUI(self, parent, nbk, treevw, tkApp):
         """
         Initialize Dashboard widgets
         Args:

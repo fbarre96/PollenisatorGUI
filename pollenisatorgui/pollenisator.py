@@ -117,9 +117,7 @@ def pollex():
         print(f"INFO : Uploading results {outputFilePath}")
         msg = apiclient.importExistingResultFile(outputFilePath, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
         print(msg)
-        response = input("Show file content (Y/n)?\n")
-        if response.strip() != "n":
-            os.system(f"cat {outputFilePath}")
+        
 
 def main():
     """Main function. Start pollenisator application

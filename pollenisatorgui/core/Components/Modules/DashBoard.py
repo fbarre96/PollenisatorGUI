@@ -179,7 +179,7 @@ class DashBoard:
                 defectRisk), values=(defectType, defectCount))
         dialog.destroy()
 
-    def initUI(self, parent, nbk, treevw):
+    def initUI(self, parent, nbk, treevw, tkApp):
         """
         Initialize Dashboard widgets
         Args:

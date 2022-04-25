@@ -38,7 +38,7 @@ class ChildDialogException:
         self.err = err
         self.form.addFormLabel(
             "An error occured. Please make an issue with the below stack trace and when it occured.", side=tk.TOP)
-        self.form.addFormText("Error", ".+", self.err,
+        self.form.addFormText("Error", ".+", str(self.err),
                               None, side=tk.TOP)
         self.form.addFormButton("Report bug", self.onOk, side=tk.RIGHT)
         self.form.addFormButton("Close", self.onError, side=tk.RIGHT)

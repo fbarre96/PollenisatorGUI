@@ -32,7 +32,7 @@ class ChildDialogDefectView:
         if self.isInsert:
             defectModel = Defect()
 
-        self.defect_vw = DefectView(None, appFrame, DummyMainApp(settings),
+        self.defect_vw = DefectView(None, appFrame, parent,
                                     DefectController(defectModel))
         if self.isInsert:
             if multi:
