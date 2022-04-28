@@ -361,3 +361,49 @@ def getMainDir():
     p = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), "../../")
     return p
+
+def drop_file_event_parser(event):
+    """Parse event Callback of python-tkdnd on file drop event
+    event.data is built weirdly:
+        - Each file dropped in will be space-separated in a long string.
+        - If a directory/file contains a space, the whole filename will be wrapped by curly brackets.
+        - If a filename contains a curly brackets it will be escaped by backslashes and
+        - If a filename contains an opening and a closing curly brackets, they might not be escaped
+        - If a filename contains a space and a curly brackets, the filename is is not wrapped by curly brackets.
+            but the space and curly brackets will be escaped by backslashes
+        Returns:
+            list of valid filename for python
+        Exceptions:
+            raise FileNotFoundError if a filename is not valid
+    """
+    parts = event.data.split(" ")
+    data = []
+    cumul = ""
+    expect_closing_bracket = False
+    for part in parts:
+        if part.startswith("{") and not expect_closing_bracket:
+            cumul += part[1:]+" "
+            expect_closing_bracket = True
+        elif part.endswith("\\"):
+            cumul += part+" "
+        elif part.endswith("}") and not part.endswith("\\}") and expect_closing_bracket:
+            cumul += part[:-1]
+            data.append(cumul)
+            cumul = ""
+            expect_closing_bracket = False
+        else:
+            if expect_closing_bracket:
+                cumul += part+" "
+            else:
+                cumul += part
+                data.append(cumul)
+                cumul = ""
+    # check existance 
+    sanitized_path = []
+    for d in data:
+        # remove espacing as python does not expect spaces and brackets to be espaced
+        d = d.replace("\\}", "}").replace("\\{", "{").replace("\\ "," ")
+        if not os.path.exists(d):
+            raise FileNotFoundError(d)
+        sanitized_path.append(d)
+    return sanitized_path

@@ -1,12 +1,10 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
-import io
 import os
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Forms.FormPanel import FormPanel
 from pollenisatorgui.core.Views.ViewElement import ViewElement
-from pollenisatorgui.core.Models.Wave import Wave
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 
 
@@ -17,7 +15,7 @@ class ChildDialogFileParser:
     existing files parsing.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, default_path=""):
         """
         Open a child dialog of a tkinter application to ask details about
         existing files parsing.
@@ -28,13 +26,14 @@ class ChildDialogFileParser:
         self.app = tk.Toplevel(parent)
         self.app.title("Upload result file")
         self.rvalue = None
+        self.default = default_path
         self.parent = parent
         appFrame = ttk.Frame(self.app)
         apiclient = APIClient.getInstance()
         self.form = FormPanel()
         self.form.addFormLabel(
             "Import one file or choose a directory", "", side=tk.TOP)
-        self.form.addFormFile("File", ".+", width=50,
+        self.form.addFormFile("File", ".+", self.default, width=50,
                               side=tk.TOP, mode="file|directory")
         self.form.addFormLabel("Plugins", side=tk.TOP)
         self.form.addFormCombo(
@@ -71,16 +70,17 @@ class ChildDialogFileParser:
         tags = None
         form_values = self.form.getValue()
         form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
-        file_path = form_values_as_dicts["File"]
+        files_paths = form_values_as_dicts["File"]
         plugin = form_values_as_dicts["Plugin"]
-        files = []
-        if os.path.isdir(file_path):
-            # r=root, d=directories, f = files
-            for r, _d, f in os.walk(file_path):
-                for fil in f:
-                    files.append(os.path.join(r, fil))
-        else:
-            files.append(file_path)
+        files = set()
+        for filepath in files_paths:
+            if os.path.isdir(filepath):
+                # r=root, d=directories, f = files
+                for r, _d, f in os.walk(filepath):
+                    for fil in f:
+                        files.add(os.path.join(r, fil))
+            else:
+                files.add(filepath)
         dialog = ChildDialogProgress(self.parent, "Importing files", "Importing "+str(
             len(files)) + " files. Please wait for a few seconds.", 200, "determinate")
         dialog.show(len(files))
@@ -88,7 +88,9 @@ class ChildDialogFileParser:
         results = {}
         apiclient = APIClient.getInstance()
         for f_i, file_path in enumerate(files):
-            results = apiclient.importExistingResultFile(file_path, plugin)
+            additional_results = apiclient.importExistingResultFile(file_path, plugin)
+            for key, val in additional_results.items():
+                results[key] = results.get(key, 0) + val
             dialog.update(f_i)
         dialog.destroy()
         # DISPLAY RESULTS

@@ -6,11 +6,6 @@
 # Major version released: 09/2019
 # @version: 1.0
 """
-from datetime import datetime
-from distutils import cmd
-from pollenisatorgui.AutoScanWorker import executeCommand
-from pollenisatorgui.core.Models.Tool import Tool
-from pollenisatorgui.core.Models.Wave import Wave
 from pollenisatorgui.core.Models.Command import Command
 import time
 import tkinter as tk

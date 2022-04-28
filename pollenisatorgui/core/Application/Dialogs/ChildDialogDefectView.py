@@ -26,13 +26,22 @@ class ChildDialogDefectView:
         self.app.title("Add a security defect")
         self.app.resizable(True, True)
         self.rvalue = None
-        appFrame = ttk.Frame(self.app)
+        self.canvas = tk.Canvas(self.app, bg="white")
+        self.appFrame = ttk.Frame(self.canvas)
+        self.myscrollbar = tk.Scrollbar(self.app, orient="vertical", command=self.canvas.yview)
+        self.canvas.bind('<Configure>',  lambda e: self.canvas.configure(
+            scrollregion=self.canvas.bbox("all")
+        ))
+        self.canvas_main_frame = self.canvas.create_window((0, 0), window=self.appFrame, anchor='nw')
+        self.canvas.configure(yscrollcommand=self.myscrollbar.set)  
+        
+        
         self.isInsert = defectModel is None
         self.multi = multi
         if self.isInsert:
             defectModel = Defect()
 
-        self.defect_vw = DefectView(None, appFrame, parent,
+        self.defect_vw = DefectView(None, self.appFrame, parent,
                                     DefectController(defectModel))
         if self.isInsert:
             if multi:
@@ -42,13 +51,18 @@ class ChildDialogDefectView:
         else:
             self.defect_vw.openModifyWindow(addButtons=False)
 
-        ok_button = ttk.Button(appFrame, text="OK")
+        ok_button = ttk.Button(self.appFrame, text="OK")
         ok_button.pack(side="right", padx=5, pady=10)
         ok_button.bind('<Button-1>', self.okCallback)
-        cancel_button = ttk.Button(appFrame, text="Cancel")
+        cancel_button = ttk.Button(self.appFrame, text="Cancel")
         cancel_button.pack(side="right", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)
-        appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
+       
+        self.myscrollbar.grid(column=1, row=0, sticky="ns")
+        self.canvas.grid(column=0, row=0, sticky="nsew")
+        self.app.columnconfigure(0, weight=1)
+        self.app.rowconfigure(0, weight=1)
+        # self.appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
         self.app.transient(parent)
         try:
             self.app.wait_visibility()

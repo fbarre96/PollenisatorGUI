@@ -78,24 +78,20 @@ class DefectController(ControllerElement):
         ret, _ = self.model.addInDb()
         # Update this instance.
         # Upload proof after insert on db cause we need its mongoid
-        if proof.strip() != "":
-            self.model.uploadProof(proof)
+        for p in proof:
+            if p.strip() != "":
+                self.model.uploadProof(proof)
         return ret, 0  # 0 erros
 
-    def addAProof(self, formValues, index):
+    def addAProof(self, proof_path):
         """Add a proof file to model defect.
         Args:
             formValues: the view form values as a dict. Key "Proof "+str(index) must exist
-            index: the proof index in the form to insert
         """
-        proof_path = formValues["Proof "+str(index)]
         if proof_path.strip() == "":
             return
         resName = self.model.uploadProof(proof_path)
-        if index == len(self.model.proofs):
-            self.model.proofs.append(resName)
-        else:
-            self.model.proofs[index] = resName
+        self.model.proofs.append(resName)
         # self.model.update()
 
     def getProof(self, ind):

@@ -1,6 +1,7 @@
 """A special form that contains all other forms"""
 
 import tkinter.ttk as ttk
+import tkinter as tk
 from pollenisatorgui.core.Forms.FormCombo import FormCombo
 from pollenisatorgui.core.Forms.FormChecklist import FormChecklist
 from pollenisatorgui.core.Forms.FormStr import FormStr

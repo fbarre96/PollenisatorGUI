@@ -7,6 +7,7 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.simpledialog
 import tkinter.ttk as ttk
+import tkinterDnD
 import sys
 import os
 from tkinter import TclError
@@ -231,7 +232,7 @@ def iter_namespace(ns_pkg):
     # the name.
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-class Appli(tk.Tk):
+class Appli(tkinterDnD.Tk):
     """
     Main tkinter graphical application object.
     """

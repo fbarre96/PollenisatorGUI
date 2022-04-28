@@ -79,7 +79,7 @@ class DefectView(ViewElement):
             defectTypes = ["N/A"]
         chklistPanel.addFormChecklist("Type", defectTypes, ["N/A"])
         proofsPanel = self.form.addFormPanel(grid=True)
-        proofsPanel.addFormFile("Proof", r"")
+        proofsPanel.addFormFile("Proof", r"", text="Add proof", width=100)
         topPanel = self.form.addFormPanel()
         topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", height=2, side="top")
         if not self.controller.isAssigned():
@@ -151,7 +151,7 @@ class DefectView(ViewElement):
         modelData = self.controller.getData()
         settings = self.mainApp.settings
         settings.reloadSettings()
-        globalPanel = self.form.addFormPanel()
+        globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         topPanel = globalPanel.addFormPanel(grid=True)
         row = 0
         if modelData.get("ip", "") != "":
@@ -233,9 +233,9 @@ class DefectView(ViewElement):
             proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
                 event, obj), row=i, column=2)
             i += 1
-        proofPanel.addFormFile("Proof "+str(i), r"", "", row=i, column=0)
-        proofPanel.addFormButton("Upload", lambda event, obj=i: self.addAProof(
-            event, obj), row=i, column=1)
+        proofPanel = globalPanel.addFormPanel()
+        self.formFile = proofPanel.addFormFile("Add proofs", r"", "", width=100, height=3,side="left")
+        proofPanel.addFormButton("Upload", self.addAProof, side="left")
         self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if addButtons:
             self.completeModifyWindow()
@@ -296,16 +296,15 @@ class DefectView(ViewElement):
             widget.destroy()
         self.openModifyWindow()
 
-    def addAProof(self, _event, obj):
+    def addAProof(self, _event):
         """Callback when add proof is clicked.
         Add proof and update window
         Args
             _event: mandatory but not used
-            obj: the clicked index proof
         """
-        values = self.form.getValue()
-        formValues = ViewElement.list_tuple_to_dict(values)
-        self.controller.addAProof(formValues, obj)
+        values = self.formFile.getValue()
+        for val in values:
+            self.controller.addAProof(val)
         self.form.clear()
         for widget in self.appliViewFrame.winfo_children():
             widget.destroy()

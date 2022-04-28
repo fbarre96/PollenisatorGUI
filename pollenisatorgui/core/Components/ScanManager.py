@@ -177,6 +177,7 @@ class ScanManager:
             return
         apiclient = APIClient.getInstance()
         self.parent = parent
+        self.parent.configure(onfiledrop=self.dropFile)
         ### WORKER TREEVIEW : Which worker knows which commands
         lblworker = ttk.Label(self.parent, text="Workers:")
         lblworker.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
@@ -241,6 +242,13 @@ class ScanManager:
         btn_parse_scans = ttk.Button(
             self.parent, text="Parse existing files", command=self.parseFiles)
         btn_parse_scans.pack()
+        info = ttk.Label(self.parent, text="You can also drop your files / folder here")
+        info.pack()
+
+    def dropFile(self, event):
+        # This function is called, when stuff is dropped into a widget
+        data = Utils.drop_file_event_parser(event)
+        self.parseFiles(data)
 
     def OnDoubleClick(self, event):
         """Callback for a double click on ongoing scan tool treeview. Open the clicked tool in main view and focus on it.
@@ -270,11 +278,11 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         apiclient.sendStopAutoScan()
 
-    def parseFiles(self):
+    def parseFiles(self, default_path=""):
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser(self.parent)
+        dialog = ChildDialogFileParser(self.parent, default_path)
         self.parent.wait_window(dialog.app)
 
     def notify(self, _iid, _action):
