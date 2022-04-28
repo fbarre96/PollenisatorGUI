@@ -32,6 +32,9 @@ class DefectController(ControllerElement):
         self.model.language = values.get("Language", self.model.language)
         self.model.notes = values.get("Notes", self.model.notes)
         self.model.fixes = values.get("Fixes", self.model.fixes)
+        proofs = values.get("Add proofs", [])
+        for val in proofs:
+            self.addAProof(val)
         self.model.infos = values.get("Infos", self.model.infos)
         for info in self.model.infos:
             self.model.infos[info] = self.model.infos[info][0]

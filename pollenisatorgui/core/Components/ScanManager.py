@@ -241,7 +241,7 @@ class ScanManager:
             self.btn_autoscan.pack()
         btn_parse_scans = ttk.Button(
             self.parent, text="Parse existing files", command=self.parseFiles)
-        btn_parse_scans.pack()
+        btn_parse_scans.pack(side="top",pady=10)
         info = ttk.Label(self.parent, text="You can also drop your files / folder here")
         info.pack()
 

@@ -79,7 +79,7 @@ class DefectView(ViewElement):
             defectTypes = ["N/A"]
         chklistPanel.addFormChecklist("Type", defectTypes, ["N/A"])
         proofsPanel = self.form.addFormPanel(grid=True)
-        proofsPanel.addFormFile("Proof", r"", text="Add proof", width=100)
+        proofsPanel.addFormFile("Proof", r"", text="Add proof", width=90, height=4)
         topPanel = self.form.addFormPanel()
         topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", height=2, side="top")
         if not self.controller.isAssigned():
@@ -234,11 +234,10 @@ class DefectView(ViewElement):
                 event, obj), row=i, column=2)
             i += 1
         proofPanel = globalPanel.addFormPanel()
-        self.formFile = proofPanel.addFormFile("Add proofs", r"", "", width=100, height=3,side="left")
-        proofPanel.addFormButton("Upload", self.addAProof, side="left")
+        self.formFile = proofPanel.addFormFile("Add proofs", r"", "", width=100, height=3)
         self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if addButtons:
-            self.completeModifyWindow()
+            self.completeModifyWindow(addTags=False)
         else:
             self.showForm()
 

@@ -74,17 +74,17 @@ class FormFile(Form):
         self.modes = self.getKw("mode", "file").split("|")
         btn_frame = ttk.Frame(frame)
         info = ttk.Label(btn_frame, text="Or Drag and Drop")
-        info.pack(side="right")
+        info.pack(side="right", pady=5)
         if "file" in self.modes:
             text = self.getKw("text", "add file")
             search_btn = ttk.Button(
                 btn_frame, text=text, command=self.on_click)
-            search_btn.pack(side="right")
+            search_btn.pack(side="right", pady=5)
         if "directory" in self.modes:
             text = self.getKw("text", "add directory")
             search_btn = ttk.Button(
                 btn_frame, text=text, command=self.on_click_dir)
-            search_btn.pack(side="right")
+            search_btn.pack(side="right", pady=5)
         
         btn_frame.pack(side=tk.BOTTOM)
         if parent.gridLayout:
@@ -92,7 +92,7 @@ class FormFile(Form):
                        column=self.getKw("column", 0), **self.kwargs)
         else:
             frame.pack(fill=self.getKw("fill", "x"), side=self.getKw(
-                "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), **self.kwargs)
+                "side", "top"), anchor=self.getKw("anchor", "center"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), **self.kwargs)
 
     def on_click(self, _event=None):
         """Callback when '...' is clicked and modes Open a file selector (tkinter.filedialog.askopenfilename)

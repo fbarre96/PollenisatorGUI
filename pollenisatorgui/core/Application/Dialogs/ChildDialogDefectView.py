@@ -25,10 +25,15 @@ class ChildDialogDefectView:
         self.app = tk.Toplevel(parent)
         self.app.title("Add a security defect")
         self.app.resizable(True, True)
+        container = ttk.Frame(self.app)
+        container.columnconfigure(0, weight=1)
+        container.rowconfigure(0, weight=1)
         self.rvalue = None
-        self.canvas = tk.Canvas(self.app, bg="white")
+        self.canvas = tk.Canvas(container, bg="white", width=950, height=600)
         self.appFrame = ttk.Frame(self.canvas)
-        self.myscrollbar = tk.Scrollbar(self.app, orient="vertical", command=self.canvas.yview)
+        self.myscrollbar = tk.Scrollbar(container, orient="vertical", command=self.canvas.yview)
+        self.canvas.bind('<Enter>', self.boundToMousewheel)
+        self.canvas.bind('<Leave>', self.unboundToMousewheel)
         self.canvas.bind('<Configure>',  lambda e: self.canvas.configure(
             scrollregion=self.canvas.bbox("all")
         ))
@@ -55,15 +60,13 @@ class ChildDialogDefectView:
         ok_button.pack(side="right", padx=5, pady=10)
         ok_button.bind('<Button-1>', self.okCallback)
         cancel_button = ttk.Button(self.appFrame, text="Cancel")
-        cancel_button.pack(side="right", padx=5, pady=10)
+        cancel_button.pack(side="right", padx=5, pady=10, ipadx=10)
         cancel_button.bind('<Button-1>', self.cancel)
-       
-        self.myscrollbar.grid(column=1, row=0, sticky="ns")
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        container.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
         self.canvas.grid(column=0, row=0, sticky="nsew")
-        self.app.columnconfigure(0, weight=1)
-        self.app.rowconfigure(0, weight=1)
+        self.myscrollbar.grid(column=1, row=0, sticky="ns")
         # self.appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
-        self.app.transient(parent)
         try:
             self.app.wait_visibility()
             self.app.transient(parent)
@@ -72,6 +75,27 @@ class ChildDialogDefectView:
             self.app.lift()
         except tk.TclError:
             pass
+
+    def boundToMousewheel(self, _event):
+        """Called when the **command canvas** is on focus.
+        Bind the command scrollbar button on linux to the command canvas
+        Args:
+            _event: not used but mandatory
+        """
+        if self.canvas is None:
+            return
+        self.canvas.bind_all("<Button-4>", self._onMousewheel)
+        self.canvas.bind_all("<Button-5>", self._onMousewheel)
+
+    def unboundToMousewheel(self, _event):
+        """Called when the **command canvas** is unfocused.
+        Unbind the command scrollbar button on linux to the command canvas
+        Args:
+            _event: not used but mandatory"""
+        if self.canvas is None:
+            return
+        self.canvas.unbind_all("<Button-4>")
+        self.canvas.unbind_all("<Button-5>")
 
     def cancel(self, _event=None):
         """called when canceling the window.
@@ -98,3 +122,13 @@ class ChildDialogDefectView:
         if res:
             self.rvalue = True
             self.app.destroy()
+
+    def _onMousewheel(self, event):
+        """Scroll the settings canvas
+        Args:
+            event: scroll info filled when scroll event is triggered"""
+        if event.num == 5 or event.delta == -120:
+            count = 1
+        if event.num == 4 or event.delta == 120:
+            count = -1
+        self.canvas.yview_scroll(count, "units")
