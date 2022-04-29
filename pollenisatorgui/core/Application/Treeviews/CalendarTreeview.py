@@ -366,7 +366,7 @@ class CalendarTreeview(PollenisatorTreeview):
         if isinstance(dialog.rvalue, list):
             fields_to_export = dialog.rvalue
             f = tk.filedialog.asksaveasfilename(defaultextension=".csv")
-            if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             csv_filename = str(f)
             with open(csv_filename, 'w') as f:

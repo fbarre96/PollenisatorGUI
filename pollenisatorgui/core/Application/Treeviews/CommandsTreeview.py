@@ -2,7 +2,6 @@
 """
 import tkinter as tk
 from bson.objectid import ObjectId
-from sqlalchemy import false
 from pollenisatorgui.core.Models.Command import Command
 from pollenisatorgui.core.Models.CommandGroup import CommandGroup
 from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView

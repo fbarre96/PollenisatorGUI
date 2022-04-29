@@ -939,14 +939,20 @@ class APIClient():
         api_url = '{0}exportCommands'.format(self.api_url_base)
         if forWorker:
             api_url += "/worker"
+            filename = "worker_commands.json"
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
+            filename = "my_commands.json"
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
-                dir_path, "../../exports/my_commands")+".json")
-            with open(out_path, 'wb') as f:
+                dir_path, "../../exports/"))
+            f = tk.filedialog.asksaveasfilename(defaultextension=".json", initialdir=out_path, initialfile=filename)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return True, out_path
+                return True, filename
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False, response.text)
         return False, response.text  
@@ -960,10 +966,14 @@ class APIClient():
         if response.status_code == 200:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.join(
-                dir_path, "../../exports/", pentest if collection == "" else pentest+"_"+collection)+".gz"
-            with open(out_path, 'wb') as f:
+                dir_path, "../../exports/")
+            f = tk.filedialog.asksaveasfilename(defaultextension=".gz", initialdir=out_path, initialfile=(pentest if collection == "" else pentest+"_"+collection)+".gz")
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)          
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return True, out_path
+                return True, filename
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False, response.text)
         return False, response.text  
@@ -1013,10 +1023,14 @@ class APIClient():
             ext = os.path.splitext(templateName)[-1]
             basename = clientName.strip()+"_"+contractName.strip()
             out_name = str(timestr)+"_"+basename
-            out_path = os.path.join(dir_path, "../../exports/",out_name+ext)
-            with open(out_path, 'wb') as f:
+            out_path = os.path.join(dir_path, "../../exports/")
+            f = tk.filedialog.asksaveasfilename(defaultextension=ext, initialdir=out_path, initialfile=out_name+ext)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel". and empty tuple if close by cross
+                return
+            filename = str(f)
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return os.path.normpath(out_path)
+                return os.path.normpath(filename)
         elif response.status_code >= 400:
             raise ErrorHTTP(response, response.content.decode("utf-8"))
         return response.content.decode("utf-8")
@@ -1052,10 +1066,14 @@ class APIClient():
         api_url = '{0}report/{1}/templates/download'.format(self.api_url_base, lang)
         response = requests.get(api_url, headers=self.headers, params={"templateName":templateName},proxies=proxies, verify=False)
         if response.status_code == 200:
-            out_path = os.path.join(dir_path, "../../exports/",templateName)
-            with open(out_path, 'wb') as f:
+            out_path = os.path.join(dir_path, "../../exports/")
+            f = tk.filedialog.asksaveasfilename(initialdir=out_path, initialfile=templateName)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return os.path.normpath(out_path)
+                return os.path.normpath(filename)
         elif response.status_code >= 400:
             raise ErrorHTTP(response)
         return None

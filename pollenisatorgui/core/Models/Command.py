@@ -1,8 +1,6 @@
 """Command Model."""
-from sqlalchemy import true
 from pollenisatorgui.core.Models.Element import Element
 from pollenisatorgui.core.Components.apiclient import APIClient
-from bson.objectid import ObjectId
 
 
 class Command(Element):
