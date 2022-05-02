@@ -513,6 +513,8 @@ class Appli(tkinterDnD.Tk):
                              command=self.exportCommands)
         fileMenu.add_command(label="Import commands",
                              command=self.importCommands)
+        fileMenu.add_command(label="Import defect templates",
+                             command=self.importDefectTemplates)                     
 
         fileMenu.add_command(label="Exit", command=self.onExit)
         fileMenu2 = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
@@ -1064,6 +1066,37 @@ class Appli(tkinterDnD.Tk):
             tkinter.messagebox.showerror("Command import", "Command import failed")
         else:
             tkinter.messagebox.showinfo("Command import", "Command import completed")
+        return success
+
+    def importDefectTemplates(self, name=None):
+        """
+        Import defect templates from a json
+        Args:
+            name: The filename of the json containing defect templates
+        Returns:
+            None if name is None and filedialog is closed
+            True if defects successfully are imported
+            False otherwise.
+        """
+        filename = ""
+        if name is None:
+            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
+            if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+        else:
+            filename = name
+        try:
+            apiclient = APIClient.getInstance()
+            success = apiclient.importDefectTemplates(filename)
+        except IOError:
+            tkinter.messagebox.showerror(
+                "Import defects templates", "Import failed. "+str(filename)+" was not found or is not a file.")
+            return False
+        if not success:
+            tkinter.messagebox.showerror("Defects templates import", "Defects templatest failed")
+        else:
+            tkinter.messagebox.showinfo("Defects templates import", "Defects templates completed")
         return success
 
     def onExit(self):

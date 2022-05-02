@@ -80,10 +80,10 @@ class APIClient():
         APIClient.__instances[pid] = apiclient
 
     @staticmethod
-    def searchDefect(searchTerms):
+    def searchDefect(searchTerms, **kwargs):
         apiclient = APIClient.getInstance()
         api_url = '{0}report/search'.format(apiclient.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms}), headers=apiclient.headers, proxies=proxies, verify=False)
+        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=apiclient.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder), ""
         elif response.status_code == 204:
@@ -1002,6 +1002,49 @@ class APIClient():
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200
+    @handle_api_errors
+    def importDefectTemplates(self, filename):
+        api_url = '{0}report/DefectTemplates/import'.format(self.api_url_base)
+        with io.open(filename, 'rb') as f:
+            h = self.headers.copy()
+            h.pop("Content-Type", None)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=proxies, verify=False)
+            if response.status_code >= 400:
+                raise ErrorHTTP(response, False)
+            return response.status_code == 200
+
+    @handle_api_errors
+    def insertAsTemplate(self, data):
+        api_url = '{0}report/DefectTemplates/insert'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res["res"], res["iid"]
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def updateDefectTemplate(self, iid, updatePipeline):
+        api_url = '{0}report/DefectTemplates/update/{1}'.format(self.api_url_base, str(iid))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(updatePipeline, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+    
+    @handle_api_errors
+    def deleteDefectTemplate(self, iid):
+        api_url = '{0}report/DefectTemplates/delete/{1}'.format(self.api_url_base, str(iid))
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        return None
 
     @handle_api_errors
     def copyDb(self, fromDb, toDb=""):

@@ -189,9 +189,7 @@ class FormTreevw(Form):
             self.treevw.heading("#"+str(h_i), text=header, anchor="w", command=listOfLambdas[h_i])
             self.treevw.column("#"+str(h_i), anchor='w',
                                stretch=tk.YES, minwidth=columnsLen[h_i], width=columnsLen[h_i])
-        binds = self.getKw("binds", {})
-        for key, val in binds.items():
-            self.treevw.bind(key, val)
+        
         emptyRowFound = False
         children = self.treevw.get_children()
         for child in children:
@@ -208,6 +206,9 @@ class FormTreevw(Form):
             self.treevw.bind("<Delete>", self.deleteItem)
             self.treevw.bind("<Control-c>", self.copy)
             self._initContextualMenu(self.treevw)
+        binds = self.getKw("binds", {})
+        for key, val in binds.items():
+            self.treevw.bind(key, val)
         if parent.gridLayout:
             self.tvFrame.grid(row=self.getKw("row", 0), column=self.getKw(
                 "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "none"), expand=self.getKw("expand", True))
@@ -258,10 +259,10 @@ class FormTreevw(Form):
         Remove the selected item in the treeview
         Args:
             _event: not used but mandatory"""
-        selected = self.treevw.selection()[0]
-        item = self.treevw.item(selected)
-        if item["text"].strip() != "":
-            self.treevw.delete(selected)
+        for selected in self.treevw.selection():
+            item = self.treevw.item(selected)
+            if item["text"].strip() != "":
+                self.treevw.delete(selected)
         self.resetOddTags()
 
     def addItem(self, parent="", insertPos="0", iid=None, **kwargs):

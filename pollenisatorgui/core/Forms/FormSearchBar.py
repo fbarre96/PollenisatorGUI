@@ -28,6 +28,7 @@ class FormSearchBar(Form):
         self.kwargs = kwargs
         self.entry = None
         self.combo_search = None
+        self.options_forms = []
 
     def constructView(self, parent):
         """
@@ -71,7 +72,10 @@ class FormSearchBar(Form):
         return "break"
     
     def updateValues(self, _event=None):
-        self._results, err_msg = self.searchCallback(self.val.get())
+        options = {}
+        for x in self.options_forms:
+            options[x.name] = x.getValue()
+        self._results, err_msg = self.searchCallback(self.val.get(), **options)
         if self._results is None:
             tkinter.messagebox.showinfo("SearchBar is not responding", err_msg)
             self.combo_search['values'] = [self.val.get()]
@@ -121,3 +125,5 @@ class FormSearchBar(Form):
     def setFocus(self):
         self.entry.focus_set()
 
+    def addOptionForm(self, optionForm):
+        self.options_forms.append(optionForm)

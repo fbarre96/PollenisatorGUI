@@ -183,12 +183,13 @@ class Report:
         btn_addDefect = ttk.Button(
             frameBtn, text="Add a security defect", command=self.addDefectCallback)
         btn_addDefect.pack(side=tk.RIGHT, padx=5)
-        btn_browseDefects = ttk.Button(	
-	            frameBtn, text="Browse defects", command=self.browseDefectsCallback)	
-        btn_browseDefects.pack(side=tk.RIGHT, padx=5)
+        
         btn_setMainRedactor = ttk.Button(
             frameBtn, text="Set main redactor", command=self.setMainRedactor)
         btn_setMainRedactor.pack(side=tk.RIGHT, padx=5)
+        btn_browseDefects = ttk.Button(	
+	            frameBtn, text="Browse defects templates", command=self.browseDefectsCallback)	
+        btn_browseDefects.pack(side=tk.RIGHT, padx=5)
         frameBtn.pack(side=tk.TOP, pady=5)
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###

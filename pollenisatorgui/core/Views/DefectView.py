@@ -12,7 +12,6 @@ import os
 import subprocess
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFixes import ChildDialogFixes
 
-
 class DefectView(ViewElement):
     """View for defect object. Handle node in treeview and present forms to user when interacted with.
     Attributes:
@@ -44,7 +43,11 @@ class DefectView(ViewElement):
         settings = self.mainApp.settings
         settings.reloadSettings()
         modelData = self.controller.getData()
-        self.form.addFormSearchBar("Search Defect", APIClient.searchDefect, self.form)
+        topPanel = self.form.addFormPanel(grid=True)
+        s = topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, self.form, row=0, column= 0)
+        topPanel.addFormLabel("Search Language",row=0, column=1)
+        lang = topPanel.addFormStr("lang", row=0, column=2)
+        s.addOptionForm(lang)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Title")
         topPanel.addFormStr("Title", r".+", "", column=1, width=50)
@@ -114,7 +117,8 @@ class DefectView(ViewElement):
                 if result is not None:
                     default_values[result["title"]] = result["risk"]
             self.browse_top_treevw = self.form.addFormTreevw("Defects", ("Title", "Risk"),
-                                default_values, side="top", fill="both", width=400, height=8, status="readonly")
+                                default_values, side="top", fill="both", width=400, height=8, status="readonly", 
+                                binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
         self.buttonUpImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'up-arrow.png'))
         self.buttonDownImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
@@ -129,16 +133,60 @@ class DefectView(ViewElement):
         else:
             self.showForm()
 
+    def deleteDefectTemplate(self, event):
+        apiclient = APIClient.getInstance()
+        sel = self.browse_top_treevw.treevw.selection()
+        if len(sel) > 1:
+            answer = tk.messagebox.askyesno(
+                        "Defect template deletion warning", f"{len(sel)} defects will be deleted from the defect templates database. Are you sure ?")
+        for selected in sel:
+            item = self.browse_top_treevw.treevw.item(selected)
+            if item["text"].strip() != "":
+                defect_m = self.findDefectTemplateByTitle(item["text"].strip())
+                if isinstance(defect_m, Defect):
+                    if len(sel) == 1:
+                        answer = tk.messagebox.askyesno(
+                            "Defect template deletion warning", f"{defect_m.title} will be deleted from the defect templates database. Are you sure ?")
+                        if not answer:
+                            return
+                    apiclient.deleteDefectTemplate(defect_m.getId())
+        self.browse_top_treevw.deleteItem()
+
+    def openInChildDialog(self, defect_model, isTemplate=True):
+        from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
+        defect_model.isTemplate = isTemplate
+        dialog = ChildDialogDefectView(self.mainApp, self.mainApp.settings, defect_model)
+        self.mainApp.wait_window(dialog.app)
+        return dialog.rvalue
+
+    def findDefectTemplateByTitle(self, title, multi=False):
+        apiclient = APIClient.getInstance()
+        defects_matching, msg = apiclient.searchDefect(title)
+        if defects_matching is not None:
+            if len(defects_matching) >= 1 and not multi:
+                return Defect(defects_matching[0])
+            else:
+                return defects_matching
+            
+
+    def doubleClickDefectView(self, event):
+        item = self.browse_top_treevw.treevw.identify("item", event.x, event.y)
+        if item is None or item == '':
+            return
+        title = self.browse_top_treevw.treevw.item(item)["text"]
+        defects_matching = self.findDefectTemplateByTitle(title)
+        self.openInChildDialog(defects_matching)
+
     def moveDownMultiTreeview(self, _event):
-        iid = self.browse_top_treevw.selection()[0]
-        item = self.browse_top_treevw.item(iid)
-        self.browse_down_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
+        for iid in self.browse_top_treevw.selection():
+            item = self.browse_top_treevw.item(iid)
+            self.browse_down_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
         self.browse_top_treevw.deleteItem()
 
     def moveUpMultiTreeview(self, _event):
-        iid = self.browse_down_treevw.selection()[0]
-        item = self.browse_down_treevw.item(iid)
-        self.browse_top_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
+        for iid in self.browse_down_treevw.selection():
+            item = self.browse_down_treevw.item(iid)
+            self.browse_top_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
         self.browse_down_treevw.deleteItem()
 
     def openModifyWindow(self, addButtons=True):
@@ -168,8 +216,9 @@ class DefectView(ViewElement):
                     "Port", '', port_str, None, column=1, row=row, state="readonly")
                 row += 1
         if not self.controller.isAssigned():
-            topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, globalPanel, row=row, column=1, autofocus=False)
-            row += 1
+            if not self.controller.model.isTemplate:
+                topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, globalPanel, row=row, column=1, autofocus=False)
+                row += 1
             topPanel.addFormLabel("Title", row=row, column=0)
             topPanel.addFormStr(
                 "Title", ".+", modelData["title"], width=50, row=row, column=1)
@@ -198,8 +247,9 @@ class DefectView(ViewElement):
             chklistPanel.addFormChecklist("Type", defect_types, modelData["type"])
             topPanel = globalPanel.addFormPanel(grid = True)
             row=0
-            topPanel.addFormLabel("Redactor", row=row)
-            topPanel.addFormCombo("Redactor", list(set(self.mainApp.settings.getPentesters()+["N/A"]+[modelData["redactor"]])), modelData["redactor"], row=row, column=1)
+            if not self.controller.model.isTemplate:
+                topPanel.addFormLabel("Redactor", row=row)
+                topPanel.addFormCombo("Redactor", list(set(self.mainApp.settings.getPentesters()+["N/A"]+[modelData["redactor"]])), modelData["redactor"], row=row, column=1)
             topPanel.addFormLabel("Language", row=row, column=2)
             topPanel.addFormStr("Language", "", modelData["language"], row=row, column=3)
             row += 1
@@ -224,18 +274,22 @@ class DefectView(ViewElement):
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText(
                 "Notes", r"", modelData["notes"], None, side="top", height=10)
-        proofPanel = globalPanel.addFormPanel(grid=True)
-        i = 0
-        for proof in modelData["proofs"]:
-            proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
-            proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
-                event, obj), row=i, column=1)
-            proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
-                event, obj), row=i, column=2)
-            i += 1
-        proofPanel = globalPanel.addFormPanel()
-        self.formFile = proofPanel.addFormFile("Add proofs", r"", "", width=100, height=3)
+        if not self.controller.model.isTemplate:
+            proofPanel = globalPanel.addFormPanel(grid=True)
+            i = 0
+            for proof in modelData["proofs"]:
+                proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
+                proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
+                    event, obj), row=i, column=1)
+                proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
+                    event, obj), row=i, column=2)
+                i += 1
+            proofPanel = globalPanel.addFormPanel()
+            self.formFile = proofPanel.addFormFile("Add proofs", r"", "", width=100, height=3)
         self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
+        if not self.controller.model.isTemplate:
+            actionsPan = globalPanel.addFormPanel()
+            actionsPan.addFormButton("Create defect template from this", self.saveAsDefectTemplate)
         if addButtons:
             self.completeModifyWindow(addTags=False)
         else:
@@ -416,3 +470,8 @@ class DefectView(ViewElement):
                 if callable(getattr(module["object"], "updateDefectInTreevw", None)):
                     module["object"].updateDefectInTreevw(self.controller.model)
         super().updateReceived()
+
+    def saveAsDefectTemplate(self, _event):
+        res = self.controller.model.addInDefectTemplates()
+        defect_m = self.findDefectTemplateByTitle(self.controller.model.title)
+        self.openInChildDialog(defect_m)

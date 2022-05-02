@@ -26,14 +26,20 @@ class Defect(Element):
         if valuesFromDb is None:
             valuesFromDb = {}
         self.proofs = []
+        self.isTemplate = False
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
+        types = valuesFromDb.get("type", [])
+        if isinstance(types, str):
+            types = [types]
+        else:
+            types = list(types)
         self.initialize(valuesFromDb.get("ip", ""), valuesFromDb.get("port", ""),
                         valuesFromDb.get("proto", ""), valuesFromDb.get("title", ""), valuesFromDb.get("synthesis", ""), valuesFromDb.get("description", ""),
                         valuesFromDb.get("ease", ""), valuesFromDb.get(
                             "impact", ""),
                         valuesFromDb.get(
-                            "risk", ""), valuesFromDb.get("redactor", "N/A"), list(valuesFromDb.get("type", [])),
+                            "risk", ""), valuesFromDb.get("redactor", "N/A"), types,
                         valuesFromDb.get("language", ""),
                         valuesFromDb.get("notes", ""), valuesFromDb.get("fixes", []), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
                         valuesFromDb.get("index", "0"))
@@ -79,6 +85,15 @@ class Defect(Element):
         self.fixes = fixes if fixes is not None else []
         self.index = index
         return self
+
+    @classmethod
+    def getTemplate(cls, title):
+        apiclient = APIClient.getInstance()
+        res = apiclient.findInDb("pollenisator", cls.coll_name, {"title":title}, False)
+        print("searching "+str(res))
+        if res is None:
+            return None
+        return Defect(res)
 
     @classmethod
     def getEases(cls):
@@ -140,6 +155,29 @@ class Defect(Element):
         apiclient = APIClient.getInstance()
         apiclient.delete("defects", ret)
 
+    def addInDefectTemplates(self):
+        """
+        Add this defect to pollenisator template defect database.
+        Returns: a tuple with :
+                * bool for success
+                * mongo ObjectId : already existing object if duplicate, create object id otherwise 
+        """
+        apiclient = APIClient.getInstance()
+        base = dict()
+        base["title"] = self.title
+        base["synthesis"] = self.synthesis
+        base["description"] = self.description
+        base["ease"] = self.ease
+        base["impact"] = self.impact
+        base["risk"] = self.risk
+        base["type"] = list(self.mtype)
+        base["language"] = self.language
+        base["fixes"] = self.fixes
+        res, id = apiclient.insertAsTemplate(base)
+        if not res:
+            return False, id
+        return True, id
+        
     def addInDb(self):
         """
         Add this defect to pollenisator database.
@@ -169,7 +207,20 @@ class Defect(Element):
         self._id = id
         return True, id
 
-    
+    def updateAsTemplate(self, pipeline_set=None):
+        """Update this object in pollenisator database, template.
+        Args:
+            pipeline_set: (Opt.) A dictionnary with custom values. If None (default) use model attributes.
+        """
+        apiclient = APIClient.getInstance()
+        if pipeline_set is None:
+            print("UPDATING TEMPLATE n updateASTemplate"+str(pipeline_set))
+            res = apiclient.updateDefectTemplate(ObjectId(self._id), {"title": self.title, "synthesis":self.synthesis, "description":self.description,
+                         "ease": self.ease, "impact": self.impact,
+                         "risk": self.risk, "type": list(self.mtype), "language":self.language, "fixes":self.fixes})
+            print(res)
+        else:
+            apiclient.updateDefectTemplate(ObjectId(self._id), pipeline_set)
 
     def update(self, pipeline_set=None):
         """Update this object in database.
@@ -177,6 +228,9 @@ class Defect(Element):
             pipeline_set: (Opt.) A dictionnary with custom values. If None (default) use model attributes.
         """
         apiclient = APIClient.getInstance()
+        if self.isTemplate:
+            print("UPDATING TEMPLATE n update"+str(pipeline_set))
+            self.updateAsTemplate(pipeline_set)
         if pipeline_set is None:
             apiclient.update("defects", ObjectId(self._id), {"ip": self.ip, "title": self.title, "synthesis":self.synthesis, "description":self.description, "port": self.port,
                          "proto": self.proto, "notes": self.notes, "ease": self.ease, "impact": self.impact,

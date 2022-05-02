@@ -108,8 +108,12 @@ class FormChecklist(Form):
         Args:
             newval: A list with checkbox texts. If a checkbox text matches one in the list, it will checked.
         """
+        if isinstance(newval, list):
+            newval = [x.lower for x in newval]
+        else:
+            newval = newval.lower()
         for i, v in enumerate(self.val):
-            if self.checks[i].cget("text").lower() in newval.lower():
+            if self.checks[i].cget("text").lower() in newval:
                 v.set(1)
             else:
                 v.set(0)
