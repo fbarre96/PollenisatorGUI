@@ -37,10 +37,11 @@ from pollenisatorgui.core.Controllers.IntervalController import IntervalControll
 from pollenisatorgui.core.Controllers.CommandController import CommandController
 from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
-from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
+from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCustomCommand import ChildDialogCustomCommand
 from pollenisatorgui.core.Application.Dialogs.ChildDialogExportSelection import ChildDialogExportSelection
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
+from pollenisatorgui.core.Components.Utils import openPathForUser
 
 class CalendarTreeview(PollenisatorTreeview):
     """Inherit PollenisatorTreeview.
@@ -383,9 +384,12 @@ class CalendarTreeview(PollenisatorTreeview):
                             else:
                                 line.append(str(modelData.get(field, "")))
                         f.write(", ".join(line)+"\n")
-            dialog = ChildDialogInfo(
-                self, "Export completed", "Your export just finished. You can find it here : "+csv_filename)
-        self.wait_window(dialog.app)
+            dialog = ChildDialogQuestion(
+                self, "Export completed", "Your export just finished : "+csv_filename+".\n Do you want to open this folder ?")
+            self.wait_window(dialog.app)
+            if dialog.rvalue == "Yes":
+                openPathForUser(csv_filename, folder_only=True)
+
 
     def attackFromTerminal(self, _event=None):
         for selected in self.selection():

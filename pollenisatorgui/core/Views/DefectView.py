@@ -315,7 +315,7 @@ class DefectView(ViewElement):
 
     def viewProof(self, _event, obj):
         """Callback when view proof is clicked.
-        Download and display the file using xdg-open on linux or os.startfile (windows)
+        Download and display the file 
         Args
             _event: mandatory but not used
             obj: the clicked index proof
@@ -323,15 +323,11 @@ class DefectView(ViewElement):
         proof_local_path = self.controller.getProof(obj)
         if proof_local_path is not None:
             if os.path.isfile(proof_local_path):
-                if which("xdg-open") is not None:
-                    subprocess.call(["xdg-open", proof_local_path])
-                else:
-                    try:
-                        os.startfile(proof_local_path)
-                    except Exception:
-                        tk.messagebox.showerror("Could not open", "Failed to open this file.")
-                        proof_local_path = None
-                        return
+                res = Utils.openPathForUser(proof_local_path)
+                if not res:
+                    tk.messagebox.showerror("Could not open", "Failed to open this file.")
+                    proof_local_path = None
+                    return
         if proof_local_path is None:
             tk.messagebox.showerror(
                 "Download failed", "the file does not exist on sftp server")

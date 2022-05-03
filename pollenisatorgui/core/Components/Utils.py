@@ -11,6 +11,8 @@ from netaddr import IPNetwork
 from netaddr.core import AddrFormatError
 from bson import ObjectId
 import signal
+from shutil import which
+import shlex
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -406,3 +408,21 @@ def drop_file_event_parser(event):
             raise FileNotFoundError(d)
         sanitized_path.append(d)
     return sanitized_path
+
+def openPathForUser(path, folder_only=False):
+    path_to_open = os.path.dirname(path) if folder_only else path
+    cmd = ""
+    if which("xdg-open"):
+        cmd = "xdg-open "+path_to_open
+    elif which("explorer"):
+        cmd = "explorer "+path_to_open
+    elif which("open"):
+        cmd = "open "+path_to_open
+    if cmd != "":
+        subprocess.Popen(shlex.split(cmd))
+    else: # windows
+        try: 
+            os.startfile(path_to_open)
+        except Exception:
+            return False
+    return True

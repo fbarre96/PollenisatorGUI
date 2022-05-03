@@ -211,7 +211,7 @@ class ToolView(ViewElement):
     def downloadResultFile(self, _event=None):
         """Callback for tool click #TODO move to ToolController
         Download the tool result file and asks the user if he or she wants to open it. 
-        If OK, tries to open it using xdg-open or os.startsfile
+        If OK, tries to open it
         Args:
             _event: not used 
         """
@@ -226,15 +226,14 @@ class ToolView(ViewElement):
         dialog.destroy()
         if path is not None:
             if os.path.isfile(path):
-                if which("xdg-open") is not None:
-                    dialog = ChildDialogQuestion(self.appliViewFrame, "Download completed",
-                                                "The file has been downloaded.\n Would you like to open it?", answers=["Open", "Cancel"])
-                    self.appliViewFrame.wait_window(dialog.app)
-                    if dialog.rvalue == "Open":
-                        Utils.execute("xdg-open "+path)
-                        return
-                    else:
-                        return
+                dialog = ChildDialogQuestion(self.appliViewFrame, "Download completed",
+                                            "The file has been downloaded.\n Would you like to open it?", answers=["Open", "Cancel"])
+                self.appliViewFrame.wait_window(dialog.app)
+                if dialog.rvalue == "Open":
+                    Utils.openPathForUser(path)
+                    return
+                else:
+                    return
             path = None
         if path is None:
             tkinter.messagebox.showerror(

@@ -7,20 +7,15 @@ import tkinter.messagebox
 import os
 import threading
 from PIL import ImageTk, Image
-from shutil import which
-from os.path import isfile, join
 from bson.objectid import ObjectId
-from datetime import datetime
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Models.Defect import Defect
-from pollenisatorgui.core.Components.Utils import getIconDir, execute
+from pollenisatorgui.core.Components.Utils import getIconDir, execute, openPathForUser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
-from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.Application.Dialogs.ChildDialogRemarkView import ChildDialogRemarkView
-from pollenisatorgui.core.Forms.FormHelper import FormHelper
 from pollenisatorgui.core.Models.Remark import Remark	
 from pollenisatorgui.core.Views.RemarkView import RemarkView
 
@@ -619,16 +614,12 @@ class Report:
     def _download_and_open_template(self, templateName):
         apiclient = APIClient.getInstance()
         path = apiclient.downloadTemplate(self.curr_lang, templateName)
-        if which("xdg-open") is not None:
-            dialog = ChildDialogQuestion(self.parent,
-                                        "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])
-            self.parent.wait_window(dialog.app)
-            if dialog.rvalue != "Open":
-                return
-            execute("xdg-open "+str(path))
-        else:
-            tkinter.messagebox.showinfo(
-                "Success", "The template was generated in "+str(path))
+        dialog = ChildDialogQuestion(self.parent,
+                                    "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])
+        self.parent.wait_window(dialog.app)
+        if dialog.rvalue != "Open":
+            return
+        openPathForUser(path, folder_only=True)
 
     def notify(self, db, collection, iid, action, _parent):
         """
@@ -668,9 +659,5 @@ def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):
             "Failure", str(res))
     tkinter.messagebox.showinfo(
         "Success", "The document was generated in "+str(res))
-    if which("xdg-open"):
-        os.system("xdg-open "+os.path.dirname(res))
-    elif which("explorer"):
-        os.system("explorer "+os.path.dirname(res))
-    elif which("open"):
-        os.system("open "+os.path.dirname(res))
+    openPathForUser(res, folder_only=True)
+    
