@@ -101,8 +101,8 @@ def pollex():
         outputFilePath = os.path.join(tmpdirname, cmdName)
         comm = comm.replace("|outputDir|", outputFilePath)
         returncode, stdout = Utils.execute(comm, None, True)
-        if stdout.strip() != "":
-            print(stdout.strip())
+        #if stdout.strip() != "":
+        #    print(stdout.strip())
         if not os.path.exists(outputFilePath):
             if os.path.exists(outputFilePath+fileext):
                 outputFilePath+=fileext

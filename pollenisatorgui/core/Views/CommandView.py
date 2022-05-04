@@ -204,9 +204,9 @@ class CommandView(ViewElement):
             event: a ttk Treeview event autofilled. Contains information on what treeview node was clicked.
         """
         self.widgetMenuOpen = event.widget
-        self.menuContextuel.post(event.x_root, event.y_root)
+        self.menuContextuel.tk_popup(event.x_root, event.y_root)
         self.menuContextuel.focus_set()
-        self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
+        #self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """

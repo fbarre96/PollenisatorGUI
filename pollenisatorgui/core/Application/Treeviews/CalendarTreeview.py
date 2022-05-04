@@ -148,16 +148,16 @@ class CalendarTreeview(PollenisatorTreeview):
         Args:
             - event: sent automatically though an event on treeview
         """
-        if self.contextualMenu is not None:
-            self.popupFocusOut()
+        #if self.contextualMenu is not None:
+        #    self.popupFocusOut()
         self._initContextualsMenus()
         self.contextualMenu.selection = self.identify(
             "item", event.x, event.y)
-        view = self.getViewFromId(str(self.contextualMenu.selection))
-        if view is None:
-            self.contextualMenu.entryconfig(4, state=tk.DISABLED)
-        else:
-            self.contextualMenu.entryconfig(4, state=tk.ACTIVE)
+        # view = self.getViewFromId(str(self.contextualMenu.selection))
+        # if view is None:
+        #     self.contextualMenu.entryconfig(4, state=tk.DISABLED)
+        # else:
+        #     self.contextualMenu.entryconfig(4, state=tk.ACTIVE)
         if self.appli.searchMode:
             self.contextualMenu.add_command(
                 label="Show in full tree", command=self.showInTreeview)
@@ -173,12 +173,12 @@ class CalendarTreeview(PollenisatorTreeview):
             "item", event.x, event.y)
         # display the popup menu
         try:
-            self.tagsMenu.post(event.x_root, event.y_root)
+            self.tagsMenu.tk_popup(event.x_root, event.y_root)
         finally:
             # make sure to release the grab (Tk 8.0a1 only)
             self.tagsMenu.grab_release()
         self.tagsMenu.focus_set()
-        self.tagsMenu.bind('<FocusOut>', self.popupFocusOutTag)
+        # self.tagsMenu.bind('<FocusOut>', self.popupFocusOutTag)
 
     def popupFocusOutTag(self, _=None):
         """Called when the tag contextual menu is unfocused.
@@ -208,13 +208,16 @@ class CalendarTreeview(PollenisatorTreeview):
         Create the contextual menu
         """
         self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
         self.contextualMenu.add_command(
             label="Custom command", command=self.customCommand)
         self.contextualMenu.add_command(
-            label="Attack from terminal", command=self.attackFromTerminal)
-        self.contextualMenu.add_command(
             label="Export selection", command=self.exportSelection)
+        self.contextualMenu.add_separator()
+        for module in self.appli.modules:
+            if callable(getattr(module["object"], "_initContextualsMenus", None)):
+                menu = module["object"]._initContextualsMenus(self.parentFrame)
+                self.contextualMenu.add_cascade(label=module["name"].strip(), menu=menu)
         self.tagsMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
                                 foreground='white', activebackground='#A8CF4D', activeforeground='white')
         tags = Settings.getTags()
@@ -222,6 +225,7 @@ class CalendarTreeview(PollenisatorTreeview):
         for i,val in enumerate(tags):
             self.tagsMenu.add_command(
                 label=val, command=listOfLambdas[i])
+        #self.contextualMenu.add_cascade(label="Tags", menu=self.tagsMenu)
         self.contextualMenu.add_command(
             label="Sort children", command=self.sort)
         self.contextualMenu.add_command(
@@ -232,8 +236,10 @@ class CalendarTreeview(PollenisatorTreeview):
             label="Hide", command=self.hideAndUpdate)
         self.contextualMenu.add_command(
             label="Unhide children", command=self.unhide)
+        self.contextualMenu.add_separator()
         self.contextualMenu.add_command(
             label="Close", command=self.closeMenu)
+        return self.contextualMenu
 
     def setTagFromMenubar(self, name):
         """
@@ -391,20 +397,7 @@ class CalendarTreeview(PollenisatorTreeview):
                 openPathForUser(csv_filename, folder_only=True)
 
 
-    def attackFromTerminal(self, _event=None):
-        for selected in self.selection():
-            view_o = self.getViewFromId(selected)
-            if view_o is not None:
-                lvl = "network" if isinstance(view_o, ScopeView) else None
-                lvl = "wave" if isinstance(view_o, WaveView) else lvl
-                lvl = "ip" if isinstance(view_o, IpView) else lvl
-                lvl = "port" if isinstance(view_o, PortView) else lvl
-                if lvl is not None:
-                    inst = view_o.controller.getData()
-                    Terminal.openTerminal(lvl+"|"+inst.get("wave","Imported")+"|"+inst.get("scope","")+"|"+inst.get("ip","")+"|"+inst.get("port","")+"|"+inst.get("proto",""))
-                else:
-                    tk.messagebox.showerror("ERROR : Wrong selection", "You have to select a object that may have tools")
-
+    
     def customCommand(self, _event=None):
         """
         Ask the user for a custom tool to launch and which parser it will use.

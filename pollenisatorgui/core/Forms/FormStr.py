@@ -84,9 +84,9 @@ class FormStr(Form):
             event: a ttk Treeview event autofilled. Contains information on what treeview node was clicked.
         """
         self.widgetMenuOpen = event.widget
-        self.contextualMenu.post(event.x_root, event.y_root)
+        self.contextualMenu.tk_popup(event.x_root, event.y_root)
         self.contextualMenu.focus_set()
-        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Callback for focus out event. Destroy contextual menu

@@ -232,12 +232,10 @@ class ChildDialogFixes:
 
     def resizeTreeview(self):
         currentHeight = len(self.treevw.get_children())
-        if currentHeight <= 5:
-            self.treevw.config(height=currentHeight)
-            sx, sy = self.paned.sash_coord(0)
-            if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:
-                self.paned.paneconfigure(self.frameTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
-    
+        self.treevw.config(height=currentHeight)
+        sx, sy = self.paned.sash_coord(0)
+        if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:
+            self.paned.paneconfigure(self.frameTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
 
     def fillWithFixes(self):	
         """	

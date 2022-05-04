@@ -240,18 +240,21 @@ class PollenisatorTreeview(ttk.Treeview):
         """
         # display the popup menu
         try:
-            self.contextualMenu.post(event.x_root, event.y_root)
+            self.contextualMenu.tk_popup(event.x_root, event.y_root)
+        except Exception as e:
+            print(e)
         finally:
             # make sure to release the grab (Tk 8.0a1 only)
             self.contextualMenu.grab_release()
         self.contextualMenu.focus_set()
-        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Called when the contextual menu loses focus. Closes it.
         Args:
             _event: default to None
         """
+        print("popup closing :)")
         self.contextualMenu.unpost()
 
     def deleteSelected(self, _event):
