@@ -26,7 +26,6 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDi
 from pollenisatorgui.core.Application.Dialogs.ChildDialogConnect import ChildDialogConnect
 from pollenisatorgui.core.Application.Dialogs.ChildDialogNewCalendar import ChildDialogNewCalendar
 from pollenisatorgui.core.Application.Dialogs.ChildDialogException import ChildDialogException
-from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogEditPassword import ChildDialogEditPassword
 from pollenisatorgui.core.Application.StatusBar import StatusBar
@@ -231,6 +230,43 @@ def iter_namespace(ns_pkg):
     # import_module to work without having to do additional modification to
     # the name.
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+
+class ButtonNotebook(ttk.Frame):
+    def __init__(self, parent, callbackSwitch):
+        super().__init__(parent)
+        self.frameButtons = ttk.Frame(self, style="Notebook.TFrame")
+        self.callbackSwitch = callbackSwitch
+        self.tabs = {}
+        self.current = None
+        self.frameButtons.pack(side="left", anchor="nw", fill=tk.Y)
+        self.btns = {}
+
+    def add(self, widget, name, image):
+        self.tabs[name] = {"widget":widget, "image":image}
+        widget.pack_forget()
+        btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Notebook.TButton")
+        self.btns[name] = btn
+        btn.bind("<Button-1>", self.clicked)
+        btn.pack(side="top", fill=tk.X, anchor="nw")
+
+    def clicked(self, event):
+        name = event.widget.cget("text")
+        self.select(name)
+
+    def getOpenTabName(self):
+        return self.current
+
+    def delete(self, name):
+        del self.tabs[name]
+        self.btns[name].pack_forget()
+
+    def select(self, name):
+        if self.current:
+            self.tabs[self.current]["widget"].pack_forget()
+        self.current = name
+        self.tabs[name]["widget"].pack(side="right", expand=1, anchor="center", fill=tk.BOTH)
+        self.callbackSwitch(name)
+
 
 class Appli(tkinterDnD.Tk):
     """
@@ -545,10 +581,10 @@ class Appli(tkinterDnD.Tk):
         """
         style = ttk.Style(self)
         style.theme_use("clam")
-        try:
-            style.element_create('Plain.Notebook.tab', "from", 'default')
-        except TclError:
-            pass # ALready exists
+        # try:
+        #     style.element_create('Plain.Notebook.tab', "from", 'default')
+        # except TclError:
+        #     pass # ALready exists
         style.configure("Treeview.Heading", background="#73B723",
                         foreground="white", relief="flat")
         style.map('Treeview.Heading', background=[('active', '#73B723')])
@@ -569,23 +605,26 @@ class Appli(tkinterDnD.Tk):
         style.configure("TButton", background="#73B723",
                         foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
         style.configure("icon.TButton", background="white", borderwidth=0)
-        style.configure("TNotebook", background="#73B723", foreground="white", font=(
-            'Sans', '10', 'bold'), tabposition='wn', borderwidth=0, width=100)
+        style.configure("Notebook.TButton", background="#73B723",
+                        foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
+        style.configure("Notebook.TFrame", background="#73B723")
+        # style.configure("TNotebook", background="#73B723", foreground="white", font=(
+        #     'Sans', '10', 'bold'), tabposition='wn', borderwidth=0, width=100)
 
-        style.configure("TNotebook.Tab", background="#73B723", borderwidth=0,
-                        foreground="white", font=('Sans', '10', 'bold'), padding=20, bordercolor="#73B723")
-        style.map('TNotebook.Tab', background=[('active', '#73C723'), ("selected", '#73D723')], foreground=[("active", "white")], font=[("active", (
-            'Sans', '10', 'bold'))], padding=[('active', 20)])
+        # style.configure("TNotebook.Tab", background="#73B723", borderwidth=0,
+        #                 foreground="white", font=('Sans', '10', 'bold'), padding=20, bordercolor="#73B723")
+        # style.map('TNotebook.Tab', background=[('active', '#73C723'), ("selected", '#73D723')], foreground=[("active", "white")], font=[("active", (
+        #     'Sans', '10', 'bold'))], padding=[('active', 20)])
         style.map('TButton', background=[('active', '#73D723')])
         #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
         style.map('Treeview', foreground=Appli.fixedMap('foreground', style),
                   background=Appli.fixedMap('background', style))
         # Removed dashed line https://stackoverflow.com/questions/23354303/removing-ttk-notebook-tab-dashed-line/23399786
-        style.layout("TNotebook.Tab",
-                     [('Plain.Notebook.tab',
-                       {'children':[('Notebook.padding', {'side': 'top', 'children': [('Notebook.label', {
-                           'side': 'top', 'sticky': ''})], 'sticky': 'nswe'})],
-                        'sticky': 'nswe'})])
+        # style.layout("TNotebook.Tab",
+        #              [('Plain.Notebook.tab',
+        #                {'children':[('Notebook.padding', {'side': 'top', 'children': [('Notebook.label', {
+        #                    'side': 'top', 'sticky': ''})], 'sticky': 'nswe'})],
+        #                 'sticky': 'nswe'})])
 
     @staticmethod
     def fixedMap(option, style):
@@ -664,7 +703,7 @@ class Appli(tkinterDnD.Tk):
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        self.nbk.add(self.mainPageFrame, text="  Main View ", image=self.main_tab_img, compound=tk.TOP, sticky='nsew')
+        self.nbk.add(self.mainPageFrame, "Main View", image=self.main_tab_img)
     
     def searchbarSelectAll(self, _event):
         """
@@ -778,8 +817,7 @@ class Appli(tkinterDnD.Tk):
         self.commandPaned.pack(fill=tk.BOTH, expand=1)
         self.commandsFrameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.commandsFrameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        self.nbk.bind("<<NotebookTabChanged>>", self.tabSwitch)
-        self.nbk.add(self.commandsPageFrame, text=" Commands", image=self.commands_tab_img, compound=tk.TOP)
+        self.nbk.add(self.commandsPageFrame, "Commands", image=self.commands_tab_img)
 
     def resizeCanvasFrame(self, event):
         if self.canvas is None:
@@ -804,13 +842,12 @@ class Appli(tkinterDnD.Tk):
             self.helpFrame.destroy()
             self.helpFrame = None
 
-    def tabSwitch(self, event):
+    def tabSwitch(self, tabName):
         """Called when the user click on the tab menu to switch tab. Add a behaviour before the tab switches.
         Args:
-            event : hold informations to identify which tab was clicked.
+            tabName: the opened tab
         """
         apiclient = APIClient.getInstance()
-        tabName = self.nbk.tab(self.nbk.select(), "text").strip()
         self.searchBar.quit()
         if tabName == "Commands":
             self.commandsTreevw.initUI()
@@ -829,25 +866,23 @@ class Appli(tkinterDnD.Tk):
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
                     module["object"].open()
-        event.widget.winfo_children()[event.widget.index("current")].update()
 
     def initSettingsView(self):
         """Add the settings view frame to the notebook widget and initialize its UI."""
         self.settingViewFrame = ttk.Frame(self.nbk)
         self.settings.initUI(self.settingViewFrame)
-        self.settingViewFrame.pack(fill=tk.BOTH, expand=1)
-        self.nbk.add(self.settingViewFrame, text="   Settings   ", image=self.settings_tab_img, compound=tk.TOP)
+        self.nbk.add(self.settingViewFrame, "Settings", image=self.settings_tab_img)
 
     def initScanView(self):
         """Add the scan view frame to the notebook widget. This does not initialize it as it needs a database to be opened."""
         self.scanViewFrame = ttk.Frame(self.nbk)
-        self.nbk.add(self.scanViewFrame, text="     Scan      ", image=self.scan_tab_img, compound=tk.TOP)
+        self.nbk.add(self.scanViewFrame, "Scan", image=self.scan_tab_img)
 
     def initAdminView(self):
         """Add the admin button to the notebook"""
         self.admin = AdminView(self.nbk)
         self.adminViewFrame = ttk.Frame(self.nbk)
-        self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
+        self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
 
     def openScriptModule(self):
         """Open the script window"""
@@ -860,10 +895,9 @@ class Appli(tkinterDnD.Tk):
         if self.nbk is not None:
             self.refreshUI()
             return
-        self.nbk = ttk.Notebook(self)
+        self.nbk = ButtonNotebook(self, self.tabSwitch)
         self.statusbar = StatusBar(self, self)
         self.statusbar.pack(fill=tk.X)
-        self.nbk.enable_traversal()
         self.initMainView()
         self.initAdminView()
         self.initCommandsView()
@@ -871,19 +905,18 @@ class Appli(tkinterDnD.Tk):
         self.initSettingsView()
         for module in self.modules:
             module["view"] = ttk.Frame(self.nbk)
-            self.nbk.add(module["view"], text=module["name"],image=module["img"],compound=tk.TOP)
+            self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
         self.refreshUI()
 
     def refreshUI(self):
         apiclient = APIClient.getInstance()
-        tab_names = [self.nbk.tab(i, option="text").strip() for i in self.nbk.tabs()]
 
         if apiclient.isAdmin():
-            self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
+            self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
         else:
-            self.nbk.hide(tab_names.index("Admin"))
+            self.nbk.delete("Admin")
     
     def newSearch(self, _event=None, histo=True):
         """Called when the searchbar is validated (click on search button or enter key pressed).
@@ -913,7 +946,7 @@ class Appli(tkinterDnD.Tk):
         Args:
             name: not used but mandatory"""
         # get the index of the mouse click
-        self.nbk.select(0)
+        self.nbk.select("Main")
         self.searchMode = True
         self.searchBar.delete(0, tk.END)
         self.searchBar.insert(tk.END, "\""+name+"\" in tags")
@@ -934,7 +967,7 @@ class Appli(tkinterDnD.Tk):
             _event: not used but mandatory
         """
         setViewOn = None
-        nbkOpenedTab = self.nbk.tab(self.nbk.select(), "text").strip()
+        nbkOpenedTab = self.nbk.getOpenTabName()
         activeTw = None
         if nbkOpenedTab == "Main View":
             activeTw = self.treevw

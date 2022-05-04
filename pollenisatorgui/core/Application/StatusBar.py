@@ -85,12 +85,12 @@ class StatusBar(ttk.Frame):
         """
         Update all tags label to tags count
         """
-        for tag, label in self.labelsTags.items():
-            try:
-                label.config(text=tag) # TODO FIX not working +" : "+str(self.tagsCount.get(tag, 0))
+        try:
+            for tag, label in self.labelsTags.items():
+                label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
                 label.update_idletasks()
-            except Exception:
-                pass
+        except Exception:
+            pass
 
     def refreshTags(self, tags):
         self.registeredTags = tags

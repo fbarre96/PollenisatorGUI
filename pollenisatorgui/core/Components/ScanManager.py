@@ -256,7 +256,7 @@ class ScanManager:
             event: Automatically filled when event is triggered. Holds info about which line was double clicked
         """
         if self.scanTv is not None:
-            self.nbk.select(0)
+            self.nbk.select("Main")
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             self.linkTw.see(item)

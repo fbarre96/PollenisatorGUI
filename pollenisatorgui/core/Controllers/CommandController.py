@@ -25,10 +25,7 @@ class CommandController(ControllerElement):
             "Delay", self.model.sleep_between)
         self.model.max_thread = values.get("Threads", self.model.max_thread)
         self.model.text = values.get("Command line options", self.model.text)
-        if values.get("Level", "network") == "port":
-            self.model.ports = values.get("Ports/Services", self.model.ports)
-        else:
-            self.model.ports = ""
+        self.model.ports = values.get("Ports/Services", self.model.ports)
         self.model.priority = values.get("Priority", self.model.priority)
         self.model.safe = bool(values.get("Safe", self.model.safe))
         self.model.timeout = str(values.get("Timeout", self.model.timeout))
@@ -58,10 +55,7 @@ class CommandController(ControllerElement):
         sleep_between = values["Delay"]
         max_thread = values["Threads"]
         text = values["Command line options"]
-        if values["Level"] == "port":
-            ports = values["Ports/Services"]
-        else:
-            ports = ""
+        ports = values["Ports/Services"]
         name = values["Name"]
         lvl = values["Level"]
         priority = values["Priority"]

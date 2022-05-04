@@ -175,7 +175,7 @@ class Summary:
             event: used to identified which link was clicked. Auto filled
         """
         if self.linkTw is not None:
-            self.nbk.select(0)
+            self.nbk.select("Main")
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             self.linkTw.focus(item)

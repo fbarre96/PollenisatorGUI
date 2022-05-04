@@ -42,7 +42,7 @@ class Command(Element):
             priority: priority of the command (0 is highest). Default is 0
             max_thread: number of parallel execution possible of this command. Default is 1
             text: the command line options. Default is "".
-            lvl: level of the command. Must be either "wave", "network", "domain", "ip", "port". Default is "network"
+            lvl: level of the command. Must be either "wave", "network", "domain", "ip", "port" or a module name. Default is "network"
             ports: allowed proto/port, proto/service or port-range for this command
             safe: True or False with True as default. Indicates if autoscan is authorized to launch this command.
             types: type for the command. Lsit of string. Default to None.

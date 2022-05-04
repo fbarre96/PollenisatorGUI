@@ -131,6 +131,7 @@ class Tool(Element):
         base["resultfile"] = self.resultfile
         base["plugin_used"] = self.plugin_used
         base["notes"] = self.notes
+        base["infos"] = self.infos
         res, iid = apiclient.insert("tools", base)
         self._id = iid
         return True, iid

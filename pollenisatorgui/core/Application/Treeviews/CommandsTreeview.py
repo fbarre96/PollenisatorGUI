@@ -31,6 +31,8 @@ class CommandsTreeview(PollenisatorTreeview):
         self.group_command_node = None  # parent of all group commands nodes
         self.openedViewFrameId = None  # if of the currently opened object in the view frame
 
+    
+
     def initUI(self, _event=None):
         """Initialize the user interface widgets and binds them.
         Args:
@@ -199,6 +201,40 @@ class CommandsTreeview(PollenisatorTreeview):
     def refresh(self):
         """Alias to self.load method"""
         self.load()
+
+    def _initContextualsMenus(self):
+        """
+        Create the contextual menu
+        """
+        self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
+                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu.add_command(
+            label="Duplicate command", command=self.duplicateCommand)
+        self.contextualMenu.add_separator()
+        self.contextualMenu.add_command(
+            label="Sort children", command=self.sort)
+        self.contextualMenu.add_command(
+            label="Expand", command=self.expand)
+        self.contextualMenu.add_command(
+            label="Collapse", command=self.collapse)
+        self.contextualMenu.add_separator()
+        self.contextualMenu.add_command(
+            label="Close", command=self.closeMenu)
+        super()._initContextualsMenus
+        return self.contextualMenu
+
+    def duplicateCommand(self, _event=None):
+        for selected in self.selection():
+            view_o = self.getViewFromId(selected)
+            if view_o is not None:
+                if isinstance(view_o, CommandView):
+                    data = view_o.controller.getData()
+                    del data["_id"]
+                    data["name"] = data["name"] + "_dup"
+                    objView = CommandView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command(data)))
+                    objView.openInsertWindow()
+                    
 
     def notify(self, db, collection, iid, action, parent):
         """

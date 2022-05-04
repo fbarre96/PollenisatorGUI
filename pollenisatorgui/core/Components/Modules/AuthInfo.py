@@ -10,6 +10,7 @@ from pollenisatorgui.core.Views.IpView import IpView
 from pollenisatorgui.core.Views.PortView import PortView
 from pollenisatorgui.core.Views.ScopeView import ScopeView
 from pollenisatorgui.core.Models.Tool import Tool
+from pollenisatorgui.core.Models.Command import Command
 
 
 class AuthInfo:
@@ -18,6 +19,7 @@ class AuthInfo:
     """
     iconName = "tab_auth.png"
     tabName = " Auth Infos "
+    registerLvls = ["auth:cookie","auth:password"]
     def __init__(self, parent, settings):
         """
         Constructor
@@ -80,7 +82,7 @@ class AuthInfo:
             return
         self.parent = parent
         self.tkApp = tkApp
-        self.treevw = treevw
+        self.treevwApp = treevw
         self.moduleFrame = ttk.Frame(parent)
 
         self.rowHeight = 20
@@ -195,22 +197,33 @@ class AuthInfo:
         self.tkApp.wait_window(dialog.app)
         if isinstance(dialog.rvalue , dict):
             apiclient = APIClient.getInstance()
-            apiclient.insertInDb(apiclient.getCurrentPentest(), "auths", {"name": dialog.rvalue["key"].strip(), "value":dialog.rvalue["value"].strip(), "type":dialog.rvalue["type"].lower()}, "", True)
-        # for selected in self.treevw.selection():
-        #     view_o = self.treevw.getViewFromId(selected)
-        #     if view_o is not None:
-        #         lvl = "network" if isinstance(view_o, ScopeView) else None
-        #         lvl = "wave" if isinstance(view_o, WaveView) else lvl
-        #         lvl = "ip" if isinstance(view_o, IpView) else lvl
-        #         lvl = "port" if isinstance(view_o, PortView) else lvl
-        #         if lvl is not None:
-        #             inst = view_o.controller.getData()
-        #             Tool().initialize()
-        #             Terminal.openTerminal(lvl+"|"+inst.get("wave", "Imported")+"|"+inst.get(
-        #                 "scope", "")+"|"+inst.get("ip", "")+"|"+inst.get("port", "")+"|"+inst.get("proto", ""))
-        #         else:
-        #             tk.messagebox.showerror(
-        #                 "ERROR : Wrong selection", "You have to select a object that may have tools")
+            name = dialog.rvalue["key"].strip()
+            value = dialog.rvalue["value"].strip()
+            auth_info = {"name": name, "value":value, "type":dialog.rvalue["type"].lower()}
+            apiclient.insertInDb(apiclient.getCurrentPentest(),"auths", auth_info, notify=True)
+            for selected in self.treevwApp.selection():
+                view_o = self.treevwApp.getViewFromId(selected)
+                if view_o is not None:
+                    lvl = "network" if isinstance(view_o, ScopeView) else None
+                    lvl = "wave" if isinstance(view_o, WaveView) else lvl
+                    lvl = "ip" if isinstance(view_o, IpView) else lvl
+                    lvl = "port" if isinstance(view_o, PortView) else lvl
+                    if lvl is not None:
+                        inst = view_o.controller.getData()
+                        if auth_info["type"].lower() == "cookie":
+                            command_lvl = "auth:cookie"
+                        if auth_info["type"].lower() == "password":
+                            command_lvl = "auth:password"
+                        view_o.controller.updateInfos({"auth_cookie":name+"="+value+";"})
+                        commands = Command.fetchObjects({"lvl":command_lvl}, targetdb=apiclient.getCurrentPentest())
+                        for command in commands:
+                            tool = Tool().initialize(str(command.getId()), inst.get("wave", self.tabName.strip().lower()),
+                                   "", inst.get("scope",""), inst.get("ip",""), inst.get("port",""), inst.get("proto",""),
+                                   lvl=lvl)
+                            tool.addInDb()
+                    else:
+                        tk.messagebox.showerror(
+                            "ERROR : Wrong selection", "You have to select a object that may have tools")
 
 class ChildDialogAuthInfo:
     """
@@ -232,17 +245,26 @@ class ChildDialogAuthInfo:
         self.parent = parent
         lbl = ttk.Label(appFrame, text=displayMsg)
         lbl.pack(pady=5)
+        valFrame = ttk.Frame(self.app)
         self.box = ttk.Combobox(
-            appFrame, values=tuple(["Password","Cookie"]), state="readonly")
+            valFrame, values=tuple(["Password","Cookie"]), state="readonly")
         self.box.bind('<<ComboboxSelected>>', self.box_modified)  
         self.box.set("Password")
-        self.lbl_key = ttk.Label(appFrame, text="Login:")
-        self.entry_key = ttk.Entry(appFrame)
-        self.lbl_value = ttk.Label(appFrame, text="Password:")
-        self.entry_value = ttk.Entry(appFrame)
+        self.box.grid(column=0, row=0)
+        self.lbl_key = ttk.Label(valFrame, text="Login:")
+        self.lbl_key.grid(row=0, column=1)
+        self.entry_key = ttk.Entry(valFrame)
+        self.entry_key.grid(row=0, column=2)
+        self.lbl_value = ttk.Label(valFrame, text="Password:")
+        self.lbl_value.grid(row=0, column=3)
+        self.entry_value = ttk.Entry(valFrame)
+        self.entry_value.grid(row=0, column=4)
+        valFrame.pack(ipadx=10, ipady=5, pady=10, padx=10)
         self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
-        self.ok_button.pack(padx=10, pady=5)
+        self.ok_button.pack(padx=10, pady=5, side="right")
+        self.cancel_button = ttk.Button(appFrame, text="Cancel", command=self.onError)
+        self.cancel_button.pack(padx=10, pady=5, side="right")
         appFrame.pack(ipadx=10, ipady=5)
         try:
             self.app.wait_visibility()
@@ -257,7 +279,7 @@ class ChildDialogAuthInfo:
     def openCombo(self):
         self.box.event_generate('<Button-1>')
 
-    def boxModified(self, event=""):
+    def box_modified(self, event=""):
         if self.box.get() == "Password":
             self.lbl_key.configure(text="Login:")
             self.lbl_value.configure(text="Password:")
