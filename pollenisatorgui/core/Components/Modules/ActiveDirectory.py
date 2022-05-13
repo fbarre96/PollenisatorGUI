@@ -787,6 +787,28 @@ class ChildDialogConfigureADModule:
         
         panel = FormPanel()
         ad_settings = ActiveDirectory.getSettings()
+        self.explanationLbl = panel.addFormText("Explanation","","""
+        Explanations
+        You can use those commands with different Types and Variables:
+        
+        Types:
+            - Computer: those commands will be available when right clicking one or many computer and will execute the selected command for each one of them. 
+                        It takes into account what user is selected in the user treeview or will ask information otherwise.
+            - Share: those commands  will be available when right clicking one File in a share.
+            - OnComputerNewUser: Same as computer + will be launched automatically for each new user that can connect to a computer for this computer/user combo.
+            - OnComputerFirstUser: Same as computer + will be launched automatically for the first user discovered on each computer
+            - OnComputerFirstAdmin: Same as OnComputerFirstUser but only for the first admin user discovered on each computer
+            - OnDCFirstUser: Same as OnComputerFirstUser but only if the computer is a Domain Controller.
+            - OnDCFirstUser: Same as OnDCFirstUser but only if the user is admin (domain admin).
+        Variables:
+            - |ip|: will be replaced by the selected computer IP
+            - |share|: (Only for Share type commands) Will be replaced with the filename selected in the share table.
+            - |username|, |domain|, |password|: will be replaced by the selected user information, or will be prompted if nothing is selected.
+            - |wordlist|: will be prompted for a wordlist type of file and replaced by the filepath given
+            - |ask_text:$name|: prompt for a text where name is what is asked. store it in a file and replace in command by filepath
+            - |users_as_file|: will be replaced with a filename containing all users usernames
+            - |computers_as_file|: will be replaced with a filename containing all computers IPs
+        """, state="disabled")
         self.formtv = panel.addFormTreevw("Commands", ("Type", "Command name", "Command line"), 
                             ad_settings.get("commands", []), doubleClickBinds=[["Computer", "Share", "OnComputerNewUser", "OnComputerFirstUser", "OnComputerFirstAdmin", "OnDCFirstUser", "OnDCFirstAdmin"], "", ""],
                             side="top", width=800,height=10, fill=tk.BOTH)

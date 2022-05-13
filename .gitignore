@@ -71,6 +71,7 @@ config/tools.d/*
 venv/
 config/client.cfg
 config/server.cfg
+config/settings.cfg
 AllInOne/results/*
 !AllInOne/results
 PollenisatorWorker/
