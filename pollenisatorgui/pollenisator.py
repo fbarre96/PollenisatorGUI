@@ -59,10 +59,14 @@ class GracefulKiller:
 def pollex():
     """Send a command to execute for pollenisator-gui running instance
     """
-    
-    execCmd = shlex.join(sys.argv[1:])
+    verbose = False
+    if sys.argv[1] == "-v":
+        verbose = True
+        execCmd = shlex.join(sys.argv[2:])
+    else:
+        execCmd = shlex.join(sys.argv[1:])
     bin_name = shlex.split(execCmd)[0]
-    if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code"]:
+    if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code", "cd", "pwd", "cat"]:
         return
     cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
     apiclient = APIClient.getInstance()
@@ -100,6 +104,8 @@ def pollex():
     with tempfile.TemporaryDirectory() as tmpdirname:
         outputFilePath = os.path.join(tmpdirname, cmdName)
         comm = comm.replace("|outputDir|", outputFilePath)
+        if (verbose):
+            print("Executing command : "+str(comm))
         returncode, stdout = Utils.execute(comm, None, True)
         #if stdout.strip() != "":
         #    print(stdout.strip())
@@ -110,7 +116,7 @@ def pollex():
                 print(f"ERROR : Expected file was not generated {outputFilePath}")
                 return
         print(f"INFO : Uploading results {outputFilePath}")
-        msg = apiclient.importExistingResultFile(outputFilePath, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
+        msg = apiclient.importExistingResultFile(outputFilePath, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), comm)
         print(msg)
         
 

@@ -218,7 +218,7 @@ class Tool(Element):
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
             apiclient.update("tools", ObjectId(self._id), {"scanner_ip": str(self.scanner_ip), "dated": str(self.dated), "status": self.status,
-                         "datef":  str(self.datef), "notes":  self.notes, "resultfile": self.resultfile, "plugin_used":self.plugin_used, "tags": self.tags})
+                         "datef":  str(self.datef), "notes":  self.notes, "resultfile": self.resultfile, "plugin_used":self.plugin_used, "tags": self.tags, "infos":self.infos})
         else:
             apiclient.update(
                 "tools", ObjectId(self._id), pipeline_set)

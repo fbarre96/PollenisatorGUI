@@ -18,7 +18,7 @@ class AuthInfo:
     Shows information about ongoing pentest. 
     """
     iconName = "tab_auth.png"
-    tabName = " Auth Infos "
+    tabName = "Auth Infos"
     registerLvls = ["auth:cookie","auth:password"]
     def __init__(self, parent, settings):
         """
@@ -217,7 +217,7 @@ class AuthInfo:
                         view_o.controller.updateInfos({"auth_cookie":name+"="+value+";"})
                         commands = Command.fetchObjects({"lvl":command_lvl}, targetdb=apiclient.getCurrentPentest())
                         for command in commands:
-                            tool = Tool().initialize(str(command.getId()), inst.get("wave", self.tabName.strip().lower()),
+                            tool = Tool().initialize(str(command.getId()), inst.get("wave", self.__class__.tabName.strip().lower()),
                                    "", inst.get("scope",""), inst.get("ip",""), inst.get("port",""), inst.get("proto",""),
                                    lvl=lvl)
                             tool.addInDb()

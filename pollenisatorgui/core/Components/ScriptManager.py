@@ -5,6 +5,7 @@ import pollenisatorgui.core.Components.Utils as Utils
 from pollenisatorgui.core.Components.apiclient import APIClient
 from PIL import Image, ImageTk
 from ttkwidgets import CheckboxTreeview
+from ttkwidgets import tooltips
 import importlib
 
 class ScriptManager:

@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 from pollenisatorgui.core.Forms.Form import Form
 import pyperclip
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
+from pollenisatorgui.core.Application.Dialogs.ChildDialogAskText import ChildDialogAskText
 
 class FormTreevw(Form):
     """
@@ -38,6 +39,7 @@ class FormTreevw(Form):
         self.contextualMenu = kwargs.get("contextualMenu", None)
         self.doubleClickBinds = kwargs.get("doubleClickBinds", None)
         self.f = None
+        self.type = "dict"
 
     def _initContextualMenu(self, parent):
         """Initialize the contextual menu for paperclip.
@@ -104,52 +106,72 @@ class FormTreevw(Form):
         """
         child_odd = False
         if columnsLen is None:
-            columnsLen = [0, 0]
-        sorted_keys = sorted(list(values.keys()))
-        for sorted_key in sorted_keys:
-            key = sorted_key
-            value = values[key]
-            root = parent
-            if isinstance(value, str):
-                self.treevw.insert(root, tk.END, None, text=key, values=[
-                    str(value)], tags=("odd") if odd else ())
-                odd = not odd
-                columnsLen[0] = max(columnsLen[0], self.f.measure(key))
-                columnsLen[1] = min(
-                    1000, max(columnsLen[1], self.f.measure(str(value))))
-            elif isinstance(value, list):
-                root = self.treevw.insert(
-                    root, tk.END, None, text=key, tags=("odd") if odd else ())
-                odd = not odd
-                columnsLen[0] = max(columnsLen[0], self.f.measure(key))
-                child_odd = False
-                for listValue in value:
-                    self.treevw.insert(root, tk.END, None,
-                                       text="", values=[str(listValue)], tags=("odd") if child_odd else ())
-                    columnsLen[1] = min(1000, max(
-                        columnsLen[1], self.f.measure(str(listValue))))
+            columnsLen = [self.f.measure(str(x)) for x in self.headings]
+        if isinstance(values, dict):
+            # treeview
+            self.type = "dict"
+            sorted_keys = sorted(list(values.keys()))
+            for sorted_key in sorted_keys:
+                key = sorted_key
+                value = values[key]
+                root = parent
+                if isinstance(value, str):
+                    self.treevw.insert(root, tk.END, None, text=key, values=[
+                        str(value)], tags=("odd") if odd else ())
+                    odd = not odd
+                    columnsLen[0] = max(columnsLen[0], self.f.measure(key))
+                    columnsLen[1] = min(
+                        1000, max(columnsLen[1], self.f.measure(str(value))))
+                elif isinstance(value, list):
+                    if parent != '':
+                        return 
+                    root = self.treevw.insert(
+                        root, tk.END, None, text=key, tags=("odd") if odd else ())
+                    odd = not odd
+                    columnsLen[0] = max(columnsLen[0], self.f.measure(key))
+                    child_odd = False
+                    for listValue in value:
+                        self.treevw.insert(root, tk.END, None,
+                                        text="", values=[str(listValue)], tags=("odd") if child_odd else ())
+                        columnsLen[1] = min(1000, max(
+                            columnsLen[1], self.f.measure(str(listValue))))
+                        child_odd = not child_odd
+                elif isinstance(value, tuple):
+                    if len(value) == 0:
+                        continue
+                    value_arr = list(value[1:]) if len(value) > 1 else []
+                    self.treevw.insert(root, tk.END, None, text=str(value[0]), values=value_arr, tags=("odd") if child_odd else ())
+                    for i in range(len(value)):
+                        try:
+                            columnsLen[i] = min(1000, max(
+                                columnsLen[i], self.f.measure(str(value[i]))))
+                        except IndexError:
+                            columnsLen.insert(i, min(1000, self.f.measure(str(value[i]))))
                     child_odd = not child_odd
-            elif isinstance(value, tuple):
-                if len(value) == 0:
-                    continue
-                value_arr = list(value[1:]) if len(value) > 1 else []
-                self.treevw.insert(root, tk.END, None, text=str(value[0]), values=value_arr, tags=("odd") if child_odd else ())
-                for i in range(len(value)):
+                elif isinstance(value, dict):
+                    parent = self.treevw.insert(
+                        root, tk.END, None, text=key, tags=("odd") if odd else ())
+                    odd = not odd
+                    columnsLen[0] = max(columnsLen[0], self.f.measure(key))
+                    columnsLen[1] = min(1000, max(
+                        columnsLen[1], self.f.measure(str(value))))
+                    columnsLen = self.recurse_insert(
+                        value, parent=root, columnsLen=columnsLen, odd=odd)
+        elif isinstance(values, list):
+            # table like
+            self.type = "list"
+            for sub_list in values:
+                if len(sub_list) == 0:
+                        continue
+                value_arr = list(sub_list[1:]) if len(sub_list) > 1 else []
+                self.treevw.insert(parent, tk.END, None, text=str(sub_list[0]), values=value_arr, tags=("odd") if child_odd else ())
+                for i in range(len(sub_list)):
                     try:
                         columnsLen[i] = min(1000, max(
-                            columnsLen[i], self.f.measure(str(value[i]))))
+                            columnsLen[i], self.f.measure(str(sub_list[i]))))
                     except IndexError:
-                        columnsLen.insert(i, min(1000, self.f.measure(str(value[i]))))
+                        columnsLen.insert(i, min(1000, self.f.measure(str(sub_list[i]))))
                 child_odd = not child_odd
-            elif isinstance(value, dict):
-                parent = self.treevw.insert(
-                    root, tk.END, None, text=key, tags=("odd") if odd else ())
-                odd = not odd
-                columnsLen[0] = max(columnsLen[0], self.f.measure(key))
-                columnsLen[1] = min(1000, max(
-                    columnsLen[1], self.f.measure(str(value))))
-                columnsLen = self.recurse_insert(
-                    value, parent=root, columnsLen=columnsLen, odd=odd)
         return columnsLen
 
     def constructView(self, parent):
@@ -159,11 +181,8 @@ class FormTreevw(Form):
         Args:
             parent: parent FormPanel.
         """
-        if not isinstance(self.default_values, dict):
-            self.default_values = {}
         self.tvFrame = ttk.Frame(
             parent.panel, width=self.getKw("width", 600))
-
         self.treevw = ttk.Treeview(
             self.tvFrame, height=min(self.getKw("height", len(
                 self.default_values)+1), self.getKw("max_height", 10)))
@@ -201,7 +220,7 @@ class FormTreevw(Form):
             if not emptyRowFound:
                 tags = ("odd") if len(children) % 2 == 1 else ()
                 self.treevw.insert('', tk.END, None, text="",
-                                values=[""], tags=tags)
+                                values=["" for x in range(len(self.headings)-1)], tags=tags)
             self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
             self.treevw.bind("<Delete>", self.deleteItem)
             self.treevw.bind("<Control-c>", self.copy)
@@ -282,19 +301,28 @@ class FormTreevw(Form):
         if columnNb == 0:
             oldVal = self.treevw.item(item)["text"]
         else:
-            oldVal = values[columnNb-1]
+            try:
+                oldVal = values[columnNb-1]
+            except IndexError:
+                oldVal = ""
         if self.doubleClickBinds is None:
-            newVal = tk.simpledialog.askstring(
-                "Modify infos", "New value for "+self.headings[columnNb].lower(), initialvalue=oldVal)
+            dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=False, width=100)
+            self.tvFrame.wait_window(dialog.app)
+            if dialog.rvalue is None:
+                return
+            newVal = dialog.rvalue
         else:
             binding = self.doubleClickBinds[columnNb]
             if binding is None:
                 return
             elif isinstance(binding, str):
-                newVal = tk.simpledialog.askstring(
-                    "Modify infos", "New value for "+self.headings[columnNb].lower(), initialvalue=oldVal)
+                dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=False, width=100)
+                self.tvFrame.wait_window(dialog.app)
+                if dialog.rvalue is None:
+                    return
+                newVal = dialog.rvalue
             elif isinstance(binding, list):
-                dialog = ChildDialogCombo(None, binding, "Choose a plugin:")
+                dialog = ChildDialogCombo(None, binding, "Choose one:")
                 dialog.app.wait_window(dialog.app)
                 newVal = dialog.rvalue
         if newVal is None:
@@ -317,7 +345,7 @@ class FormTreevw(Form):
         if not emptyRowFound:
             tags = ("odd") if len(children) % 2 == 1 else ()
             self.treevw.insert('', tk.END, None, text="",
-                               values=[""], tags=tags)
+                               values=["" for x in range(len(self.headings)-1)], tags=tags)
             currentHeight = len(self.treevw.get_children())
             if currentHeight < self.getKw("max_height", 5):
                 self.treevw.config(height=currentHeight)
@@ -336,20 +364,31 @@ class FormTreevw(Form):
         Returns:
             Return the entry value as string.
         """
-        ret = {}
-        children = self.treevw.get_children()
-        for child in children:
-            item = self.treevw.item(child)
-            if not item["values"]:
-                children_list = self.treevw.get_children(child)
-                if children_list:
-                    for child_list in children_list:
-                        ret[item["text"]] = ret.get(item["text"], [])
-                        item_child_list = self.treevw.item(child_list)
-                        if item_child_list["values"]:
-                            ret[item["text"]].append(item_child_list["values"][0])
+        if self.type == "dict":
+            ret = {}
+            children = self.treevw.get_children()
+            for child in children:
+                item = self.treevw.item(child)
+                if not item["values"]:
+                    children_list = self.treevw.get_children(child)
+                    if children_list:
+                        for child_list in children_list:
+                            ret[item["text"]] = ret.get(item["text"], [])
+                            item_child_list = self.treevw.item(child_list)
+                            if item_child_list["values"]:
+                                ret[item["text"]].append(item_child_list["values"][0])
+                    else:
+                        ret[item["text"]] = ""
                 else:
-                    ret[item["text"]] = ""
-            else:
-                ret[item["text"]] = item["values"]
-        return ret
+                    ret[item["text"]] = item["values"]
+            return ret
+        elif self.type == "list":
+            ret = []
+            children = self.treevw.get_children()
+            for child in children:
+                item = self.treevw.item(child)
+                elem = []
+                elem.append(item["text"])
+                elem += list(item["values"])
+                ret.append(elem)
+            return ret

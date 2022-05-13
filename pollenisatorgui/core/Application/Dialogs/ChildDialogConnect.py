@@ -6,7 +6,6 @@ from PIL import ImageTk, Image
 import requests
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.Utils import loadClientConfig, saveClientConfig, getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
-from pollenisatorgui.core.Forms.FormPanel import FormPanel
 
 class ChildDialogConnect:
     """
@@ -54,7 +53,6 @@ class ChildDialogConnect:
         self.parent = parent
         self.app = tk.Toplevel(parent, bg="white")
         self.app.resizable(False, False)
-        self.form = FormPanel()
         appFrame = ttk.Frame(self.app)
         self.rvalue = None
         self.parent = parent

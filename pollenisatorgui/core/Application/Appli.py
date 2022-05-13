@@ -257,8 +257,9 @@ class ButtonNotebook(ttk.Frame):
         return self.current
 
     def delete(self, name):
-        del self.tabs[name]
-        self.btns[name].pack_forget()
+        if name in self.tabs:
+            del self.tabs[name]
+            self.btns[name].pack_forget()
 
     def select(self, name):
         if self.current:
@@ -294,7 +295,7 @@ class Appli(tkinterDnD.Tk):
         self.nbk = None
         self.sio = None #socketio client
         self.initialized = False
-        self.setStyle()
+        Utils.setStyle(self)
         self.main_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_main.png"))
         self.commands_tab_img = ImageTk.PhotoImage(
@@ -573,79 +574,6 @@ class Appli(tkinterDnD.Tk):
         menubar.add_cascade(label="User", menu=fileMenuUser)
         menubar.add_cascade(label="Help", menu=fileMenu3)
 
-    def setStyle(self, _event=None):
-        """
-        Set the pollenisator window widget style using ttk.Style
-        Args:
-            _event: not used but mandatory
-        """
-        style = ttk.Style(self)
-        style.theme_use("clam")
-        # try:
-        #     style.element_create('Plain.Notebook.tab', "from", 'default')
-        # except TclError:
-        #     pass # ALready exists
-        style.configure("Treeview.Heading", background="#73B723",
-                        foreground="white", relief="flat")
-        style.map('Treeview.Heading', background=[('active', '#73B723')])
-        style.configure("TLabelframe", background="white",
-                        labeloutside=False, bordercolor="#73B723")
-        style.configure('TLabelframe.Label', background="#73B723",
-                        foreground="white", font=('Sans', '10', 'bold'))
-        style.configure("TProgressbar",
-                        background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
-        style.configure("Important.TFrame", background="#73B723")
-        style.configure("TFrame", background="white")
-        style.configure("Important.TLabel", background="#73B723", foreground="white")
-        style.configure("TLabel", background="white")
-        style.configure("TCombobox", background="white")
-        
-        style.configure("TCheckbutton", background="white",
-                        font=('Sans', '10', 'bold'))
-        style.configure("TButton", background="#73B723",
-                        foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
-        style.configure("icon.TButton", background="white", borderwidth=0)
-        style.configure("Notebook.TButton", background="#73B723",
-                        foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
-        style.configure("Notebook.TFrame", background="#73B723")
-        # style.configure("TNotebook", background="#73B723", foreground="white", font=(
-        #     'Sans', '10', 'bold'), tabposition='wn', borderwidth=0, width=100)
-
-        # style.configure("TNotebook.Tab", background="#73B723", borderwidth=0,
-        #                 foreground="white", font=('Sans', '10', 'bold'), padding=20, bordercolor="#73B723")
-        # style.map('TNotebook.Tab', background=[('active', '#73C723'), ("selected", '#73D723')], foreground=[("active", "white")], font=[("active", (
-        #     'Sans', '10', 'bold'))], padding=[('active', 20)])
-        style.map('TButton', background=[('active', '#73D723')])
-        #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
-        style.map('Treeview', foreground=Appli.fixedMap('foreground', style),
-                  background=Appli.fixedMap('background', style))
-        # Removed dashed line https://stackoverflow.com/questions/23354303/removing-ttk-notebook-tab-dashed-line/23399786
-        # style.layout("TNotebook.Tab",
-        #              [('Plain.Notebook.tab',
-        #                {'children':[('Notebook.padding', {'side': 'top', 'children': [('Notebook.label', {
-        #                    'side': 'top', 'sticky': ''})], 'sticky': 'nswe'})],
-        #                 'sticky': 'nswe'})])
-
-    @staticmethod
-    def fixedMap(option, style):
-        """
-        Fix color tag in treeview not appearing under some linux distros
-        Args:
-            option: the string option you want to affect on treeview ("background" for example)
-            strle: the style object of ttk
-        """
-        # Fix for setting text colour for Tkinter 8.6.9
-        # From: https://core.tcl.tk/tk/info/509cafafae
-        #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
-        # Returns the style map for 'option' with any styles starting with
-        # ('!disabled', '!selected', ...) filtered out.
-
-        # style.map() returns an empty list for missing options, so this
-        # should be future-safe.
-        return [elm for elm in style.map('Treeview', query_opt=option) if
-                elm[:2] != ('!disabled', '!selected')]
-
-
     def initMainView(self):
         """
         Fill the main view tab menu
@@ -908,6 +836,7 @@ class Appli(tkinterDnD.Tk):
             self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
+        self.nbk.select("Main View")
         self.refreshUI()
 
     def refreshUI(self):
@@ -946,7 +875,7 @@ class Appli(tkinterDnD.Tk):
         Args:
             name: not used but mandatory"""
         # get the index of the mouse click
-        self.nbk.select("Main")
+        self.nbk.select("Main View")
         self.searchMode = True
         self.searchBar.delete(0, tk.END)
         self.searchBar.insert(tk.END, "\""+name+"\" in tags")
@@ -1270,5 +1199,5 @@ class Appli(tkinterDnD.Tk):
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser(self)
+        dialog = ChildDialogFileParser()
         self.wait_window(dialog.app)

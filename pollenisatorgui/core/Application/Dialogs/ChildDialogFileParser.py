@@ -1,12 +1,13 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinterDnD
 import os
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Forms.FormPanel import FormPanel
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
-
+import pollenisatorgui.core.Components.Utils as Utils
 
 
 class ChildDialogFileParser:
@@ -15,19 +16,19 @@ class ChildDialogFileParser:
     existing files parsing.
     """
 
-    def __init__(self, parent, default_path=""):
+    def __init__(self, default_path=""):
         """
         Open a child dialog of a tkinter application to ask details about
         existing files parsing.
 
         Args:
-            parent: the tkinter parent view to use for this window construction.
+            default_path: a default path to be added
         """
-        self.app = tk.Toplevel(parent)
+        self.app = tkinterDnD.Tk()
+        Utils.setStyle(self.app)
         self.app.title("Upload result file")
         self.rvalue = None
         self.default = default_path
-        self.parent = parent
         appFrame = ttk.Frame(self.app)
         apiclient = APIClient.getInstance()
         self.form = FormPanel()
@@ -45,12 +46,13 @@ class ChildDialogFileParser:
 
         try:
             self.app.wait_visibility()
-            self.app.transient(parent)
             self.app.focus_force()
             self.app.grab_set()
             self.app.lift()
         except tk.TclError:
             pass
+        self.app.mainloop()
+        self.app.destroy()
 
     def onOk(self, _event=None):
         """
@@ -81,7 +83,7 @@ class ChildDialogFileParser:
                         files.add(os.path.join(r, fil))
             else:
                 files.add(filepath)
-        dialog = ChildDialogProgress(self.parent, "Importing files", "Importing "+str(
+        dialog = ChildDialogProgress(self.app, "Importing files", "Importing "+str(
             len(files)) + " files. Please wait for a few seconds.", 200, "determinate")
         dialog.show(len(files))
         # LOOP ON FOLDER FILES
@@ -114,4 +116,4 @@ class ChildDialogFileParser:
                 tk.messagebox.showinfo("Parsing ended", presResults, parent=self.app)
 
         self.rvalue = None
-        self.app.destroy()
+        self.app.quit()

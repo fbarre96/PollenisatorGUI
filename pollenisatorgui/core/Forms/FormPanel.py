@@ -208,17 +208,17 @@ class FormPanel(Form):
         self.subforms.append(f)
         return f
 
-    def addFormText(self, name, regexvalidation="", default="", contextualMenu=None, **kwargs):
+    def addFormText(self, name, validation="", default="", contextualMenu=None, **kwargs):
         """
         Add a form Text to this panel.
 
         Args:
             name: the text var desired name
-            regexvalidation: a regex to validate this input
+            validation: a regex to validate this input or a callback function
             default: a default value for this input
             kwargs: keywords for FormText
         """
-        f = FormText(name, regexvalidation, default, contextualMenu, **kwargs)
+        f = FormText(name, validation, default, contextualMenu, **kwargs)
         self.subforms.append(f)
         return f
 

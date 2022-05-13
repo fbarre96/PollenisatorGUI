@@ -13,6 +13,8 @@ from bson import ObjectId
 import signal
 from shutil import which
 import shlex
+import tkinter  as tk
+import tkinter.ttk as ttk
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -76,6 +78,61 @@ def loadPlugin(pluginName):
         return REGISTRY["Default"]
 
 
+def setStyle(tkApp, _event=None):
+    """
+    Set the tk app style window widget style using ttk.Style
+    Args:
+        _event: not used but mandatory
+    """
+
+    style = ttk.Style(tkApp)
+    style.theme_use("clam")
+    style.configure("Treeview.Heading", background="#73B723",
+                    foreground="white", relief="sunken", borderwidth=1)
+    style.map('Treeview.Heading', background=[('active', '#73B723')])
+    style.configure("TLabelframe", background="white",
+                    labeloutside=False, bordercolor="#73B723")
+    style.configure('TLabelframe.Label', background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'))
+    style.configure("TProgressbar",
+                    background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
+    style.configure("Important.TFrame", background="#73B723")
+    style.configure("TFrame", background="white")
+    style.configure("Important.TLabel", background="#73B723", foreground="white")
+    style.configure("TLabel", background="white")
+    style.configure("TCombobox", background="white")
+    
+    style.configure("TCheckbutton", background="white",
+                    font=('Sans', '10', 'bold'))
+    style.configure("TButton", background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
+    style.configure("icon.TButton", background="white", borderwidth=0)
+    style.configure("Notebook.TButton", background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
+    style.configure("Notebook.TFrame", background="#73B723")
+    style.map('TButton', background=[('active', '#73D723')])
+    #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
+    style.map('Treeview', foreground=fixedMap('foreground', style),
+                background=fixedMap('background', style))
+
+def fixedMap(option, style):
+    """
+    Fix color tag in treeview not appearing under some linux distros
+    Args:
+        option: the string option you want to affect on treeview ("background" for example)
+        strle: the style object of ttk
+    """
+    # Fix for setting text colour for Tkinter 8.6.9
+    # From: https://core.tcl.tk/tk/info/509cafafae
+    #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
+    # Returns the style map for 'option' with any styles starting with
+    # ('!disabled', '!selected', ...) filtered out.
+
+    # style.map() returns an empty list for missing options, so this
+    # should be future-safe.
+    return [elm for elm in style.map('Treeview', query_opt=option) if
+            elm[:2] != ('!disabled', '!selected')]
+                  
 def isIp(domain_or_networks):
     """
     Check if the given scope string is a network ip or a domain.
@@ -354,6 +411,13 @@ def getIconDir():
         os.path.realpath(__file__)), "../../icon/")
     return p
 
+def getExportDir():
+    """Returns:
+        the pollenisator export folder
+    """
+    p = os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), "../../exports/")
+    return p
 
 def getMainDir():
     """Returns:
@@ -426,3 +490,32 @@ def openPathForUser(path, folder_only=False):
         except Exception:
             return False
     return True
+
+def executeInExternalTerm(command, with_bash=True, env={}):
+    from pollenisatorgui.core.Components.Settings import Settings
+    settings = Settings()
+    favorite = settings.getFavoriteTerm()
+    if favorite is None:
+        tk.messagebox.showerror(
+            "Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
+        return False
+    if which(favorite) is not None:
+        env = {**os.environ, **env}
+        terms = settings.getTerms()
+        terms_dict = {}
+        for term in terms:
+            terms_dict[term.split(" ")[0]] = term
+        command_term = terms_dict.get(favorite, None)
+        if command_term is not None:
+            if not command_term.endswith(" "):
+                command_term += " "
+            command_term += command
+            subprocess.Popen(command_term, shell=True, env=env, cwd=getExportDir())
+        else:
+            tk.messagebox.showerror(
+                "Terminal settings invalid", "Check your terminal settings")
+    else:
+        tk.messagebox.showerror(
+            "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
+    return False
+

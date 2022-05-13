@@ -123,14 +123,11 @@ class ToolView(ViewElement):
         dates_panel.addFormStr(
             "Scanner", r"", modelData["scanner_ip"], row=2, column=1)
         dates_panel.addFormLabel("Command executed", row=3)
-        dates_panel.addFormStr("Command executed", "", modelData["text"], row=3, column=1, state="disabled")
+        dates_panel.addFormStr("Command executed", "", modelData.get("infos", {}).get("cmdline",""), row=3, column=1, state="disabled")
         notes = modelData.get("notes", "")
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
-        # top_panel.addFormLabel("Infos", side="left")
-        # top_panel.addFormTreevw("Infos", ("Infos", "Values"),
-        #                         modelData["infos"], side="left", width=300, fill="both", height=3, binds={"<Enter>": self.mainApp.unboundToMousewheelMain, "<Leave>": self.mainApp.boundToMousewheelMain})
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         hasWorkers = len(apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()}))

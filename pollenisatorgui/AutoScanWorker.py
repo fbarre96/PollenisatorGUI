@@ -48,7 +48,6 @@ def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
     toolFileName = toolModel.name+"_" + \
             str(time.time()) # ext already added in command
     outputDir = os.path.join(abs_path, "./results", outputRelDir)
-    
     # Create the output directory
     try:
         os.makedirs(outputDir)
@@ -61,6 +60,8 @@ def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
             return False, str(exc)
     outputDir = os.path.join(outputDir, toolFileName)
     comm = comm.replace("|outputDir|", outputDir)
+    toolModel.updateInfos({"cmdline":comm})
+
     # Get tool's wave time limit searching the wave intervals
     if toolModel.wave == "Custom commands" or local:
         timeLimit = None

@@ -14,7 +14,14 @@ from pollenisatorgui.core.Controllers.ToolController import ToolController
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from tkinter import TclError
 from bson.objectid import ObjectId
+import json
 
+def is_json(myjson):
+  try:
+    json.loads(myjson)
+  except ValueError as e:
+    return False
+  return True
 
 class IpView(ViewElement):
     """View for ip object. Handle node in treeview and present forms to user when interacted with.
@@ -36,9 +43,7 @@ class IpView(ViewElement):
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=10)
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormTreevw("Infos", ("Infos", "Values"),
-                                modelData["infos"], side="left", fill="both", width=300, height=8,
-                                binds={"<Enter>": self.mainApp.unboundToMousewheelMain, "<Leave>": self.mainApp.boundToMousewheelMain})
+        top_panel.addFormText("Infos", is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
         buttons_panel = self.form.addFormPanel(grid=True)
         buttons_panel.addFormButton("Add a port", self.addPortCallback)
         buttons_panel.addFormButton(

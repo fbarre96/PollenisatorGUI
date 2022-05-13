@@ -256,7 +256,7 @@ class ScanManager:
             event: Automatically filled when event is triggered. Holds info about which line was double clicked
         """
         if self.scanTv is not None:
-            self.nbk.select("Main")
+            self.nbk.select("Main View")
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             self.linkTw.see(item)
@@ -282,7 +282,7 @@ class ScanManager:
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser(self.parent, default_path)
+        dialog = ChildDialogFileParser(default_path)
         self.parent.wait_window(dialog.app)
 
     def notify(self, _iid, _action):
@@ -405,6 +405,5 @@ class ScanManager:
             toolId = data.get("toolId")
             tool = Tool.fetchObject({"_id":ObjectId(toolId)})
             if tool is None:
-                print("ERROR tool not found "+str(toolId))
                 return
             self.launchTask(tool, True, "localhost")

@@ -457,6 +457,7 @@ class APIClient():
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            
         elif response.status_code >= 400:
             raise ErrorHTTP(response)
         else:
@@ -474,10 +475,10 @@ class APIClient():
             return None
 
     @handle_api_errors       
-    def updateInDb(self, pentest, collection, pipeline, updatePipeline, many=False, notify=False):
+    def updateInDb(self, pentest, collection, pipeline, updatePipeline, many=False, notify=False, upsert=False):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}update/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify, "upsert":upsert}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -859,12 +860,12 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def importExistingResultFile(self, filepath, plugin, default_target=""):
+    def importExistingResultFile(self, filepath, plugin, default_target="", command_used=""):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":default_target}, proxies=proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":default_target, "cmdline":command_used}, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             elif response.status_code >= 400:

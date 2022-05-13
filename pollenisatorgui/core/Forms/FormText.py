@@ -14,20 +14,20 @@ class FormText(Form):
         if grid: row = column = 0 sticky = "East"
     """
 
-    def __init__(self, name, regexValidation="", default="", contextualMenu=None, **kwargs):
+    def __init__(self, name, validation="", default="", contextualMenu=None, **kwargs):
         """
         Constructor for a form text
 
         Args:
             name: the entry name (id).
-            regexValidation: a regex used to check the input
-                             in the checkForm function. default is ""
+            validation: a regex used to check the input
+                             in the checkForm function. default is "" or a callback function
             default: a default value for the Entry, default is ""
             contextualMenu: (Opt.) a contextualMenu to open when right clicked. default is None
             kwargs: same keyword args as you would give to ttk.Text
         """
         super().__init__(name)
-        self.regexValidation = regexValidation
+        self.validation = validation
         self.default = default
         self.contextualMenu = contextualMenu
         self.kwargs = kwargs
@@ -141,7 +141,7 @@ class FormText(Form):
     def checkForm(self):
         """
         Check if this form is correctly filled.
-        Check with the regex validation given in constructor.
+        Check with the validation given in constructor.
 
         Returns:
             {
@@ -149,10 +149,15 @@ class FormText(Form):
                 "msg": A message indicating what is not correctly filled.
             }
         """
-        import re
-        if re.match(self.regexValidation, self.getValue(), re.MULTILINE) is None:
-            return False, self.name+" value is incorrect."
-        return True, ""
+        if isinstance(self.validation, str):
+            import re
+            if re.match(self.validation, self.getValue(), re.MULTILINE) is None:
+                return False, self.name+" value is incorrect."
+            return True, ""
+        elif callable(self.validation):
+            return self.validation(self.getValue()), self.name+" value is incorrect."
+
+
 
     def popup(self, event):
         """

@@ -121,18 +121,20 @@ class Settings:
 
     def getTerms(self):
         """
-        Returns terminals configured 
+        Returns terminals configured with a command execution option
         Returns:
-            If none are defined returns ['''gnome-terminal --window --title="Pollenisator terminal" -- bash --rcfile setupTerminalForPentest.sh''',
-             '''xfce4-terminal -x bash --rcfile setupTerminalForPentest.sh''',
-             '''xterm -e bash --rcfile setupTerminalForPentest.sh''']
+            If none are defined returns ['''gnome-terminal --window --''',
+             '''xfce4-terminal -x'',
+             '''xterm -hold -e''',
+             '''konsole --noclose -e''']
             otherwise returns a list with defined  values
         """
         self._reloadLocalSettings()
         return self.local_settings.get("terms",
-            ["""gnome-terminal --window --title="Pollenisator terminal" -- bash --rcfile setupTerminalForPentest.sh""",
-             """xfce4-terminal -x bash --rcfile setupTerminalForPentest.sh""",
-             "xterm -e bash --rcfile setupTerminalForPentest.sh"])
+            ["""gnome-terminal --window --""",
+             """xfce4-terminal -x""",
+             "xterm -e",
+             "konsole --noclose -e"])
     
     def getFavoriteTerm(self):
         """
