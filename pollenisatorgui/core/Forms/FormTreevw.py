@@ -40,6 +40,8 @@ class FormTreevw(Form):
         self.doubleClickBinds = kwargs.get("doubleClickBinds", None)
         self.f = None
         self.type = "dict"
+        self.movingSelection = None
+        self.lastMovedTo = None
 
     def _initContextualMenu(self, parent):
         """Initialize the contextual menu for paperclip.
@@ -224,6 +226,11 @@ class FormTreevw(Form):
             self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
             self.treevw.bind("<Delete>", self.deleteItem)
             self.treevw.bind("<Control-c>", self.copy)
+            self.treevw.bind("<Alt-Down>",self.bDown)
+            self.treevw.bind("<Alt-Up>",self.bUp)
+            self.treevw.bind("<ButtonPress-1>",self.dragStart)
+            self.treevw.bind("<ButtonRelease-1>",self.dragRelease, add='+')
+            self.treevw.bind("<B1-Motion>",self.dragMove, add='+')
             self._initContextualMenu(self.treevw)
         binds = self.getKw("binds", {})
         for key, val in binds.items():
@@ -392,3 +399,48 @@ class FormTreevw(Form):
                 elem += list(item["values"])
                 ret.append(elem)
             return ret
+
+    def bDown(self, event=None):
+        item_iid = self.treevw.selection()[0]
+        children = self.treevw.get_children()
+        iid_moving = children.index(item_iid)
+        try:
+            iid_moved_by = children[iid_moving+1]
+            self.treevw.move(item_iid, '', iid_moving+1)
+        except IndexError:
+            pass
+        return "break"
+
+
+    def bUp(self, event=None):
+        item_iid = self.treevw.selection()[0]
+        children = self.treevw.get_children()
+        iid_moving = children.index(item_iid)
+        try:
+            iid_moved_by = children[iid_moving-1]
+            self.treevw.move(item_iid, '', iid_moving-1)
+        except IndexError:
+            pass
+        return "break"
+
+    def dragStart(self, event):
+        tv = event.widget
+        if tv.identify_row(event.y) not in tv.selection():
+            tv.selection_set(tv.identify_row(event.y))    
+            self.movingSelection = tv.identify_row(event.y)
+
+    def dragRelease(self, event):
+        if self.movingSelection is None or self.lastMovedTo is None:
+            return
+        tv = event.widget
+        if tv.identify_row(event.y) in tv.selection():
+            self.movingSelection = None
+            self.lastMovedTo = None
+
+    def dragMove(self, event):
+        tv = event.widget
+        rowToMove = tv.identify_row(event.y)
+        moveto = tv.index(rowToMove)    
+        self.lastMovedTo = rowToMove if rowToMove != self.movingSelection else self.lastMovedTo
+        for s in tv.selection():
+            tv.move(s, '', moveto)

@@ -3,7 +3,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import os
 import re
-from matplotlib import use
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
@@ -273,12 +272,13 @@ class ActiveDirectory:
         list_norm_user = ActiveDirectory.normalize_users([user])
         if list_norm_user:
             norm_user = list_norm_user[0]
-            domain = norm_user[0]
-            username = norm_user[1]
-            password = norm_user[2]
-            key = {"type": "user", "username": username, "domain": domain, "password": password}
-            data = key
-            res = apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, key, {"$set":data}, notify=True, upsert=True)
+            if len(norm_user) == 3:
+                domain = norm_user[0]
+                username = norm_user[1]
+                password = norm_user[2]
+                key = {"type": "user", "username": username, "domain": domain, "password": password}
+                data = key
+                res = apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, key, {"$set":data}, notify=True, upsert=True)
             
     def addDomainUserInDb(self, user_login, user_infos):
         apiclient = APIClient.getInstance()
@@ -592,7 +592,7 @@ class ActiveDirectory:
                         command_option = command_option.replace(s.group(0), filepath)
             user_searching = {"domain":None, "username":None, "password":None}
             if any(map(lambda user_keyword: f"|{user_keyword}|" in command_option, user_searching)):
-                if user is not None:
+                if user is not None and len(user) == 3:
                     command_option = command_option.replace("|domain|", user[0])
                     command_option = command_option.replace("|username|", user[1])
                     command_option = command_option.replace("|password|", user[2])

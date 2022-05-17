@@ -25,10 +25,10 @@ class ChildDialogAskText:
         self.form.addFormLabel(
             "Input text", text=info, side=tk.TOP)
         if multiline:
-            self.formText = self.form.addFormText(info, ".+", default,
+            self.formText = self.form.addFormText(info, "", default,
                                 side=tk.TOP, **kwargs)
         else:
-            self.formText = self.form.addFormStr(info, ".+", default, side=tk.TOP, **kwargs)
+            self.formText = self.form.addFormStr(info, "", default, side=tk.TOP, **kwargs)
         btn = self.form.addFormButton("OK", self.onOk, side=tk.RIGHT)
         self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT)
 
