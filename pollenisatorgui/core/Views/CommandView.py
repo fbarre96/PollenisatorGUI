@@ -170,16 +170,10 @@ class CommandView(ViewElement):
             return the saved command_node node inside the Appli class.
         """
         apiclient = APIClient.getInstance()
-        if self.controller.model.indb == "pollenisator":
-            if self.controller.isMyCommand():
-                return self.appliTw.my_commands_node
-            elif self.controller.isWorkerCommand():
-                return self.appliTw.worker_commands_node
-        else:
-            if self.controller.isMyCommand():
-                return self.appliTw.my_commands_node
-            elif self.controller.isWorkerCommand():
-                return self.appliTw.worker_commands_node
+        if self.controller.isMyCommand():
+            return self.appliTw.my_commands_node
+        elif self.controller.isWorkerCommand():
+            return self.appliTw.worker_commands_node
         return self.appliTw.others_commands_node
 
     def _initContextualMenu(self):

@@ -104,7 +104,7 @@ class ScrollableTreeview(ttk.Frame):
         for item in selected:
             it = self.treevw.item(item)
             texts.append(it.get("text", "") + " " +
-                         " ".join(it.get("values", [])))
+                         " ".join(map(str,it.get("values", []))))
 
         pyperclip.copy("\n".join(texts))
 

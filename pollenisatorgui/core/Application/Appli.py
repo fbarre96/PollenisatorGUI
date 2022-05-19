@@ -36,7 +36,7 @@ from pollenisatorgui.core.Components.ScriptManager import ScriptManager
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Components.Filter import Filter
 from pollenisatorgui.core.Models.Port import Port
-import pollenisatorgui.core.Components.Modules
+import pollenisatorgui.Modules
 
 class FloatingHelpWindow(tk.Toplevel):
     """floating basic window with helping text inside
@@ -416,7 +416,7 @@ class Appli(tkinterDnD.Tk):
         discovered_plugins = {
             name: importlib.import_module(name)
             for finder, name, ispkg
-            in iter_namespace(pollenisatorgui.core.Components.Modules)
+            in iter_namespace(pollenisatorgui.Modules)
         }
         self.modules = []
         for name, module in discovered_plugins.items():

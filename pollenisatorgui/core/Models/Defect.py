@@ -189,7 +189,6 @@ class Defect(Element):
         base = self.getDbKey()
         base["synthesis"] = self.synthesis
         base["description"] = self.description
-        base["notes"] = self.notes
         base["ease"] = self.ease
         base["impact"] = self.impact
         base["risk"] = self.risk

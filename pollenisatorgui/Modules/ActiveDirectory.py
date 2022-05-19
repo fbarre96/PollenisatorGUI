@@ -746,8 +746,10 @@ class ChildDialogComputer:
         if computer_data.get("secrets", []):
             panel.addFormLabel("Secrets", side="top")
             panel.addFormTreevw("Secrets", ("Secret", ""), list(map(lambda s: (s, "") , computer_data.get("secrets", []))), side="top")
-        if computer_data.get("ntds", []):
-            panel.addFormText("NTDS", "", computer_data.get("ntds", ""), side="top")
+        ntds = computer_data.get("ntds", [])
+        if ntds:
+            panel.addFormLabel("NTDS", side="top")
+            panel.addFormText("NTDS", "", "\n".join(ntds), side="top")
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Quit", self.onError, side="right")
         panel.constructView(appFrame)

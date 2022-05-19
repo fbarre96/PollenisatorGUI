@@ -3,7 +3,6 @@ Ttk treeview class with added functions.
 """
 import tkinter as tk
 from bson.objectid import ObjectId
-from pollenisatorgui.core.Components.Modules.Terminal import Terminal
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Models.Interval import Interval

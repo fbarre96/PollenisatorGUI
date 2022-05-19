@@ -517,5 +517,5 @@ def executeInExternalTerm(command, with_bash=True, env={}):
     else:
         tk.messagebox.showerror(
             "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
-    return False
+    return True
 

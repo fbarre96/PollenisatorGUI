@@ -95,7 +95,8 @@ class CommandGroupView(ViewElement):
         Args:
             parentNode: not used
         """
-        parentNode = self.getParentNode()
+        if parentNode is None:
+            parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         self.appliTw.insert(parentNode, "end", str(self.controller.getDbId()), text=str(
             self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
@@ -110,14 +111,8 @@ class CommandGroupView(ViewElement):
             return the saved group_command_node node inside the Appli class.
         """
         apiclient = APIClient.getInstance()
-        if self.controller.model.indb == "pollenisator":
-            if self.controller.isMyCommandGroup():
-                return self.appliTw.my_group_command_node
-            elif self.controller.isWorkerCommandGroup():
-                return self.appliTw.worker_group_command_node
-        else:
-            if self.controller.isMyCommandGroup():
-                return self.appliTw.my_group_command_node
-            elif self.controller.isWorkerCommandGroup():
-                return self.appliTw.worker_group_command_node
+        if self.controller.isMyCommandGroup():
+            return self.appliTw.my_group_command_node
+        elif self.controller.isWorkerCommandGroup():
+            return self.appliTw.worker_group_command_node
         return self.appliTw.group_command_node

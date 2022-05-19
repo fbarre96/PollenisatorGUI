@@ -87,7 +87,8 @@ class WaveView(ViewElement):
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             addChildren: If False: skip interval, tools and scope insert. Useful when displaying search results.
         """
-        parentNode = self.getParentNode()
+        if parentNode is None:
+            parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {
             "view": self, 'parent': ''}
         wave_node = self.appliTw.insert(parentNode, "end", str(self.controller.getDbId()), text=str(
