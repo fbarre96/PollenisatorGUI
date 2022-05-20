@@ -7,10 +7,14 @@ import time
 from datetime import datetime
 from threading import Timer
 import json
-import requests
 from netaddr import IPNetwork
 from netaddr.core import AddrFormatError
 from bson import ObjectId
+import signal
+from shutil import which
+import shlex
+import tkinter  as tk
+import tkinter.ttk as ttk
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -26,23 +30,19 @@ class JSONDecoder(json.JSONDecoder):
         
     def object_hook(self, dct):
         for k,v in dct.items():
-            if 'ObjectId|' in str(v):
-                dct[k] = ObjectId(v.split('ObjectId|')[1])
+            if isinstance(v, list):
+                new_lst = []
+                for item in v:
+                    if 'ObjectId|' in str(item):
+                        new_lst.append(ObjectId(item.split('ObjectId|')[1]))
+                    else:
+                        new_lst.append(item)
+                    dct[k] = new_lst
+            else:
+                if 'ObjectId|' in str(v):
+                    dct[k] = ObjectId(v.split('ObjectId|')[1])
         return dct
 
-def loadPluginByBin(binName):
-    """
-    Load a the plugin python corresponding to the given binary name.
-    Args:
-        binName: the binary name to load a plugin for
-    Returns:
-        return the module plugin loaded or default plugin if bin name was not found in conf file
-    """
-    toolsCfg = loadToolsConfig()
-    for conf in toolsCfg.values():
-        if binName == os.path.splitext(conf["bin"])[0]:
-            return loadPlugin(conf["plugin"])
-    return loadPlugin("Default")
 
 def loadPlugin(pluginName):
     """
@@ -78,6 +78,61 @@ def loadPlugin(pluginName):
         return REGISTRY["Default"]
 
 
+def setStyle(tkApp, _event=None):
+    """
+    Set the tk app style window widget style using ttk.Style
+    Args:
+        _event: not used but mandatory
+    """
+
+    style = ttk.Style(tkApp)
+    style.theme_use("clam")
+    style.configure("Treeview.Heading", background="#73B723",
+                    foreground="white", relief="sunken", borderwidth=1)
+    style.map('Treeview.Heading', background=[('active', '#73B723')])
+    style.configure("TLabelframe", background="white",
+                    labeloutside=False, bordercolor="#73B723")
+    style.configure('TLabelframe.Label', background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'))
+    style.configure("TProgressbar",
+                    background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
+    style.configure("Important.TFrame", background="#73B723")
+    style.configure("TFrame", background="white")
+    style.configure("Important.TLabel", background="#73B723", foreground="white")
+    style.configure("TLabel", background="white")
+    style.configure("TCombobox", background="white")
+    
+    style.configure("TCheckbutton", background="white",
+                    font=('Sans', '10', 'bold'))
+    style.configure("TButton", background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
+    style.configure("icon.TButton", background="white", borderwidth=0)
+    style.configure("Notebook.TButton", background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
+    style.configure("Notebook.TFrame", background="#73B723")
+    style.map('TButton', background=[('active', '#73D723')])
+    #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
+    style.map('Treeview', foreground=fixedMap('foreground', style),
+                background=fixedMap('background', style))
+
+def fixedMap(option, style):
+    """
+    Fix color tag in treeview not appearing under some linux distros
+    Args:
+        option: the string option you want to affect on treeview ("background" for example)
+        strle: the style object of ttk
+    """
+    # Fix for setting text colour for Tkinter 8.6.9
+    # From: https://core.tcl.tk/tk/info/509cafafae
+    #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
+    # Returns the style map for 'option' with any styles starting with
+    # ('!disabled', '!selected', ...) filtered out.
+
+    # style.map() returns an empty list for missing options, so this
+    # should be future-safe.
+    return [elm for elm in style.map('Treeview', query_opt=option) if
+            elm[:2] != ('!disabled', '!selected')]
+                  
 def isIp(domain_or_networks):
     """
     Check if the given scope string is a network ip or a domain.
@@ -171,6 +226,9 @@ def fitNowTime(dated, datef):
         return False
     return today > date_start and date_end > today
 
+def handleProcKill(proc):
+    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+    proc._killed = True
 
 def execute(command, timeout=None, printStdout=True):
     """
@@ -187,12 +245,16 @@ def execute(command, timeout=None, printStdout=True):
     Raises:
         Raise a KeyboardInterrupt if the command was interrupted by a KeyboardInterrupt (Ctrl+c)
     """
-
+   
     try:
         proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+        proc._killed = False
+        signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
+        signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
         time.sleep(1) #HACK Break if not there when launching fast custom tools on local host
         try:
+            timer = None
             if timeout is not None:
                 if isinstance(timeout, float):
                     timeout = (timeout-datetime.now()).total_seconds()
@@ -204,6 +266,10 @@ def execute(command, timeout=None, printStdout=True):
                         timer = Timer(timeout, proc.kill)
                         timer.start()
             stdout, stderr = proc.communicate(None, timeout)
+            if proc._killed:
+                if timer is not None:
+                    timer.cancel()
+                return -1, ""
             if printStdout:
                 stdout = stdout.decode('utf-8')
                 stderr = stderr.decode('utf-8')
@@ -253,76 +319,15 @@ def loadCfg(cfgfile):
     Returns:
         Return the json converted values of the config file.
     """
-    default_tools_infos = dict()
+    cf_infos = dict()
     try:
         with open(cfgfile, "r") as f:
-            default_tools_infos = json.loads(f.read())
+            cf_infos = json.loads(f.read())
     except FileNotFoundError as e:
         raise e
-
-    return default_tools_infos
-
-
-def loadToolsConfig():
-    """
-    Load tools config file in the config/tools.d/ folder starting with
-    config/tools.d/tools.json as default values
-    Args:
-        cfgfile: the path to a json config file
-    Returns:
-        Return the json converted values of the config file.
-    """
-    tool_config_folder = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/tools.d/")
-    default_tools_config = os.path.join(tool_config_folder, "tools.json")
-    default_tools_infos = None
-    try:
-        with open(default_tools_config) as f:
-            default_tools_infos = json.loads(f.read())
-    except Exception as e:
-        raise Exception("Error when loading tools to register : "+str(e))
-    for _r, _d, f in os.walk(tool_config_folder):
-        for fil in f:
-            if fil != "tools.json":
-                try:
-                    with open(default_tools_config) as f:
-                        tools_infos = json.loads(f.read())
-                        for key, value in tools_infos.items():
-                            default_tools_infos[key] = value
-                except json.JSONDecodeError:
-                    print("Invalid json file : "+str(fil))
-    return default_tools_infos
-
-def saveToolsConfig(dic):
-    """
-    Save tools config file in the config/tools.d/ in tools.json 
-    Args:
-        dic: a dictionnary to write values
-    """
-    tool_config_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../config/tools.d/")
-    default_tools_config = os.path.join(tool_config_folder, "tools.json")
-    with open(default_tools_config, "w") as f:
-        f.write(json.dumps(dic))
-
-def loadServerConfig():
-    """Return data converted from json inside config/server.cfg
-    Returns:
-        Json converted data inside config/server.cfg
-    """
-    config = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/server.cfg")
-    return loadCfg(config)
-
-
-def saveServerConfig(configDict):
-    """Saves data in configDict to config/server.cfg as json
-    Args:
-        configDict: data to be stored in config/server.cfg
-    """
-    configFile = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../config/server.cfg")
-    with open(configFile, "w") as f:
-        f.write(json.dumps(configDict))
+    except json.JSONDecodeError as e:
+        raise e
+    return cf_infos
 
 def getConfigFolder():
     from os.path import expanduser
@@ -336,7 +341,12 @@ def loadClientConfig():
         Json converted data inside config/client.cfg
     """
     config = os.path.join(getConfigFolder(), "client.cfg")
-    return loadCfg(config)
+    try:
+        res = loadCfg(config)
+        return res
+
+    except:
+        return {"host":"127.0.0.1", "port":"5000", "https":"False"}
 
 def saveClientConfig(configDict):
     """Saves data in configDict to config/client.cfg as json
@@ -401,6 +411,13 @@ def getIconDir():
         os.path.realpath(__file__)), "../../icon/")
     return p
 
+def getExportDir():
+    """Returns:
+        the pollenisator export folder
+    """
+    p = os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), "../../exports/")
+    return p
 
 def getMainDir():
     """Returns:
@@ -409,3 +426,96 @@ def getMainDir():
     p = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), "../../")
     return p
+
+def drop_file_event_parser(event):
+    """Parse event Callback of python-tkdnd on file drop event
+    event.data is built weirdly:
+        - Each file dropped in will be space-separated in a long string.
+        - If a directory/file contains a space, the whole filename will be wrapped by curly brackets.
+        - If a filename contains a curly brackets it will be escaped by backslashes and
+        - If a filename contains an opening and a closing curly brackets, they might not be escaped
+        - If a filename contains a space and a curly brackets, the filename is is not wrapped by curly brackets.
+            but the space and curly brackets will be escaped by backslashes
+        Returns:
+            list of valid filename for python
+        Exceptions:
+            raise FileNotFoundError if a filename is not valid
+    """
+    parts = event.data.split(" ")
+    data = []
+    cumul = ""
+    expect_closing_bracket = False
+    for part in parts:
+        if part.startswith("{") and not expect_closing_bracket:
+            cumul += part[1:]+" "
+            expect_closing_bracket = True
+        elif part.endswith("\\"):
+            cumul += part+" "
+        elif part.endswith("}") and not part.endswith("\\}") and expect_closing_bracket:
+            cumul += part[:-1]
+            data.append(cumul)
+            cumul = ""
+            expect_closing_bracket = False
+        else:
+            if expect_closing_bracket:
+                cumul += part+" "
+            else:
+                cumul += part
+                data.append(cumul)
+                cumul = ""
+    # check existance 
+    sanitized_path = []
+    for d in data:
+        # remove espacing as python does not expect spaces and brackets to be espaced
+        d = d.replace("\\}", "}").replace("\\{", "{").replace("\\ "," ")
+        if not os.path.exists(d):
+            raise FileNotFoundError(d)
+        sanitized_path.append(d)
+    return sanitized_path
+
+def openPathForUser(path, folder_only=False):
+    path_to_open = os.path.dirname(path) if folder_only else path
+    cmd = ""
+    if which("xdg-open"):
+        cmd = "xdg-open "+path_to_open
+    elif which("explorer"):
+        cmd = "explorer "+path_to_open
+    elif which("open"):
+        cmd = "open "+path_to_open
+    if cmd != "":
+        subprocess.Popen(shlex.split(cmd))
+    else: # windows
+        try: 
+            os.startfile(path_to_open)
+        except Exception:
+            return False
+    return True
+
+def executeInExternalTerm(command, with_bash=True, env={}):
+    from pollenisatorgui.core.Components.Settings import Settings
+    settings = Settings()
+    favorite = settings.getFavoriteTerm()
+    if favorite is None:
+        tk.messagebox.showerror(
+            "Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
+        return False
+    if which(favorite) is not None:
+        env = {**os.environ, **env}
+        terms = settings.getTerms()
+        terms_dict = {}
+        for term in terms:
+            terms_dict[term.split(" ")[0]] = term
+        command_term = terms_dict.get(favorite, None)
+        if command_term is not None:
+            if not command_term.endswith(" "):
+                command_term += " "
+            command_term += command
+            subprocess.Popen(command_term, shell=True, env=env, cwd=getExportDir())
+        else:
+            tk.messagebox.showerror(
+                "Terminal settings invalid", "Check your terminal settings")
+    else:
+        tk.messagebox.showerror(
+            "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
+    return True
+

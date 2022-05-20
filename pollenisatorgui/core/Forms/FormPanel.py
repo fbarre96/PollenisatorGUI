@@ -1,6 +1,7 @@
 """A special form that contains all other forms"""
 
 import tkinter.ttk as ttk
+import tkinter as tk
 from pollenisatorgui.core.Forms.FormCombo import FormCombo
 from pollenisatorgui.core.Forms.FormChecklist import FormChecklist
 from pollenisatorgui.core.Forms.FormStr import FormStr
@@ -15,6 +16,7 @@ from pollenisatorgui.core.Forms.FormTreevw import FormTreevw
 from pollenisatorgui.core.Forms.FormCheckbox import FormCheckbox
 from pollenisatorgui.core.Forms.FormHelper import FormHelper
 from pollenisatorgui.core.Forms.FormSearchBar import FormSearchBar
+
 from pollenisatorgui.core.Forms.Form import Form
 
 
@@ -98,7 +100,7 @@ class FormPanel(Form):
         for form in self.subforms:
             val = form.getValue()
             if val is not None:
-                if type(val) is list:
+                if isinstance(form, FormPanel):
                     res += val
                 else:
                     res.append((form.name, val))
@@ -131,7 +133,7 @@ class FormPanel(Form):
         self.subforms.append(formCombo)
         return formCombo
 
-    def addFormChecklist(self, name, choicesList, default=None, **kwargs):
+    def addFormChecklist(self, name, choicesList, default=None, values=None, **kwargs):
         """
         Add a form checklist to this panel.
         Args:
@@ -143,7 +145,7 @@ class FormPanel(Form):
         if default is None:
             default = []
         f = FormChecklist(
-            name, choicesList, default, **kwargs)
+            name, choicesList, default, values, **kwargs)
         self.subforms.append(f)
         return f
 
@@ -176,19 +178,19 @@ class FormPanel(Form):
         self.subforms.append(f)
         return f
 
-    def addFormSearchBar(self, name, searchCallback, list_of_forms_to_fill, default="", **kwargs):
+    def addFormSearchBar(self, name, searchCallback, panel_to_fill, default="", **kwargs):
         """
         Add a form String to this panel.
 
         Args:
             name: the string var desired name
             searchCallback: a callback
-            list_of_forms_to_fill: a list of form that this searchbar callback should be able to fill
+            panel_to_fill: panel to search for subforms with namse matching callback ret
             default: a default value for this input
             kwargs: keywords for FormSearchbar
         """
         f = FormSearchBar(
-            name, searchCallback, self, list_of_forms_to_fill, default, **kwargs)
+            name, searchCallback, panel_to_fill, None, default, **kwargs)
         self.subforms.append(f)
         return f
 
@@ -206,17 +208,17 @@ class FormPanel(Form):
         self.subforms.append(f)
         return f
 
-    def addFormText(self, name, regexvalidation="", default="", contextualMenu=None, **kwargs):
+    def addFormText(self, name, validation="", default="", contextualMenu=None, **kwargs):
         """
         Add a form Text to this panel.
 
         Args:
             name: the text var desired name
-            regexvalidation: a regex to validate this input
+            validation: a regex to validate this input or a callback function
             default: a default value for this input
             kwargs: keywords for FormText
         """
-        f = FormText(name, regexvalidation, default, contextualMenu, **kwargs)
+        f = FormText(name, validation, default, contextualMenu, **kwargs)
         self.subforms.append(f)
         return f
 

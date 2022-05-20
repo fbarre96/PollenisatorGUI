@@ -7,20 +7,15 @@ import tkinter.messagebox
 import os
 import threading
 from PIL import ImageTk, Image
-from shutil import which
-from os.path import isfile, join
 from bson.objectid import ObjectId
-from datetime import datetime
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Models.Defect import Defect
-from pollenisatorgui.core.Components.Utils import getIconDir, execute
+from pollenisatorgui.core.Components.Utils import getIconDir, execute, openPathForUser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
-from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.Application.Dialogs.ChildDialogRemarkView import ChildDialogRemarkView
-from pollenisatorgui.core.Forms.FormHelper import FormHelper
 from pollenisatorgui.core.Models.Remark import Remark	
 from pollenisatorgui.core.Views.RemarkView import RemarkView
 
@@ -31,11 +26,12 @@ class Report:
     iconName = "tab_report.png"
     tabName = "    Report    "
 
-    def __init__(self, parent, settings):
+    def __init__(self, _parent, settings):
 
         """
         Constructor
         """
+        self.tkApp = None
         self.langs = ["en"]
         self.docx_models = []
         self.curr_lang = "en"
@@ -50,6 +46,7 @@ class Report:
         self.style = None
         self.treevw = None
         self.ent_client = None
+        
         self.ent_contract = None
         self.combo_word = None
         self.combo_pptx = None
@@ -73,7 +70,7 @@ class Report:
         self.langChange(None)
         
 
-    def initUI(self, parent, nbk, treevw):
+    def initUI(self, parent, nbk, treevw, tkApp):
         """
         Initialize window and widgets.
         """
@@ -82,6 +79,7 @@ class Report:
             self.fillWithDefects()
             self.fillWithRemarks()
             return
+        self.tkApp = tkApp
         self.parent = parent
         ### MAIN PAGE FRAME ###
         self.reportFrame = ttk.Frame(parent)
@@ -180,12 +178,13 @@ class Report:
         btn_addDefect = ttk.Button(
             frameBtn, text="Add a security defect", command=self.addDefectCallback)
         btn_addDefect.pack(side=tk.RIGHT, padx=5)
-        btn_browseDefects = ttk.Button(	
-	            frameBtn, text="Browse defects", command=self.browseDefectsCallback)	
-        btn_browseDefects.pack(side=tk.RIGHT, padx=5)
+        
         btn_setMainRedactor = ttk.Button(
             frameBtn, text="Set main redactor", command=self.setMainRedactor)
         btn_setMainRedactor.pack(side=tk.RIGHT, padx=5)
+        btn_browseDefects = ttk.Button(	
+	            frameBtn, text="Browse defects templates", command=self.browseDefectsCallback)	
+        btn_browseDefects.pack(side=tk.RIGHT, padx=5)
         frameBtn.pack(side=tk.TOP, pady=5)
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###
@@ -399,12 +398,12 @@ class Report:
 
     def addDefectCallback(self):
         """Open an insert defect view form in a child window"""
-        dialog = ChildDialogDefectView(self.parent, self.settings)
+        dialog = ChildDialogDefectView(self.tkApp, self.settings)
         self.parent.wait_window(dialog.app)
 
     def browseDefectsCallback(self):	
         """Open an multiview insert defect view form in a child window"""	
-        dialog = ChildDialogDefectView(self.parent, self.settings, None, True)	
+        dialog = ChildDialogDefectView(self.tkApp, self.settings, None, True)	
         self.parent.wait_window(dialog.app)	
 		
     def addRemarkCallback(self):	
@@ -437,6 +436,8 @@ class Report:
             defect_m: a defect model with updated values
             redactor: a redactor name for this defect, can be None (default)
         """
+        if defect_m.isAssigned():
+            return ""
         columnEase = self.treevw['columns'].index("ease")
         columnImpact = self.treevw['columns'].index("impact")
         columnRisk = self.treevw['columns'].index("risk")
@@ -466,7 +467,7 @@ class Report:
         if item is None or item == '':
             return
         defect_m = Defect.fetchObject({"_id": ObjectId(item)})
-        dialog = ChildDialogDefectView(self.parent, self.settings, defect_m)
+        dialog = ChildDialogDefectView(self.tkApp, self.settings, defect_m)
         self.parent.wait_window(dialog.app)
         self.updateDefectInTreevw(defect_m)
 
@@ -613,16 +614,12 @@ class Report:
     def _download_and_open_template(self, templateName):
         apiclient = APIClient.getInstance()
         path = apiclient.downloadTemplate(self.curr_lang, templateName)
-        if which("xdg-open") is not None:
-            dialog = ChildDialogQuestion(self.parent,
-                                        "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])
-            self.parent.wait_window(dialog.app)
-            if dialog.rvalue != "Open":
-                return
-            execute("xdg-open "+str(path))
-        else:
-            tkinter.messagebox.showinfo(
-                "Success", "The template was generated in "+str(path))
+        dialog = ChildDialogQuestion(self.parent,
+                                    "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])
+        self.parent.wait_window(dialog.app)
+        if dialog.rvalue != "Open":
+            return
+        openPathForUser(path, folder_only=True)
 
     def notify(self, db, collection, iid, action, _parent):
         """
@@ -662,9 +659,5 @@ def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):
             "Failure", str(res))
     tkinter.messagebox.showinfo(
         "Success", "The document was generated in "+str(res))
-    if which("xdg-open"):
-        os.system("xdg-open "+os.path.dirname(res))
-    elif which("explorer"):
-        os.system("explorer "+os.path.dirname(res))
-    elif which("open"):
-        os.system("open "+os.path.dirname(res))
+    openPathForUser(res, folder_only=True)
+    

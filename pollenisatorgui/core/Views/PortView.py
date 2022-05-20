@@ -11,7 +11,14 @@ from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Controllers.ToolController import ToolController
 from pollenisatorgui.core.Components.apiclient import APIClient
 from tkinter import TclError
+import json
 
+def is_json(myjson):
+  try:
+    json.loads(myjson)
+  except ValueError as e:
+    return False
+  return True
 
 class PortView(ViewElement):
     """View for port object. Handle node in treeview and present forms to user when interacted with.
@@ -76,8 +83,7 @@ class PortView(ViewElement):
         top_panel.addFormText(
             "Notes", r"", modelData["notes"], None, side="top", height=10)
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormTreevw("Infos", ("Infos", "Values"),
-                                modelData["infos"], side="left", width=300, fill="both", height=8, binds={"<Enter>": self.mainApp.unboundToMousewheelMain, "<Leave>": self.mainApp.boundToMousewheelMain})
+        top_panel.addFormText("Infos", is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
         command_list = Command.fetchObjects({"lvl": "port"}, APIClient.getInstance().getCurrentPentest())
         command_names = ["None"]
         for command_doc in command_list:

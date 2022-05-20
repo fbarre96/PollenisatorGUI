@@ -1,7 +1,6 @@
 """Command Model."""
 from pollenisatorgui.core.Models.Element import Element
 from pollenisatorgui.core.Components.apiclient import APIClient
-from bson.objectid import ObjectId
 
 
 class Command(Element):
@@ -18,39 +17,45 @@ class Command(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}), name(""), sleep_between("0"), priority("0),
-                        max_thread("1"), text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300"
+                        max_thread("1"), text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owner=""
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("sleep_between", 0),
+        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("bin_path", ""), valuesFromDb.get("plugin", ""), valuesFromDb.get("sleep_between", 0),
                         valuesFromDb.get("priority", 0), valuesFromDb.get(
                             "max_thread", 1),
                         valuesFromDb.get("text", ""), valuesFromDb.get(
                             "lvl", "network"),
                         valuesFromDb.get("ports", ""),
-                        bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), valuesFromDb.get("infos", {}))
+                        bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), 
+                        valuesFromDb.get("owner", ""), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, sleep_between=0, priority=0, max_thread=1, text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, infos=None):
+    def initialize(self, name, bin_path, plugin="Default", sleep_between=0, priority=0, max_thread=1, text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, owner="", infos=None):
         """Set values of command
         Args:
             name: the command name
+            bin_path: local command, binary path or command line
+            plugin: plugin that goes with this command
             sleep_between: delay to wait between two call to this command. Default is 0
             priority: priority of the command (0 is highest). Default is 0
             max_thread: number of parallel execution possible of this command. Default is 1
             text: the command line options. Default is "".
-            lvl: level of the command. Must be either "wave", "network", "domain", "ip", "port". Default is "network"
+            lvl: level of the command. Must be either "wave", "network", "domain", "ip", "port" or a module name. Default is "network"
             ports: allowed proto/port, proto/service or port-range for this command
             safe: True or False with True as default. Indicates if autoscan is authorized to launch this command.
             types: type for the command. Lsit of string. Default to None.
             indb: db name : global (pollenisator database) or  local pentest database
             timeout: a timeout to kill stuck tools and retry them later. Default is 300 (in seconds)
+            owner: the owner of the command
             infos: a dictionnary with key values as additional information. Default to None
         Returns:
             this object
         """
         self.name = name
+        self.bin_path = bin_path
+        self.plugin = plugin
         self.sleep_between = sleep_between
         self.priority = priority
         self.max_thread = max_thread
@@ -62,6 +67,7 @@ class Command(Element):
         self.indb = indb
         self.timeout = timeout
         self.types = types if types is not None else []
+        self.owner = owner
         return self
 
     def delete(self):
@@ -73,7 +79,10 @@ class Command(Element):
         """
         ret = self._id
         apiclient = APIClient.getInstance()
-        apiclient.delete("commands", ret)
+        if self.indb == "pollenisator":
+            apiclient.deleteCommand(ret)
+        else:
+            apiclient.delete("commands", ret)
         
 
     def addInDb(self):
@@ -83,9 +92,9 @@ class Command(Element):
                 * mongo ObjectId : already existing object if duplicate, create object id otherwise 
         """
         apiclient = APIClient.getInstance()
-        res, id = apiclient.insert("commands", {"name": self.name, "lvl": self.lvl, "priority": int(self.priority),
+        res, id = apiclient.insert("commands", {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin, "lvl": self.lvl, "priority": int(self.priority),
                                                                            "sleep_between": int(self.sleep_between), "max_thread": int(self.max_thread), "text": self.text,
-                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout)})
+                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout), "owner": self.owner})
         if not res:
             return False, id
         self._id = id
@@ -101,7 +110,7 @@ class Command(Element):
         
         if pipeline_set is None:
             apiclient.update("commands", self._id, {"priority": int(self.priority), "sleep_between": int(self.sleep_between), "max_thread": int(self.max_thread), "timeout": int(self.timeout),
-                         "text": self.text, "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb":self.indb})
+                         "text": self.text, "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb":self.indb, "plugin":self.plugin, "bin_path":self.bin_path})
            
         else:
             apiclient.update("commands", self._id, pipeline_set)
@@ -118,7 +127,7 @@ class Command(Element):
         """
         if pipeline is None:
             pipeline = {}
-        return [command.name for command in cls.fetchObjects(pipeline, targetdb)]
+        return [command for command in cls.fetchObjects(pipeline, targetdb)]
 
     @classmethod
     def fetchObject(cls, pipeline, targetdb="pollenisator"):
@@ -129,7 +138,11 @@ class Command(Element):
             Returns a Command or None if nothing matches the pipeline.
         """
         apiclient = APIClient.getInstance()
-        d = apiclient.findInDb(targetdb, "commands", pipeline, False)
+        if targetdb == "pollenisator":
+            res = apiclient.findCommand(pipeline)
+            d = res[0] if res else None
+        else:
+            d = apiclient.findInDb(targetdb, "commands", pipeline, False)
         if d is None:
             return None
         return Command(d)
@@ -143,11 +156,42 @@ class Command(Element):
             Returns a cursor to iterate on Command objects
         """
         apiclient = APIClient.getInstance()
-        ds = apiclient.findInDb(targetdb, "commands", pipeline, True)
+        if targetdb == "pollenisator":
+            ds = apiclient.findCommand(pipeline)
+        else:
+            ds = apiclient.findInDb(targetdb, "commands", pipeline, True)
         if ds is None:
             return None
         for d in ds:
             yield Command(d)
+    
+    @classmethod
+    def getMyCommands(cls, user=None):
+        """Fetch many commands from database and return a Cursor to iterate over Command objects
+        Args:
+            pipeline: a Mongo search pipeline (dict)
+        Returns:
+            Returns a cursor to iterate on Command objects
+        """
+        apiclient = APIClient.getInstance()
+        if user is None:
+            user = apiclient.getUser()
+        ds = apiclient.findCommand({"owner":user})
+        if ds is None:
+            return None
+        for d in ds:
+            yield Command(d)    
+
+    def addToMyCommands(self):
+        apiclient = APIClient.getInstance()
+        apiclient.addCommandToMyCommands(self.getId())
+
+    def isMyCommand(self):
+        user = APIClient.getInstance().getUser()
+        return user == self.owner
+        
+    def isWorkerCommand(self):
+        return self.owner == "Worker"
 
     def __str__(self):
         """
@@ -156,11 +200,11 @@ class Command(Element):
         Returns:
             Returns the command's name string.
         """
-        return self.name
+        return self.owner+":"+self.name
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
         Returns:
             A dict (1 key :"name")
         """
-        return {"name": self.name}
+        return {"name": self.name, "owner":self.owner}

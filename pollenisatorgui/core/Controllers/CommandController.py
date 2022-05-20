@@ -1,4 +1,5 @@
 """Controller for command object. Mostly handles conversion between mongo data and python objects"""
+from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Controllers.ControllerElement import ControllerElement
 import bson
 
@@ -16,20 +17,22 @@ class CommandController(ControllerElement):
             The mongo ObjectId _id of the updated command document.
         """
         # Get form values
+        self.model.bin_path = values.get(
+            "Bin path", self.model.bin_path)
+        self.model.plugin = values.get(
+            "Plugin", self.model.plugin)
         self.model.sleep_between = values.get(
             "Delay", self.model.sleep_between)
         self.model.max_thread = values.get("Threads", self.model.max_thread)
         self.model.text = values.get("Command line options", self.model.text)
-        if values.get("Level", "network") == "port":
-            self.model.ports = values.get("Ports/Services", self.model.ports)
-        else:
-            self.model.ports = ""
+        self.model.ports = values.get("Ports/Services", self.model.ports)
         self.model.priority = values.get("Priority", self.model.priority)
         self.model.safe = bool(values.get("Safe", self.model.safe))
         self.model.timeout = str(values.get("Timeout", self.model.timeout))
         types = values.get("Types", {})
         types = [k for k, v in types.items() if v == 1]
         self.model.types = list(types)
+        self.model.owner = values.get("owner", "")
         # Update in database
         self.model.update()
 
@@ -47,13 +50,12 @@ class CommandController(ControllerElement):
             }
         """
         # Get form values
+        bin_path = values["Bin path"]
+        plugin = values["Plugin"]
         sleep_between = values["Delay"]
         max_thread = values["Threads"]
         text = values["Command line options"]
-        if values["Level"] == "port":
-            ports = values["Ports/Services"]
-        else:
-            ports = ""
+        ports = values["Ports/Services"]
         name = values["Name"]
         lvl = values["Level"]
         priority = values["Priority"]
@@ -61,9 +63,10 @@ class CommandController(ControllerElement):
         types = values["Types"]
         indb = values["indb"]
         timeout = values["Timeout"]
+        owner = values["owner"]
         types = [k for k, v in types.items() if v == 1]
-        self.model.initialize(name, sleep_between, priority, max_thread,
-                              text, lvl, ports, safe, list(types), indb, timeout)
+        self.model.initialize(name, bin_path, plugin, sleep_between, priority, max_thread,
+                              text, lvl, ports, safe, list(types), indb, timeout, owner)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:
@@ -78,9 +81,9 @@ class CommandController(ControllerElement):
         Returns:
             dict with keys name, lvl, safe, text, ports, sleep_between, max_thread, priority, types, _id, tags and infos
         """
-        return {"name": self.model.name, "lvl": self.model.lvl, "safe": bool(self.model.safe), "text": self.model.text,
+        return {"name": self.model.name, "bin_path":self.model.bin_path, "plugin":self.model.plugin, "lvl": self.model.lvl, "safe": bool(self.model.safe), "text": self.model.text,
                 "ports": self.model.ports, "sleep_between": self.model.sleep_between, "timeout": self.model.timeout,
-                "max_thread": self.model.max_thread, "priority": self.model.priority, "types": self.model.types, "indb":self.model.indb, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
+                "max_thread": self.model.max_thread, "priority": self.model.priority, "types": self.model.types, "indb":self.model.indb, "owner": self.model.owner, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
         """Return a string describing the type of object
@@ -94,3 +97,19 @@ class CommandController(ControllerElement):
         if self.model is not None:
             self.model = self.model.__class__.fetchObject(
                 {"_id": bson.ObjectId(self.model.getId())}, self.model.indb)
+
+    def addToMyCommands(self, event=None):
+        """Add command to current user's commands
+        """
+        self.model.addToMyCommands()
+
+    def removeFromMyCommands(self, event=None):
+        """Remove command from current user's commands
+        """
+        self.model.removeFromMyCommands()
+
+    def isMyCommand(self):
+        return self.model.isMyCommand()
+
+    def isWorkerCommand(self):
+        return self.model.isWorkerCommand()

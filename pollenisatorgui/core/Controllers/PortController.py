@@ -1,7 +1,7 @@
 """Controller for Port object. Mostly handles conversion between mongo data and python objects"""
 
 from pollenisatorgui.core.Controllers.ControllerElement import ControllerElement
-
+import json
 
 class PortController(ControllerElement):
     """Inherits ControllerElement
@@ -21,9 +21,7 @@ class PortController(ControllerElement):
         self.model.product = values.get("Product", self.model.product)
         self.model.notes = values.get("Notes", self.model.notes)
         self.model.tags = values.get("Tags", self.model.tags)
-        self.model.infos = values.get("Infos", self.model.infos)
-        for info in self.model.infos:
-            self.model.infos[info] = self.model.infos[info][0]
+        self.model.infos = json.loads(values.get("Infos", self.model.infos))
         self.model.update()
 
     def doInsert(self, values):

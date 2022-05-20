@@ -47,7 +47,14 @@ def handle_api_errors(func):
                 cfg = Utils.loadClientConfig()
                 cfg["token"] = ""
                 saveClientConfig(cfg)
+                if "Authorization" in self.headers:
+                    del self.headers["Authorization"] 
                 err.with_traceback = False
+                if self.appli.initialized:
+                    raise err
+                else:
+                    return err.ret_values
+            elif err.response.status_code == 500:
                 raise err
             else:
                 return err.ret_values
@@ -73,10 +80,10 @@ class APIClient():
         APIClient.__instances[pid] = apiclient
 
     @staticmethod
-    def searchDefect(searchTerms):
+    def searchDefect(searchTerms, **kwargs):
         apiclient = APIClient.getInstance()
         api_url = '{0}report/search'.format(apiclient.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms}), headers=apiclient.headers, proxies=proxies, verify=False)
+        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=apiclient.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder), ""
         elif response.status_code == 204:
@@ -120,8 +127,7 @@ class APIClient():
 
     def tryConnection(self, config=None, force=False):
         if config is None:
-            if os.path.isfile(configClientPath):
-                config = Utils.loadCfg(configClientPath)
+            config = Utils.loadClientConfig()
         if config is None:
             raise FileNotFoundError(str(configClientPath)+" does not exist")
         try:
@@ -188,6 +194,9 @@ class APIClient():
             return False
         return True
 
+    def getToken(self):
+        return self.token
+
     def login(self, username, passwd):
         api_url = '{0}login'.format(self.api_url_base)
         data = {"username":username, "pwd":passwd}
@@ -207,14 +216,15 @@ class APIClient():
         raise ErrorHTTP(response)
     
     @handle_api_errors
-    def setCurrentPentest(self, newCurrentPentest):
+    def setCurrentPentest(self, newCurrentPentest, addDefaultCommands=False):
         if newCurrentPentest.strip() == "":
             self.headers["Authorization"] = ""
             self.scope = []
             self.currentPentest = ""
             return False
         api_url = '{0}login/{1}'.format(self.api_url_base, newCurrentPentest)
-        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        data = {"addDefaultCommands": addDefaultCommands}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             self.setConnection(token)
@@ -264,6 +274,28 @@ class APIClient():
     def registeredCommands(self, workerName, commandNames):
         api_url = '{0}workers/{1}/registerCommands'.format(self.api_url_base, workerName)
         response = requests.put(api_url, headers=self.headers, data=json.dumps(commandNames, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def removeCommandFromMyCommands(self, iid):
+        api_url = '{0}commands/removeFromMyCommands/{1}'.format(self.api_url_base, iid)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def addCommandToMyCommands(self, iid):
+        api_url = '{0}commands/addToMyCommands/{1}'.format(self.api_url_base, iid)
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
@@ -345,6 +377,54 @@ class APIClient():
         except ErrorHTTP as e:
             raise e
 
+    @handle_api_errors
+    def getCommandGroups(self, pipeline=None):
+        pipeline = {} if pipeline is None else pipeline
+        api_url = '{0}group_commands/find'.format(self.api_url_base)
+        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def findCommand(self, pipeline=None):
+        pipeline = {} if pipeline is None else pipeline
+        api_url = '{0}commands/find'.format(self.api_url_base)
+        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def deleteCommand(self, command_iid):
+        api_url = '{0}commands/delete/{1}'.format(self.api_url_base, command_iid)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def deleteCommandGroup(self, group_command_iid):
+        api_url = '{0}group_commands/delete/{1}'.format(self.api_url_base, group_command_iid)
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
     @handle_api_errors    
     def findInDb(self, pentest, collection, pipeline=None, multi=True):
         pipeline = {} if pipeline is None else pipeline
@@ -362,7 +442,6 @@ class APIClient():
     def insert(self, collection, data):
         api_url = '{0}{1}/{2}'.format(self.api_url_base, collection, self.getCurrentPentest())
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
-        print(response)
         if response.status_code == 200:
             res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res["res"], res["iid"]
@@ -379,6 +458,7 @@ class APIClient():
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            
         elif response.status_code >= 400:
             raise ErrorHTTP(response)
         else:
@@ -396,10 +476,10 @@ class APIClient():
             return None
 
     @handle_api_errors       
-    def updateInDb(self, pentest, collection, pipeline, updatePipeline, many=False, notify=False):
+    def updateInDb(self, pentest, collection, pipeline, updatePipeline, many=False, notify=False, upsert=False):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}update/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify}
+        data = {"pipeline":json.dumps(pipeline, cls=JSONEncoder), "updatePipeline":json.dumps(updatePipeline, cls=JSONEncoder), "many":many, "notify":notify, "upsert":upsert}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -422,6 +502,18 @@ class APIClient():
     @handle_api_errors
     def bulkDelete(self, dictToDelete):
         api_url = '{0}delete/{1}/bulk'.format(self.api_url_base, self.getCurrentPentest())
+        data = dictToDelete
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), verify=False, proxies=proxies)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def bulkDeleteCommands(self, dictToDelete):
+        api_url = '{0}commands/delete/bulk'.format(self.api_url_base)
         data = dictToDelete
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), verify=False, proxies=proxies)
         if response.status_code == 200:
@@ -492,18 +584,6 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def sendEditToolConfig(self, worker, command_name, remote_bin, plugin):
-        api_url = '{0}workers/{1}/setCommandConfig'.format(self.api_url_base, worker)
-        data = {"command_name":command_name, "remote_bin":remote_bin, "plugin":plugin}
-        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
-        if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-        elif response.status_code >= 400:
-            raise ErrorHTTP(response)
-        else:
-            return None
-
-    @handle_api_errors
     def getSettings(self, pipeline=None):
         if pipeline is None:
             api_url = '{0}settings'.format(self.api_url_base)
@@ -546,6 +626,28 @@ class APIClient():
             return None
 
     @handle_api_errors
+    def addMyCommandsToWave(self, wave_iid):
+        api_url = '{0}waves/addMyCommandsToWave/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), str(wave_iid))
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def addWorkerCommandsToWave(self, wave_iid):
+        api_url = '{0}waves/addWorkerCommandsToWave/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), str(wave_iid))
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
     def registerTag(self, name, color, isGlobal=False):
         api_url = '{0}settings/registerTag'.format(self.api_url_base)
         data = {"name":name, "color":color, "global":isGlobal}
@@ -571,7 +673,7 @@ class APIClient():
 
     @handle_api_errors
     def updateTag(self, name, color, isGlobal=False):
-        api_url = '{0}settings/registerTag'.format(self.api_url_base)
+        api_url = '{0}settings/updateTag'.format(self.api_url_base)
         data = {"name":name, "color":color, "global":isGlobal}
         response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
@@ -589,14 +691,14 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, False)
+            raise ErrorHTTP(response, False,)
         else:
             return False
 
     @handle_api_errors
-    def sendLaunchTask(self, tool_iid, plugin="", checks=True, worker=""):
+    def sendLaunchTask(self, tool_iid, checks=True, worker=""):
         api_url = '{0}tools/{1}/launchTask/{2}'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
-        data = {"checks":checks, "plugin":plugin}
+        data = {"checks":checks}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -709,11 +811,23 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def getCommandline(self, toolId, parser=""):
+    def getDesiredOutputForPlugin(self, cmdline, plugin):
+        """Get full command line from cmd line and choosen plugin, a marker for |outputDir| is to be replaced
+        """
+        api_url = '{0}tools/getDesiredOutputForPlugin'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"plugin":plugin, "cmdline":cmdline}), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return True, data["command_line_options"], data["ext"]
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
+        return False, response.content.decode('utf-8'), ""
+    @handle_api_errors
+    def getCommandLine(self, toolId):
         """Get full command line from toolid and choosen parser, a marker for |outputDir| is to be replaced
         """
         api_url = '{0}tools/{1}/craftCommandLine/{2}'.format(self.api_url_base, self.getCurrentPentest(), toolId)
-        response = requests.get(api_url, headers=self.headers, params={"plugin":parser}, proxies=proxies, verify=False)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return True, data["comm"], data["ext"]
@@ -747,12 +861,12 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def importExistingResultFile(self, filepath, plugin):
+    def importExistingResultFile(self, filepath, plugin, default_target="", command_used=""):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, 'r', encoding='utf-8', errors="ignore") as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin}, proxies=proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":default_target, "cmdline":command_used}, proxies=proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             elif response.status_code >= 400:
@@ -823,16 +937,45 @@ class APIClient():
         return None        
 
     @handle_api_errors
+    def exportCommands(self, forWorker=False):
+        api_url = '{0}exportCommands'.format(self.api_url_base)
+        if forWorker:
+            api_url += "/worker"
+            filename = "worker_commands.json"
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            filename = "my_commands.json" if not forWorker else "worker_commands.json"
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            out_path = os.path.normpath(os.path.join(
+                dir_path, "../../exports/"))
+            f = tk.filedialog.asksaveasfilename(defaultextension=".json", initialdir=out_path, initialfile=filename)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+                return True, filename
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        return False, response.text  
+
+  
+
+    @handle_api_errors
     def dumpDb(self, pentest, collection=""):
         api_url = '{0}dumpDb/{1}'.format(self.api_url_base, pentest)
         response = requests.get(api_url, headers=self.headers, params={"collection":collection}, proxies=proxies, verify=False)
         if response.status_code == 200:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.join(
-                dir_path, "../../exports/", pentest if collection == "" else pentest+"_"+collection)+".gz"
-            with open(out_path, 'wb') as f:
+                dir_path, "../../exports/")
+            f = tk.filedialog.asksaveasfilename(defaultextension=".gz", initialdir=out_path, initialfile=(pentest if collection == "" else pentest+"_"+collection)+".gz")
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)          
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return True, out_path
+                return True, filename
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False, response.text)
         return False, response.text  
@@ -850,16 +993,60 @@ class APIClient():
         return False
     
     @handle_api_errors
-    def importCommands(self, filename):
+    def importCommands(self, filename, forWorker=False):
         api_url = '{0}importCommands'.format(self.api_url_base)
+        if forWorker:
+            api_url += "/worker"
         with io.open(filename, 'rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, "application/gzip")}, proxies=proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=proxies, verify=False)
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200
-        return False
+    @handle_api_errors
+    def importDefectTemplates(self, filename):
+        api_url = '{0}report/DefectTemplates/import'.format(self.api_url_base)
+        with io.open(filename, 'rb') as f:
+            h = self.headers.copy()
+            h.pop("Content-Type", None)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=proxies, verify=False)
+            if response.status_code >= 400:
+                raise ErrorHTTP(response, False)
+            return response.status_code == 200
+
+    @handle_api_errors
+    def insertAsTemplate(self, data):
+        api_url = '{0}report/DefectTemplates/insert'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res["res"], res["iid"]
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def updateDefectTemplate(self, iid, updatePipeline):
+        api_url = '{0}report/DefectTemplates/update/{1}'.format(self.api_url_base, str(iid))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(updatePipeline, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+    
+    @handle_api_errors
+    def deleteDefectTemplate(self, iid):
+        api_url = '{0}report/DefectTemplates/delete/{1}'.format(self.api_url_base, str(iid))
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        return None
 
     @handle_api_errors
     def copyDb(self, fromDb, toDb=""):
@@ -881,10 +1068,14 @@ class APIClient():
             ext = os.path.splitext(templateName)[-1]
             basename = clientName.strip()+"_"+contractName.strip()
             out_name = str(timestr)+"_"+basename
-            out_path = os.path.join(dir_path, "../../exports/",out_name+ext)
-            with open(out_path, 'wb') as f:
+            out_path = os.path.join(dir_path, "../../exports/")
+            f = tk.filedialog.asksaveasfilename(defaultextension=ext, initialdir=out_path, initialfile=out_name+ext)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel". and empty tuple if close by cross
+                return
+            filename = str(f)
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return os.path.normpath(out_path)
+                return os.path.normpath(filename)
         elif response.status_code >= 400:
             raise ErrorHTTP(response, response.content.decode("utf-8"))
         return response.content.decode("utf-8")
@@ -920,10 +1111,14 @@ class APIClient():
         api_url = '{0}report/{1}/templates/download'.format(self.api_url_base, lang)
         response = requests.get(api_url, headers=self.headers, params={"templateName":templateName},proxies=proxies, verify=False)
         if response.status_code == 200:
-            out_path = os.path.join(dir_path, "../../exports/",templateName)
-            with open(out_path, 'wb') as f:
+            out_path = os.path.join(dir_path, "../../exports/")
+            f = tk.filedialog.asksaveasfilename(initialdir=out_path, initialfile=templateName)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+            with open(filename, 'wb') as f:
                 f.write(response.content)
-                return os.path.normpath(out_path)
+                return os.path.normpath(filename)
         elif response.status_code >= 400:
             raise ErrorHTTP(response)
         return None
@@ -1027,3 +1222,16 @@ class APIClient():
         elif response.status_code >= 400:
             raise ErrorHTTP(response, [])
         return []
+
+    @handle_api_errors
+    def getDockerForPentest(self, pentest):
+        api_url = '{0}workers/start/{1}'.format(self.api_url_base, pentest)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code == 403:
+            tk.messagebox.showerror("Docker error", "Docker could not start, check server installation of docker")
+            return None
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, [])
+        return None

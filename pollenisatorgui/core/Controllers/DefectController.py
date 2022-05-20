@@ -19,6 +19,8 @@ class DefectController(ControllerElement):
             The mongo ObjectId _id of the updated Defect document.
         """
         self.model.title = values.get("Title", self.model.title)
+        self.model.synthesis = values.get("Synthesis", self.model.synthesis)
+        self.model.description = values.get("Description", self.model.description)
         self.model.ease = values.get("Ease", self.model.ease)
         self.model.impact = values.get("Impact", self.model.impact)
         self.model.risk = values.get("Risk", self.model.risk)
@@ -27,7 +29,12 @@ class DefectController(ControllerElement):
         if mtype is not None:
             mtype = [k for k, v in mtype.items() if v == 1]
             self.model.mtype = mtype
+        self.model.language = values.get("Language", self.model.language)
         self.model.notes = values.get("Notes", self.model.notes)
+        self.model.fixes = values.get("Fixes", self.model.fixes)
+        proofs = values.get("Add proofs", [])
+        for val in proofs:
+            self.addAProof(val)
         self.model.infos = values.get("Infos", self.model.infos)
         for info in self.model.infos:
             self.model.infos[info] = self.model.infos[info][0]
@@ -49,45 +56,45 @@ class DefectController(ControllerElement):
             }
         """
         title = values["Title"]
+        synthesis = values.get("Synthesis", "")
+        description = values.get("Description", "")
         ease = values["Ease"]
         impact = values["Impact"]
         redactor = values["Redactor"]
         mtype_dict = values["Type"]
+        language = values["Language"]
         risk = values["Risk"]
+        notes = values.get("Notes", "")
         mtype = [k for k, v in mtype_dict.items() if v == 1]
         ip = values["ip"]
         port = values.get("port", None)
         proto = values.get("proto", None)
-        notes = values["Notes"]
         proof = values["Proof"]
         proofs = []
+        fixes = values["Fixes"]
         tableau_from_ease = Defect.Defect.getTableRiskFromEase()
        
         if risk == "" or risk == "N/A":
             risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
-        self.model.initialize(ip, port, proto, title, ease,
-                              impact, risk, redactor, mtype, notes, proofs)
+        self.model.initialize(ip, port, proto, title, synthesis, description, ease,
+                              impact, risk, redactor, mtype, language, notes, fixes, proofs)
         ret, _ = self.model.addInDb()
         # Update this instance.
         # Upload proof after insert on db cause we need its mongoid
-        if proof.strip() != "":
-            self.model.uploadProof(proof)
+        for p in proof:
+            if p.strip() != "":
+                self.model.uploadProof(proof)
         return ret, 0  # 0 erros
 
-    def addAProof(self, formValues, index):
+    def addAProof(self, proof_path):
         """Add a proof file to model defect.
         Args:
             formValues: the view form values as a dict. Key "Proof "+str(index) must exist
-            index: the proof index in the form to insert
         """
-        proof_path = formValues["Proof "+str(index)]
         if proof_path.strip() == "":
             return
         resName = self.model.uploadProof(proof_path)
-        if index == len(self.model.proofs):
-            self.model.proofs.append(resName)
-        else:
-            self.model.proofs[index] = resName
+        self.model.proofs.append(resName)
         # self.model.update()
 
     def getProof(self, ind):
@@ -120,8 +127,8 @@ class DefectController(ControllerElement):
         """
         if self.model is None:
             return None
-        return {"title": self.model.title, "ease": self.model.ease, "impact": self.model.impact,
-                "risk": self.model.risk, "redactor": self.model.redactor, "type": self.model.mtype, "notes": self.model.notes,
+        return {"title": self.model.title, "synthesis":self.model.synthesis, "description":self.model.description, "ease": self.model.ease, "impact": self.model.impact,
+                "risk": self.model.risk, "redactor": self.model.redactor, "type": self.model.mtype, "language":self.model.language, "notes": self.model.notes, "fixes":self.model.fixes,
                 "ip": self.model.ip, "port": self.model.port, "proto": self.model.proto,"index":self.model.index,
                 "proofs": self.model.proofs, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 

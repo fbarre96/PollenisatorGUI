@@ -1,7 +1,8 @@
 """Controller for command group object. Mostly handles conversion between mongo data and python objects"""
 
+from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Controllers.ControllerElement import ControllerElement
-
+import bson
 
 class CommandGroupController(ControllerElement):
     """Inherits ControllerElement
@@ -27,6 +28,8 @@ class CommandGroupController(ControllerElement):
             k for k, v in self.model.commands.items() if v == 1]
         self.model.max_thread = values.get(
             "Shared threads", self.model.max_thread)
+
+            
         # Update variable instance. (this avoid to refetch the whole command group in database)
         self.model.update()
 
@@ -49,8 +52,10 @@ class CommandGroupController(ControllerElement):
         commands_dict = values["Commands"]
         commands = [k for k, v in commands_dict.items() if v == 1]
         max_thread = values["Shared threads"]
+        owner = values.get("owner", APIClient.getInstance().getUser())
         # Insert in database
-        self.model.initialize(name, sleep_between, commands, max_thread)
+        indb = values["indb"]
+        self.model.initialize(name, owner, sleep_between, commands, max_thread, indb)
         ret, _ = self.model.addInDb()
         if not ret:
             # command failed to be inserted, a duplicate exists
@@ -58,12 +63,19 @@ class CommandGroupController(ControllerElement):
             return None, 1
         return ret, 0  # 0 errors
 
+    def actualize(self):
+        """Ask the model to reload its data from database
+        """
+        if self.model is not None:
+            self.model = self.model.__class__.fetchObject(
+                {"_id": bson.ObjectId(self.model.getId())}, self.model.indb)
+
     def getData(self):
         """Return command attributes as a dictionnary matching Mongo stored commands groups
         Returns:
             dict with keys name, commands,, sleep_between, max_thread, _id, tags and infos
         """
-        return {"name": self.model.name, "commands": self.model.commands, "sleep_between": self.model.sleep_between, "max_thread": self.model.max_thread,
+        return {"name": self.model.name, "indb":self.model.indb, "owner":self.model.owner, "commands": self.model.commands, "sleep_between": self.model.sleep_between, "max_thread": self.model.max_thread,
                 "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
@@ -71,3 +83,9 @@ class CommandGroupController(ControllerElement):
         Returns:
             "commandgroup" """
         return "commandgroup"
+
+    def isMyCommandGroup(self):
+        return self.model.isMyCommandGroup()
+
+    def isWorkerCommandGroup(self):
+        return self.model.isWorkerCommandGroup()

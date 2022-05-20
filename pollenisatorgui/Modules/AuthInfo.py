@@ -1,13 +1,16 @@
 """User auth infos module to store and use user login informations """
-import os
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
 from bson.objectid import ObjectId
-from PIL import Image, ImageTk
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
-import pollenisatorgui.core.Components.Utils as Utils
+from pollenisatorgui.core.Views.WaveView import WaveView
+from pollenisatorgui.core.Views.IpView import IpView
+from pollenisatorgui.core.Views.PortView import PortView
+from pollenisatorgui.core.Views.ScopeView import ScopeView
+from pollenisatorgui.core.Models.Tool import Tool
+from pollenisatorgui.core.Models.Command import Command
 
 
 class AuthInfo:
@@ -15,7 +18,8 @@ class AuthInfo:
     Shows information about ongoing pentest. 
     """
     iconName = "tab_auth.png"
-    tabName = " Auth Infos "
+    tabName = "Auth Infos"
+    registerLvls = ["auth:cookie","auth:password"]
     def __init__(self, parent, settings):
         """
         Constructor
@@ -24,8 +28,6 @@ class AuthInfo:
         self.parent = None
         self.treevw = None
         self.style = None
-
-        iconPath = Utils.getIconDir()
         self.icons = {}
     
     def open(self):
@@ -46,7 +48,6 @@ class AuthInfo:
         Fetch data from database
         """
         apiclient = APIClient.getInstance()
-
         self.auths = apiclient.find("auths")
 
     def displayData(self):
@@ -71,7 +72,7 @@ class AuthInfo:
         # Reset Port treeview
         dialog.destroy()
 
-    def initUI(self, parent, nbk, treevw):
+    def initUI(self, parent, nbk, treevw, tkApp):
         """
         Initialize Dashboard widgets
         Args:
@@ -80,6 +81,8 @@ class AuthInfo:
         if self.parent is not None:  # Already initialized
             return
         self.parent = parent
+        self.tkApp = tkApp
+        self.treevwApp = treevw
         self.moduleFrame = ttk.Frame(parent)
 
         self.rowHeight = 20
@@ -179,6 +182,122 @@ class AuthInfo:
             except tk.TclError:
                 pass
 
-    def mycallback(self, event):
-        _iid = self.treevwtools.identify_row(event.y)
-        self.treevwtools.item(_iid)
+    def _initContextualsMenus(self, parentFrame):
+        """
+        Create a contextual menu
+        """
+        self.contextualMenu = tk.Menu(parentFrame, tearoff=0, background='#A8CF4D',
+                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu.add_command(
+            label="Add Credentials", command=self.addCredentials)
+        return self.contextualMenu
+
+    def addCredentials(self, _event=None):
+        dialog = ChildDialogAuthInfo(self.tkApp)
+        self.tkApp.wait_window(dialog.app)
+        if isinstance(dialog.rvalue , dict):
+            apiclient = APIClient.getInstance()
+            name = dialog.rvalue["key"].strip()
+            value = dialog.rvalue["value"].strip()
+            auth_info = {"name": name, "value":value, "type":dialog.rvalue["type"].lower()}
+            apiclient.insertInDb(apiclient.getCurrentPentest(),"auths", auth_info, notify=True)
+            for selected in self.treevwApp.selection():
+                view_o = self.treevwApp.getViewFromId(selected)
+                if view_o is not None:
+                    lvl = "network" if isinstance(view_o, ScopeView) else None
+                    lvl = "wave" if isinstance(view_o, WaveView) else lvl
+                    lvl = "ip" if isinstance(view_o, IpView) else lvl
+                    lvl = "port" if isinstance(view_o, PortView) else lvl
+                    if lvl is not None:
+                        inst = view_o.controller.getData()
+                        if auth_info["type"].lower() == "cookie":
+                            command_lvl = "auth:cookie"
+                        if auth_info["type"].lower() == "password":
+                            command_lvl = "auth:password"
+                        view_o.controller.updateInfos({"auth_cookie":name+"="+value+";"})
+                        commands = Command.fetchObjects({"lvl":command_lvl}, targetdb=apiclient.getCurrentPentest())
+                        for command in commands:
+                            tool = Tool().initialize(str(command.getId()), inst.get("wave", self.__class__.tabName.strip().lower()),
+                                   "", inst.get("scope",""), inst.get("ip",""), inst.get("port",""), inst.get("proto",""),
+                                   lvl=lvl)
+                            tool.addInDb()
+                    else:
+                        tk.messagebox.showerror(
+                            "ERROR : Wrong selection", "You have to select a object that may have tools")
+
+class ChildDialogAuthInfo:
+    """
+    Open a child dialog of a tkinter application to ask a user a calendar name.
+    """
+    def __init__(self, parent, displayMsg="Add a key value auth info (login:password) (cookie_name:value)"):
+        """
+        Open a child dialog of a tkinter application to ask a combobox option.
+
+        Args:
+            parent: the tkinter parent view to use for this window construction.
+            displayMsg: The message that will explain to the user what he is choosing.
+            default: Choose a default selected option (one of the string in options). default is None
+        """
+        self.app = tk.Toplevel(parent, bg="white")
+        self.app.resizable(False, False)
+        appFrame = ttk.Frame(self.app)
+        self.rvalue = None
+        self.parent = parent
+        lbl = ttk.Label(appFrame, text=displayMsg)
+        lbl.pack(pady=5)
+        valFrame = ttk.Frame(self.app)
+        self.box = ttk.Combobox(
+            valFrame, values=tuple(["Password","Cookie"]), state="readonly")
+        self.box.bind('<<ComboboxSelected>>', self.box_modified)  
+        self.box.set("Password")
+        self.box.grid(column=0, row=0)
+        self.lbl_key = ttk.Label(valFrame, text="Login:")
+        self.lbl_key.grid(row=0, column=1)
+        self.entry_key = ttk.Entry(valFrame)
+        self.entry_key.grid(row=0, column=2)
+        self.lbl_value = ttk.Label(valFrame, text="Password:")
+        self.lbl_value.grid(row=0, column=3)
+        self.entry_value = ttk.Entry(valFrame)
+        self.entry_value.grid(row=0, column=4)
+        valFrame.pack(ipadx=10, ipady=5, pady=10, padx=10)
+        self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk)
+        self.ok_button.bind('<Return>', self.onOk)
+        self.ok_button.pack(padx=10, pady=5, side="right")
+        self.cancel_button = ttk.Button(appFrame, text="Cancel", command=self.onError)
+        self.cancel_button.pack(padx=10, pady=5, side="right")
+        appFrame.pack(ipadx=10, ipady=5)
+        try:
+            self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.grab_set()
+            self.app.focus_force()
+            self.app.lift()
+        except tk.TclError:
+            pass
+        self.box.after(50, self.openCombo)
+
+    def openCombo(self):
+        self.box.event_generate('<Button-1>')
+
+    def box_modified(self, event=""):
+        if self.box.get() == "Password":
+            self.lbl_key.configure(text="Login:")
+            self.lbl_value.configure(text="Password:")
+        elif self.box.get() == "Cookie":
+            self.lbl_key.configure(text="Name:")
+            self.lbl_value.configure(text="Value:")
+
+    def onOk(self, event=""):
+        """
+        Called when the user clicked the validation button. Set the rvalue attributes to the value selected and close the window.
+        """
+        # send the data to the parent
+        self.rvalue = {"type":self.box.get(), "key":self.entry_key.get(), "value":self.entry_value.get()}
+        self.app.destroy()
+
+    def onError(self):
+        """
+        Close the dialog and set rvalue to None
+        """
+        self.rvalue = None
+        self.app.destroy()

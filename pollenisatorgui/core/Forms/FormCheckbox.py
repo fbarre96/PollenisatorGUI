@@ -71,3 +71,5 @@ class FormCheckbox(Form):
     def setFocus(self):
         """Set the focus to the ttk checkbutton."""
         self.chk.focus_set()
+
+    

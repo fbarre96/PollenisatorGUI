@@ -121,7 +121,7 @@ class Summary:
         self.frameTw.pack(side=tk.LEFT, padx=10, pady=10)
         self.loadSummary()
 
-    def initUI(self, parent, nbk, linkTw):
+    def initUI(self, parent, nbk, linkTw, tkApp):
         """Initialize widgets of the summary
         Args:
             parent: parent tkinter container widget 
@@ -175,7 +175,7 @@ class Summary:
             event: used to identified which link was clicked. Auto filled
         """
         if self.linkTw is not None:
-            self.nbk.select(0)
+            self.nbk.select("Main View")
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             self.linkTw.focus(item)
@@ -191,7 +191,10 @@ class Summary:
         treeviewToUpdate = self.treeviews.get(port_data["ip"], None)
         if treeviewToUpdate is not None:
             if port_data.get("_id", None) is not None:
-                treeviewToUpdate.item(str(port_data["_id"]), tags=newTags)
+                try:
+                    treeviewToUpdate.item(str(port_data["_id"]), tags=newTags)
+                except:
+                    pass
 
     def insertPort(self, port_o):
         """Insert a new port in the summary

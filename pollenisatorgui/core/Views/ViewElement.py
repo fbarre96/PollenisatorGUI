@@ -158,40 +158,39 @@ class ViewElement(object):
         """
         self.controller.setTags([name])
 
-    def completeModifyWindow(self):
+    def completeModifyWindow(self, editable=True, addTags=True):
         """
         Add the buttons for an update window.
             -Submit button that validates the form with the update function.
             -Delete button that asks the user to delete the object with the delete function.
         """
         pan = self.form.addFormPanel()
-        pan.addFormButton("Submit", self.update)
-        pan.addFormButton("Delete", self.delete)
-        
-        registeredTags = Settings.Settings.getTags()
-        keys = list(registeredTags.keys())
-        column = 0
-        item_no = 0
-        listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
-        for registeredTag, color in registeredTags.items():
-            if not hasattr(self.mainApp, "parent"):
-                break
-            if column == 0:
-                panTags = self.form.addFormPanel(pady=0)
-            s = ttk.Style(self.mainApp.parent)
-            try: # CHECK IF COLOR IS VALID
-                ttk.Label(self.mainApp.parent, background=color)
-            except tkinter.TclError as e:
-                #color incorrect
-                color = "white"
-            s.configure(""+color+".TButton", background=color, foreground="black")
-            s.map(""+color+".TButton", foreground=[('active', "dark gray")], background=[('active', color)])
-            btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no], side="left", padx=0, pady=0)
-            btn_tag.configure(style=""+color+".TButton")
-            column += 1
-            item_no += 1
-            if column == 4:
+        if editable:
+            pan.addFormButton("Submit", self.update)
+            pan.addFormButton("Delete", self.delete)
+            if addTags:
+                registeredTags = Settings.Settings.getTags()
+                keys = list(registeredTags.keys())
                 column = 0
+                item_no = 0
+                listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
+                for registeredTag, color in registeredTags.items():
+                    if column == 0:
+                        panTags = self.form.addFormPanel(pady=0)
+                    s = ttk.Style(self.mainApp)
+                    try: # CHECK IF COLOR IS VALID
+                        ttk.Label(self.mainApp, background=color)
+                    except tkinter.TclError as e:
+                        #color incorrect
+                        color = "white"
+                    s.configure(""+color+".TButton", background=color, foreground="black")
+                    s.map(""+color+".TButton", foreground=[('active', "dark gray")], background=[('active', color)])
+                    btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no], side="left", padx=0, pady=0)
+                    btn_tag.configure(style=""+color+".TButton")
+                    column += 1
+                    item_no += 1
+                    if column == 4:
+                        column = 0
         self.showForm()
 
     def showForm(self):

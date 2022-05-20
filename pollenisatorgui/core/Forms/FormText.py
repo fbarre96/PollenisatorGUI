@@ -14,20 +14,20 @@ class FormText(Form):
         if grid: row = column = 0 sticky = "East"
     """
 
-    def __init__(self, name, regexValidation="", default="", contextualMenu=None, **kwargs):
+    def __init__(self, name, validation="", default="", contextualMenu=None, **kwargs):
         """
         Constructor for a form text
 
         Args:
             name: the entry name (id).
-            regexValidation: a regex used to check the input
-                             in the checkForm function. default is ""
+            validation: a regex used to check the input
+                             in the checkForm function. default is "" or a callback function
             default: a default value for the Entry, default is ""
             contextualMenu: (Opt.) a contextualMenu to open when right clicked. default is None
             kwargs: same keyword args as you would give to ttk.Text
         """
         super().__init__(name)
-        self.regexValidation = regexValidation
+        self.validation = validation
         self.default = default
         self.contextualMenu = contextualMenu
         self.kwargs = kwargs
@@ -75,7 +75,11 @@ class FormText(Form):
         buff = pyperclip.paste()
         if buff:
             insertIndex = self.text.index(tk.INSERT)
-            self.text.insert(insertIndex, buff)
+            self.text.insert(insertIndex, self.sanitize(buff))
+
+    def sanitize(self, string):
+        """remove unwanted things in text"""
+        return string.replace("\r","")
 
     def constructView(self, parent):
         """
@@ -91,7 +95,7 @@ class FormText(Form):
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
         try:
-            self.text.insert(tk.INSERT, self.default)
+            self.text.insert(tk.INSERT, self.sanitize(self.default))
         except tk.TclError as e:
             self.text.insert(tk.INSERT, "Error :\n"+str(e))
         if state == "disabled":
@@ -131,13 +135,13 @@ class FormText(Form):
         state = self.text.cget("state")
         self.text.config(state="normal")
         self.text.delete("1.0", "end")
-        self.text.insert("1.0", newval)
+        self.text.insert("1.0", self.sanitize(newval))
         self.text.config(state=state)
 
     def checkForm(self):
         """
         Check if this form is correctly filled.
-        Check with the regex validation given in constructor.
+        Check with the validation given in constructor.
 
         Returns:
             {
@@ -145,10 +149,15 @@ class FormText(Form):
                 "msg": A message indicating what is not correctly filled.
             }
         """
-        import re
-        if re.match(self.regexValidation, self.getValue(), re.MULTILINE) is None:
-            return False, self.name+" value is incorrect."
-        return True, ""
+        if isinstance(self.validation, str):
+            import re
+            if re.match(self.validation, self.getValue(), re.MULTILINE) is None:
+                return False, self.name+" value is incorrect."
+            return True, ""
+        elif callable(self.validation):
+            return self.validation(self.getValue()), self.name+" value is incorrect."
+
+
 
     def popup(self, event):
         """
@@ -159,9 +168,9 @@ class FormText(Form):
             Contains information on what treeview node was clicked.
         """
         self.widgetMenuOpen = event.widget
-        self.contextualMenu.post(event.x_root, event.y_root)
+        self.contextualMenu.tk_popup(event.x_root, event.y_root)
         self.contextualMenu.focus_set()
-        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Callback for focus out event. Destroy contextual menu

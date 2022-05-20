@@ -6,7 +6,6 @@ import tkinter.messagebox
 import tkinter as tk
 from tkinter import TclError
 from pollenisatorgui.core.Views.DefectView import DefectView
-from pollenisatorgui.core.Components.ScanManager import ScanManager
 from pollenisatorgui.core.Models.Defect import Defect
 from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
@@ -54,7 +53,7 @@ class ToolView(ViewElement):
             Returns the icon representing this object.
         """
         status = self.controller.getStatus()
-        iconStatus = "not_ready"
+        iconStatus = "ready"
         if "done" in status:
             cache = self.__class__.cached_done_icon
             ui = self.__class__.done_icon
@@ -124,24 +123,25 @@ class ToolView(ViewElement):
         dates_panel.addFormStr(
             "Scanner", r"", modelData["scanner_ip"], row=2, column=1)
         dates_panel.addFormLabel("Command executed", row=3)
-        dates_panel.addFormStr("Command executed", "", modelData["text"], row=3, column=1, state="disabled")
+        dates_panel.addFormStr("Command executed", "", modelData.get("infos", {}).get("cmdline",""), row=3, column=1, state="disabled")
         notes = modelData.get("notes", "")
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
-        hasWorkers = len(apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()}))
+        hasWorkers = len(apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()}))
         #Ready is legacy, OOS and/or OOT should be used
         if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
-            actions_panel.addFormButton(
-                "Local launch", self.localLaunchCallback, side="right")
-            if hasWorkers:
+            if apiclient.getUser() in modelData["name"]:
+                actions_panel.addFormButton(
+                    "Local launch", self.localLaunchCallback, side="right")
+            elif hasWorkers and "Worker" in modelData["name"]:
                 actions_panel.addFormButton(
                     "Run on worker", self.launchCallback, side="right")
             else:
                 actions_panel.addFormLabel(
-                    "Info", "Tool is ready but no worker found", side="right")
+                    "Info", "Tool is ready", side="right")
         elif "OOS" in self.controller.getStatus() or "OOT" in self.controller.getStatus():
             actions_panel.addFormButton(
                 "Local launch", self.localLaunchCallback, side="right")
@@ -157,12 +157,12 @@ class ToolView(ViewElement):
         elif "done" in self.controller.getStatus():
             actions_panel.addFormButton(
                 "Download result file", self.downloadResultFile, side="right")
-            tools_infos = Utils.loadToolsConfig()
             try:
-                mod = Utils.loadPlugin(
-                    tools_infos[self.controller.getName()]["plugin"])
+                mod = Utils.loadPlugin(self.controller.model.getCommand()["plugin"])
                 pluginActions = mod.getActions(self.controller.model)
             except KeyError:  # Happens when parsed an existing file.:
+                pluginActions = None
+            except Exception:
                 pluginActions = None
             if pluginActions is not None:
                 for pluginAction in pluginActions:
@@ -172,6 +172,8 @@ class ToolView(ViewElement):
                     "Reset", self.resetCallback, side="right")
         defect_panel = self.form.addFormPanel(grid=True)
         defect_panel.addFormButton("Create defect", self.createDefectCallback)
+        defect_panel.addFormButton("Show associated command", self.showAssociatedCommand, column=1)
+
         self.completeModifyWindow()
 
     def addInTreeview(self, parentNode=None, _addChildren=True):
@@ -209,7 +211,7 @@ class ToolView(ViewElement):
     def downloadResultFile(self, _event=None):
         """Callback for tool click #TODO move to ToolController
         Download the tool result file and asks the user if he or she wants to open it. 
-        If OK, tries to open it using xdg-open or os.startsfile
+        If OK, tries to open it
         Args:
             _event: not used 
         """
@@ -224,15 +226,14 @@ class ToolView(ViewElement):
         dialog.destroy()
         if path is not None:
             if os.path.isfile(path):
-                if which("xdg-open") is not None:
-                    dialog = ChildDialogQuestion(self.appliViewFrame, "Download completed",
-                                                "The file has been downloaded.\n Would you like to open it?", answers=["Open", "Cancel"])
-                    self.appliViewFrame.wait_window(dialog.app)
-                    if dialog.rvalue == "Open":
-                        Utils.execute("xdg-open "+path)
-                        return
-                    else:
-                        return
+                dialog = ChildDialogQuestion(self.appliViewFrame, "Download completed",
+                                            "The file has been downloaded.\n Would you like to open it?", answers=["Open", "Cancel"])
+                self.appliViewFrame.wait_window(dialog.app)
+                if dialog.rvalue == "Open":
+                    Utils.openPathForUser(path)
+                    return
+                else:
+                    return
             path = None
         if path is None:
             tkinter.messagebox.showerror(
@@ -249,6 +250,11 @@ class ToolView(ViewElement):
         dv = DefectView(self.appliTw, self.appliViewFrame,
                         self.mainApp, DefectController(Defect(modelData)))
         dv.openInsertWindow(toExport)
+
+    def showAssociatedCommand(self, _event=None):
+        if self.appliTw is not None:
+            self.appliTw.showItem(self.controller.getData()["command_iid"])
+            
 
     def localLaunchCallback(self, _event=None):
         """
@@ -291,7 +297,7 @@ class ToolView(ViewElement):
             answer = dialog.rvalue
             if answer == "Yes":
                 apiclient = APIClient.getInstance()
-                apiclient.sendLaunchTask(self.controller.model.getId(), "", False)
+                apiclient.sendLaunchTask(self.controller.model.getId(),  False)
         if res:
             self.form.clear()
             for widget in self.appliViewFrame.winfo_children():
@@ -306,14 +312,20 @@ class ToolView(ViewElement):
             _event: Automatically generated with a button Callback, not used.
         """
         apiclient = APIClient.getInstance()
-        success = apiclient.sendStopTask(self.controller.model.getId())
-        delete_anyway = False
-        if success == False:
-            delete_anyway = tkinter.messagebox.askyesno(
-                "Stop failed", """This tool cannot be stopped because its trace has been lost (The application has been restarted and the tool is still not finished).\n
-                    Reset tool anyway?""")
-        if delete_anyway:
-            success = apiclient.sendStopTask(self.controller.model.getId(), True)
+        success = False
+        success_local = self.mainApp.scanManager.stopTask(self.controller.model.getId())
+        if success_local:
+            apiclient.sendStopTask(self.controller.model.getId(), True) # send reset tool 
+            success = True
+        else:
+            success_distant = apiclient.sendStopTask(self.controller.model.getId())
+            delete_anyway = False
+            if success_distant != True: # it can be a tuple so this check is invalid if False and Tuple
+                delete_anyway = tkinter.messagebox.askyesno(
+                    "Stop failed", """This tool cannot be stopped because its trace has been lost (The application has been restarted and the tool is still not finished).\n
+                        Reset tool anyway?""")
+            if delete_anyway:
+                success = apiclient.sendStopTask(self.controller.model.getId(), True)
         if success:
             self.form.clear()
             for widget in self.appliViewFrame.winfo_children():

@@ -29,7 +29,7 @@ class StatusBar(ttk.Frame):
         super().__init__(master)
         label = ttk.Label(self, text="Tagged:", relief=None,
                                 style="Important.TLabel")
-        label.grid(column=0, row=0)
+        label.pack(side="left")
         self.registeredTags = []
         self.statusbarController = statusbarController
         self.tagsCount = {}
@@ -38,7 +38,11 @@ class StatusBar(ttk.Frame):
 
     def refreshUI(self):
         for widget in self.winfo_children():
-            widget.destroy()
+            try:
+                widget.destroy()
+            except:
+                pass
+        self.pack_forget()
         self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())
@@ -51,7 +55,7 @@ class StatusBar(ttk.Frame):
                 #color does not exist
                 color = "white"
                 self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black")
-            self.labelsTags[registeredTag].grid(column=column, row=0, padx=1)
+            self.labelsTags[registeredTag].pack(side="left", padx=1)
             self.labelsTags[registeredTag].bind('<Button-1>', listOfLambdas[column-1])
             column += 1
 
@@ -82,12 +86,12 @@ class StatusBar(ttk.Frame):
         """
         Update all tags label to tags count
         """
-        for tag, label in self.labelsTags.items():
-            try:
+        try:
+            for tag, label in self.labelsTags.items():
                 label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
                 label.update_idletasks()
-            except Exception:
-                pass
+        except Exception:
+            pass
 
     def refreshTags(self, tags):
         self.registeredTags = tags

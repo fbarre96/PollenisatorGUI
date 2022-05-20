@@ -4,10 +4,9 @@ import os
 import pollenisatorgui.core.Components.Utils as Utils
 from pollenisatorgui.core.Components.apiclient import APIClient
 from PIL import Image, ImageTk
-from ttkwidgets import CheckboxTreeview, tooltips
+from ttkwidgets import CheckboxTreeview
+from ttkwidgets import tooltips
 import importlib
-import multiprocessing
-from shutil import which
 
 class ScriptManager:
     """
@@ -40,8 +39,8 @@ class ScriptManager:
         btn_execute = ttk.Button(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts, tooltip="Execute all selected scripts", style="icon.TButton")        
         btn_execute.pack(side=tk.RIGHT, padx=3, pady=5)
         self.open_folder_icone = tk.PhotoImage(file = Utils.getIcon("folder.png"))
-        btn_openFolder = ttk.Button(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openFolder, tooltip="Open scripts folder", style="icon.TButton")        
-        btn_openFolder.pack(side=tk.RIGHT, padx=3, pady=5)
+        btn_openPathForUser = ttk.Button(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openPathForUser, tooltip="Open scripts folder", style="icon.TButton")        
+        btn_openPathForUser.pack(side=tk.RIGHT, padx=3, pady=5)
         
         btn_pane.pack(fill=tk.X, side=tk.BOTTOM, anchor=tk.E)
         #LEFT PANE : Treeview
@@ -137,11 +136,10 @@ class ScriptManager:
         else:
             tk.messagebox.showwarning("Script failed", f"Script {script_name} failed.\n{res}")
 
-    def openFolder(self):
+    def openPathForUser(self):
         selection = self.treevw.selection()
         if selection:
             folder = os.path.join(self.getScriptsDir(), selection[0])
         else:
             folder = self.getScriptsDir()
-        if which("xdg-open") is not None:
-            os.system("xdg-open "+str(folder))
+        Utils.openPathForUser(folder)

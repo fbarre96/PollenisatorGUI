@@ -13,13 +13,14 @@ class FormChecklist(Form):
         if pack : padx = 10, pady = 5, side = top, fill = "x"
         if grid: row = column = 0
     """
-    def __init__(self, name, choicesList, default, **kwargs):
+    def __init__(self, name, choicesList, default, values, **kwargs):
         """
         Constructor for a form checklist
         Args:
             name: the checklist name (id).
             choicesList: a list of string forming all the possible choices.
             default: a list of string that should be prechecked if in the choice list.
+            values: a list of value to return instead of the strings showing
             kwargs: same keyword args as you would give to ttk.Frame
         """
         super().__init__(name)
@@ -28,6 +29,7 @@ class FormChecklist(Form):
         self.kwargs = kwargs
         self.checkallval = None
         self.checks = []
+        self.values = values
 
     def checkall(self):
         """
@@ -95,7 +97,10 @@ class FormChecklist(Form):
         """
         ret = {}
         for i, v in enumerate(self.val):
-            ret[self.checks[i].cget("text")] = int(v.get())
+            if self.values is not None:
+                ret[self.values[i]] = int(v.get())
+            else:
+                ret[self.checks[i].cget("text")] = int(v.get())
         return ret
 
     def setValue(self, newval):
@@ -103,9 +108,15 @@ class FormChecklist(Form):
         Args:
             newval: A list with checkbox texts. If a checkbox text matches one in the list, it will checked.
         """
+        if isinstance(newval, list):
+            newval = [x.lower for x in newval]
+        else:
+            newval = newval.lower()
         for i, v in enumerate(self.val):
-            if self.checks[i].cget("text").lower() in newval.lower():
+            if self.checks[i].cget("text").lower() in newval:
                 v.set(1)
+            else:
+                v.set(0)
 
     def checkForm(self):
         """

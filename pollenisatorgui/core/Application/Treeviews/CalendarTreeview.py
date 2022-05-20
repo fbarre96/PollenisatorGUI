@@ -13,6 +13,7 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Wave import Wave
 from pollenisatorgui.core.Models.Defect import Defect
 from pollenisatorgui.core.Models.Command import Command
+from pollenisatorgui.core.Models.CommandGroup import CommandGroup
 from pollenisatorgui.core.Views.IntervalView import IntervalView
 from pollenisatorgui.core.Views.IpView import IpView
 from pollenisatorgui.core.Views.MultipleIpView import MultipleIpView
@@ -24,6 +25,7 @@ from pollenisatorgui.core.Views.ToolView import ToolView
 from pollenisatorgui.core.Views.WaveView import WaveView
 from pollenisatorgui.core.Views.DefectView import DefectView
 from pollenisatorgui.core.Views.CommandView import CommandView
+from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
 from pollenisatorgui.core.Controllers.WaveController import WaveController
 from pollenisatorgui.core.Controllers.PortController import PortController
 from pollenisatorgui.core.Controllers.ScopeController import ScopeController
@@ -32,11 +34,13 @@ from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Controllers.IpController import IpController
 from pollenisatorgui.core.Controllers.IntervalController import IntervalController
 from pollenisatorgui.core.Controllers.CommandController import CommandController
+from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
-from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
+from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCustomCommand import ChildDialogCustomCommand
 from pollenisatorgui.core.Application.Dialogs.ChildDialogExportSelection import ChildDialogExportSelection
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
+from pollenisatorgui.core.Components.Utils import openPathForUser
 
 class CalendarTreeview(PollenisatorTreeview):
     """Inherit PollenisatorTreeview.
@@ -143,16 +147,16 @@ class CalendarTreeview(PollenisatorTreeview):
         Args:
             - event: sent automatically though an event on treeview
         """
-        if self.contextualMenu is not None:
-            self.popupFocusOut()
+        #if self.contextualMenu is not None:
+        #    self.popupFocusOut()
         self._initContextualsMenus()
         self.contextualMenu.selection = self.identify(
             "item", event.x, event.y)
-        view = self.getViewFromId(str(self.contextualMenu.selection))
-        if view is None:
-            self.contextualMenu.entryconfig(4, state=tk.DISABLED)
-        else:
-            self.contextualMenu.entryconfig(4, state=tk.ACTIVE)
+        # view = self.getViewFromId(str(self.contextualMenu.selection))
+        # if view is None:
+        #     self.contextualMenu.entryconfig(4, state=tk.DISABLED)
+        # else:
+        #     self.contextualMenu.entryconfig(4, state=tk.ACTIVE)
         if self.appli.searchMode:
             self.contextualMenu.add_command(
                 label="Show in full tree", command=self.showInTreeview)
@@ -168,12 +172,12 @@ class CalendarTreeview(PollenisatorTreeview):
             "item", event.x, event.y)
         # display the popup menu
         try:
-            self.tagsMenu.post(event.x_root, event.y_root)
+            self.tagsMenu.tk_popup(event.x_root, event.y_root)
         finally:
             # make sure to release the grab (Tk 8.0a1 only)
             self.tagsMenu.grab_release()
         self.tagsMenu.focus_set()
-        self.tagsMenu.bind('<FocusOut>', self.popupFocusOutTag)
+        # self.tagsMenu.bind('<FocusOut>', self.popupFocusOutTag)
 
     def popupFocusOutTag(self, _=None):
         """Called when the tag contextual menu is unfocused.
@@ -203,11 +207,16 @@ class CalendarTreeview(PollenisatorTreeview):
         Create the contextual menu
         """
         self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
         self.contextualMenu.add_command(
             label="Custom command", command=self.customCommand)
         self.contextualMenu.add_command(
             label="Export selection", command=self.exportSelection)
+        self.contextualMenu.add_separator()
+        for module in self.appli.modules:
+            if callable(getattr(module["object"], "_initContextualsMenus", None)):
+                menu = module["object"]._initContextualsMenus(self.parentFrame)
+                self.contextualMenu.add_cascade(label=module["name"].strip(), menu=menu)
         self.tagsMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
                                 foreground='white', activebackground='#A8CF4D', activeforeground='white')
         tags = Settings.getTags()
@@ -215,6 +224,7 @@ class CalendarTreeview(PollenisatorTreeview):
         for i,val in enumerate(tags):
             self.tagsMenu.add_command(
                 label=val, command=listOfLambdas[i])
+        #self.contextualMenu.add_cascade(label="Tags", menu=self.tagsMenu)
         self.contextualMenu.add_command(
             label="Sort children", command=self.sort)
         self.contextualMenu.add_command(
@@ -225,8 +235,10 @@ class CalendarTreeview(PollenisatorTreeview):
             label="Hide", command=self.hideAndUpdate)
         self.contextualMenu.add_command(
             label="Unhide children", command=self.unhide)
+        self.contextualMenu.add_separator()
         self.contextualMenu.add_command(
             label="Close", command=self.closeMenu)
+        return self.contextualMenu
 
     def setTagFromMenubar(self, name):
         """
@@ -306,6 +318,9 @@ class CalendarTreeview(PollenisatorTreeview):
             elif collection == "commands":
                 view = CommandView(self, self.appli.viewframe,
                                 self.appli, CommandController(Command(res)))
+            elif collection == "group_commands":
+                view = CommandGroupView(self, self.appli.viewframe,
+                                self.appli, CommandGroupController(CommandGroup(res)))
             try:
                 if view is not None:
                     view.addInTreeview()
@@ -357,7 +372,7 @@ class CalendarTreeview(PollenisatorTreeview):
         if isinstance(dialog.rvalue, list):
             fields_to_export = dialog.rvalue
             f = tk.filedialog.asksaveasfilename(defaultextension=".csv")
-            if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             csv_filename = str(f)
             with open(csv_filename, 'w') as f:
@@ -374,10 +389,14 @@ class CalendarTreeview(PollenisatorTreeview):
                             else:
                                 line.append(str(modelData.get(field, "")))
                         f.write(", ".join(line)+"\n")
-            dialog = ChildDialogInfo(
-                self, "Export completed", "Your export just finished. You can find it here : "+csv_filename)
-        self.wait_window(dialog.app)
+            dialog = ChildDialogQuestion(
+                self, "Export completed", "Your export just finished : "+csv_filename+".\n Do you want to open this folder ?")
+            self.wait_window(dialog.app)
+            if dialog.rvalue == "Yes":
+                openPathForUser(csv_filename, folder_only=True)
 
+
+    
     def customCommand(self, _event=None):
         """
         Ask the user for a custom tool to launch and which parser it will use.
@@ -385,7 +404,7 @@ class CalendarTreeview(PollenisatorTreeview):
             _event: not used but mandatory
         """
         apiclient = APIClient.getInstance()
-        workers = apiclient.getWorkers({"pentests":apiclient.getCurrentPentest()})
+        workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()})
         workers.append("localhost")
         dialog = ChildDialogCustomCommand(
                     self, workers, "localhost")
@@ -408,12 +427,12 @@ class CalendarTreeview(PollenisatorTreeview):
                     if wave == "Custom commands":
                         Wave().initialize("Custom commands").addInDb()
                     tool = Tool()
-                    tool.initialize(commName, wave, inst.get("scope", ""), inst.get("ip", None), inst.get("port", None), inst.get(
-                        "proto", None), lvl, commArgs, dated="None", datef="None", scanner_ip="None", notes="Arguments: "+commArgs)
+                    tool.initialize("", wave, apiclient.getUser()+":"+commName, inst.get("scope", ""), inst.get("ip", None), inst.get("port", None), inst.get(
+                        "proto", None), lvl, commArgs, dated="None", datef="None", scanner_ip="None", status=None, notes="Arguments: "+commArgs, resultfile="", plugin_used=parser)
                     tool.addInDb()
                     if tool is None:
                         return
-                    self.appli.scanManager.launchTask(tool, parser, False, worker)
+                    self.appli.scanManager.launchTask(tool, False, worker)
 
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
@@ -431,9 +450,23 @@ class CalendarTreeview(PollenisatorTreeview):
                     objView = WaveView(self, self.appli.viewframe,
                                     self.appli, WaveController(Wave()))
                     objView.openInsertWindow()
-                elif str(item) == "commands":
+                elif str(item) == "mycommands":
+                    user = apiclient.getUser()
                     objView = CommandView(
-                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest()})))
+                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owner":user})))
+                    objView.openInsertWindow()
+                elif str(item) == "workercommands":
+                    user = "Worker"
+                    objView = CommandView(
+                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owner":user})))
+                    objView.openInsertWindow()
+                elif str(item) == "mygroupcommands":
+                    objView = CommandGroupView(
+                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest(), "owner":apiclient.getUser()})))
+                    objView.openInsertWindow()
+                elif str(item) == "workergroupcommands":
+                    objView = CommandGroupView(
+                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest(), "owner":"Worker"})))
                     objView.openInsertWindow()
                 elif str(item) == "ips":
                     objView = MultipleIpView(
@@ -527,11 +560,28 @@ class CalendarTreeview(PollenisatorTreeview):
 
         self.commands_node = self.insert(
             "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
+        self.group_command_node = self.insert(
+            "", "end", "groupcommands", text="Command Groups", image=CommandGroupView.getClassIcon())
+        self.my_group_command_node = self.insert(
+            self.group_command_node, "end", "mygroupcommands", text="My Command Groups", image=CommandGroupView.getClassIcon())
+        self.worker_group_command_node = self.insert(
+            self.group_command_node, "end", "workergroupcommands", text="Worker Command Groups", image=CommandGroupView.getClassIcon())
+        self.my_commands_node = self.insert(
+            self.commands_node, "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
+        self.worker_commands_node = self.insert(
+            self.commands_node, "end", "workercommands", text="Worker commands", image=CommandView.getClassIcon())  
+        self.others_commands_node = self.insert(
+            self.commands_node, "end", "otherscommands", text="Others commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({}, apiclient.getCurrentPentest())
         for command in commands:
             command_vw = CommandView(
                 self, self.appli.viewframe, self.appli, CommandController(command))
             command_vw.addInTreeview()
+        group_commands = CommandGroup.fetchObjects({}, apiclient.getCurrentPentest())
+        for command_groupe_vw in group_commands:
+            command_groupe_vw = CommandGroupView(
+                self, self.appli.viewframe, self.appli, CommandGroupController(command_groupe_vw))
+            command_groupe_vw.addInTreeview()
         waves = Wave.fetchObjects({})
         for wave in waves:
             wave_o = WaveController(wave)
@@ -671,3 +721,8 @@ class CalendarTreeview(PollenisatorTreeview):
                 view_o.controller.addTag("hidden")
             self._hidden.append([nodeToHide, view_o.getParentNode()])
             self.detach(nodeToHide)
+
+    def showItem(self, item):
+        self.see(str(item))
+        self.selection_set(str(item))
+        self.focus(str(item))

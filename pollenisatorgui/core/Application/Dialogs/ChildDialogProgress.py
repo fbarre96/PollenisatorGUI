@@ -9,7 +9,7 @@ class ChildDialogProgress:
     Open a child dialog of a tkinter application to inform the user about a ongoing process.
     """
 
-    def __init__(self, parent, title, msg, length=200, progress_mode="indeterminate", show_logs=False):
+    def __init__(self, parent, title, msg, length=200, progress_mode="determinate", show_logs=False):
         """
         Open a child dialog of a tkinter application to display a progress bar.
 

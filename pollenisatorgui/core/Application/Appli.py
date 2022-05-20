@@ -7,7 +7,9 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.simpledialog
 import tkinter.ttk as ttk
+import tkinterDnD
 import sys
+import os
 from tkinter import TclError
 import datetime
 import json
@@ -24,7 +26,6 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDi
 from pollenisatorgui.core.Application.Dialogs.ChildDialogConnect import ChildDialogConnect
 from pollenisatorgui.core.Application.Dialogs.ChildDialogNewCalendar import ChildDialogNewCalendar
 from pollenisatorgui.core.Application.Dialogs.ChildDialogException import ChildDialogException
-from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogEditPassword import ChildDialogEditPassword
 from pollenisatorgui.core.Application.StatusBar import StatusBar
@@ -35,7 +36,7 @@ from pollenisatorgui.core.Components.ScriptManager import ScriptManager
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Components.Filter import Filter
 from pollenisatorgui.core.Models.Port import Port
-import pollenisatorgui.core.Components.Modules
+import pollenisatorgui.Modules
 
 class FloatingHelpWindow(tk.Toplevel):
     """floating basic window with helping text inside
@@ -230,17 +231,53 @@ def iter_namespace(ns_pkg):
     # the name.
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-class Appli(ttk.Frame):
+class ButtonNotebook(ttk.Frame):
+    def __init__(self, parent, callbackSwitch):
+        super().__init__(parent)
+        self.frameButtons = ttk.Frame(self, style="Notebook.TFrame")
+        self.callbackSwitch = callbackSwitch
+        self.tabs = {}
+        self.current = None
+        self.frameButtons.pack(side="left", anchor="nw", fill=tk.Y)
+        self.btns = {}
+
+    def add(self, widget, name, image):
+        self.tabs[name] = {"widget":widget, "image":image}
+        widget.pack_forget()
+        btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Notebook.TButton")
+        self.btns[name] = btn
+        btn.bind("<Button-1>", self.clicked)
+        btn.pack(side="top", fill=tk.X, anchor="nw")
+
+    def clicked(self, event):
+        name = event.widget.cget("text")
+        self.select(name)
+
+    def getOpenTabName(self):
+        return self.current
+
+    def delete(self, name):
+        if name in self.tabs:
+            del self.tabs[name]
+            self.btns[name].pack_forget()
+
+    def select(self, name):
+        if self.current:
+            self.tabs[self.current]["widget"].pack_forget()
+        self.current = name
+        self.tabs[name]["widget"].pack(side="right", expand=1, anchor="center", fill=tk.BOTH)
+        self.callbackSwitch(name)
+
+
+class Appli(tkinterDnD.Tk):
     """
     Main tkinter graphical application object.
     """
     version_compatible = "1.1.*"
-    def __init__(self, parent):
+    def __init__(self):
         """
         Initialise the application
 
-        Args:
-            parent: The main tk window.
         """
         # Lexic:
         # view frame : the frame in the tab that will hold forms.
@@ -249,21 +286,16 @@ class Appli(ttk.Frame):
         # canvas : a canvas object (useful to attach a scrollbar to a frame)
         # paned : a Paned widget is used to separate two other widgets and display a one over the other if desired
         #           Used to separate the treeview frame and view frame.
+        super().__init__()
         self.quitting = False
-        self.parent = parent  #  parent tkinter window
-        tk.Tk.report_callback_exception = self.show_error
-        self.setStyle()
-        # HISTORY : Main view and command where historically in the same view;
-        # This results in lots of widget here with a confusing naming style
-        ttk.Frame.__init__(self, parent)
-        #### core components (Tab menu on the left objects)####
-        self.settings = Settings()
         self.settingViewFrame = None
         self.scanManager = None  #  Loaded when clicking on it if linux only
         self.scanViewFrame = None
         self.admin = None
         self.nbk = None
         self.sio = None #socketio client
+        self.initialized = False
+        Utils.setStyle(self)
         self.main_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_main.png"))
         self.commands_tab_img = ImageTk.PhotoImage(
@@ -274,9 +306,9 @@ class Appli(ttk.Frame):
             Image.open(Utils.getIconDir()+"tab_settings.png"))
         self.admin_tab_img = ImageTk.PhotoImage(
             Image.open(Utils.getIconDir()+"tab_admin.png"))
-        self.initModules()
-        
-
+        # HISTORY : Main view and command where historically in the same view;
+        # This results in lots of widget here with a confusing naming style
+        #### core components (Tab menu on the left objects)####
         #### MAIN VIEW ####
         self.openedViewFrameId = None
         self.mainPageFrame = None
@@ -301,36 +333,57 @@ class Appli(ttk.Frame):
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = os.path.join(dir_path, "../../icon/favicon.png")
+    
+        img = tk.PhotoImage(file=dir_path)
+        self.resizable(True, True)
+        self.iconphoto(True, img)
+        self.minsize(width=400, height=400)
+        self.resizable(True, True)
+        self.title("Pollenisator")
+        self.geometry("1220x830")
+        self.protocol("WM_DELETE_WINDOW", self.onClosing)
+        self.settings = Settings()
+        self.initModules()
         apiclient = APIClient.getInstance()
         apiclient.appli = self
-        self.openConnectionDialog()
+        opened = self.openConnectionDialog()
+        if not opened:
+            self.wait_visibility()
+            self.openConnectionDialog(force=True)
+            self.promptCalendarName()
+            
+    # OVERRIDE tk.Tk.report_callback_exception
+    def report_callback_exception(self, exc, val, tb):
+        self.show_error(exc, val, tb)
         
     def quit(self):
         super().quit()
         self.quitting = True
         return
 
-    def forceUpdate(self):
-        tkinter.messagebox.showwarning("Update necessary", "You have to update this client to use this API.")
+    def forceUpdate(self, version):
+        tkinter.messagebox.showwarning("Update necessary", f"You have to update this client to use this API (required minimal is {version}).")
 
     def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
         apiclient = APIClient.getInstance()
-        
         abandon = False
         if force:
             apiclient.disconnect()
         while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
             abandon = self.promptForConnection() is None
         if not abandon:
+            apiclient = APIClient.getInstance()
             apiclient.attach(self)
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
-                self.forceUpdate()
+                self.forceUpdate(".".join(srv_version.split(".")[:-1]))
                 self.onClosing()
                 return
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
-                self.forceUpdate()
+                self.forceUpdate(".".join(srv_version.split(".")[:-1]))
                 self.onClosing()
                 return
             if self.sio is not None:
@@ -339,6 +392,7 @@ class Appli(ttk.Frame):
             @self.sio.event
             def notif(data):
                 self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
+            
             self.sio.connect(apiclient.api_url)
             self.initUI()
             pentests = apiclient.getPentestList()
@@ -348,24 +402,26 @@ class Appli(ttk.Frame):
                 pentests = [x["nom"] for x in pentests][::-1]
             if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
                 self.openCalendar(apiclient.getCurrentPentest())
+            self.initialized = True
             # self.promptCalendarName(), called beacause tabSwitch is called
         else:
             self.onClosing()
             try:
-                self.parent.destroy()
+                self.destroy()
             except tk.TclError:
                 pass
+        return apiclient.isConnected()
     
     def initModules(self):
         discovered_plugins = {
             name: importlib.import_module(name)
             for finder, name, ispkg
-            in iter_namespace(pollenisatorgui.core.Components.Modules)
+            in iter_namespace(pollenisatorgui.Modules)
         }
         self.modules = []
         for name, module in discovered_plugins.items():
             module_class = getattr(module, name.split(".")[-1])
-            module_obj = module_class(self.parent, self.settings)
+            module_obj = module_class(self, self.settings)
             self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":ImageTk.PhotoImage(Image.open(Utils.getIconDir()+module_obj.iconName))})
 
     def show_error(self, *args):
@@ -380,6 +436,7 @@ class Appli(ttk.Frame):
         """
         try:
             err = traceback.format_exception(args[0], args[1], args[2])
+            err = "\n".join(err)
             if args[0] is ErrorHTTP: # args[0] is class of ecx
                 if args[1].response.status_code == 401:
                     tk.messagebox.showerror("Disconnected", "You are not connected.")
@@ -387,13 +444,13 @@ class Appli(ttk.Frame):
                     return
             dialog = ChildDialogException(self, 'Exception occured', err)
             apiclient = APIClient.getInstance()
-            apiclient.reportError("\n".join(err))
+            apiclient.reportError(err)
             try:
                 self.wait_window(dialog.app)
             except tk.TclError:
                 sys.exit(1)
         except Exception as e:
-            print(e)
+            print("Exception in error handler "+str(e))
             sys.exit(1)
 
     def promptForConnection(self):
@@ -403,7 +460,7 @@ class Appli(ttk.Frame):
             The number of pollenisator database found, 0 if the connection failed."""
         apiclient = APIClient.getInstance()
         apiclient.reinitConnection()
-        connectDialog = ChildDialogConnect(self.parent)
+        connectDialog = ChildDialogConnect(self)
         self.wait_window(connectDialog.app)
         return connectDialog.rvalue
 
@@ -414,7 +471,7 @@ class Appli(ttk.Frame):
         if connected_user is None:
             tk.messagebox.showerror("Change password", "You are not connected")
             return 
-        dialog = ChildDialogEditPassword(self.parent, connected_user)
+        dialog = ChildDialogEditPassword(self, connected_user)
         self.wait_window(dialog.app)
         
     def disconnect(self):
@@ -429,7 +486,6 @@ class Appli(ttk.Frame):
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
     def handleNotif(self, notification):
-        print(notification)
         if notification["db"] == "pollenisator":
             if notification["collection"] == "workers":
                 self.scanManager.notify(notification["iid"], notification["action"])
@@ -473,11 +529,11 @@ class Appli(ttk.Frame):
         """
         Create the bar menu on top of the screen.
         """
-        menubar = tk.Menu(self.parent, tearoff=0, bd=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
-        self.parent.config(menu=menubar)
+        menubar = tk.Menu(self, tearoff=0, bd=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        self.config(menu=menubar)
 
-        self.parent.bind('<F5>', self.refreshView)
-        self.parent.bind('<Control-o>', self.promptCalendarName)
+        self.bind('<F5>', self.refreshView)
+        self.bind('<Control-o>', self.promptCalendarName)
         fileMenu = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
         fileMenu.add_command(label="New", command=self.selectNewCalendar)
         fileMenu.add_command(label="Open (Ctrl+o)",
@@ -494,6 +550,8 @@ class Appli(ttk.Frame):
                              command=self.exportCommands)
         fileMenu.add_command(label="Import commands",
                              command=self.importCommands)
+        fileMenu.add_command(label="Import defect templates",
+                             command=self.importDefectTemplates)                     
 
         fileMenu.add_command(label="Exit", command=self.onExit)
         fileMenu2 = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
@@ -515,76 +573,6 @@ class Appli(ttk.Frame):
         menubar.add_command(label="Scripts...", command=self.openScriptModule)
         menubar.add_cascade(label="User", menu=fileMenuUser)
         menubar.add_cascade(label="Help", menu=fileMenu3)
-
-    def setStyle(self, _event=None):
-        """
-        Set the pollenisator window widget style using ttk.Style
-        Args:
-            _event: not used but mandatory
-        """
-        style = ttk.Style(self.parent)
-        style.theme_use("clam")
-        try:
-            style.element_create('Plain.Notebook.tab', "from", 'default')
-        except TclError:
-            pass # ALready exists
-        style.configure("Treeview.Heading", background="#73B723",
-                        foreground="white", relief="flat")
-        style.map('Treeview.Heading', background=[('active', '#73B723')])
-        style.configure("TLabelframe", background="white",
-                        labeloutside=False, bordercolor="#73B723")
-        style.configure('TLabelframe.Label', background="#73B723",
-                        foreground="white", font=('Sans', '10', 'bold'))
-        style.configure("TProgressbar",
-                        background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
-        style.configure("Important.TFrame", background="#73B723")
-        style.configure("TFrame", background="white")
-        style.configure("Important.TLabel", background="#73B723", foreground="white")
-        style.configure("TLabel", background="white")
-        style.configure("TCombobox", background="white")
-        
-        style.configure("TCheckbutton", background="white",
-                        font=('Sans', '10', 'bold'))
-        style.configure("TButton", background="#73B723",
-                        foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
-        style.configure("icon.TButton", background="white", borderwidth=0)
-        style.configure("TNotebook", background="#73B723", foreground="white", font=(
-            'Sans', '10', 'bold'), tabposition='wn', borderwidth=0, width=100)
-
-        style.configure("TNotebook.Tab", background="#73B723", borderwidth=0,
-                        foreground="white", font=('Sans', '10', 'bold'), padding=20, bordercolor="#73B723")
-        style.map('TNotebook.Tab', background=[('active', '#73C723'), ("selected", '#73D723')], foreground=[("active", "white")], font=[("active", (
-            'Sans', '10', 'bold'))], padding=[('active', 20)])
-        style.map('TButton', background=[('active', '#73D723')])
-        #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
-        style.map('Treeview', foreground=Appli.fixedMap('foreground', style),
-                  background=Appli.fixedMap('background', style))
-        # Removed dashed line https://stackoverflow.com/questions/23354303/removing-ttk-notebook-tab-dashed-line/23399786
-        style.layout("TNotebook.Tab",
-                     [('Plain.Notebook.tab',
-                       {'children':[('Notebook.padding', {'side': 'top', 'children': [('Notebook.label', {
-                           'side': 'top', 'sticky': ''})], 'sticky': 'nswe'})],
-                        'sticky': 'nswe'})])
-
-    @staticmethod
-    def fixedMap(option, style):
-        """
-        Fix color tag in treeview not appearing under some linux distros
-        Args:
-            option: the string option you want to affect on treeview ("background" for example)
-            strle: the style object of ttk
-        """
-        # Fix for setting text colour for Tkinter 8.6.9
-        # From: https://core.tcl.tk/tk/info/509cafafae
-        #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
-        # Returns the style map for 'option' with any styles starting with
-        # ('!disabled', '!selected', ...) filtered out.
-
-        # style.map() returns an empty list for missing options, so this
-        # should be future-safe.
-        return [elm for elm in style.map('Treeview', query_opt=option) if
-                elm[:2] != ('!disabled', '!selected')]
-
 
     def initMainView(self):
         """
@@ -643,7 +631,7 @@ class Appli(ttk.Frame):
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        self.nbk.add(self.mainPageFrame, text="  Main View ", image=self.main_tab_img, compound=tk.TOP, sticky='nsew')
+        self.nbk.add(self.mainPageFrame, "Main View", image=self.main_tab_img)
     
     def searchbarSelectAll(self, _event):
         """
@@ -757,8 +745,7 @@ class Appli(ttk.Frame):
         self.commandPaned.pack(fill=tk.BOTH, expand=1)
         self.commandsFrameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.commandsFrameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        self.nbk.bind("<<NotebookTabChanged>>", self.tabSwitch)
-        self.nbk.add(self.commandsPageFrame, text=" Commands", image=self.commands_tab_img, compound=tk.TOP)
+        self.nbk.add(self.commandsPageFrame, "Commands", image=self.commands_tab_img)
 
     def resizeCanvasFrame(self, event):
         if self.canvas is None:
@@ -783,13 +770,12 @@ class Appli(ttk.Frame):
             self.helpFrame.destroy()
             self.helpFrame = None
 
-    def tabSwitch(self, event):
+    def tabSwitch(self, tabName):
         """Called when the user click on the tab menu to switch tab. Add a behaviour before the tab switches.
         Args:
-            event : hold informations to identify which tab was clicked.
+            tabName: the opened tab
         """
         apiclient = APIClient.getInstance()
-        tabName = self.nbk.tab(self.nbk.select(), "text").strip()
         self.searchBar.quit()
         if tabName == "Commands":
             self.commandsTreevw.initUI()
@@ -808,29 +794,27 @@ class Appli(ttk.Frame):
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
                     module["object"].open()
-        event.widget.winfo_children()[event.widget.index("current")].update()
 
     def initSettingsView(self):
         """Add the settings view frame to the notebook widget and initialize its UI."""
         self.settingViewFrame = ttk.Frame(self.nbk)
         self.settings.initUI(self.settingViewFrame)
-        self.settingViewFrame.pack(fill=tk.BOTH, expand=1)
-        self.nbk.add(self.settingViewFrame, text="   Settings   ", image=self.settings_tab_img, compound=tk.TOP)
+        self.nbk.add(self.settingViewFrame, "Settings", image=self.settings_tab_img)
 
     def initScanView(self):
         """Add the scan view frame to the notebook widget. This does not initialize it as it needs a database to be opened."""
         self.scanViewFrame = ttk.Frame(self.nbk)
-        self.nbk.add(self.scanViewFrame, text="     Scan      ", image=self.scan_tab_img, compound=tk.TOP)
+        self.nbk.add(self.scanViewFrame, "Scan", image=self.scan_tab_img)
 
     def initAdminView(self):
         """Add the admin button to the notebook"""
         self.admin = AdminView(self.nbk)
         self.adminViewFrame = ttk.Frame(self.nbk)
-        self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
+        self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
 
     def openScriptModule(self):
         """Open the script window"""
-        self.scriptManager = ScriptManager(self.parent)
+        self.scriptManager = ScriptManager(self)
 
     def initUI(self):
         """
@@ -839,10 +823,9 @@ class Appli(ttk.Frame):
         if self.nbk is not None:
             self.refreshUI()
             return
-        self.nbk = ttk.Notebook(self.parent)
-        self.statusbar = StatusBar(self.parent, self)
+        self.nbk = ButtonNotebook(self, self.tabSwitch)
+        self.statusbar = StatusBar(self, self)
         self.statusbar.pack(fill=tk.X)
-        self.nbk.enable_traversal()
         self.initMainView()
         self.initAdminView()
         self.initCommandsView()
@@ -850,23 +833,21 @@ class Appli(ttk.Frame):
         self.initSettingsView()
         for module in self.modules:
             module["view"] = ttk.Frame(self.nbk)
-            self.nbk.add(module["view"], text=module["name"],image=module["img"],compound=tk.TOP)
+            self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
+        self.nbk.select("Main View")
         self.refreshUI()
 
     def refreshUI(self):
         apiclient = APIClient.getInstance()
-        tab_names = [self.nbk.tab(i, option="text").strip() for i in self.nbk.tabs()]
 
         if apiclient.isAdmin():
-            self.nbk.add(self.adminViewFrame, text= "    Admin    ", image=self.admin_tab_img, compound=tk.TOP)
-            self.nbk.add(self.commandsPageFrame, text=" Commands", image=self.commands_tab_img, compound=tk.TOP)
+            self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
         else:
-            self.nbk.hide(tab_names.index("Admin"))
-            self.nbk.hide(tab_names.index("Commands"))
+            self.nbk.delete("Admin")
     
-    def newSearch(self, _event=None):
+    def newSearch(self, _event=None, histo=True):
         """Called when the searchbar is validated (click on search button or enter key pressed).
         Perform a filter on the main treeview.
         Args:
@@ -876,13 +857,14 @@ class Appli(ttk.Frame):
         success = self.treevw.filterTreeview(filterStr, self.settings)
         self.searchMode = (success and filterStr.strip() != "")
         if success:
-            histo_filters = self.settings.local_settings.get("histo_filters", [])
-            if filterStr.strip() != "":
-                histo_filters.insert(0, filterStr)
-                if len(histo_filters) > 10:
-                    histo_filters = histo_filters[:10]
-                self.settings.local_settings["histo_filters"] = histo_filters
-                self.settings.saveLocalSettings()
+            if histo:
+                histo_filters = self.settings.local_settings.get("histo_filters", [])
+                if filterStr.strip() != "":
+                    histo_filters.insert(0, filterStr)
+                    if len(histo_filters) > 10:
+                        histo_filters = histo_filters[:10]
+                    self.settings.local_settings["histo_filters"] = histo_filters
+                    self.settings.saveLocalSettings()
             if self.helpFrame is not None:
                 self.helpFrame.destroy()
                 self.helpFrame = None
@@ -893,9 +875,11 @@ class Appli(ttk.Frame):
         Args:
             name: not used but mandatory"""
         # get the index of the mouse click
-        self.nbk.select(0)
+        self.nbk.select("Main View")
         self.searchMode = True
-        self.treevw.filterTreeview("\""+name+"\" in tags")
+        self.searchBar.delete(0, tk.END)
+        self.searchBar.insert(tk.END, "\""+name+"\" in tags")
+        self.newSearch(histo=False)
 
     def resetButtonClicked(self):
         """
@@ -912,7 +896,7 @@ class Appli(ttk.Frame):
             _event: not used but mandatory
         """
         setViewOn = None
-        nbkOpenedTab = self.nbk.tab(self.nbk.select(), "text").strip()
+        nbkOpenedTab = self.nbk.getOpenTabName()
         activeTw = None
         if nbkOpenedTab == "Main View":
             activeTw = self.treevw
@@ -972,11 +956,15 @@ class Appli(ttk.Frame):
         """
         Dump pollenisator from database to an archive file gunzip.
         """
+        dialog = ChildDialogQuestion(self, "Ask question", "Do you want to export your commands or Worker's commands.", ["My commands", "Worker"])
+        self.wait_window(dialog.app)
         apiclient = APIClient.getInstance()
-        apiclient.dumpDb("pollenisator", "commands")
-        apiclient.dumpDb("pollenisator", "group_commands")
-        tkinter.messagebox.showinfo(
-            "Export pollenisator database", "Export completed in exports/pollenisator_commands.gz and exports/pollenisator_group_commands.gz")
+        res, msg = apiclient.exportCommands(forWorker=dialog.rvalue == "Worker")
+        if res:
+            tkinter.messagebox.showinfo(
+                "Export pollenisator database", "Export completed in "+str(msg))
+        else:
+            tkinter.messagebox.showinfo(msg)
 
     def importCalendar(self, name=None):
         """
@@ -1020,15 +1008,17 @@ class Appli(ttk.Frame):
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(defaultextension=".gz")
+            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
         else:
             filename = name
         try:
+            dialog = ChildDialogQuestion(self, "Ask question", "Do you want to import these commands for you or the worker.", ["Me", "Worker"])
+            self.wait_window(dialog.app)
             apiclient = APIClient.getInstance()
-            success = apiclient.importCommands(filename)
+            success = apiclient.importCommands(filename, forWorker=dialog.rvalue == "Worker")
             self.commandsTreevw.refresh()
         except IOError:
             tkinter.messagebox.showerror(
@@ -1038,6 +1028,37 @@ class Appli(ttk.Frame):
             tkinter.messagebox.showerror("Command import", "Command import failed")
         else:
             tkinter.messagebox.showinfo("Command import", "Command import completed")
+        return success
+
+    def importDefectTemplates(self, name=None):
+        """
+        Import defect templates from a json
+        Args:
+            name: The filename of the json containing defect templates
+        Returns:
+            None if name is None and filedialog is closed
+            True if defects successfully are imported
+            False otherwise.
+        """
+        filename = ""
+        if name is None:
+            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
+            if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+        else:
+            filename = name
+        try:
+            apiclient = APIClient.getInstance()
+            success = apiclient.importDefectTemplates(filename)
+        except IOError:
+            tkinter.messagebox.showerror(
+                "Import defects templates", "Import failed. "+str(filename)+" was not found or is not a file.")
+            return False
+        if not success:
+            tkinter.messagebox.showerror("Defects templates import", "Defects templatest failed")
+        else:
+            tkinter.messagebox.showinfo("Defects templates import", "Defects templates completed")
         return success
 
     def onExit(self):
@@ -1116,7 +1137,7 @@ class Appli(ttk.Frame):
         validCalendar = False
         default = {}
         while not validCalendar:
-            dialog = ChildDialogNewCalendar(self.parent, default)
+            dialog = ChildDialogNewCalendar(self, default)
             self.wait_window(dialog.app)
             if isinstance(dialog.rvalue, dict):
                 default = dialog.rvalue
@@ -1148,19 +1169,20 @@ class Appli(ttk.Frame):
         elif filename != "":
             calendarName = filename.split(".")[0].split("/")[-1]
         if calendarName is not None:
-            res = apiclient.setCurrentPentest(calendarName)
+            first_use_detected = self.detectFirstUse()
+            res = apiclient.setCurrentPentest(calendarName, first_use_detected)
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
                 return
             for widget in self.viewframe.winfo_children():
                 widget.destroy()
             for module in self.modules:
-                module["object"].initUI(module["view"], self.nbk, self.treevw)
+                module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()
             self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
-            
+            self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":calendarName})
 
     def wrapCopyDb(self, _event=None):
         """
@@ -1178,5 +1200,13 @@ class Appli(ttk.Frame):
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser(self.parent)
-        self.parent.wait_window(dialog.app)
+        dialog = ChildDialogFileParser()
+        self.wait_window(dialog.app)
+
+    def detectFirstUse(self):
+        detector = os.path.join(Utils.getConfigFolder(),".first_use")
+        if os.path.exists(detector):
+            return False
+        with open(detector, "w") as f:
+            f.write("")
+        return True
