@@ -1169,7 +1169,8 @@ class Appli(tkinterDnD.Tk):
         elif filename != "":
             calendarName = filename.split(".")[0].split("/")[-1]
         if calendarName is not None:
-            res = apiclient.setCurrentPentest(calendarName)
+            first_use_detected = self.detectFirstUse()
+            res = apiclient.setCurrentPentest(calendarName, first_use_detected)
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
                 return
@@ -1201,3 +1202,11 @@ class Appli(tkinterDnD.Tk):
         """
         dialog = ChildDialogFileParser()
         self.wait_window(dialog.app)
+
+    def detectFirstUse(self):
+        detector = os.path.join(Utils.getConfigFolder(),".first_use")
+        if os.path.exists(detector):
+            return False
+        with open(detector, "w") as f:
+            f.write("")
+        return True

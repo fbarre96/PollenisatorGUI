@@ -42,6 +42,7 @@ class StatusBar(ttk.Frame):
                 widget.destroy()
             except:
                 pass
+        self.pack_forget()
         self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())

@@ -216,14 +216,15 @@ class APIClient():
         raise ErrorHTTP(response)
     
     @handle_api_errors
-    def setCurrentPentest(self, newCurrentPentest):
+    def setCurrentPentest(self, newCurrentPentest, addDefaultCommands=False):
         if newCurrentPentest.strip() == "":
             self.headers["Authorization"] = ""
             self.scope = []
             self.currentPentest = ""
             return False
         api_url = '{0}login/{1}'.format(self.api_url_base, newCurrentPentest)
-        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        data = {"addDefaultCommands": addDefaultCommands}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             self.setConnection(token)
@@ -943,7 +944,7 @@ class APIClient():
             filename = "worker_commands.json"
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
-            filename = "my_commands.json"
+            filename = "my_commands.json" if not forWorker else "worker_commands.json"
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
