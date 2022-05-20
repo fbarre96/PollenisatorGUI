@@ -379,6 +379,7 @@ class ScanManager:
             return False, "No selection made"
         if isinstance(dialog.rvalue, str):
             wave_target = dialog.rvalue
+            res = apiclient.addWorkerCommandsToWave(waves_associations[wave_target])
             docker_name = apiclient.getDockerForPentest(apiclient.getCurrentPentest())
             dialog = ChildDialogProgress(self.parent, "Start docker", "Waiting for docker to boot 0/4", progress_mode="indeterminate")
             dialog.show()
@@ -391,7 +392,7 @@ class ScanManager:
             dialog.destroy()
             if docker_name not in self.workerTv.get_children():
                 return False, "Worker did not boot in time, cannot add commands to wave"
-            return apiclient.addWorkerCommandsToWave(waves_associations[wave_target])
+            return res
         return False, ""
 
     def registerAsWorker(self):
