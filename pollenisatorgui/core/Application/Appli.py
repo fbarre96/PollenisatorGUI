@@ -242,12 +242,13 @@ class ButtonNotebook(ttk.Frame):
         self.btns = {}
 
     def add(self, widget, name, image):
-        self.tabs[name] = {"widget":widget, "image":image}
-        widget.pack_forget()
-        btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Notebook.TButton")
-        self.btns[name] = btn
-        btn.bind("<Button-1>", self.clicked)
-        btn.pack(side="top", fill=tk.X, anchor="nw")
+        if name not in self.tabs:
+            self.tabs[name] = {"widget":widget, "image":image}
+            widget.pack_forget()
+            btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Notebook.TButton")
+            self.btns[name] = btn
+            btn.bind("<Button-1>", self.clicked)
+            btn.pack(side="top", fill=tk.X, anchor="nw")
 
     def clicked(self, event):
         name = event.widget.cget("text")
