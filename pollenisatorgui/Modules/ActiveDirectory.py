@@ -66,10 +66,16 @@ class ActiveDirectory:
         apiclient = APIClient.getInstance()
         self.users = apiclient.findInDb(apiclient.getCurrentPentest(
         ), ActiveDirectory.collName, {"type": "user"}, True)
+        if self.users is None:
+            self.users = []
         self.computers = apiclient.findInDb(apiclient.getCurrentPentest(
         ), ActiveDirectory.collName, {"type": "computer"}, True)
+        if self.computers is None:
+            self.computers = []
         self.shares = apiclient.findInDb(apiclient.getCurrentPentest(
         ), ActiveDirectory.collName, {"type": "share"}, True)
+        if self.shares is None:
+            self.shares = []
         ports = Port.fetchObjects({"port":str(445)})
         for port in ports:
             self.loadInfoFromPort(port)
