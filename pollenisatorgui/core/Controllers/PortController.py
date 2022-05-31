@@ -58,12 +58,12 @@ class PortController(ControllerElement):
         return {"ip": self.model.ip, "port": self.model.port, "proto": self.model.proto,
                 "service": self.model.service, "product": self.model.product, "notes": self.model.notes, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
-    def addCustomTool(self, toolname):
-        """Add tool name to the model 
+    def addCustomTool(self, command_iid):
+        """Add command iid to instantiate as a tool in the model 
         Args:
-            toolname: the tool name to be added to the port
+            command_iid:  command iid of the command to instantiate as a tool in the model 
         """
-        self.model.addCustomTool(toolname)
+        self.model.addCustomTool(command_iid)
 
     def getDefects(self):
         """Return port assigned defects as a list of mongo fetched defects dict

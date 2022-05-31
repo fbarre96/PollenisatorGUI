@@ -708,9 +708,9 @@ class APIClient():
             return None
 
     @handle_api_errors
-    def addCustomTool(self, port_iid, tool_name):
+    def addCustomTool(self, port_iid, command_iid):
         api_url = '{0}ports/{1}/{2}/addCustomTool/'.format(self.api_url_base, self.getCurrentPentest(), port_iid)
-        response = requests.post(api_url, headers=self.headers, data=json.dumps({"tool_name":tool_name}, cls=JSONEncoder), proxies=proxies, verify=False)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"command_iid":command_iid}, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:

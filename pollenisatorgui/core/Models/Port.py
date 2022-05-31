@@ -98,15 +98,15 @@ class Port(Element):
         
         return res, iid
 
-    def addCustomTool(self, command_name):
+    def addCustomTool(self, command_iid):
         """
         Add the appropriate tools (level check and wave's commands check) for this port.
 
         Args:
-            command_name: The command that we want to create all the tools for.
+            command_iid: The command that we want to create all the tools for.
         """
         apiclient = APIClient.getInstance()
-        return apiclient.addCustomTool(self._id, command_name)
+        return apiclient.addCustomTool(self._id, command_iid)
 
     def _getParentId(self):
         """

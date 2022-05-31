@@ -86,8 +86,10 @@ class PortView(ViewElement):
         top_panel.addFormText("Infos", is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
         command_list = Command.fetchObjects({"lvl": "port"}, APIClient.getInstance().getCurrentPentest())
         command_names = ["None"]
+        self.command_names_to_iid = {}
         for command_doc in command_list:
             command_names.append(command_doc.name)
+            self.command_names_to_iid[command_doc.name] = str(command_doc._id)
         self.tool_panel = self.form.addFormPanel(grid=True)
         self.tool_panel.addFormLabel("Tool to add")
         self.tool_panel.addFormCombo(
@@ -135,7 +137,9 @@ class PortView(ViewElement):
         toolname_values = self.tool_panel.getValue()
         toolname = ViewElement.list_tuple_to_dict(toolname_values)[
             "Tool to add"]
-        self.controller.addCustomTool(toolname)
+        command_iid = self.command_names_to_iid.get(toolname)
+        if command_iid is not None:
+            self.controller.addCustomTool(command_iid)
 
     def addInTreeview(self, parentNode=None, addChildren=True):
         """Add this view in treeview. Also stores infos in application treeview.
