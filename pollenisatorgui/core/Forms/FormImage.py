@@ -33,7 +33,7 @@ class FormImage(Form):
         """
         self.img = Image.open(self.path)
         self.tkimage = ImageTk.PhotoImage(self.img)
-        self.lbl = ttk.Label(parent.panel, image=self.tkimage, bg="white", justify=tk.LEFT)
+        self.lbl = ttk.Label(parent.panel, image=self.tkimage, justify=tk.LEFT)
         if parent.gridLayout:
             self.lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)
         else:
