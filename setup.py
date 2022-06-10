@@ -194,7 +194,8 @@ setup(
         'console_scripts': [
             'pollenisator-gui=pollenisatorgui.pollenisator:main',
             'pollex=pollenisatorgui.pollenisator:pollex',
-            'pollup=pollenisatorgui.pollenisator:pollup'
+            'pollup=pollenisatorgui.pollenisator:pollup',
+            'pollwatch=pollenisatorgui.pollenisator:pollwatch'
         ],
     },
 

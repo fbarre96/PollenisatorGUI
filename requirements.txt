@@ -13,3 +13,4 @@ GitPython
 python-socketio[client]>=5.1.0
 ttkwidgets
 python-tkdnd
+watchdog

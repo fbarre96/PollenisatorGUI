@@ -131,11 +131,35 @@ def pollup():
     else:
         print("Usage : pollup <filename> [plugin or auto-detect]")
         sys.exit(1)
+    uploadFile(filename, plugin)
+
+def uploadFile(filename, plugin='auto-detect'):
     apiclient = APIClient.getInstance()
     apiclient.tryConnection()
     print(f"INFO : Uploading results {filename}")
     msg = apiclient.importExistingResultFile(filename, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), "")
     print(msg)
+
+def pollwatch():
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+    class Handler(FileSystemEventHandler):
+        @staticmethod
+        def on_any_event(event):
+            if event.is_directory:
+                return None
+            elif event.event_type == 'created':
+                # Event is created, you can process it now
+                uploadFile(event.src_path)
+    observer = Observer()
+    observer.schedule(Handler(), '.', recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(5)
+    finally:
+        observer.stop()
+        observer.join()
 
 def main():
     """Main function. Start pollenisator application
