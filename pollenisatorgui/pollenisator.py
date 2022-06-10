@@ -118,7 +118,24 @@ def pollex():
         print(f"INFO : Uploading results {outputFilePath}")
         msg = apiclient.importExistingResultFile(outputFilePath, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), comm)
         print(msg)
-        
+
+def pollup():
+    """Send a file to pollenisator backend for analysis
+    """
+    if len(sys.argv) == 2:
+        filename = sys.argv[1]
+        plugin = "auto-detect"
+    elif len(sys.argv) == 3:
+        filename = sys.argv[1]
+        plugin = sys.argv[2]
+    else:
+        print("Usage : pollup <filename> [plugin or auto-detect]")
+        sys.exit(1)
+    apiclient = APIClient.getInstance()
+    apiclient.tryConnection()
+    print(f"INFO : Uploading results {filename}")
+    msg = apiclient.importExistingResultFile(filename, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), "")
+    print(msg)
 
 def main():
     """Main function. Start pollenisator application
