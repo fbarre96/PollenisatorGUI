@@ -202,7 +202,7 @@ class FormTreevw(Form):
         scbHSel.grid(row=1, column=0, sticky=tk.EW)
         if len(self.headings) > 1:
             self.treevw['columns'] = self.headings[1:]
-        root = tk.Label()
+        root = ttk.Label()
         self.f = tk.font.Font(root, "Sans", bold=True, size=10)
         columnsLen = self.recurse_insert(self.default_values)
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.headings))]

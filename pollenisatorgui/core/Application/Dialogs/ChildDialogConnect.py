@@ -3,7 +3,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from PIL import ImageTk, Image
-import requests
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.Utils import loadClientConfig, saveClientConfig, getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
 
@@ -62,7 +61,7 @@ class ChildDialogConnect:
         
         lbl_hostname = ttk.Label(appFrame, text="Host : ")
         lbl_hostname.grid(row=0, column=0)
-        self.ent_hostname = tk.Entry(
+        self.ent_hostname = ttk.Entry(
             appFrame, width="20", validate="focusout", validatecommand=self.validateHost)
         self.ent_hostname.insert(tk.END, self.clientCfg["host"])
         self.ent_hostname.bind('<Return>', self.validateHost)

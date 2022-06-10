@@ -75,7 +75,7 @@ class AdminView:
         self.email.grid(row=5, column=1, sticky=tk.W)
         self.add_user_icon = tk.PhotoImage(file=Utils.getIcon("add_user.png"))
         btn_addUser = ttk.Button(
-                addUserFrame, image=self.add_user_icon, command=self.addUser, style='icon.TButton')
+                addUserFrame, image=self.add_user_icon, command=self.addUser, style='Toolbutton')
         btn_addUser.grid(row=6, column = 2, sticky=tk.W)
         addUserFrame.pack()
         lblAddUsername.pack()

@@ -11,7 +11,7 @@ class ScrollableTreeview(ttk.Frame):
         self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=kwargs.get("height", None))
         self.treevw['columns'] = columns
         self.treevw.tag_configure("odd", background='light gray')
-        lbl = tk.Label()
+        lbl = ttk.Label()
         self.f = tk.font.Font(lbl, "Sans", bold=True, size=10)
         self.columnsLen = [self.f.measure(column) for column in self.columns]
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.columns))]

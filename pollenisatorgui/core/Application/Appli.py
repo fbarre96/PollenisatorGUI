@@ -234,6 +234,7 @@ def iter_namespace(ns_pkg):
 class ButtonNotebook(ttk.Frame):
     def __init__(self, parent, callbackSwitch):
         super().__init__(parent)
+        style = ttk.Style()
         self.frameButtons = ttk.Frame(self, style="Notebook.TFrame")
         self.callbackSwitch = callbackSwitch
         self.tabs = {}
@@ -245,7 +246,7 @@ class ButtonNotebook(ttk.Frame):
         if name not in self.tabs:
             self.tabs[name] = {"widget":widget, "image":image}
             widget.pack_forget()
-            btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Notebook.TButton")
+            btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Colored.TButton")
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
             btn.pack(side="top", fill=tk.X, anchor="nw")
@@ -590,14 +591,14 @@ class Appli(tkinterDnD.Tk):
         self.searchBar.bind('<Control-a>', self.searchbarSelectAll)
         # searchBar.bind("<Button-3>", self.do_popup)
         self.searchBar.pack(side="left", fill="x", expand=True)
-        btnSearchBar = ttk.Button(searchFrame, style="icon.TButton")
+        btnSearchBar = ttk.Button(searchFrame, style="Toolbutton")
         self.search_icon = tk.PhotoImage(file=Utils.getIcon("search.png"))
         btnSearchBar.config(image=self.search_icon, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
         self.reset_icon = tk.PhotoImage(file=Utils.getIcon("delete.png"))
-        btnReset = ttk.Button(searchFrame, image=self.reset_icon, command=self.resetButtonClicked, style="icon.TButton")
+        btnReset = ttk.Button(searchFrame, image=self.reset_icon, command=self.resetButtonClicked, style="Toolbutton")
         btnReset.pack(side="left", fill="x")
-        self.btnHelp = ttk.Button(searchFrame, style="icon.TButton")
+        self.btnHelp = ttk.Button(searchFrame, style="Toolbutton")
         self.photo = tk.PhotoImage(file=Utils.getHelpIconPath())
         self.helpFrame = None
         self.btnHelp.config(image=self.photo, command=self.showSearchHelp)

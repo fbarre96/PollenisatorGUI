@@ -1,6 +1,7 @@
 """Describe tkinter Label as image with default common args"""
 
 import tkinter as tk
+import tkinter.ttk as ttk
 from pollenisatorgui.core.Forms.Form import Form
 from PIL import ImageTk, Image
 
@@ -32,7 +33,7 @@ class FormImage(Form):
         """
         self.img = Image.open(self.path)
         self.tkimage = ImageTk.PhotoImage(self.img)
-        self.lbl = tk.Label(parent.panel, image=self.tkimage, bg="white", justify=tk.LEFT)
+        self.lbl = ttk.Label(parent.panel, image=self.tkimage, bg="white", justify=tk.LEFT)
         if parent.gridLayout:
             self.lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)
         else:

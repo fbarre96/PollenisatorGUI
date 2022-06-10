@@ -41,7 +41,7 @@ class FormSearchBar(Form):
         frame = ttk.Frame(parent.panel)
         lbl = ttk.Label(frame, text=self.name+" : ", background="white")
         lbl.grid(column=0, row=0)
-        self.entry = tk.Entry(frame, textvariable=self.val, width=50)
+        self.entry = ttk.Entry(frame, textvariable=self.val, width=50)
         self.entry.grid(column=1, row=0)
         self.entry.bind("<Control-a>", self.selectAll)
         self.val.set(self.default)

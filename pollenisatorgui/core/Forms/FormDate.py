@@ -46,11 +46,11 @@ class FormDate(Form):
         self.parent = parent
         self.val = tk.StringVar()
         frame = ttk.Frame(parent.panel)
-        self.entry = tk.Entry(frame, textvariable=self.val)
+        self.entry = ttk.Entry(frame, textvariable=self.val)
         self.val.set(self.default)
         self.entry.bind('<Control-a>', self.selectAll)
         self.entry.grid(row=0, column=0)
-        datepicker = tk.Label(frame, image=FormDate.img_class)
+        datepicker = ttk.Label(frame, image=FormDate.img_class)
         datepicker.grid(row=0,column=1, padx=5)
         datepicker.bind("<Button-1>", self.showDatePicker)
         if parent.gridLayout:

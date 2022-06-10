@@ -1,6 +1,7 @@
 """Describe tkinter Entry with default common args"""
 
 import tkinter as tk
+import tkinter.ttk as ttk
 from pollenisatorgui.core.Forms.Form import Form
 import pyperclip
 
@@ -103,7 +104,7 @@ class FormStr(Form):
             parent: parent FormPanel.
         """
         self.val = tk.StringVar()
-        self.entry = tk.Entry(parent.panel, textvariable=self.val, width=self.getKw(
+        self.entry = ttk.Entry(parent.panel, textvariable=self.val, width=self.getKw(
             "width", 20), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
 

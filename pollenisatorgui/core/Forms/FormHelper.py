@@ -68,7 +68,7 @@ class FormHelper(Form):
         # Leaves only the label and removes the app window
         self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry("+%d+%d" % (x, y))
-        label = tk.Label(self.tw, text=self.text, justify='left',
+        label = ttk.Label(self.tw, text=self.text, justify='left',
                          background='light yellow', relief='solid', borderwidth=1,
                          font=("times", "12", "normal"))
         label.pack(ipadx=1)

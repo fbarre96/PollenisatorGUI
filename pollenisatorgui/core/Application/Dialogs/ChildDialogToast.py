@@ -41,7 +41,7 @@ class ChildDialogToast(tk.Toplevel):
         w = self.kwargs.get("width", 200)
         h = self.kwargs.get("height", 20)
         self.geometry("%dx%d" % (w, h))
-        label = tk.Label(self, text=self.text, justify='left',
+        label = ttk.Label(self, text=self.text, justify='left',
                          background='white', relief='solid', borderwidth=1,
                          font=("times", "12", "normal"))
         label.pack(fill=tk.BOTH)
