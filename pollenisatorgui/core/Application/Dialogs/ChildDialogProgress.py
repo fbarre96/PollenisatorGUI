@@ -69,23 +69,27 @@ class ChildDialogProgress:
         Args:
             - value: The new value for the progressbar. Default to None.
         """
-        if self.mode == "indeterminate":
-            try:
-                self.progressbar.step()
-            except tk.TclError:
-                print("Shutdown while loading...")
-                return
-        elif self.mode == "determinate":
-            if value is None:
-                self.progressbar["value"] += 1
-            else:
-                self.progressbar["value"] = value
-        if msg is not None:
-            self.lbl.configure(text=str(msg))
-        if self.show_logs and log is not None:
-            self.text_log.insert(tk.END, log)
-            self.text_log.see(tk.END)
-        self.app.update()
+        try:
+            if self.mode == "indeterminate":
+                try:
+                    self.progressbar.step()
+                except tk.TclError:
+                    print("Shutdown while loading...")
+                    return
+            elif self.mode == "determinate":
+                if value is None:
+                    self.progressbar["value"] += 1
+                else:
+                    self.progressbar["value"] = value
+            if msg is not None:
+                self.lbl.configure(text=str(msg))
+            if self.show_logs and log is not None:
+                self.text_log.insert(tk.END, log)
+                self.text_log.see(tk.END)
+            self.app.update()
+        except tk.TclError as e:
+            #Probably exited
+            raise e
 
     def destroy(self):
         """

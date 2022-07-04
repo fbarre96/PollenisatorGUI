@@ -197,9 +197,9 @@ class ScanManager:
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         
         if git_available:
-            self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="Toolbutton")
+            self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
-            self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="Toolbutton")
+            self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="icon.TButton")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
         self.btn_ServerWorker = ttk.Button(btn_pane, command=self.registerAsWorker, text="Register as worker")
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)

@@ -160,7 +160,11 @@ class Summary:
             if ip is None:
                 continue
             if ip.in_scopes:
-                dialog.update(step)
+                try:
+                    dialog.update(step)
+                except tk.TkError as e:
+                    #probably claused the windows, stopping
+                    break
                 self.insertIp(ip.ip)
         self.frameTw.update_idletasks()
         self.parent.update_idletasks()

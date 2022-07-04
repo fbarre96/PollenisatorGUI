@@ -82,11 +82,9 @@ class APIClient():
         api_url = '{0}report/search'.format(apiclient.api_url_base)
         response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=apiclient.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder), ""
-        elif response.status_code == 204:
-            return None, "There is no external knowledge database to query. Check documentation if you have one ready."
-        elif response.status_code == 503:
-            return None, "Error : "+response.text
+            res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            if res_obj["errors"]:
+                return res_obj["answers"], "\n".join(res_obj["errors"])
         else:
             return None, "Unexpected server response "+str(response.status_code)+"\n"+response.text    
 

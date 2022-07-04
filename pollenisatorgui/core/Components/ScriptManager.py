@@ -36,10 +36,10 @@ class ScriptManager:
         self.file_tree.pack(fill=tk.BOTH, expand=True)
         btn_pane = ttk.Frame(self.viewframe)
         self.execute_icone = tk.PhotoImage(file = Utils.getIcon("execute.png"))
-        btn_execute = ttk.Button(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts, tooltip="Execute all selected scripts", style="Toolbutton")        
+        btn_execute = ttk.Button(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts, tooltip="Execute all selected scripts", style="icon.TButton")        
         btn_execute.pack(side=tk.RIGHT, padx=3, pady=5)
         self.open_folder_icone = tk.PhotoImage(file = Utils.getIcon("folder.png"))
-        btn_openPathForUser = ttk.Button(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openPathForUser, tooltip="Open scripts folder", style="Toolbutton")        
+        btn_openPathForUser = ttk.Button(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openPathForUser, tooltip="Open scripts folder", style="icon.TButton")        
         btn_openPathForUser.pack(side=tk.RIGHT, padx=3, pady=5)
         
         btn_pane.pack(fill=tk.X, side=tk.BOTTOM, anchor=tk.E)

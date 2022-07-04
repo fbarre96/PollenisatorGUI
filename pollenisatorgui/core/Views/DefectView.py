@@ -437,8 +437,8 @@ class DefectView(ViewElement):
                 d_o.initialize("", "", "", result["title"], result["synthesis"], result["description"],
                             result["ease"], result["impact"], result["risk"], "N/A", types, result["language"], "", result["fixes"])
                 d_o.addInDb()
-            else:
-                tk.messagebox.showerror("Could not saerch defect", msg)
+            #if msg != "":
+            #    tk.messagebox.showerror("Could not search defect from knowledge db", msg)
         return True
 
     def insertReceived(self):

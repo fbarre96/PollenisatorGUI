@@ -88,36 +88,36 @@ def setStyle(tkApp, _event=None):
     """
 
     style = ttk.Style(tkApp)
-    sv_ttk.set_theme("light")  # Set light theme
-    #style.theme_use("clam")
+    #sv_ttk.set_theme("light")  # Set light theme
+    style.theme_use("clam")
     style.layout("Default.TButton", [('Button.border', {'sticky': 'nswe', 'border': '1', 'children': [('Button.focus', {'sticky': 'nswe', 'children': [('Button.padding', {'sticky': 'nswe', 'children': [('Button.label', {'sticky': 'nswe'})]})]})]})])
     style.configure("Default.TButton", relief="sunken",background="#73B723",
                      foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
     style.map('Default.TButton', background=[('active', '#73D723')])
     
-    #style.configure("Treeview.Heading", background="#73B723",
-    #               foreground="white", relief="sunken", borderwidth=1)
-    #style.map('Treeview.Heading', background=[('active', '#73B723')])
-    # style.configure("TLabelframe", background="white",
-    #                 labeloutside=False, bordercolor="#73B723")
-    # style.configure('TLabelframe.Label', background="#73B723",
-    #                 foreground="white", font=('Sans', '10', 'bold'))
-    #style.configure("TProgressbar",
-    #                background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
-    # style.configure("Important.TFrame", background="#73B723")
-    # style.configure("TFrame", background="white")
-    # style.configure("Important.TLabel", background="#73B723", foreground="white")
-    # style.configure("TLabel", background="white")
-    # style.configure("TCombobox", background="white")
+    style.configure("Treeview.Heading", background="#73B723",
+                  foreground="white", relief="sunken", borderwidth=1)
+    style.map('Treeview.Heading', background=[('active', '#73B723')])
+    style.configure("TLabelframe", background="white",
+                    labeloutside=False, bordercolor="#73B723")
+    style.configure('TLabelframe.Label', background="#73B723",
+                    foreground="white", font=('Sans', '10', 'bold'))
+    style.configure("TProgressbar",
+                   background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
+    style.configure("Important.TFrame", background="#73B723")
+    style.configure("TFrame", background="white")
+    style.configure("Important.TLabel", background="#73B723", foreground="white")
+    style.configure("TLabel", background="white")
+    style.configure("TCombobox", background="white")
     
-    #style.configure("TCheckbutton", background="white")
-    #style.configure("TButton", background="#73B723",
-    #                foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
-    # style.configure("icon.TButton", background="white", borderwidth=0)
-    # style.configure("Notebook.TButton", background="#73B723",
-    #                foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
+    style.configure("TCheckbutton", background="white")
+    style.configure("TButton", background="#73B723",
+                   foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
+    style.configure("icon.TButton", background="white", borderwidth=0)
+    style.configure("Notebook.TButton", background="#73B723",
+                   foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
     style.configure("Notebook.TFrame", background="#73B723")
-    #style.map('TButton', background=[('active', '#73D723')])
+    style.map('TButton', background=[('active', '#73D723')])
     #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
     style.map('Treeview', foreground=fixedMap('foreground', style),
                 background=fixedMap('background', style))
