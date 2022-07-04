@@ -1,17 +1,14 @@
 import json
-from tkinter.constants import FALSE
 import requests
 import os
 import io
 from datetime import datetime
 import sys
 import pollenisatorgui.core.Components.Utils as Utils
-from bson import ObjectId
 from pollenisatorgui.core.Components.Utils import JSONEncoder, JSONDecoder, saveClientConfig
 from shutil import copyfile
 from jose import jwt, JWTError
 from functools import wraps
-
 import tkinter as tk
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file

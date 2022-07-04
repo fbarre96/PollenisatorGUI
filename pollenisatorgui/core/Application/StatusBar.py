@@ -34,7 +34,6 @@ class StatusBar(ttk.Frame):
         self.statusbarController = statusbarController
         self.tagsCount = {}
         self.labelsTags = {}
-        self.refreshUI()
 
     def refreshUI(self):
         for widget in self.winfo_children():
@@ -42,7 +41,7 @@ class StatusBar(ttk.Frame):
                 widget.destroy()
             except:
                 pass
-        self.pack_forget()
+        #self.pack_forget()
         self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())
@@ -50,11 +49,11 @@ class StatusBar(ttk.Frame):
         for registeredTag, color in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
             try:
-                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black")
+                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black", borderwidth=1)
             except tk.TclError:
                 #color does not exist
                 color = "white"
-                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black")
+                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black", borderwidth=1)
             self.labelsTags[registeredTag].pack(side="left", padx=1)
             self.labelsTags[registeredTag].bind('<Button-1>', listOfLambdas[column-1])
             column += 1

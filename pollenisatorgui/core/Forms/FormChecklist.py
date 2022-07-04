@@ -51,7 +51,7 @@ class FormChecklist(Form):
         ################################ Temporary fix : hard coded max width.
         frame = ttk.Frame(parent.panel)
         self.val = []
-        lbl = ttk.Label(frame, text=self.name+" : ", background="white")
+        lbl = ttk.Label(frame, text=self.name+" : ")
         lbl.pack(side="top", pady=5, padx=10)
         self.checkallval = tk.IntVar()
         chk = ttk.Checkbutton(

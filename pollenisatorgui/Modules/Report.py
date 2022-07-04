@@ -209,7 +209,7 @@ class Report:
         templatesFrame.grid_columnconfigure(2, minsize=70)
         templatesFrame.grid_columnconfigure(3, minsize=300)
         lbl = ttk.Label(
-            templatesFrame, text="Word template", background="white")
+            templatesFrame, text="Word template")
         lbl.grid(row=0, column=0, sticky=tk.E)
         self.combo_word = ttk.Combobox(templatesFrame, values=self.docx_models, width=50)
         self.combo_word.grid(row=0, column=1)
@@ -222,7 +222,7 @@ class Report:
         btn_word.grid(row=0, column=3, sticky=tk.E)
         ### POWERPOINT EXPORT FRAME ###
         lbl = ttk.Label(templatesFrame,
-                        text="Powerpoint template", background="white")
+                        text="Powerpoint template")
         lbl.grid(row=1, column=0, sticky=tk.E, pady=20)
         self.combo_pptx = ttk.Combobox(
             templatesFrame, values=self.pptx_models, width=50)

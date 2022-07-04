@@ -39,13 +39,13 @@ class FormSearchBar(Form):
         """
         self.val = tk.StringVar()
         frame = ttk.Frame(parent.panel)
-        lbl = ttk.Label(frame, text=self.name+" : ", background="white")
+        lbl = ttk.Label(frame, text=self.name+" : ")
         lbl.grid(column=0, row=0)
         self.entry = ttk.Entry(frame, textvariable=self.val, width=50)
         self.entry.grid(column=1, row=0)
         self.entry.bind("<Control-a>", self.selectAll)
         self.val.set(self.default)
-        lbl = ttk.Label(frame, text="Search results : ", background="white")
+        lbl = ttk.Label(frame, text="Search results : ")
         lbl.grid(column=0, row=1)
         values = []
         if self.default != "":

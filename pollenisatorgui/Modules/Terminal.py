@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+import tkinter.ttk as ttk
 from multiprocessing import Manager
 import pollenisatorgui.core.Components.Utils as Utils
 from PIL import Image, ImageTk
@@ -28,12 +29,12 @@ class Terminal:
             settings_text = "Setting trap command is ON\nEvery command typed here will be executed through pollenisator and will be logged / imported depending on the tools called.\nYou can disable the trap setting in the Settings to change this behaviour."
         else:
             settings_text = "Setting trap command is OFF\ntype 'pollex <YOUR COMMAND with --args>' to execute it through pollenisator\n(plugins will autocomplete the output file and import it once done).\n You can enable the trap setting in the Settings to auto-import each commands without prepending pollex."
-        frame = tk.ttk.Frame(parent)
-        s = tk.ttk.Style()
+        frame = ttk.Frame(parent)
+        s = ttk.Style()
         s.configure('big.TLabel', font=('Helvetica', 12), background="white")
-        lbl = tk.ttk.Label(frame, image=self.img)
+        lbl = ttk.Label(frame, image=self.img)
         lbl.pack(anchor=tk.CENTER, side=tk.LEFT)
-        lbl = tk.ttk.Label(frame, text=settings_text,  style='big.TLabel')
+        lbl = ttk.Label(frame, text=settings_text,  style='big.TLabel')
         lbl.pack(anchor=tk.CENTER, side=tk.RIGHT)
         frame.place(relx=.5, rely=.5, anchor="c")
         return

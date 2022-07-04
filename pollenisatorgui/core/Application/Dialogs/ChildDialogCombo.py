@@ -33,7 +33,7 @@ class ChildDialogCombo:
             self.box_template.set(default)
         self.box_template.pack(padx=10, pady=5)
         self.box_template.focus_set()
-        self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk)
+        self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk, style="Accent.TButton")
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(padx=10, pady=5)
         appFrame.pack(ipadx=10, ipady=5)

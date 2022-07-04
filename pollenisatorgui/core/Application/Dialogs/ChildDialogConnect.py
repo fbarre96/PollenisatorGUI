@@ -98,7 +98,7 @@ class ChildDialogConnect:
         appFrame.pack(ipadx=10, ipady=10)
         self.ent_login.focus_set()
 
-        self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk)
+        self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk, style="Accent.TButton")
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(pady=10)
         try:

@@ -183,11 +183,10 @@ class ViewElement(object):
                     except tkinter.TclError as e:
                         #color incorrect
                         color = "white"
-                    s.configure(""+color+"V.TButton", background=color, foreground="black", borderwidth=1, bordercolor="black")
-                    s.map(""+color+"V.TButton", foreground=[('active', "dark gray")], background=[('active', color)])
-                    s.layout(""+color+"V.TButton", [('VButton.border', {'sticky': 'nswe', 'border': '1', 'children': [('Button.focus', {'sticky': 'nswe', 'children': [('Button.padding', {'sticky': 'ew', 'children': [('Button.label', {'sticky': 'ew'})]})]})]})])
+                    s.configure(""+color+".Default.TButton", background=color, foreground="black", borderwidth=1, bordercolor="black")
+                    s.map(""+color+".Default.TButton", foreground=[('active', "dark gray")], background=[('active', color)])
                     btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no], side="left", padx=1, pady=0)
-                    btn_tag.configure(style=""+color+"V.TButton")
+                    btn_tag.configure(style=""+color+".Default.TButton")
                     column += 1
                     item_no += 1
                     if column == 4:

@@ -64,44 +64,62 @@ class ActiveDirectory:
         Fetch data from database
         """
         apiclient = APIClient.getInstance()
+        dialog = ChildDialogProgress(self.parent, "Loading infos ",
+                                     "Refreshing infos. Please wait for a few seconds.", 200, "determinate")
+        dialog.show(5)
+        dialog.update(0)
         self.users = apiclient.findInDb(apiclient.getCurrentPentest(
         ), ActiveDirectory.collName, {"type": "user"}, True)
+        dialog.update(1)
         if self.users is None:
             self.users = []
         self.computers = apiclient.findInDb(apiclient.getCurrentPentest(
         ), ActiveDirectory.collName, {"type": "computer"}, True)
+        dialog.update(2)
         if self.computers is None:
             self.computers = []
         self.shares = apiclient.findInDb(apiclient.getCurrentPentest(
         ), ActiveDirectory.collName, {"type": "share"}, True)
+        dialog.update(3)
         if self.shares is None:
             self.shares = []
         ports = Port.fetchObjects({"port":str(445)})
-        for port in ports:
-            self.loadInfoFromPort(port)
-        ports = Port.fetchObjects({"port":str(88)})
-        for port in ports:
-            self.addDCinDb(port.ip)
+        #for port in ports:
+        #    self.loadInfoFromPort(port)
+        dialog.update(4)
+        # ports = Port.fetchObjects({"port":str(88)})
+        # for port in ports:
+        #     self.addDCinDb(port.ip)
+        dialog.update(5)
+        dialog.destroy()
             
     def displayData(self):
         """
         Display loaded data in treeviews
         """
-        dialog = ChildDialogProgress(self.parent, "Loading infos ",
+        dialog = ChildDialogProgress(self.parent, "Displaying infos ",
                                      "Refreshing infos. Please wait for a few seconds.", 200, "determinate")
-        dialog.show(3)
+        dialog.show(4)
 
         self.tvUsers.reset()
         self.tvComputers.reset()
         self.tvShares.reset()
         dialog.update(1)
-        for user in self.users:
+        for i,user in enumerate(self.users):
+            if i > 100:
+                break
             self.insertUser(user)
-        for computer in self.computers:
+        dialog.update(2)
+        for i,computer in enumerate(self.computers):
+            if i > 100:
+                break
             self.insertComputer(computer)
-        for share in self.shares:
-            self.insertShare(share)
         dialog.update(3)
+        for i,share in enumerate(self.shares):
+            if i > 100:
+                break
+            self.insertShare(share)
+        dialog.update(4)
         dialog.destroy()
 
     def mapLambda(self, c):
@@ -639,7 +657,8 @@ class ChildDialogAddUsers:
         self.formtext = panel.addFormText("Users", r"^\S+\\\S+:\S+$", default="domain\\username:password", side="top")
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Submit", self.onOk, side="right")
-        button_panel.addFormButton("Cancel", self.onError, side="right")
+        b = button_panel.addFormButton("Cancel", self.onError, side="right")
+        b.configure(style="Close.Titlebar.TButton")
         panel.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=5)
         try:
