@@ -83,8 +83,7 @@ class APIClient():
         response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=apiclient.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            if res_obj["errors"]:
-                return res_obj["answers"], "\n".join(res_obj["errors"])
+            return res_obj["answers"], "\n".join(res_obj["errors"])
         else:
             return None, "Unexpected server response "+str(response.status_code)+"\n"+response.text    
 
