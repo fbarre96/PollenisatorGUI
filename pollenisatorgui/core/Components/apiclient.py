@@ -93,7 +93,8 @@ class APIClient():
         api_url = '{0}report/search'.format(apiclient.api_url_base)
         response = requests.post(api_url, data=json.dumps({"type":"remark", "terms":searchTerms}), headers=apiclient.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder), ""
+            res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res_obj["answers"], "\n".join(res_obj["errors"])
         elif response.status_code == 204:
             return None, "There is no external knowledge database to query. Check documentation if you have one ready."
         else:
