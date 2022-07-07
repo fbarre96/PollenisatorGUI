@@ -50,6 +50,7 @@ class FormFile(Form):
                               width=self.getKw("width", 20), height=self.getKw("height", 10), selectmode=tk.SINGLE)
         self.listbox.register_drop_target("*")
         self.listbox.bind('<<Drop:File>>', self.add_path_listbox)
+        self.listbox.bind('<Delete>', self.delete_path_listbox)
         self.scrolbar = tk.Scrollbar(
             listboxframe,
             orient=tk.VERTICAL
@@ -103,7 +104,7 @@ class FormFile(Form):
             the selected file full path otherwise.
         """
         f = tkinter.filedialog.askopenfilename(title="Select a file")
-        if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+        if f is None or not isinstance(f, str):  # asksaveasfile return `None` if dialog closed with "cancel".
             return
         if f != "":
             filename = str(f)
@@ -119,7 +120,7 @@ class FormFile(Form):
             the selected directory full path otherwise.
         """
         f = tkinter.filedialog.askdirectory(title="Select a directory")
-        if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+        if f is None or not isinstance(f, str):  # asksaveasfile return `None` if dialog closed with "cancel".
             return
         if f != "":
             filename = str(f)
@@ -165,3 +166,8 @@ class FormFile(Form):
                 self.listbox.insert("end", d)
             elif os.path.isdir(d) and "directory" in self.modes:
                 self.listbox.insert("end", d)
+
+    def delete_path_listbox(self, event):
+        curr = self.listbox.curselection()
+        for i in curr:
+            self.listbox.delete(i)

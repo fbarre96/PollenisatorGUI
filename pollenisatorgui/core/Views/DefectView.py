@@ -240,7 +240,7 @@ class DefectView(ViewElement):
                 "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=row, column=8)
             row += 1
             chklistPanel = globalPanel.addFormPanel(grid=True)
-            defect_types = settings.getPentestTypes()[settings.getPentestType()]
+            defect_types = settings.getPentestTypes().get(settings.getPentestType(), [])
             for savedType in modelData["type"]:
                 if savedType.strip() not in defect_types:
                     defect_types.insert(0, savedType)
