@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 @author: Fabien Barré for AlgoSecure
-# Date: 11/07/2017
+# Date: 30/09/2022
 # Major version released: 09/2019
-# @version: 1.0
+# @version: 2.1
 """
 from pollenisatorgui.core.Models.Command import Command
 import time

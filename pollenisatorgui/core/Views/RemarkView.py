@@ -65,6 +65,7 @@ class RemarkView(ViewElement):
         self.imgTypeForm = topPanel.addFormImage(Utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         topPanel.addFormStr("Title", r".+", "", column=2, width=50)
+        topPanel.addFormText("Description", r".+", "description", row=2,column=2)
         if addButtons:
             self.completeInsertWindow()
         else:
@@ -84,6 +85,7 @@ class RemarkView(ViewElement):
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, row=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage})
         topPanel.addFormStr(
             "Title", r".+", modelData["title"], width=50, row=1, column=2)
+        topPanel.addFormText("Description", r".+", "description", row=2,column=2)
         if addButtons:
             self.completeModifyWindow()
         else:

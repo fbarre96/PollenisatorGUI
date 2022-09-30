@@ -20,6 +20,7 @@ class RemarkController(ControllerElement):
         """
         self.model.title = values.get("Title", self.model.title)
         self.model.type = values.get("Type", self.model.type)
+        self.model.description = values.get("Description", self.model.description)
         # Updating
         self.model.update()
 
@@ -38,7 +39,8 @@ class RemarkController(ControllerElement):
         """
         title = values["Title"]
         typeof = values["Type"]
-        self.model.initialize(typeof, title)
+        description = values["Description"]
+        self.model.initialize(typeof, title, description)
         ret, _ = self.model.addInDb()
 
         return ret, 0  # 0 erros
@@ -50,7 +52,7 @@ class RemarkController(ControllerElement):
         """
         if self.model is None:
             return None
-        return {"title": self.model.title, "type": self.model.type}
+        return {"title": self.model.title, "type": self.model.type, "description": self.model.description}
 
     def getType(self):
         """Returns a string describing the type of object

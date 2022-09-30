@@ -25,18 +25,20 @@ class Remark(Element):
         if valuesFromDb is None:
             valuesFromDb = {}
         super().__init__(valuesFromDb.get("_id", None), None, [], {})
-        self.initialize(valuesFromDb.get("type", "Positive"), valuesFromDb.get("title", ""))
+        self.initialize(valuesFromDb.get("type", "Positive"), valuesFromDb.get("title", ""), valuesFromDb.get("description", ""))
 
-    def initialize(self, typeof, title):
+    def initialize(self, typeof, title, description):
         """Set values of remark
         Args:
             type: the type of the remark (Positive, Neutral or Negative)
             title: a title for this remark
+            description: a description
         Returns:
             this object
         """
         self.title = title
         self.type = typeof
+        self.description = description
         return self
 
     def delete(self):
@@ -66,6 +68,7 @@ class Remark(Element):
 
         base["type"] = self.type
         base["title"] = self.title
+        base["description"] = self.description
         # Get parent for notifications
         res = apiclient.insertInDb(apiclient.getCurrentPentest(), "remarks", base, notify=True)
         self._id = ObjectId(res)
@@ -78,7 +81,7 @@ class Remark(Element):
         """
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
-            apiclient.updateInDb(apiclient.getCurrentPentest(), "remarks", {"_id":ObjectId(self._id)}, {"$set":{"type": self.type, "title": self.title}})
+            apiclient.updateInDb(apiclient.getCurrentPentest(), "remarks", {"_id":ObjectId(self._id)}, {"$set":{"type": self.type, "title": self.title, "description": self.description}})
         else:
             apiclient.updateInDb(apiclient.getCurrentPentest(),  {"_id":ObjectId(self._id)}, ObjectId(self._id), pipeline_set)
 
