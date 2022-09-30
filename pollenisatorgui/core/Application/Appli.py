@@ -366,7 +366,7 @@ class Appli(tkinterDnD.Tk):
         return
 
     def forceUpdate(self, version):
-        tkinter.messagebox.showwarning("Update necessary", f"You have to update this client to use this API (required minimal is {version}).")
+        tkinter.messagebox.showwarning("Update necessary", f"Clash of version. Expecting API version {version}.")
 
     def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
