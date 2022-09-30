@@ -52,11 +52,13 @@ class CommandView(ViewElement):
         panel_bottom.addFormStr("Delay", r"\d+", default.get("sleep_between", "0"), width=5, column=1, row=row)
         panel_bottom.addFormHelper(
             "Delay in-between two launch of this command (in seconds)", column=2, row=row)
+        row += 1
         panel_bottom.addFormLabel("Priority", row=row)
         panel_bottom.addFormStr("Priority", r"\d+", default.get("priority", "0"),
                                 width=2, row=row, column=1)
         panel_bottom.addFormHelper(
             "Priority in queue (0 is HIGHEST)", row=row, column=2)
+        row += 1
         panel_bottom.addFormLabel("Threads", row=row)
         panel_bottom.addFormStr("Threads", r"\d+", default.get("max_thread", "1"),
                                 width=2, row=row, column=1)

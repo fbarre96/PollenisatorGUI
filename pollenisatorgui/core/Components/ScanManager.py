@@ -10,7 +10,7 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
-from pollenisatorgui.AutoScanWorker import executeCommand
+from pollenisatorgui.AutoScanWorker import executeTool
 from PIL import Image, ImageTk
 import pollenisatorgui.core.Components.Utils as Utils
 import os
@@ -328,10 +328,9 @@ class ScanManager:
     def launchTask(self, toolModel, checks=True, worker=""):
         apiclient = APIClient.getInstance()
         launchableToolId = toolModel.getId()
-        if worker == "" or worker == "localhost":
+        if worker == "" or worker == "localhost" or worker == apiclient.getUser():
             thread = None
-            thread = multiprocessing.Process(target=executeCommand, args=(
-                apiclient, str(launchableToolId), True))
+            thread = multiprocessing.Process(target=executeTool, args=(apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser())))
             thread.start()
             self.local_scans[str(launchableToolId)] = thread
             toolModel.markAsRunning(worker)
@@ -419,7 +418,7 @@ class ScanManager:
                 tool = Tool.fetchObject({"_id":ObjectId(toolId)})
                 if tool is None:
                     return
-                self.launchTask(tool, True, "localhost")
+                self.launchTask(tool, True, apiclient.getUser())
             dialog = ChildDialogProgress(self.parent, "Registering", "Waiting for register 0/4", progress_mode="indeterminate")
             dialog.show()
             nb_try = 0

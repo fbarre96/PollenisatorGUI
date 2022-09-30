@@ -293,6 +293,7 @@ class Report:
             iid_moved_by = children[iid_moving-1]
             apiclient = APIClient.getInstance()
             apiclient.moveDefect(item_iid, iid_moved_by)
+            
             self.treevw.move(item_iid, '', iid_moving-1)
         except IndexError:
             pass

@@ -13,7 +13,7 @@ from pollenisatorgui.core.Models.Interval import Interval
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Command import Command
 
-def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
+def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False):
     """
      remote task
     Execute the tool with the given toolId on the given calendar name.
@@ -63,7 +63,7 @@ def executeCommand(apiclient, toolId, local=True, allowAnyCommand=False):
     toolModel.updateInfos({"cmdline":comm})
 
     # Get tool's wave time limit searching the wave intervals
-    if toolModel.wave == "Custom commands" or local:
+    if toolModel.wave == "Custom commands" or (local and not setTimer):
         timeLimit = None
     else:
         timeLimit = getWaveTimeLimit(toolModel.wave)

@@ -777,6 +777,7 @@ class Appli(tkinterDnD.Tk):
         Args:
             tabName: the opened tab
         """
+        print(f"TABsiwtch")
         apiclient = APIClient.getInstance()
         self.searchBar.quit()
         if tabName == "Commands":
@@ -795,6 +796,7 @@ class Appli(tkinterDnD.Tk):
         else:
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
+                    print(f"TAB SWITCH : Opening module {module['name']}")
                     module["object"].open()
 
     def initSettingsView(self):
@@ -897,6 +899,7 @@ class Appli(tkinterDnD.Tk):
         Args:
             _event: not used but mandatory
         """
+        print(f"REFRESH VIEW ")
         setViewOn = None
         nbkOpenedTab = self.nbk.getOpenTabName()
         activeTw = None
@@ -911,6 +914,7 @@ class Appli(tkinterDnD.Tk):
         else:
             for module in self.modules:
                 if nbkOpenedTab.strip().lower() == module["name"].strip().lower():
+                    print(f"REFRESH VIEW Opening module {module['name']}")
                     module["object"].open()
         if activeTw is not None:
             if len(activeTw.selection()) == 1:
