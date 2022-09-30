@@ -68,6 +68,10 @@ class Report:
         self.combo_lang.configure(values=self.langs)
         self.combo_lang.set("en")
         self.langChange(None)
+        self.reset()
+        self.fillWithDefects()
+        self.fillWithRemarks()
+        return
         
 
     def initUI(self, parent, nbk, treevw, tkApp):
