@@ -47,7 +47,7 @@ class CommandGroupView(ViewElement):
         panel.addFormStr(
             "Priority", r"\d+", modelData["priority"], width=5, column=1)
         panel.addFormHelper(
-            "Delay in-between two launch of each command of ths group (in seconds).\nIf a command is in two groups, the highest delay will be used", column=2)
+            "Defines the priority of this group of command when an auto scan is running.\nAutoscan will try to launch the highest priority (0 is max) and the highest+1.", column=2)
         panel.addFormLabel("Shared threads", row=1)
         panel.addFormStr("Shared threads", r"\d+",
                          modelData["max_thread"], width=2, row=1, column=1)
