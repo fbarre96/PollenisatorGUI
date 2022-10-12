@@ -30,11 +30,14 @@ import shutil
 def start_docker(dialog, force_reinstall):
     worker_subdir = os.path.join(Utils.getMainDir(), "PollenisatorWorker")
     if os.path.isdir(worker_subdir) and force_reinstall:
-        shutil.rmtree(worker_subdir)
+        try:
+            shutil.rmtree(worker_subdir)
+        except:
+            pass
     if not os.path.isdir(worker_subdir):
         git.Git(Utils.getMainDir()).clone("https://github.com/fbarre96/PollenisatorWorker.git")
     shutil.copyfile(os.path.join(Utils.getConfigFolder(), "client.cfg"), os.path.join(Utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
-    dialog.update(1, msg="Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
+    dialog.update(msg="Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
     try:
         client = docker.from_env()
         clientAPI = docker.APIClient()
@@ -42,32 +45,19 @@ def start_docker(dialog, force_reinstall):
         dialog.destroy()
         tk.messagebox.showerror("Unable to launch docker", e)
         return
-    image = client.images.list("pollenisatorworker")
-    if len(image) > 0 and force_reinstall:
-        force_reinstall = tk.messagebox.askyesno("Force reinstall", "A pollenisator worker image has been found. Are you sure you want to rebuild it ?")
-    if len(image) == 0 or force_reinstall:
-        try:
-            log_generator = clientAPI.build(path=os.path.join(Utils.getMainDir(), "PollenisatorWorker/"), rm=True, tag="pollenisatorworker", nocache=force_reinstall)
-            change_max = None
-            for byte_log in log_generator:
-                updated_dialog = False
-                log_line = byte_log.decode("utf-8").strip()
-                if log_line.startswith("{\"stream\":\""):
-                    log_line = log_line[len("{\"stream\":\""):-4]
-                    matches = re.search(r"Step (\d+)/(\d+)", log_line)
-                    if matches is not None:
-                        if change_max is None:
-                            change_max = int(matches.group(2))
-                            dialog.progressbar["maximum"] = change_max
-                        dialog.update(int(matches.group(1)), log=log_line+"\n")
-                        updated_dialog = True
-        except docker.errors.BuildError as e:
-            dialog.destroy()
-            tk.messagebox.showerror("Build docker error", "Building error:\n"+str(e))
-            return
-        image = client.images.list("pollenisatorworker")
+    try:
+        log_generator = clientAPI.pull("algosecure/pollenisator-worker:latest",stream=True,decode=True)
+        change_max = None
+        for byte_log in log_generator:
+            log_line = byte_log["status"].strip()
+            dialog.update(log=log_line+"\n")
+    except docker.errors.APIError as e:
+        dialog.destroy()
+        tk.messagebox.showerror("APIError docker error", "Pulling error:\n"+str(e))
+        return
+    image = client.images.list("algosecure/pollenisator-worker")
     if len(image) == 0:
-        tk.messagebox.showerror("Building docker failed", "The docker build command failed, try to install manually...")
+        tk.messagebox.showerror("Pulling docker failed", "The docker pull command failed, try to install manually...")
         return
     dialog.update(2, msg="Starting worker docker ...")
     clientCfg = Utils.loadClientConfig()
@@ -135,7 +125,7 @@ class ScanManager:
                 pass
         for running_scan in running_scans:
             try:
-                self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
+                self.scanTv.insert('','end', running_scan.getId(), text=running_scan.infos.get("group_name",""), values=(running_scan.name, running_scan.dated), image=self.running_icon)
             except tk.TclError:
                 pass
         for children in self.workerTv.get_children():
@@ -199,8 +189,6 @@ class ScanManager:
         if git_available:
             self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
-            self.btn_docker_worker = ttk.Button(btn_pane, command=self.installDockerWorker, image=self.docker_download_image, style="icon.TButton")
-            self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
         self.btn_ServerWorker = ttk.Button(btn_pane, command=self.registerAsWorker, text="Register as worker")
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         btn_pane.pack(side=tk.TOP, padx=10, pady=5)
@@ -222,7 +210,7 @@ class ScanManager:
         lblscan = ttk.Label(self.parent, text="Scan overview:")
         lblscan.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
         self.scanTv = ttk.Treeview(self.parent)
-        self.scanTv['columns'] = ('Started at')
+        self.scanTv['columns'] = ('Tool', 'Started at')
         self.scanTv.heading("#0", text='Scans', anchor=tk.W)
         self.scanTv.column("#0", anchor=tk.W)
         self.scanTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
@@ -353,18 +341,12 @@ class ScanManager:
     
 
     def launchDockerWorker(self, event=None):
-        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="determinate", show_logs=True)
-        dialog.show(4)
-        x = threading.Thread(target=start_docker, args=(dialog, False))
-        x.start()
-        return x
-
-    def installDockerWorker(self, event=None):
-        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="determinate", show_logs=True)
+        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="indeterminate", show_logs=True)
         dialog.show(4)
         x = threading.Thread(target=start_docker, args=(dialog, True))
         x.start()
         return x
+
 
     def runWorkerOnServer(self):
         apiclient = APIClient.getInstance()

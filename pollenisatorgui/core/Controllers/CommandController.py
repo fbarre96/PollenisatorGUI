@@ -21,12 +21,8 @@ class CommandController(ControllerElement):
             "Bin path", self.model.bin_path)
         self.model.plugin = values.get(
             "Plugin", self.model.plugin)
-        self.model.sleep_between = values.get(
-            "Delay", self.model.sleep_between)
-        self.model.max_thread = values.get("Threads", self.model.max_thread)
         self.model.text = values.get("Command line options", self.model.text)
         self.model.ports = values.get("Ports/Services", self.model.ports)
-        self.model.priority = values.get("Priority", self.model.priority)
         self.model.safe = bool(values.get("Safe", self.model.safe))
         self.model.timeout = str(values.get("Timeout", self.model.timeout))
         types = values.get("Types", {})
@@ -52,20 +48,17 @@ class CommandController(ControllerElement):
         # Get form values
         bin_path = values["Bin path"]
         plugin = values["Plugin"]
-        sleep_between = values["Delay"]
-        max_thread = values["Threads"]
         text = values["Command line options"]
         ports = values["Ports/Services"]
         name = values["Name"]
         lvl = values["Level"]
-        priority = values["Priority"]
         safe = bool(values["Safe"])
         types = values["Types"]
         indb = values["indb"]
         timeout = values["Timeout"]
         owner = values["owner"]
         types = [k for k, v in types.items() if v == 1]
-        self.model.initialize(name, bin_path, plugin, sleep_between, priority, max_thread,
+        self.model.initialize(name, bin_path, plugin, 
                               text, lvl, ports, safe, list(types), indb, timeout, owner)
         # Insert in database
         ret, _ = self.model.addInDb()
@@ -79,11 +72,11 @@ class CommandController(ControllerElement):
     def getData(self):
         """Return command attributes as a dictionnary matching Mongo stored commands
         Returns:
-            dict with keys name, lvl, safe, text, ports, sleep_between, max_thread, priority, types, _id, tags and infos
+            dict with keys name, lvl, safe, text, ports, priority, max_thread, priority, types, _id, tags and infos
         """
         return {"name": self.model.name, "bin_path":self.model.bin_path, "plugin":self.model.plugin, "lvl": self.model.lvl, "safe": bool(self.model.safe), "text": self.model.text,
-                "ports": self.model.ports, "sleep_between": self.model.sleep_between, "timeout": self.model.timeout,
-                "max_thread": self.model.max_thread, "priority": self.model.priority, "types": self.model.types, "indb":self.model.indb, "owner": self.model.owner, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
+                "ports": self.model.ports, "timeout": self.model.timeout,
+                "types": self.model.types, "indb":self.model.indb, "owner": self.model.owner, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
         """Return a string describing the type of object

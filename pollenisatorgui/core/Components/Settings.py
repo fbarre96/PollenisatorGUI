@@ -29,7 +29,7 @@ class Settings:
 
         self.local_settings = {}
         try:
-            with open(self.confdir, "r") as f:
+            with open(self.confdir, mode="r") as f:
                 self.local_settings = json.loads(f.read())
         except json.JSONDecodeError:
             self.local_settings = {}
@@ -175,7 +175,7 @@ class Settings:
         Reload local settings from local conf file
         """
         try:
-            with open(self.confdir, "r") as f:
+            with open(self.confdir, mode="r") as f:
                 self.local_settings = json.loads(f.read())
         except json.JSONDecodeError:
             self.local_settings = {}
@@ -282,7 +282,7 @@ class Settings:
         """
         Save local settings to conf file
         """
-        with open(self.confdir, "w") as f:
+        with open(self.confdir, mode="w") as f:
             f.write(json.dumps(self.local_settings))
 
     def savePentestSettings(self):

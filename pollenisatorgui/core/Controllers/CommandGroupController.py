@@ -21,8 +21,8 @@ class CommandGroupController(ControllerElement):
         # Get form values
         self.model.name = values.get(
             "Name", self.model.name)
-        self.model.sleep_between = values.get(
-            "Delay", self.model.sleep_between)
+        self.model.priority = values.get(
+            "Priority", self.model.priority)
         self.model.commands = values.get("Commands", self.model.commands)
         self.model.commands = [
             k for k, v in self.model.commands.items() if v == 1]
@@ -48,14 +48,14 @@ class CommandGroupController(ControllerElement):
         """
         # Get form values
         name = values["Name"]
-        sleep_between = values["Delay"]
+        priority = values["Priority"]
         commands_dict = values["Commands"]
         commands = [k for k, v in commands_dict.items() if v == 1]
         max_thread = values["Shared threads"]
         owner = values.get("owner", APIClient.getInstance().getUser())
         # Insert in database
         indb = values["indb"]
-        self.model.initialize(name, owner, sleep_between, commands, max_thread, indb)
+        self.model.initialize(name, owner, priority, commands, max_thread, indb)
         ret, _ = self.model.addInDb()
         if not ret:
             # command failed to be inserted, a duplicate exists
@@ -73,9 +73,9 @@ class CommandGroupController(ControllerElement):
     def getData(self):
         """Return command attributes as a dictionnary matching Mongo stored commands groups
         Returns:
-            dict with keys name, commands,, sleep_between, max_thread, _id, tags and infos
+            dict with keys name, commands,, priority, max_thread, _id, tags and infos
         """
-        return {"name": self.model.name, "indb":self.model.indb, "owner":self.model.owner, "commands": self.model.commands, "sleep_between": self.model.sleep_between, "max_thread": self.model.max_thread,
+        return {"name": self.model.name, "indb":self.model.indb, "owner":self.model.owner, "commands": self.model.commands, "priority": self.model.priority, "max_thread": self.model.max_thread,
                 "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):

@@ -18,21 +18,21 @@ class CommandGroup(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command group is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}),
-                        name(""), owner(""), sleep_between("0"), commands([]),
+                        name(""), owner(""), priority("0"), commands([]),
                         max_thread("1")
         """
         if valuesFromDb is None:
             valuesFromDb = {}
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("owner", ""), valuesFromDb.get("sleep_between", 0), valuesFromDb.get("commands", []),
+        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("owner", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("commands", []),
                         valuesFromDb.get("max_thread", 1), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, owner, sleep_between=0, commands=None, max_thread=1, indb="pollenisator", infos=None):
+    def initialize(self, name, owner, priority=0, commands=None, max_thread=1, indb="pollenisator", infos=None):
         """Set values of command group
         Args:
             name: the command group name
-            sleep_between: delay to wait between two call to this command. Default is 0.
+            priority: Priority for this set of commands. Default is 0.
             commands: list of command names that are part of this group. Default is None and stores an empty array
             max_thread: number of parallel execution possible of this command. Default is 1.
             infos: a dictionnary with key values as additional information. Default to None
@@ -43,7 +43,7 @@ class CommandGroup(Element):
             commands = []
         self.name = name
         self.owner = owner
-        self.sleep_between = int(sleep_between)
+        self.priority = int(priority)
         self.commands = commands
         self.max_thread = int(max_thread)
         self.indb = indb
@@ -72,7 +72,7 @@ class CommandGroup(Element):
         apiclient = APIClient.getInstance()
         
         res, id = apiclient.insert("group_commands", {
-            "name": self.name, "indb":self.indb, "owner": self.owner, "sleep_between": int(self.sleep_between), "commands": self.commands, "max_thread": int(self.max_thread)})
+            "name": self.name, "indb":self.indb, "owner": self.owner, "priority": int(self.priority), "commands": self.commands, "max_thread": int(self.max_thread)})
         if not res:
             return False, id
         self._id = id
@@ -125,7 +125,7 @@ class CommandGroup(Element):
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
             # Update in database
-            apiclient.update("group_commands", ObjectId(self._id), {"name": self.name, "owner":self.owner, "sleep_between": int(self.sleep_between), "commands": self.commands, "max_thread": int(self.max_thread)})
+            apiclient.update("group_commands", ObjectId(self._id), {"name": self.name, "owner":self.owner, "priority": int(self.priority), "commands": self.commands, "max_thread": int(self.max_thread)})
         else:
             apiclient.update("group_commands",  ObjectId(self._id), pipeline_set)
 

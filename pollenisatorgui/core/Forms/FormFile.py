@@ -79,12 +79,12 @@ class FormFile(Form):
         if "file" in self.modes:
             text = self.getKw("text", "add file")
             search_btn = ttk.Button(
-                btn_frame, text=text, command=self.on_click)
+                btn_frame, text=text, command=lambda :self.on_click(None, parent))
             search_btn.pack(side="right", pady=5)
         if "directory" in self.modes:
             text = self.getKw("text", "add directory")
             search_btn = ttk.Button(
-                btn_frame, text=text, command=self.on_click_dir)
+                btn_frame, text=text, command=lambda :self.on_click_dir(None, parent))
             search_btn.pack(side="right", pady=5)
         
         btn_frame.pack(side=tk.BOTTOM)
@@ -95,7 +95,7 @@ class FormFile(Form):
             frame.pack(fill=self.getKw("fill", "x"), side=self.getKw(
                 "side", "top"), anchor=self.getKw("anchor", "center"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), **self.kwargs)
 
-    def on_click(self, _event=None):
+    def on_click(self, _event=None, parent=None):
         """Callback when '...' is clicked and modes Open a file selector (tkinter.filedialog.askopenfilename)
         Args:
             _event: not used but mandatory
@@ -103,14 +103,15 @@ class FormFile(Form):
             None if no file name is picked,
             the selected file full path otherwise.
         """
-        f = tkinter.filedialog.askopenfilename(title="Select a file")
+        
+        f = tkinter.filedialog.askopenfilename(title="Select a file", parent=parent.panel)
         if f is None or not isinstance(f, str):  # asksaveasfile return `None` if dialog closed with "cancel".
             return
         if f != "":
             filename = str(f)
             self.listbox.insert("end", filename)
 
-    def on_click_dir(self, _event=None):
+    def on_click_dir(self, _event=None, parent=None):
         """Callback when '...' is clicked and modes="directory" was set.
         Open a directory selector (tkinter.filedialog.askdirectory)
         Args:
@@ -119,7 +120,8 @@ class FormFile(Form):
             None if no directory is picked,
             the selected directory full path otherwise.
         """
-        f = tkinter.filedialog.askdirectory(title="Select a directory")
+
+        f = tkinter.filedialog.askdirectory(title="Select a directory", parent=parent.panel)
         if f is None or not isinstance(f, str):  # asksaveasfile return `None` if dialog closed with "cancel".
             return
         if f != "":

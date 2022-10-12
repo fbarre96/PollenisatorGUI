@@ -43,9 +43,9 @@ class CommandGroupView(ViewElement):
         panel.addFormChecklist(
             "Commands", commands_names, defaults, values=comms_values, side=tk.LEFT)
         panel = self.form.addFormPanel(grid=True)
-        panel.addFormLabel("Delay")
+        panel.addFormLabel("Priority")
         panel.addFormStr(
-            "Delay", r"\d+", modelData["sleep_between"], width=5, column=1)
+            "Priority", r"\d+", modelData["priority"], width=5, column=1)
         panel.addFormHelper(
             "Delay in-between two launch of each command of ths group (in seconds).\nIf a command is in two groups, the highest delay will be used", column=2)
         panel.addFormLabel("Shared threads", row=1)
@@ -79,8 +79,8 @@ class CommandGroupView(ViewElement):
             comms_values.append(str(c.getId()))
         panel.addFormChecklist("Commands", commands_names, [], values=comms_values,side=tk.LEFT)
         panel = self.form.addFormPanel(grid=True)
-        panel.addFormLabel("Delay")
-        panel.addFormStr("Delay", r"\d+", "0", width=5, column=1)
+        panel.addFormLabel("Priority")
+        panel.addFormStr("Priority", r"\d+", "0", width=5, column=1)
         panel.addFormHelper(
             "Delay in-between two launch of each command of ths group (in seconds).\nIf a command is in two groups, the highest delay will be used", column=2)
         panel.addFormLabel("Shared threads", row=1)

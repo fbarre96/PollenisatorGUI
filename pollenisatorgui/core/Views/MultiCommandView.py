@@ -16,6 +16,7 @@ class MultiCommandView(ViewElement):
         """
         top_panel = self.form.addFormPanel()
         top_panel.addFormButton("Add to my commands", self.addSelectedToMyCommands)
+        top_panel.addFormButton("Add to Worker commands", self.addSelectedToWorkerCommands)
         top_panel.addFormButton("Remove selection from my commands", self.removeSelectedFromMyCommands)
         top_panel.addFormButton("Delete", self.appliTw.deleteSelected)
         self.showForm()
@@ -24,6 +25,11 @@ class MultiCommandView(ViewElement):
         apiclient = APIClient.getInstance()
         for selected in self.appliTw.selection():
             apiclient.addCommandToMyCommands(selected)
+
+    def addSelectedToWorkerCommands(self, event=None):
+        apiclient = APIClient.getInstance()
+        for selected in self.appliTw.selection():
+            apiclient.addCommandToWorkerCommands(selected)
 
     def removeSelectedFromMyCommands(self, event=None):
         apiclient = APIClient.getInstance()

@@ -8,7 +8,12 @@ class ScrollableTreeview(ttk.Frame):
         super().__init__(root)
         self.root = root
         self.columns = columns
-        self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=kwargs.get("height", None))
+        self.infos = []
+        self.maxPerPage = kwargs.get("height", 10)
+        self.currentPage = 0
+        self.lastPage = 0
+        self.pagePanel = None
+        self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=kwargs.get("height", 10))
         self.treevw['columns'] = columns
         self.treevw.tag_configure("odd", background='light gray')
         lbl = ttk.Label()
@@ -31,12 +36,47 @@ class ScrollableTreeview(ttk.Frame):
         self.treevw.configure(xscrollcommand=scbHSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
         scbHSel.grid(row=1, column=0, sticky=tk.EW)
+        self.setPaginationPanel()
+        
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.treevw.bind("<Control-c>", self.copy)
         self.treevw.bind('<Control-a>', self.selectAll)
         self.treevw.bind("<Escape>", self.unselect)
         self._initContextualMenu(self.treevw)
+
+    def setPaginationPanel(self):
+        if self.pagePanel is not None:
+            for widget in self.pagePanel.winfo_children():
+                widget.grid_forget()
+            self.pagePanel.forget()
+        self.pagePanel = ttk.Frame(self)
+        btn = ttk.Label(self.pagePanel, text="<<", style="Pagination.TLabel")
+        btn.bind('<Button-1>', lambda event:self.goToPage("first"))
+        btn.grid(padx=3)
+        btn = ttk.Label(self.pagePanel, text="<", style="Pagination.TLabel")
+        btn.bind('<Button-1>', lambda event:self.goToPage("previous"))
+        btn.grid(row=0, column=1, padx=3)
+        col = 2
+        start = max(self.currentPage - 2, 0)
+        i = start 
+        while i <= self.lastPage and i <= start + 5:
+            if i == self.currentPage:
+                btn = ttk.Label(self.pagePanel, text=str(i), style="CurrentPagination.TLabel")
+                btn.grid(column=col,row=0, padx=3)
+            else:
+                btn = ttk.Label(self.pagePanel, text=str(i), style="Pagination.TLabel")
+                btn.bind('<Button-1>', lambda event:self.goToPage(event))
+                btn.grid(column=col,row=0, padx=3)
+            col +=1
+            i += 1
+        btn = ttk.Label(self.pagePanel, text=">", style="Pagination.TLabel")
+        btn.bind('<Button-1>', lambda event:self.goToPage("next"))
+        btn.grid(row=0, column=col, padx=3)
+        btn = ttk.Label(self.pagePanel, text=">>", style="Pagination.TLabel")
+        btn.bind('<Button-1>', lambda event:self.goToPage("last"))
+        btn.grid(row=0, column=col+1, padx=3)
+        self.pagePanel.grid(row=2, column=0)
 
     def unselect(self, event=None):
         for item in self.treevw.selection():
@@ -49,10 +89,28 @@ class ScrollableTreeview(ttk.Frame):
         self.treevw.bind(event_name, func)
 
     def insert(self, parent, index, iid, text="",values=(), tags=()):
+        if iid not in [x["iid"] for x in self.infos]:
+            self.infos.append({"parent":parent,"iid":iid, "index":index, "text":text,"values":values,"tags":tags})
+        nbLig = len(self.infos)
+        prevLastPage = self.lastPage
+        self.lastPage = int(nbLig / self.maxPerPage)
+        if prevLastPage != self.lastPage:
+            self.setPaginationPanel()
+        res = None
+        if int(nbLig % self.maxPerPage) == 0:
+            self.lastPage -= 1
+        if self.currentPage == self.lastPage:
+            shown = nbLig % self.maxPerPage
+            if shown < self.maxPerPage:
+                res = self._insert(parent, index, iid, text, values, tags)
+            
+        return res
+    
+    def _insert(self, parent, index, iid, text="",values=(), tags=()):
         try:
             res = self.treevw.insert(parent, index, iid, text=text, values=values, tags=tags)
-        except tk.TclError as e:
-            raise e
+        except tk.TclError:
+            return None
         self.columnsLen[0] = max(self.columnsLen[0], self.f.measure(text))
         self.treevw.column("#0", anchor='w',
                                stretch=tk.YES, minwidth=self.columnsLen[0], width=self.columnsLen[0])
@@ -136,26 +194,20 @@ class ScrollableTreeview(ttk.Frame):
         return lambda : self.sort_column(self.treevw, col, reverse)
 
     def sort_column(self, tv, col, reverse):
-        if col != "#0":
-            l = [(tv.set(k, col), k) for k in tv.get_children('')]
+        if col == "#0":
+            self.infos.sort(key=lambda info: info["text"], reverse=reverse)
         else:
-            l = [(k, k)for k in tv.get_children('')]
-        l.sort(reverse=reverse)
-        # rearrange items in sorted positions
-        for index, (val, k) in enumerate(l):
-            tv.move(k, '', index)
-            if index % 2 != 0:
-                tv.item(k, tags=("odd"))
-            else:
-                tv.item(k, tags=())
-
-        # reverse sort next time
+            self.infos.sort(key=lambda info: str(info["values"][int(col[1:])-1]), reverse=reverse)
         tv.heading(col, command=self.column_clicked(col, not reverse))
+        self.goToPage("first", force=True)
 
     def reset(self):
         """Reset the treeview values (delete all lines)"""
         for item in self.treevw.get_children():
             self.treevw.delete(item)
+        self.infos = []
+        self.setPaginationPanel()
+
 
     def resetOddTags(self):
         for i, child in enumerate(self.treevw.get_children()):
@@ -171,6 +223,11 @@ class ScrollableTreeview(ttk.Frame):
             item = self.treevw.item(selected)
             if item["text"].strip() != "":
                 self.treevw.delete(selected)
+                try:
+                    ind = [x["iid"] for x in self.infos].index(selected)
+                    del self.infos[ind]
+                except ValueError as e:
+                    print(e)
         self.resetOddTags()
 
     def selection(self):
@@ -181,3 +238,26 @@ class ScrollableTreeview(ttk.Frame):
 
     def parent(self, item):
         return self.treevw.parent(item)
+
+    def goToPage(self, p, force=False):
+        if not isinstance(p, str):
+            p = p.widget.cget("text")
+        if p == "first":
+            p = 0
+        elif p == "last":
+            p = self.lastPage
+        elif p == "previous":
+            p = max(self.currentPage - 1, 0)
+        elif p == "next":
+            p = min(self.currentPage + 1, self.lastPage)
+        else:
+            p = int(p)
+        if p == self.currentPage and not force:
+            return
+        self.currentPage = p
+        toInsert = self.infos[self.currentPage*self.maxPerPage:self.currentPage*self.maxPerPage+self.maxPerPage]
+        for item in self.treevw.get_children():
+            self.treevw.delete(item)
+        for t in toInsert:
+            self._insert(t["parent"], t["index"], t["iid"], t["text"], t["values"], t["tags"])
+        self.setPaginationPanel()

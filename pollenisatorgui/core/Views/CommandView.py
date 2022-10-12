@@ -28,7 +28,7 @@ class CommandView(ViewElement):
     def _commonWindowForms(self, default={}):
         """Construct form parts identical between Modify and Insert forms
         Args:
-            default: a dict of default values for inputs (sleep_between, priority, max_thread). Default to empty respectively "0", "0", "1"
+            default: a dict of default values for inputs (priority, priority, max_thread). Default to empty respectively "0", "0", "1"
         """
         self.form.addFormHidden("owner", default.get("owner", ""))
         panel_bottom = self.form.addFormPanel(grid=True)
@@ -48,22 +48,6 @@ class CommandView(ViewElement):
         panel_bottom.addFormHelper(
             "The tool will cancel itself when this duration in second is reached to be run again later.", column=2, row=row)
         row += 1
-        panel_bottom.addFormLabel("Delay", row=row)
-        panel_bottom.addFormStr("Delay", r"\d+", default.get("sleep_between", "0"), width=5, column=1, row=row)
-        panel_bottom.addFormHelper(
-            "Delay in-between two launch of this command (in seconds)", column=2, row=row)
-        row += 1
-        panel_bottom.addFormLabel("Priority", row=row)
-        panel_bottom.addFormStr("Priority", r"\d+", default.get("priority", "0"),
-                                width=2, row=row, column=1)
-        panel_bottom.addFormHelper(
-            "Priority in queue (0 is HIGHEST)", row=row, column=2)
-        row += 1
-        panel_bottom.addFormLabel("Threads", row=row)
-        panel_bottom.addFormStr("Threads", r"\d+", default.get("max_thread", "1"),
-                                width=2, row=row, column=1)
-        panel_bottom.addFormHelper(
-            "Number of authorized parallel running of this command on one worker.", row=row, column=2)
 
     def openModifyWindow(self):
         """
@@ -118,8 +102,8 @@ class CommandView(ViewElement):
         panel_top.addFormLabel("Level", row=1)
         lvl = ["network", "domain", "ip", "port", "wave"]
         for module in self.mainApp.modules:
-            if getattr(module["object"], "registerLvls", False):
-                lvl += module["object"].registerLvls
+            module_info = getattr(module["object"], "module_info", {})
+            lvl += module_info.get("registerLvls", [])
         panel_top.addFormCombo(
             "Level", lvl, data.get("lvl", "network"), row=1, column=1)
         panel_top.addFormHelper(

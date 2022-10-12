@@ -107,6 +107,9 @@ def setStyle(tkApp, _event=None):
     style.configure("Important.TFrame", background="#73B723")
     style.configure("TFrame", background="white")
     style.configure("Important.TLabel", background="#73B723", foreground="white")
+    style.configure("Pagination.TLabel", background="white", foreground="#73B723", font=('Sans', '10', 'underline') )
+    style.configure("CurrentPagination.TLabel", background="white", foreground="#73B723", font=('Sans', '10', 'bold') )
+
     style.configure("TLabel", background="white")
     style.configure("TCombobox", background="white")
     
@@ -114,6 +117,8 @@ def setStyle(tkApp, _event=None):
     style.configure("TButton", background="#73B723",
                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
     style.configure("icon.TButton", background="white", borderwidth=0)
+    style.configure("link.TButton", background="white",
+                   foreground="73B723", font=('Sans', '10', 'bold'), borderwidth=0)
     style.configure("Notebook.TButton", background="#73B723",
                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
     style.configure("Notebook.TFrame", background="#73B723")
@@ -328,7 +333,7 @@ def loadCfg(cfgfile):
     """
     cf_infos = dict()
     try:
-        with open(cfgfile, "r") as f:
+        with open(cfgfile, mode="r") as f:
             cf_infos = json.loads(f.read())
     except FileNotFoundError as e:
         raise e
@@ -366,7 +371,7 @@ def saveClientConfig(configDict):
     except:
         pass
     configFile = os.path.join(config_folder, "client.cfg")
-    with open(configFile, "w") as f:
+    with open(configFile, mode="w") as f:
         f.write(json.dumps(configDict))
         
 def getValidMarkIconPath():

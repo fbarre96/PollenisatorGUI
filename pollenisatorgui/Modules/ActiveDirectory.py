@@ -11,12 +11,13 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogAskFile import ChildDia
 from pollenisatorgui.core.Application.ScrollableTreeview import ScrollableTreeview
 from pollenisatorgui.core.Models.Port import Port
 from pollenisatorgui.core.Forms.FormPanel import FormPanel
+from pollenisatorgui.Modules.Module import Module
 import tempfile
 from bson import ObjectId
 import pollenisatorgui.core.Components.Utils as Utils
 from pollenisatorgui.core.Components.Settings import Settings
 
-class ActiveDirectory:
+class ActiveDirectory(Module):
     """
     Shows information about ongoing pentest. 
     """
@@ -24,8 +25,6 @@ class ActiveDirectory:
     tabName = "Active Directory"
     collName = "ActiveDirectory"
     settings = Settings()
-    registerLvls = []
-    running_commands = []
 
     def __init__(self, parent, settings):
         """
@@ -35,6 +34,8 @@ class ActiveDirectory:
         self.users = {}
         self.computers = {}
         self.shares = {}
+    
+    
 
     @classmethod
     def getSettings(cls):
@@ -55,6 +56,7 @@ class ActiveDirectory:
         """
         Reload data and display them
         """
+        
         self.loadData()
         self.displayData()
         self.reloadSettings()
@@ -68,29 +70,18 @@ class ActiveDirectory:
                                      "Refreshing infos. Please wait for a few seconds.", 200, "determinate")
         dialog.show(5)
         dialog.update(0)
-        self.users = apiclient.findInDb(apiclient.getCurrentPentest(
-        ), ActiveDirectory.collName, {"type": "user"}, True)
+        self.users = apiclient.find(ActiveDirectory.collName, {"type": "user"}, True)
         dialog.update(1)
         if self.users is None:
             self.users = []
-        self.computers = apiclient.findInDb(apiclient.getCurrentPentest(
-        ), ActiveDirectory.collName, {"type": "computer"}, True)
+        self.computers = apiclient.find(ActiveDirectory.collName, {"type": "computer"}, True)
         dialog.update(2)
         if self.computers is None:
             self.computers = []
-        self.shares = apiclient.findInDb(apiclient.getCurrentPentest(
-        ), ActiveDirectory.collName, {"type": "share"}, True)
+        self.shares = apiclient.find(ActiveDirectory.collName, {"type": "share"}, True)
         dialog.update(3)
         if self.shares is None:
             self.shares = []
-        ports = Port.fetchObjects({"port":str(445)})
-        #for port in ports:
-        #    self.loadInfoFromPort(port)
-        dialog.update(4)
-        # ports = Port.fetchObjects({"port":str(88)})
-        # for port in ports:
-        #     self.addDCinDb(port.ip)
-        dialog.update(5)
         dialog.destroy()
             
     def displayData(self):
@@ -106,24 +97,18 @@ class ActiveDirectory:
         self.tvShares.reset()
         dialog.update(1)
         for i,user in enumerate(self.users):
-            if i > 100:
-                break
             self.insertUser(user)
         dialog.update(2)
         for i,computer in enumerate(self.computers):
-            if i > 100:
-                break
             self.insertComputer(computer)
         dialog.update(3)
         for i,share in enumerate(self.shares):
-            if i > 100:
-                break
             self.insertShare(share)
         dialog.update(4)
         dialog.destroy()
 
     def mapLambda(self, c):
-        if c[0].lower() in ["computer", "oncomputernewuser", "oncomputerfirstuser", "oncomputerfirstadmin", "ondcfirstuser", "ondcfirstadmin"]:
+        if c[0].lower() in ["computer"]:
             return lambda : self.computerCommand(c[2])
         elif c[0].lower() == "share":
             return lambda : self.shareCommand(c[2])
@@ -133,7 +118,7 @@ class ActiveDirectory:
         listOfLambdas = [self.mapLambda(c) for c in s.get("commands", [])]
         i = 0
         for command_options in s.get("commands", []):
-            if command_options[0].lower() in ["computer", "oncomputernewuser", "oncomputerfirstuser", "oncomputerfirstadmin", "ondcfirstuser", "ondcfirstadmin"]:
+            if command_options[0].lower() == "computer":
                 self.tvComputers.addContextMenuCommand(command_options[1], listOfLambdas[i])
             elif command_options[0].lower() == "share":
                 self.tvShares.addContextMenuCommand(command_options[1], listOfLambdas[i])
@@ -166,7 +151,7 @@ class ActiveDirectory:
         self.tvComputers.pack(fill=tk.BOTH)
         frameShares = ttk.Frame(self.moduleFrame)
         self.tvShares = ScrollableTreeview(
-            frameShares, ("IP", "Share", "Flagged", "Priv", "Size", "domain", "user"))
+            frameShares, ("IP", "Share", "Flagged", "Size"))
         self.tvShares.pack(fill=tk.BOTH)
         frameUsers.grid(row=0, column=0)
         frameComputers.grid(row=1, column=0)
@@ -176,12 +161,13 @@ class ActiveDirectory:
         self.moduleFrame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
     def computerDoubleClick(self, event=None):
-        selection = self.tvComputers.selection()[0]
-        self.openComputerDialog(selection)
+        selection = self.tvComputers.selection()
+        if selection:
+            self.openComputerDialog(selection[0])
 
     def openComputerDialog(self, computer_iid):
         apiclient = APIClient.getInstance()
-        computer_d = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
+        computer_d = apiclient.find(ActiveDirectory.collName,
             {"_id":ObjectId(computer_iid)}, False)
         if computer_d is None:
             return
@@ -193,19 +179,22 @@ class ActiveDirectory:
             domain = user.get("domain", "")
             username = user.get("username", "")
             password = user.get("password", "")
+            groups = user.get("groups", [])
+            if groups is None:
+                groups = []
             self.tvUsers.insert(
-                '', 'end', user["_id"], text=username, values=(password, domain, len(user.get("groups", [])), user.get("desc", "")))
-            self.newUserEvent("OnUserInsert", user=(domain, username, password))
-        except tk.TclError:
+                '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", "")))
+        except tk.TclError as e:
             pass
 
     def userDoubleClick(self, event=None):
-        selection = self.tvUsers.selection()[0]
-        self.openUserDialog(selection)
+        selection = self.tvUsers.selection()
+        if selection:
+            self.openUserDialog(selection[0])
 
     def openUserDialog(self, user_iid):
         apiclient = APIClient.getInstance()
-        user_d = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
+        user_d = apiclient.find(ActiveDirectory.collName,
             {"_id":ObjectId(user_iid)}, False)
         if user_d is None:
             return
@@ -221,23 +210,13 @@ class ActiveDirectory:
                 item = self.tvUsers.item(select)
             except tk.TclError:
                 pass
-            username = item["text"]
-            values = item["values"]
-            password = values[0]
-            domain = values[1] if values[1] != "None" and values[1] != "" else None
-            computers = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, 
-                {"type":"computer", "users":{"$elemMatch":{"0":domain,"1":username,"2":password}}}, True)
-            for computer in computers:
-                users = [ u for u in computer.get("users") if domain != u[0] and username != u[1] and username != u[2]]
-                admins = [ u for u in computer.get("admins") if domain != u[0] and username != u[1] and username != u[2]]
-                apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, 
-                {"_id":ObjectId(computer["_id"])}, {"$set":{"users":users, "admins":admins}}, notify=True)
-            apiclient.deleteFromDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, {"_id":ObjectId(select)}, notify=True)       
+            apiclient.delete( ActiveDirectory.collName+"/users", select)       
             self.tvUsers.delete(select)
     
     def insertComputer(self, computer):
-        newValues = (computer.get("name", computer.get("machine_name", "")), computer.get("domain", ""), str(computer.get("isDC", False)), len(computer.get("admins", [])), len(computer.get("users", [])), computer.get("OS", ""),
-                        computer.get("signing", ""), computer.get("SMBv1", ""))
+        infos = computer.get("infos",{})
+        newValues = (computer.get("name",""), computer.get("domain", ""), infos.get("is_dc", False), len(computer.get("admins", [])), len(computer.get("users", [])), infos.get("os", ""), \
+                        infos.get("signing", ""), infos.get("smbv1", ""))
         try:
             self.tvComputers.insert(
                 '', 'end', computer["_id"], text=computer.get("ip", ""),
@@ -248,164 +227,22 @@ class ActiveDirectory:
     def insertShare(self, share):
         try:
             parentiid = self.tvShares.insert(
-                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("name", ""),))
+                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""),))
         except tk.TclError:
             parentiid = str(share["_id"])
-        for file_infos in share.get("files"):
-            toAdd = []
-            for info in file_infos:
-                if info is None:
-                    info = ""
-                toAdd.append(str(info))
+        for file_infos in share.get("files",[]):
+            toAdd = (file_infos["path"], str(file_infos["flagged"]), str(file_infos["size"]))
             try:
                 self.tvShares.insert(
-                    parentiid, 'end', None, text="", values=(tuple(toAdd)))
+                    parentiid, 'end', None, text="", values=tuple(toAdd))
             except tk.TclError:
                 pass
 
-    def addShareInDb(self, share_dict, port_o):
+    def addUserInDb(self, domain, username, password):
         apiclient = APIClient.getInstance()
-        for shareName, path_infos in share_dict.items():
-            existing = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, {
-                                 "type": "share", "name": shareName, "ip":port_o.ip}, False)
-            if existing is None:
-                apiclient.insertInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
-                    {"type": "share", "name": shareName, "ip": port_o.ip,
-                    "files":path_infos}, notify=True)
-            else:
-                files = set(map(tuple, existing["files"]))
-                files = list(files.union(set(map(tuple, path_infos))))
-                apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
-                    {"_id":existing["_id"]}, {"$set":{"type": "share", "name": shareName, "ip": port_o.ip,
-                    "files":files}})
-    @staticmethod
-    def normalize_users(user_records):
-        ret = []
-        for user_record in user_records:
-            if isinstance(user_record, dict):
-                domain = user_record.get("domain", "")
-                username = user_record.get("username", "")
-                password = user_record.get("password", "")
-                ret.append([domain, username, password])
-            elif isinstance(user_record, list) or isinstance(user_record, tuple):
-                ret.append(user_record)
-        return ret
-
-    def addUserInDb(self, user):
-        apiclient = APIClient.getInstance()
-        list_norm_user = ActiveDirectory.normalize_users([user])
-        if list_norm_user:
-            norm_user = list_norm_user[0]
-            if len(norm_user) == 3:
-                domain = norm_user[0]
-                username = norm_user[1]
-                password = norm_user[2]
-                key = {"type": "user", "username": username, "domain": domain, "password": password}
-                data = key
-                res = apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, key, {"$set":data}, notify=True, upsert=True)
-            
-    def addDomainUserInDb(self, user_login, user_infos):
-        apiclient = APIClient.getInstance()
-        domain = user_login.split("\\")[0]
-        username = "\\".join(user_login.split("\\")[1:])
-        key = {"type": "user", "username": username, "domain": domain}
-        data = user_infos
-        apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, key, {"$set":data}, notify=True, upsert=True)
-
-    def addDCinDb(self, ip):
-        apiclient = APIClient.getInstance()
-        existing = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, {
-                                 "type": "computer", "ip": ip}, False)
-        if existing is None:
-            apiclient.insertInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
-                {"type": "computer", "domain":"", "isDC":True, "name": "", "ip": ip,
-                 "OS": "", "signing": True, 
-                 "SMBv1": "", "users":[],
-                 "admins":[]}, notify=True)
-        else:
-            apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
-                                 {"_id": ObjectId(existing["_id"])}, {"$set": {"isDC":True}}, notify=True)
-            if not existing.get("isDC", False):
-                if len(existing.get("users", [])) > 0:
-                    self.newComputerEvent("OnDCFirstUser", existing.get("users", [])[0], ip)
-                if len(existing.get("admins", [])) > 0:
-                    self.newComputerEvent("OnDCFirstAdmin", existing.get("admins", [])[0], ip)
-
-    def addComputerinDb(self, port_o):
-        apiclient = APIClient.getInstance()
-        existing = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, {
-                                 "type": "computer", "ip": port_o.ip}, False)
-        existingUsers = []
-        newUsers = []
-        existingAdmins = []
-        newAdmins = []
-        isDC = False
-        if existing is None:
-            newUsers = ActiveDirectory.normalize_users(port_o.infos.get("users", []))
-            newAdmins = ActiveDirectory.normalize_users(port_o.infos.get("admins", []))
-            apiclient.insertInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
-                {"type": "computer", "domain":port_o.infos.get("domain",""), "isDC": isDC, "name": port_o.infos.get("machine_name", ""), "ip": port_o.ip,
-                 "OS": port_o.infos.get("OS", ""), "signing": port_o.infos.get("signing", ""), "secrets": port_o.infos.get("secrets", ""), "ntds":port_o.infos.get("ntds", ""),
-                 "SMBv1": port_o.infos.get("SMBv1", ""), "users":newUsers,
-                 "admins":newAdmins}, notify=True)
-        else:
-            isDC = existing.get("isDC", False)
-            existingUsers = set(map(tuple, ActiveDirectory.normalize_users(existing.get("users", []))))
-            newUsers = list(existingUsers.union(map(tuple, ActiveDirectory.normalize_users(port_o.infos.get("users", [])))))
-            existingAdmins = set(map(tuple, ActiveDirectory.normalize_users(existing.get("admins", []))))
-            newAdmins = list(existingAdmins.union(map(tuple, ActiveDirectory.normalize_users(port_o.infos.get("admins", [])))))
-            apiclient.updateInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName,
-                                 {"_id": ObjectId(existing["_id"])}, {"$set": {"name": port_o.infos.get("machine_name", ""), "domain":port_o.infos.get("domain", ""),"isDC": isDC,
-                                                                          "OS": port_o.infos.get("OS", ""), "signing": port_o.infos.get("signing", ""), "secrets": port_o.infos.get("secrets", ""),
-                                                                          "ntds":port_o.infos.get("ntds", ""), "SMBv1": port_o.infos.get("SMBv1", ""),
-                                                                           "users":newUsers, "admins":newAdmins}})
-        self.checkEvents(port_o, existingUsers, newUsers, existingAdmins, newAdmins, isDC)
-
-    def checkEvents(self, port_o, existingUsers, newUsers, existingAdmins, newAdmins, isDC):
-        if len(newUsers) > len(existingUsers):
-            for user in  set(newUsers) - set(existingUsers):
-                self.newComputerEvent("OnComputerNewUser", user, port_o.ip)
-        if len(newAdmins) >= 1 and len(existingAdmins) == 0:
-            admin = list(set(newAdmins) - set(existingAdmins))[0]
-            self.newComputerEvent("OnComputerFirstAdmin", admin, port_o.ip)
-            if isDC:
-                self.newComputerEvent("OnDCFirstAdmin", admin, port_o.ip)
-        if len(newUsers) > 0:
-            realNewUsers = set()
-            for user in newUsers:
-                if not any(map(lambda x: x is None or x == '' or x == 'None', user)):
-                    realNewUsers.add(user)
-            if len(realNewUsers) > 0:
-                oneExistingUser = False
-                incompleteUsers = set()
-                for user in existingUsers:
-                    if not any(map(lambda x: x is None or x == '' or x == 'None', user)):
-                        oneExistingUser = True
-                        break
-                    else:
-                        incompleteUsers.add(user)
-                if not oneExistingUser:
-                    self.newComputerEvent("OnComputerFirstUser", list(set(newUsers) - incompleteUsers)[0], port_o.ip)
-                    if isDC:
-                        self.newComputerEvent("OnDCFirstUser", list(set(newUsers) - incompleteUsers)[0], port_o.ip)
-    
-    def newComputerEvent(self, eventName, user, ip):
-        apiclient = APIClient.getInstance()
-        existing = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, {
-                                 "type": "computer", "ip": ip}, False)
-        if existing is None:
-            return
-        s = self.getSettings()
-        for command_options in s.get("commands", []):
-            if command_options[0].lower() == eventName.lower():
-                self.computerCommand(command_options[2],  ips=[existing["ip"]], user=user)
-
-    def newUserEvent(self, eventName, user):
-        s = self.getSettings()
-        for command_options in s.get("commands", []):
-            if command_options[0].lower() == eventName:
-                self.userCommand(command_options[2],  user=user)
-
+        user = {"type": "user", "username": username, "domain": domain, "password": password}
+        res = apiclient.insert( ActiveDirectory.collName+"/users", {"username": username, "domain": domain, "password": password})
+        
     def notify(self, db, collection, iid, action, _parent):
         """
         Callback for the observer implemented in mongo.py.
@@ -422,33 +259,14 @@ class ActiveDirectory:
             return
         if apiclient.getCurrentPentest() != db:
             return
+        #print("notification "+str(collection)+" action="+str(action))
         if collection == ActiveDirectory.collName:
             self.handleActiveDirectoryNotif(iid, action)
-        elif collection == "ports" and action != "delete":
-            port_o = Port.fetchObject({"_id": ObjectId(iid)})
-            if int(port_o.port) == 445:
-                self.loadInfoFromPort(port_o)
-            if int(port_o.port) == 88:
-                self.addDCinDb(port_o.ip)
 
-    def loadInfoFromPort(self, port_o):
-        if port_o.infos.get("users", []):
-            for user in port_o.infos.get("users", []):
-                self.addUserInDb(user)
-        if port_o.infos.get("domain_users", []):
-            for user_login, user_infos in port_o.infos.get("domain_users", {}).items():
-                self.addDomainUserInDb(user_login, user_infos)
-        if port_o.infos.get("admins", []):
-            for admin in port_o.infos.get("admins", []):
-                self.addUserInDb(admin)
-        self.addComputerinDb(port_o)
-        if port_o.infos.get("shares", {}):
-            self.addShareInDb(port_o.infos.get("shares", {}), port_o)
-
+    
     def handleActiveDirectoryNotif(self, iid, action):
         apiclient = APIClient.getInstance()
-        res = apiclient.findInDb(apiclient.getCurrentPentest(
-                ), ActiveDirectory.collName, {"_id": ObjectId(iid)}, False)
+        res = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(iid)}, False)
         if action == "insert":
             if res is None:
                 return
@@ -501,21 +319,28 @@ class ActiveDirectory:
                     parts = remaining.split(":")
                     username = parts[0]
                     password = ":".join(parts[1:])
-                    self.addUserInDb((domain, username, password))
+                    self.addUserInDb(domain, username, password)
     
-    def exportAllUsersAsFile(self, delim="\n"):
+    def exportAllUsersAsFile(self, domain="", delim="\n"):
         fp = tempfile.mkdtemp()
         filepath = os.path.join(fp, "users.txt")
-        with open(filepath, "w") as f:
-            for selected_user in self.tvUsers.get_children():
-                username = self.tvUsers.item(selected_user)["text"]
+        with open(filepath, mode="w") as f:
+            apiclient = APIClient.getInstance()
+            search = {"type":"user"}
+            if domain != "":
+                search["domain"] = domain 
+            res = apiclient.find(ActiveDirectory.collName, search)
+            for selected_user in res:
+                username = selected_user["username"]
                 f.write(username+delim)
         return filepath
 
     def exportAllComputersAsFile(self, delim="\n"):
         fp = tempfile.mkdtemp()
         filepath = os.path.join(fp, "computers.txt")
-        with open(filepath, "w") as f:
+        with open(filepath, mode="w") as f:
+            apiclient = APIClient.getInstance()
+            res = apiclient.find(ActiveDirectory.collName, {"type":"computers"})
             for selected_computer in self.tvComputers.get_children():
                 computer = self.tvComputers.item(selected_computer)["text"]
                 f.write(computer+delim)
@@ -529,12 +354,28 @@ class ActiveDirectory:
             return
         ip = self.tvShares.item(parent_iid)["text"]
         item_values = self.tvShares.item(selected)["values"]
-        domain = item_values[-2] if item_values[-2] != "" else None
-        user = item_values[-1]
+        apiclient = APIClient.getInstance()
+        share_m = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(parent_iid)}, False)
+        path = item_values[0]
+        files = share_m.get("files", [])
+        try:
+            path_index = [x["path"] for x in files].index(path)
+        except:
+            tk.messagebox.showerror("path not found","Path "+str(path)+" was not found in share")
+            return
+        
+        file_infos = files[path_index]
+        users = file_infos.get("users", [])
+        if not users:
+            tk.messagebox.showerror("No users known","This share has no no known user ")
+            return
+        u = users[0] # take first one
+        domain = u[0] if u[0] is not None else ""
+        user = u[1] if u[1] is not None else ""
         share_name = item_values[0]
         apiclient = APIClient.getInstance()
         apiclient.getCurrentPentest()
-        user_o = apiclient.findInDb(apiclient.getCurrentPentest(), ActiveDirectory.collName, 
+        user_o = apiclient.find(ActiveDirectory.collName, 
                 {"type":"user", "domain":domain, "username":user}, False)
         if user_o is None:
             tk.messagebox.showerror("user not found","User "+str(domain)+"\\"+str(user)+" was not found")
@@ -569,7 +410,7 @@ class ActiveDirectory:
                     self.tkApp.wait_window(dialog.app)
                     fp = tempfile.mkdtemp()
                     filepath = os.path.join(fp, what+".txt")
-                    with open(filepath, "w") as f:
+                    with open(filepath, mode="w") as f:
                         f.write(dialog.rvalue)
                     command_option = command_option.replace(s.group(0), filepath)
             command_option = command_option.replace("|domain|", user[0])
@@ -603,7 +444,11 @@ class ActiveDirectory:
                     elif keyword == "ip":
                         command_option = command_option.replace(s.group(0), ip)
                     elif keyword == "users_as_file":
-                        filepath = self.exportAllUsersAsFile()
+                        if user is not None and len(user) == 3:
+                            domain = user[0]
+                        else:
+                            domain = ""
+                        filepath = self.exportAllUsersAsFile(domain)
                         command_option = command_option.replace(s.group(0), filepath)
                     elif "|ask_text:" in s.group(0):
                         what = s.group(1)
@@ -611,7 +456,7 @@ class ActiveDirectory:
                         self.tkApp.wait_window(dialog.app)
                         fp = tempfile.mkdtemp()
                         filepath = os.path.join(fp, what+".txt")
-                        with open(filepath, "w") as f:
+                        with open(filepath, mode="w") as f:
                             f.write(dialog.rvalue)
                         command_option = command_option.replace(s.group(0), filepath)
             user_searching = {"domain":None, "username":None, "password":None}
@@ -671,8 +516,7 @@ class ChildDialogAddUsers:
             pass
 
     def onOk(self, event=""):
-        """
-        Called when the user clicked the validation button. Set the rvalue attributes to the value selected and close the window.
+        """he rvalue attributes to the value selected and close the window.
         """
         # send the data to the parent
         self.rvalue = self.formtext.getValue().split("\n")
@@ -709,7 +553,10 @@ class ChildDialogUser:
         panel_info.addFormLabel("Password", row=2)
         panel_info.addFormStr("Password", "", user_data.get("password", ""), status="readonly", row=2, column=1)
         panel.addFormLabel("Desc", text=f"{user_data.get('desc', '')}" , side="top")
-        panel.addFormTreevw("Groups", ("Group",), [ [x] for x in user_data.get('groups',[])], side="top")
+        groups = user_data.get('groups', []) 
+        if groups is None:
+            groups = []
+        panel.addFormTreevw("Groups", ("Group",), [ [x] for x in groups], side="top")
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Quit", self.onError, side="right")
         panel.constructView(appFrame)
@@ -758,19 +605,25 @@ class ChildDialogComputer:
         panel_info.addFormStr("IP", "", computer_data.get("ip", ""), status="readonly", row=0, column=1)
         panel_info.addFormLabel("Name", column=2)
         panel_info.addFormStr("Name", "", computer_data.get("name", ""), status="readonly", column=3)
-        panel_info.addFormLabel("OS", row=1)
-        panel_info.addFormStr("OS", "", computer_data.get("OS", ""), status="readonly", row=1, column=1)
-        panel_info.addFormLabel("Signing", row=2)
-        panel_info.addFormStr("Signing", "", computer_data.get("signing", ""), status="readonly", row=2, column=1)
-        panel_info.addFormLabel("SMBv1", row=3)
-        panel_info.addFormStr("SMBv1", "", computer_data.get("SMBv1", ""), status="readonly", row=3, column=1)
+        row = 1
+        for info_name, val in computer_data.get("infos", {}).items():
+            panel_info.addFormLabel(info_name, row=row)
+            panel_info.addFormStr(info_name, "", val, status="readonly", row=row, column=1)
+            row += 1
+        apiclient = APIClient.getInstance()
+        res = apiclient.getComputerUsers(str(computer_data["_id"]))
+        if res is  None:
+            res = {}
+        users_data = [(d["domain"], d["username"], d["password"]) for d in res.get("users", [])]
+        admins_data = [(d["domain"], d["username"], d["password"]) for d in res.get("admins",[])]
         panel.addFormLabel("Users", side="top")
-        panel.addFormTreevw("Users", ("Domain", "Username", "Password"), computer_data.get("users", []), side="top")
+        panel.addFormTreevw("Users", ("Domain", "Username", "Password"), users_data, side="top")
+        
         panel.addFormLabel("Admins", side="top")
-        panel.addFormTreevw("Admins", ("Domain", "Username", "Password"), computer_data.get("admins", []), side="top")
+        panel.addFormTreevw("Admins", ("Domain", "Username", "Password"), admins_data, side="top")
         if computer_data.get("secrets", []):
             panel.addFormLabel("Secrets", side="top")
-            panel.addFormTreevw("Secrets", ("Secret", ""), list(map(lambda s: (s, "") , computer_data.get("secrets", []))), side="top")
+            panel.addFormTreevw("Secrets", ("Secret", ""), [(s, "") for s in computer_data.get("infos", {}).get("secrets", [])], side="top")
         ntds = computer_data.get("ntds", [])
         if ntds:
             panel.addFormLabel("NTDS", side="top")
@@ -822,11 +675,6 @@ class ChildDialogConfigureADModule:
             - Computer: those commands will be available when right clicking one or many computer and will execute the selected command for each one of them. 
                         It takes into account what user is selected in the user treeview or will ask information otherwise.
             - Share: those commands  will be available when right clicking one File in a share.
-            - OnComputerNewUser: Same as computer + will be launched automatically for each new user that can connect to a computer for this computer/user combo.
-            - OnComputerFirstUser: Same as computer + will be launched automatically for the first user discovered on each computer
-            - OnComputerFirstAdmin: Same as OnComputerFirstUser but only for the first admin user discovered on each computer
-            - OnDCFirstUser: Same as OnComputerFirstUser but only if the computer is a Domain Controller.
-            - OnDCFirstUser: Same as OnDCFirstUser but only if the user is admin (domain admin).
         Variables:
             - |ip|: will be replaced by the selected computer IP
             - |share|: (Only for Share type commands) Will be replaced with the filename selected in the share table.
@@ -837,7 +685,7 @@ class ChildDialogConfigureADModule:
             - |computers_as_file|: will be replaced with a filename containing all computers IPs
         """, state="disabled")
         self.formtv = panel.addFormTreevw("Commands", ("Type", "Command name", "Command line"), 
-                            ad_settings.get("commands", []), doubleClickBinds=[["Computer", "Share", "OnComputerNewUser", "OnComputerFirstUser", "OnComputerFirstAdmin", "OnDCFirstUser", "OnDCFirstAdmin"], "", ""],
+                            ad_settings.get("commands", []), doubleClickBinds=[["Computer", "Share"], "", ""],
                             side="top", width=800,height=10, fill=tk.BOTH)
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Submit", self.onOk, side="right")
@@ -854,8 +702,7 @@ class ChildDialogConfigureADModule:
             pass
 
     def onOk(self, event=""):
-        """
-        Called when the user clicked the validation button. Set the rvalue attributes to the value selected and close the window.
+        """he rvalue attributes to the value selected and close the window.
         """
         # send the data to the parent
         self.rvalue = self.formtv.getValue()

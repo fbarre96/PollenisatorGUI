@@ -275,7 +275,7 @@ class Appli(tkinterDnD.Tk):
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "1.3.*"
+    version_compatible = "1.4.*"
     def __init__(self):
         """
         Initialise the application
@@ -355,6 +355,7 @@ class Appli(tkinterDnD.Tk):
             self.wait_visibility()
             self.openConnectionDialog(force=True)
             self.promptCalendarName()
+        self.loadModulesInfos()
             
     # OVERRIDE tk.Tk.report_callback_exception
     def report_callback_exception(self, exc, val, tb):
@@ -394,7 +395,7 @@ class Appli(tkinterDnD.Tk):
             @self.sio.event
             def notif(data):
                 self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
-            
+           
             self.sio.connect(apiclient.api_url)
             self.initUI()
             pentests = apiclient.getPentestList()
@@ -418,13 +419,19 @@ class Appli(tkinterDnD.Tk):
         discovered_plugins = {
             name: importlib.import_module(name)
             for finder, name, ispkg
-            in iter_namespace(pollenisatorgui.Modules)
+            in iter_namespace(pollenisatorgui.Modules) if not name.endswith(".Module")
         }
         self.modules = []
         for name, module in discovered_plugins.items():
             module_class = getattr(module, name.split(".")[-1])
             module_obj = module_class(self, self.settings)
+            
             self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":ImageTk.PhotoImage(Image.open(Utils.getIconDir()+module_obj.iconName))})
+    
+    def loadModulesInfos(self):
+        for module in self.modules:
+            if callable(getattr(module["object"], "loadModuleInfo", False)):
+                module["object"].loadModuleInfo()
 
     def show_error(self, *args):
         """Callback for tk.Tk.report_callback_exception.
@@ -1213,6 +1220,6 @@ class Appli(tkinterDnD.Tk):
         detector = os.path.join(Utils.getConfigFolder(),".first_use")
         if os.path.exists(detector):
             return False
-        with open(detector, "w") as f:
+        with open(detector, mode="w") as f:
             f.write("")
         return True

@@ -1,7 +1,6 @@
 """worker module. Execute code and store results in database, files in the SFTP server.
 """
 
-from distutils import command
 import errno
 import os
 import time
@@ -95,11 +94,7 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
           
     # Delay
     if command_dict is not None:
-        if float(command_dict.get("sleep_between", 0)) > 0.0:
-            msg += " (will sleep for " + \
-                str(float(command_dict.get("sleep_between", 0)))+")"
         print(msg)
-        time.sleep(float(command_dict.get("sleep_between", 0)))
     return True, outputfile
     
 def getWaveTimeLimit(waveName):

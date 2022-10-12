@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 @author: Fabien Barré for AlgoSecure
-# Date: 30/09/2022
+# Date: 12/10/2022
 # Major version released: 09/2019
-# @version: 2.1
+# @version: 2.2
 """
 from pollenisatorgui.core.Models.Command import Command
 import time
@@ -17,6 +17,8 @@ from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Appli import Appli
 import pollenisatorgui.core.Components.Utils as Utils
 import tempfile
+import threading
+event_obj = threading.Event()
 
 
 class GracefulKiller:
@@ -50,6 +52,8 @@ class GracefulKiller:
         """
         print('You pressed Ctrl+C!')
         self.app.onClosing()
+        event_obj.set()
+
         self.kill_now = True
 
 
@@ -172,7 +176,7 @@ def main():
                                
 """)
    
-    
+    event_obj.clear() 
     gc = None
     app = Appli()
     try:
@@ -191,6 +195,7 @@ def main():
     app.onClosing()
     if gc is not None:
         gc.kill_now = True
+    event_obj.set()
 
 
 if __name__ == '__main__':

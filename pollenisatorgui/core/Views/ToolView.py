@@ -123,7 +123,7 @@ class ToolView(ViewElement):
         dates_panel.addFormStr(
             "Scanner", r"", modelData["scanner_ip"], row=2, column=1)
         dates_panel.addFormLabel("Command executed", row=3)
-        dates_panel.addFormStr("Command executed", "", modelData.get("infos", {}).get("cmdline",""), row=3, column=1, state="disabled")
+        dates_panel.addFormStr("Command executed", "", modelData.get("infos", {}).get("cmdline",""), row=3, column=1)
         notes = modelData.get("notes", "")
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
@@ -263,7 +263,7 @@ class ToolView(ViewElement):
         Args:
             event: Automatically generated with a button Callback, not used.
         """
-        self.mainApp.scanManager.launchTask(self.controller.model)
+        self.mainApp.scanManager.launchTask(self.controller.model,)
        
         self.form.clear()
         for widget in self.appliViewFrame.winfo_children():

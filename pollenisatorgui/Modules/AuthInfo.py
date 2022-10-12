@@ -5,21 +5,17 @@ import tkinter.ttk as ttk
 from bson.objectid import ObjectId
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
-from pollenisatorgui.core.Views.WaveView import WaveView
-from pollenisatorgui.core.Views.IpView import IpView
-from pollenisatorgui.core.Views.PortView import PortView
-from pollenisatorgui.core.Views.ScopeView import ScopeView
-from pollenisatorgui.core.Models.Tool import Tool
-from pollenisatorgui.core.Models.Command import Command
+from pollenisatorgui.Modules.Module import Module
 
 
-class AuthInfo:
+class AuthInfo(Module):
     """
     Shows information about ongoing pentest. 
     """
     iconName = "tab_auth.png"
     tabName = "Auth Infos"
-    registerLvls = ["auth:cookie","auth:password"]
+    collName = "auth"
+
     def __init__(self, parent, settings):
         """
         Constructor
@@ -48,7 +44,7 @@ class AuthInfo:
         Fetch data from database
         """
         apiclient = APIClient.getInstance()
-        self.auths = apiclient.find("auths")
+        self.auth = apiclient.find("auth")
 
     def displayData(self):
         """
@@ -62,12 +58,11 @@ class AuthInfo:
         for children in self.treevw.get_children():
             self.treevw.delete(children)
         dialog.update(1)
-        auth = []
-        for auth in self.auths:
-            keys = list(auth.keys())
+        for auth_d in self.auth:
+            keys = list(auth_d.keys())
 
             self.treevw.insert(
-                '', 'end', auth["_id"], text=auth["name"], values=(auth["value"], auth["type"],))
+                '', 'end', auth_d["_id"], text=auth_d["name"], values=(auth_d["value"], auth_d["type"],))
         dialog.update(3)
         # Reset Port treeview
         dialog.destroy()
@@ -134,7 +129,7 @@ class AuthInfo:
         """
         apiclient = APIClient.getInstance()
         selected = self.treevw.selection()
-        apiclient.bulkDelete({"auths":selected}) 
+        apiclient.bulkDelete({"auth":selected}) 
 
 
     def insert_auths(self):
@@ -150,7 +145,7 @@ class AuthInfo:
             toInsert.append([parts[0],(":".join(parts[1:]))])
         print(toInsert)
         for t in toInsert:
-            apiclient.insertInDb(apiclient.getCurrentPentest(), "auths", {"name": t[0], "value":t[1], "type":self.typeCombo.get().lower()}, "", True)
+            apiclient.insert("auth", {"name": t[0], "value":t[1], "type":self.typeCombo.get().lower()})
 
     def notify(self, db, collection, iid, action, _parent):
         """
@@ -168,10 +163,10 @@ class AuthInfo:
             return
         if apiclient.getCurrentPentest() != db:
             return
-        if collection != "auths":
+        if collection != "auth":
             return
         if action == "insert":	
-            res = apiclient.find("auths", {"_id": ObjectId(iid)}, False)	
+            res = apiclient.find("auth", {"_id": ObjectId(iid)}, False)	
             if res is None:
                 return
             self.treevw.insert(
@@ -200,30 +195,11 @@ class AuthInfo:
             name = dialog.rvalue["key"].strip()
             value = dialog.rvalue["value"].strip()
             auth_info = {"name": name, "value":value, "type":dialog.rvalue["type"].lower()}
-            apiclient.insertInDb(apiclient.getCurrentPentest(),"auths", auth_info, notify=True)
+            res, iid = apiclient.insert("auth", auth_info)
             for selected in self.treevwApp.selection():
                 view_o = self.treevwApp.getViewFromId(selected)
                 if view_o is not None:
-                    lvl = "network" if isinstance(view_o, ScopeView) else None
-                    lvl = "wave" if isinstance(view_o, WaveView) else lvl
-                    lvl = "ip" if isinstance(view_o, IpView) else lvl
-                    lvl = "port" if isinstance(view_o, PortView) else lvl
-                    if lvl is not None:
-                        inst = view_o.controller.getData()
-                        if auth_info["type"].lower() == "cookie":
-                            command_lvl = "auth:cookie"
-                        if auth_info["type"].lower() == "password":
-                            command_lvl = "auth:password"
-                        view_o.controller.updateInfos({"auth_cookie":name+"="+value+";"})
-                        commands = Command.fetchObjects({"lvl":command_lvl}, targetdb=apiclient.getCurrentPentest())
-                        for command in commands:
-                            tool = Tool().initialize(str(command.getId()), inst.get("wave", self.__class__.tabName.strip().lower()),
-                                   "", inst.get("scope",""), inst.get("ip",""), inst.get("port",""), inst.get("proto",""),
-                                   lvl=lvl)
-                            tool.addInDb()
-                    else:
-                        tk.messagebox.showerror(
-                            "ERROR : Wrong selection", "You have to select a object that may have tools")
+                    res = apiclient.linkAuth(str(iid), view_o.controller.getDbId())
 
 class ChildDialogAuthInfo:
     """

@@ -375,7 +375,7 @@ class CalendarTreeview(PollenisatorTreeview):
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             csv_filename = str(f)
-            with open(csv_filename, 'w') as f:
+            with open(csv_filename, mode='w') as f:
                 f.write(", ".join(fields_to_export)+"\n")
                 for selected in self.selection():
                     view_o = self.getViewFromId(selected)

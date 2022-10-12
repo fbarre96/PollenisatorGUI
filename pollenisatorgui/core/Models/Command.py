@@ -16,31 +16,26 @@ class Command(Element):
         """Constructor
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command is optimal.
-                        possible keys with default values are : _id (None), parent (None), tags([]), infos({}), name(""), sleep_between("0"), priority("0),
-                        max_thread("1"), text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owner=""
+                        possible keys with default values are : _id (None), parent (None), tags([]), infos({}), name(""), 
+                         text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owner=""
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("bin_path", ""), valuesFromDb.get("plugin", ""), valuesFromDb.get("sleep_between", 0),
-                        valuesFromDb.get("priority", 0), valuesFromDb.get(
-                            "max_thread", 1),
+        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("bin_path", ""), valuesFromDb.get("plugin", ""), 
                         valuesFromDb.get("text", ""), valuesFromDb.get(
                             "lvl", "network"),
                         valuesFromDb.get("ports", ""),
                         bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), 
                         valuesFromDb.get("owner", ""), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, bin_path, plugin="Default", sleep_between=0, priority=0, max_thread=1, text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, owner="", infos=None):
+    def initialize(self, name, bin_path, plugin="Default", text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, owner="", infos=None):
         """Set values of command
         Args:
             name: the command name
             bin_path: local command, binary path or command line
             plugin: plugin that goes with this command
-            sleep_between: delay to wait between two call to this command. Default is 0
-            priority: priority of the command (0 is highest). Default is 0
-            max_thread: number of parallel execution possible of this command. Default is 1
             text: the command line options. Default is "".
             lvl: level of the command. Must be either "wave", "network", "domain", "ip", "port" or a module name. Default is "network"
             ports: allowed proto/port, proto/service or port-range for this command
@@ -56,9 +51,6 @@ class Command(Element):
         self.name = name
         self.bin_path = bin_path
         self.plugin = plugin
-        self.sleep_between = sleep_between
-        self.priority = priority
-        self.max_thread = max_thread
         self.text = text
         self.lvl = lvl
         self.ports = ports
@@ -92,8 +84,8 @@ class Command(Element):
                 * mongo ObjectId : already existing object if duplicate, create object id otherwise 
         """
         apiclient = APIClient.getInstance()
-        res, id = apiclient.insert("commands", {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin, "lvl": self.lvl, "priority": int(self.priority),
-                                                                           "sleep_between": int(self.sleep_between), "max_thread": int(self.max_thread), "text": self.text,
+        res, id = apiclient.insert("commands", {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin, "lvl": self.lvl,
+                                                                            "text": self.text,
                                                                            "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout), "owner": self.owner})
         if not res:
             return False, id
@@ -109,7 +101,7 @@ class Command(Element):
         apiclient = APIClient.getInstance()
         
         if pipeline_set is None:
-            apiclient.update("commands", self._id, {"priority": int(self.priority), "sleep_between": int(self.sleep_between), "max_thread": int(self.max_thread), "timeout": int(self.timeout),
+            apiclient.update("commands", self._id, {"timeout": int(self.timeout),
                          "text": self.text, "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb":self.indb, "plugin":self.plugin, "bin_path":self.bin_path})
            
         else:
