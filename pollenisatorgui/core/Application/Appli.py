@@ -847,7 +847,6 @@ class Appli(tkinterDnD.Tk):
             self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
-        self.nbk.select("Main View")
         self.refreshUI()
 
     def refreshUI(self):
@@ -857,6 +856,7 @@ class Appli(tkinterDnD.Tk):
             self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
         else:
             self.nbk.delete("Admin")
+        self.nbk.select("Main View")
     
     def newSearch(self, _event=None, histo=True):
         """Called when the searchbar is validated (click on search button or enter key pressed).
