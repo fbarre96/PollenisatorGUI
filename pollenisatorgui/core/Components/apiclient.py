@@ -521,9 +521,11 @@ class APIClient():
             return None
 
     @handle_api_errors
-    def bulkDeleteCommands(self, dictToDelete):
+    def bulkDeleteCommands(self, dictToDelete, forWorker=False):
         api_url = '{0}commands/delete/bulk'.format(self.api_url_base)
         data = dictToDelete
+        if forWorker:
+            data["Worker"] = True
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), verify=False, proxies=proxies)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)

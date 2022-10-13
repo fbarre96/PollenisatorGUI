@@ -160,9 +160,9 @@ class CommandGroup(Element):
         """
         return {"_id": self._id}
 
-    def isMyCommandGroup(self):
+    def isMine(self):
         user = APIClient.getInstance().getUser()
         return user == self.owner
         
-    def isWorkerCommandGroup(self):
+    def isWorker(self):
         return self.owner == "Worker"

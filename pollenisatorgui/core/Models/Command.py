@@ -178,11 +178,11 @@ class Command(Element):
         apiclient = APIClient.getInstance()
         apiclient.addCommandToMyCommands(self.getId())
 
-    def isMyCommand(self):
+    def isMine(self):
         user = APIClient.getInstance().getUser()
         return user == self.owner
         
-    def isWorkerCommand(self):
+    def isWorker(self):
         return self.owner == "Worker"
 
     def __str__(self):

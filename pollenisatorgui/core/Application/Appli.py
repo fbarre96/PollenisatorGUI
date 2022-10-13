@@ -385,11 +385,11 @@ class Appli(tkinterDnD.Tk):
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
                 self.forceUpdate(".".join(srv_version.split(".")[:-1]))
                 self.onClosing()
-                return
+                return False
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
                 self.forceUpdate(".".join(srv_version.split(".")[:-1]))
                 self.onClosing()
-                return
+                return False
             if self.sio is not None:
                 self.sio.disconnect()
             self.sio = socketio.Client()
@@ -839,22 +839,26 @@ class Appli(tkinterDnD.Tk):
         self.nbk = ButtonNotebook(self, self.tabSwitch)
         self.statusbar = StatusBar(self, self)
         self.statusbar.pack(fill=tk.X)
+
+        for module in self.modules:
+            module["view"] = ttk.Frame(self.nbk)
+            module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
         self.initMainView()
         self.initAdminView()
         self.initCommandsView()
         self.initScanView()
         self.initSettingsView()
         for module in self.modules:
-            module["view"] = ttk.Frame(self.nbk)
             self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
+
+        
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
 
     def refreshUI(self):
         for widget in self.viewframe.winfo_children():
             widget.destroy()
-        for module in self.modules:
-            module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
+        
         apiclient = APIClient.getInstance()
         if apiclient.isAdmin():
             self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)

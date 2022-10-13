@@ -101,8 +101,8 @@ class CommandController(ControllerElement):
         """
         self.model.removeFromMyCommands()
 
-    def isMyCommand(self):
-        return self.model.isMyCommand()
+    def isMine(self):
+        return self.model.isMine()
 
-    def isWorkerCommand(self):
-        return self.model.isWorkerCommand()
+    def isWorker(self):
+        return self.model.isWorker()

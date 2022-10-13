@@ -84,8 +84,8 @@ class CommandGroupController(ControllerElement):
             "commandgroup" """
         return "commandgroup"
 
-    def isMyCommandGroup(self):
-        return self.model.isMyCommandGroup()
+    def isMine(self):
+        return self.model.isMine()
 
-    def isWorkerCommandGroup(self):
-        return self.model.isWorkerCommandGroup()
+    def isWorker(self):
+        return self.model.isWorker()

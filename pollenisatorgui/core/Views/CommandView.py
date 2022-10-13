@@ -84,10 +84,10 @@ class CommandView(ViewElement):
             "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...",column=2)
         panel_bottom = self.form.addFormPanel()
 
-        if not self.controller.isMyCommand():
+        if not self.controller.isMine():
             panel_bottom.addFormButton("Duplicate to my commands", self.controller.addToMyCommands)
         self._commonWindowForms(modelData)
-        self.completeModifyWindow(self.controller.isMyCommand() or self.controller.isWorkerCommand())
+        self.completeModifyWindow(self.controller.isMine() or self.controller.isWorker())
 
     def openInsertWindow(self):
         """
@@ -156,9 +156,9 @@ class CommandView(ViewElement):
             return the saved command_node node inside the Appli class.
         """
         apiclient = APIClient.getInstance()
-        if self.controller.isMyCommand():
+        if self.controller.isMine():
             return self.appliTw.my_commands_node
-        elif self.controller.isWorkerCommand():
+        elif self.controller.isWorker():
             return self.appliTw.worker_commands_node
         return self.appliTw.others_commands_node
 
@@ -247,7 +247,7 @@ class CommandView(ViewElement):
         """Called when a command update is received by notification.
         Update the command treeview item (resulting in icon reloading)
         """
-        # if self.controller.isMyCommand():
+        # if self.controller.isMine():
         #     try:
         #         self.appliTw.move(str(self.controller.model.getId()), self.appliTw.my_commands_node, "end")
         #     except tk.TclError:

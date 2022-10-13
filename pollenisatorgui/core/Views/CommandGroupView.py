@@ -111,8 +111,8 @@ class CommandGroupView(ViewElement):
             return the saved group_command_node node inside the Appli class.
         """
         apiclient = APIClient.getInstance()
-        if self.controller.isMyCommandGroup():
+        if self.controller.isMine():
             return self.appliTw.my_group_command_node
-        elif self.controller.isWorkerCommandGroup():
+        elif self.controller.isWorker():
             return self.appliTw.worker_group_command_node
         return self.appliTw.group_command_node

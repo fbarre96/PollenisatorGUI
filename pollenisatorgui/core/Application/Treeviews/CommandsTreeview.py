@@ -188,6 +188,7 @@ class CommandsTreeview(PollenisatorTreeview):
             view.delete(None, False)
         else:
             toDelete = {}
+            forWorker = False
             for selected in self.selection():
                 view = self.getViewFromId(selected)
                 if view is not None:
@@ -195,8 +196,10 @@ class CommandsTreeview(PollenisatorTreeview):
                     if viewtype not in toDelete:
                         toDelete[viewtype] = []
                     toDelete[viewtype].append(view.controller.getDbId())
+                    if view.controller.isWorker():
+                        forWorker = True
             apiclient = APIClient.getInstance()
-            apiclient.bulkDeleteCommands(toDelete)
+            apiclient.bulkDeleteCommands(toDelete, forWorker=forWorker)
 
     def refresh(self):
         """Alias to self.load method"""
