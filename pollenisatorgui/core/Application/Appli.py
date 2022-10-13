@@ -405,6 +405,8 @@ class Appli(tkinterDnD.Tk):
                 pentests = [x["nom"] for x in pentests][::-1]
             if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
                 self.openCalendar(apiclient.getCurrentPentest())
+            elif apiclient.getCurrentPentest() == "":
+                self.promptCalendarName()
             self.initialized = True
             # self.promptCalendarName(), called beacause tabSwitch is called
         else:
