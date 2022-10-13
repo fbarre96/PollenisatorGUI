@@ -350,6 +350,7 @@ class Appli(tkinterDnD.Tk):
         self.initModules()
         apiclient = APIClient.getInstance()
         apiclient.appli = self
+        
         opened = self.openConnectionDialog()
         if not opened:
             self.wait_visibility()
@@ -397,7 +398,6 @@ class Appli(tkinterDnD.Tk):
                 self.handleNotif(json.loads(data, cls=Utils.JSONDecoder))
            
             self.sio.connect(apiclient.api_url)
-            self.initUI()
             pentests = apiclient.getPentestList()
             if pentests is None:
                 pentests = []
@@ -847,11 +847,13 @@ class Appli(tkinterDnD.Tk):
             self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
-        self.refreshUI()
 
     def refreshUI(self):
+        for widget in self.viewframe.winfo_children():
+            widget.destroy()
+        for module in self.modules:
+            module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
         apiclient = APIClient.getInstance()
-
         if apiclient.isAdmin():
             self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
         else:
@@ -1187,16 +1189,13 @@ class Appli(tkinterDnD.Tk):
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
                 return
-            for widget in self.viewframe.winfo_children():
-                widget.destroy()
-            for module in self.modules:
-                module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
+            self.initUI()
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()
             self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":calendarName})
-
+            self.nbk.select("Main View")
     def wrapCopyDb(self, _event=None):
         """
         Call default copy database from a callback event.
