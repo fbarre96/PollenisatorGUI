@@ -250,8 +250,7 @@ class Report:
         self.paned_remarks.pack(fill=tk.BOTH, expand=1)	
         self.remarksFrame.pack(side=tk.TOP, fill=tk.BOTH)
         self.reportFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10, expand=1)
-        self.fillWithDefects()
-        self.fillWithRemarks()
+        
 
     def langChange(self, event):
         self.curr_lang = self.combo_lang.get()

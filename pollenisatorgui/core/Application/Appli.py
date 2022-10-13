@@ -350,7 +350,7 @@ class Appli(tkinterDnD.Tk):
         self.initModules()
         apiclient = APIClient.getInstance()
         apiclient.appli = self
-        
+        self.initUI()
         opened = self.openConnectionDialog()
         if not opened:
             self.wait_visibility()
@@ -840,14 +840,15 @@ class Appli(tkinterDnD.Tk):
         self.statusbar = StatusBar(self, self)
         self.statusbar.pack(fill=tk.X)
 
-        for module in self.modules:
-            module["view"] = ttk.Frame(self.nbk)
-            module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
+        
         self.initMainView()
         self.initAdminView()
         self.initCommandsView()
         self.initScanView()
         self.initSettingsView()
+        for module in self.modules:
+            module["view"] = ttk.Frame(self.nbk)
+            module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
         for module in self.modules:
             self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
 
@@ -1195,7 +1196,7 @@ class Appli(tkinterDnD.Tk):
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
                 return
-            self.initUI()
+            
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()
