@@ -349,6 +349,8 @@ class Appli(tkinterDnD.Tk):
         self.settings = Settings()
         self.initModules()
         apiclient = APIClient.getInstance()
+        self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
+
         apiclient.appli = self
         self.initUI()
         opened = self.openConnectionDialog()
@@ -797,11 +799,11 @@ class Appli(tkinterDnD.Tk):
                 return
         if tabName == "Scan":
             if apiclient.getCurrentPentest() != "":
-                self.scanManager.initUI(self.scanViewFrame)
+                self.scanManager.refreshUI()
         elif tabName == "Settings":
             self.settings.reloadUI()
         elif tabName == "Admin":
-            self.admin.initUI(self.adminViewFrame)
+            self.admin.refreshUI()
         else:
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
@@ -817,12 +819,14 @@ class Appli(tkinterDnD.Tk):
     def initScanView(self):
         """Add the scan view frame to the notebook widget. This does not initialize it as it needs a database to be opened."""
         self.scanViewFrame = ttk.Frame(self.nbk)
+        self.scanManager.initUI(self.scanViewFrame)
         self.nbk.add(self.scanViewFrame, "Scan", image=self.scan_tab_img)
 
     def initAdminView(self):
         """Add the admin button to the notebook"""
         self.admin = AdminView(self.nbk)
         self.adminViewFrame = ttk.Frame(self.nbk)
+        self.admin.initUI(self.adminViewFrame)
         self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
 
     def openScriptModule(self):
@@ -1200,7 +1204,6 @@ class Appli(tkinterDnD.Tk):
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()
-            self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":calendarName})
             self.nbk.select("Main View")
     def wrapCopyDb(self, _event=None):

@@ -116,7 +116,7 @@ class APIClient():
         port = cfg.get("port")
         if port is None:
             raise KeyError("config/client.cfg : missing API port value")
-        http_proto = "https" if cfg.get("https", True) else "http"
+        http_proto = "https" if str(cfg.get("https", "True")).title() == "True" else "http"
         self.api_url = http_proto+"://"+host+":"+str(port)+"/"
         self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
 
@@ -686,6 +686,8 @@ class APIClient():
     @handle_api_errors
     def updateTag(self, name, color, isGlobal=False):
         api_url = '{0}settings/updateTag'.format(self.api_url_base)
+        if not isGlobal:
+            api_url += '/'+self.getCurrentPentest()
         data = {"name":name, "color":color, "global":isGlobal}
         response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
@@ -694,6 +696,7 @@ class APIClient():
             raise ErrorHTTP(response)
         else:
             return None
+
 
     @handle_api_errors
     def sendStopTask(self, tool_iid, forceReset=False):

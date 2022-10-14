@@ -79,7 +79,6 @@ class AdminView:
         btn_addUser.grid(row=6, column = 2, sticky=tk.W)
         addUserFrame.pack()
         lblAddUsername.pack()
-        self.refreshUI()
 
     def refreshUI(self):
         apiclient = APIClient.getInstance()

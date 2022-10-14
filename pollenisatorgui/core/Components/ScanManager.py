@@ -123,6 +123,7 @@ class ScanManager:
                 self.scanTv.delete(children)
             except:
                 pass
+        
         for running_scan in running_scans:
             try:
                 self.scanTv.insert('','end', running_scan.getId(), text=running_scan.infos.get("group_name",""), values=(running_scan.name, running_scan.dated), image=self.running_icon)
@@ -152,17 +153,15 @@ class ScanManager:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = ttk.Button(
                     self.parent, text="Stop Scanning", command=self.stopAutoscan)
-                self.btn_autoscan.pack()
             else:
                 self.btn_autoscan = ttk.Button(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
-                self.btn_autoscan.pack()
 
     def initUI(self, parent):
         """Create widgets and initialize them
         Args:
             parent: the parent tkinter widget container."""
-        if self.workerTv is not None:
+        if self.parent is not None:
             self.refreshUI()
             return
         apiclient = APIClient.getInstance()
@@ -193,19 +192,17 @@ class ScanManager:
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         btn_pane.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
-        total_registered_commands = 0
-        registeredCommands = set()
-        for worker in workers:
-            workername = worker["name"]
-            try:
-                if apiclient.getCurrentPentest() == worker.get("pentest", ""):
-                    worker_node = self.workerTv.insert(
-                        '', 'end', workername, text=workername, image=self.ok_icon)
-                else:
-                    worker_node = self.workerTv.insert(
-                        '', 'end', workername, text=workername, image=self.nok_icon)
-            except tk.TclError:
-                pass
+        # for worker in workers:
+        #     workername = worker["name"]
+        #     try:
+        #         if apiclient.getCurrentPentest() == worker.get("pentest", ""):
+        #             worker_node = self.workerTv.insert(
+        #                 '', 'end', workername, text=workername, image=self.ok_icon)
+        #         else:
+        #             worker_node = self.workerTv.insert(
+        #                 '', 'end', workername, text=workername, image=self.nok_icon)
+        #     except tk.TclError:
+        #         pass
         #### TREEVIEW SCANS : overview of ongoing auto scan####
         lblscan = ttk.Label(self.parent, text="Scan overview:")
         lblscan.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
@@ -215,9 +212,9 @@ class ScanManager:
         self.scanTv.column("#0", anchor=tk.W)
         self.scanTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.scanTv.bind("<Double-Button-1>", self.OnDoubleClick)
-        running_scans = Tool.fetchObjects({"status":"running"})
-        for running_scan in running_scans:
-            self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
+        # running_scans = Tool.fetchObjects({"status":"running"})
+        # for running_scan in running_scans:
+        #     self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
         #### BUTTONS FOR AUTO SCANNING ####
         if apiclient.getAutoScanStatus():
             self.btn_autoscan = ttk.Button(
