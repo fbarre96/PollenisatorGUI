@@ -275,7 +275,7 @@ class Appli(tkinterDnD.Tk):
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "1.4.*"
+    version_compatible = "1.5.*"
     def __init__(self):
         """
         Initialise the application
