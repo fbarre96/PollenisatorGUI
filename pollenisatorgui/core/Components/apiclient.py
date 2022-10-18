@@ -146,7 +146,6 @@ class APIClient():
     
     def tryAuth(self):
         try:
-            print("Try ayuth : ")
             res = self.setCurrentPentest(self.getCurrentPentest())
         except Exception as e:
             #relog

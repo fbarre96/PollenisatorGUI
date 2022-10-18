@@ -788,7 +788,6 @@ class Appli(tkinterDnD.Tk):
         Args:
             tabName: the opened tab
         """
-        print(f"TABsiwtch")
         apiclient = APIClient.getInstance()
         self.searchBar.quit()
         if tabName == "Commands":
@@ -807,7 +806,6 @@ class Appli(tkinterDnD.Tk):
         else:
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
-                    print(f"TAB SWITCH : Opening module {module['name']}")
                     module["object"].open()
 
     def initSettingsView(self):
