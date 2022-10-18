@@ -15,11 +15,13 @@ class AuthInfo(Module):
     iconName = "tab_auth.png"
     tabName = "Auth Infos"
     collName = "auth"
+    pentest_types = ["web"]
 
     def __init__(self, parent, settings):
         """
         Constructor
         """
+        
         self.dashboardFrame = None
         self.parent = None
         self.treevw = None
@@ -147,24 +149,8 @@ class AuthInfo(Module):
         for t in toInsert:
             apiclient.insert("auth", {"name": t[0], "value":t[1], "type":self.typeCombo.get().lower()})
 
-    def notify(self, db, collection, iid, action, _parent):
-        """
-        Callback for the observer implemented in mongo.py.
-        Each time an object is inserted, updated or deleted the standard way, this function will be called.
-
-        Args:
-            collection: the collection that has been modified
-            iid: the mongo ObjectId _id that was modified/inserted/deleted
-            action: string "update" or "insert" or "delete". It was the action performed on the iid
-            _parent: Not used. the mongo ObjectId of the parent. Only if action in an insert. Not used anymore
-        """
+    def handleNotif(self, collection, iid, action):
         apiclient = APIClient.getInstance()
-        if not apiclient.getCurrentPentest() != "":
-            return
-        if apiclient.getCurrentPentest() != db:
-            return
-        if collection != "auth":
-            return
         if action == "insert":	
             res = apiclient.find("auth", {"_id": ObjectId(iid)}, False)	
             if res is None:

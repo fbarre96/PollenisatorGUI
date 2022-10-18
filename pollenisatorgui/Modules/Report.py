@@ -18,13 +18,15 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import Child
 from pollenisatorgui.core.Application.Dialogs.ChildDialogRemarkView import ChildDialogRemarkView
 from pollenisatorgui.core.Models.Remark import Remark	
 from pollenisatorgui.core.Views.RemarkView import RemarkView
+from pollenisatorgui.Modules.Module import Module
 
-class Report:
+class Report(Module):
     """
     Store elements to report and create docx or xlsx with them
     """
     iconName = "tab_report.png"
     tabName = "    Report    "
+    collNames = ["defects", "remarks"]
 
     def __init__(self, _parent, settings):
 
@@ -625,22 +627,9 @@ class Report:
             return
         openPathForUser(path, folder_only=True)
 
-    def notify(self, db, collection, iid, action, _parent):
-        """
-        Callback for the observer implemented in mongo.py.
-        Each time an object is inserted, updated or deleted the standard way, this function will be called.
+    def handleNotif(self, collection, iid, action):
 
-        Args:
-            collection: the collection that has been modified
-            iid: the mongo ObjectId _id that was modified/inserted/deleted
-            action: string "update" or "insert" or "delete". It was the action performed on the iid
-            _parent: Not used. the mongo ObjectId of the parent. Only if action in an insert. Not used anymore
-        """
         apiclient = APIClient.getInstance()
-        if not apiclient.getCurrentPentest() != "":
-            return
-        if apiclient.getCurrentPentest() != db:
-            return
         if action == "update":
             if collection == "defects":
                 defect_m = Defect.fetchObject({"_id":ObjectId(iid)})

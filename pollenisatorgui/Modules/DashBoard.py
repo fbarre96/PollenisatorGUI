@@ -20,8 +20,9 @@ from pollenisatorgui.core.Models.Port import Port
 from pollenisatorgui.core.Models.Tool import Tool
 import pollenisatorgui.core.Components.Utils as Utils
 
+from pollenisatorgui.Modules.Module import Module
 
-class DashBoard:
+class DashBoard(Module):
     """
     Shows information about ongoing pentest. 
     """

@@ -25,6 +25,7 @@ class ActiveDirectory(Module):
     tabName = "Active Directory"
     collName = "ActiveDirectory"
     settings = Settings()
+    pentest_types = ["lan"]
 
     def __init__(self, parent, settings):
         """
@@ -205,12 +206,20 @@ class ActiveDirectory(Module):
     def deleteUser(self, event=None):
         apiclient = APIClient.getInstance() 
         selection = self.tvUsers.selection()
+        users_iid = [str(x["_id"]) for x in self.users]
         for select in selection:
             try:
                 item = self.tvUsers.item(select)
             except tk.TclError:
                 pass
-            apiclient.delete( ActiveDirectory.collName+"/users", select)       
+            apiclient.delete( ActiveDirectory.collName+"/users", select)
+            try:
+                index = users_iid.index(str(select))
+                del users_iid[index]
+                del self.users[index]
+            except ValueError:
+                pass
+
             self.tvUsers.delete(select)
     
     def insertComputer(self, computer):
@@ -243,28 +252,8 @@ class ActiveDirectory(Module):
         user = {"type": "user", "username": username, "domain": domain, "password": password}
         res = apiclient.insert( ActiveDirectory.collName+"/users", {"username": username, "domain": domain, "password": password})
         
-    def notify(self, db, collection, iid, action, _parent):
-        """
-        Callback for the observer implemented in mongo.py.
-        Each time an object is inserted, updated or deleted the standard way, this function will be called.
-
-        Args:
-            collection: the collection that has been modified
-            iid: the mongo ObjectId _id that was modified/inserted/deleted
-            action: string "update" or "insert" or "delete". It was the action performed on the iid
-            _parent: Not used. the mongo ObjectId of the parent. Only if action in an insert. Not used anymore
-        """
-        apiclient = APIClient.getInstance()
-        if not apiclient.getCurrentPentest() != "":
-            return
-        if apiclient.getCurrentPentest() != db:
-            return
-        #print("notification "+str(collection)+" action="+str(action))
-        if collection == ActiveDirectory.collName:
-            self.handleActiveDirectoryNotif(iid, action)
-
-    
-    def handleActiveDirectoryNotif(self, iid, action):
+     
+    def handleNotif(self, collection, iid, action):
         apiclient = APIClient.getInstance()
         res = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(iid)}, False)
         if action == "insert":

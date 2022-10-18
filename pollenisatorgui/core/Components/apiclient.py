@@ -144,6 +144,15 @@ class APIClient():
                 return self.setConnection(token)
         return response.status_code == 200
     
+    def tryAuth(self):
+        try:
+            print("Try ayuth : ")
+            res = self.setCurrentPentest(self.getCurrentPentest())
+        except Exception as e:
+            #relog
+            return False
+        return res
+
     def reportError(self, err):
         api_url = '{0}issue'.format(self.api_url_base)
         requests.post(api_url, headers=self.headers, data=json.dumps({"error":err}), proxies=proxies, verify=False)
@@ -226,6 +235,7 @@ class APIClient():
             return True
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False)
+        
         return False
 
     def getCurrentPentest(self):
@@ -1283,3 +1293,44 @@ class APIClient():
         elif response.status_code >= 400:
             raise ErrorHTTP(response, "Error : "+str(response.content.decode('utf-8')))
         return "Undefined return status code"
+
+    @handle_api_errors
+    def addRangeMatchingIps(self):
+        api_url = '{0}NetworkDiscovery/{1}/addRangeMatchingIps'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return ""
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+
+    @handle_api_errors
+    def addRangeCloseToOthers(self):
+        api_url = '{0}NetworkDiscovery/{1}/addRangeCloseToOthers'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return ""
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+    
+    @handle_api_errors
+    def addCommonRanges(self):
+        api_url = '{0}NetworkDiscovery/{1}/addCommonRanges'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return ""
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+    @handle_api_errors
+    def addAllLANRanges(self):
+        api_url = '{0}NetworkDiscovery/{1}/addAllLANRanges'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return ""
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)

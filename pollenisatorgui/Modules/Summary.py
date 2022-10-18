@@ -6,6 +6,8 @@ from pollenisatorgui.core.Models.Ip import Ip
 from pollenisatorgui.core.Models.Port import Port
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Components.apiclient import APIClient
+from pollenisatorgui.Modules.Module import Module
+
 
 class ScrollFrame(tk.Frame):
     """A scrollable frame using canvas"""
@@ -77,7 +79,7 @@ def smart_grid(parent, root, *args, **kwargs):  # *args are the widgets!
         return row + 1
 
 
-class Summary:
+class Summary(Module):
     """
     Store elements to summarize the ongoing pentest
     """

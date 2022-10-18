@@ -91,7 +91,7 @@ class ScrollableTreeview(ttk.Frame):
     def insert(self, parent, index, iid, text="",values=(), tags=()):
         if iid not in [x["iid"] for x in self.infos]:
             self.infos.append({"parent":parent,"iid":iid, "index":index, "text":text,"values":values,"tags":tags})
-        nbLig = len(self.infos)
+        nbLig = len([x for x in self.infos if x["parent"] == ""])
         prevLastPage = self.lastPage
         self.lastPage = int(nbLig / self.maxPerPage)
         if prevLastPage != self.lastPage:
@@ -220,14 +220,17 @@ class ScrollableTreeview(ttk.Frame):
         Args:
             _event: not used but mandatory"""
         for selected in self.treevw.selection():
-            item = self.treevw.item(selected)
-            if item["text"].strip() != "":
-                self.treevw.delete(selected)
-                try:
-                    ind = [x["iid"] for x in self.infos].index(selected)
-                    del self.infos[ind]
-                except ValueError as e:
-                    print(e)
+            try:
+                item = self.treevw.item(selected)
+                if item["text"].strip() != "":
+                    self.treevw.delete(selected)
+                    try:
+                        ind = [x["iid"] for x in self.infos].index(selected)
+                        del self.infos[ind]
+                    except ValueError as e:
+                        pass
+            except tk.TclError:
+                pass
         self.resetOddTags()
 
     def selection(self):

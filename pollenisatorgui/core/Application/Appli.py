@@ -352,8 +352,8 @@ class Appli(tkinterDnD.Tk):
         self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
 
         apiclient.appli = self
-        self.initUI()
         opened = self.openConnectionDialog()
+
         if not opened:
             self.wait_visibility()
             self.openConnectionDialog(force=True)
@@ -407,7 +407,7 @@ class Appli(tkinterDnD.Tk):
                 pentests = [x["nom"] for x in pentests][::-1]
             if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
                 self.openCalendar(apiclient.getCurrentPentest())
-            elif apiclient.getCurrentPentest() == "":
+            else:
                 self.promptCalendarName()
             self.initialized = True
             # self.promptCalendarName(), called beacause tabSwitch is called
@@ -864,11 +864,7 @@ class Appli(tkinterDnD.Tk):
         for widget in self.viewframe.winfo_children():
             widget.destroy()
         
-        apiclient = APIClient.getInstance()
-        if apiclient.isAdmin():
-            self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
-        else:
-            self.nbk.delete("Admin")
+        
         self.nbk.select("Main View")
     
     def newSearch(self, _event=None, histo=True):
@@ -1190,6 +1186,7 @@ class Appli(tkinterDnD.Tk):
         """
         calendarName = None
         apiclient = APIClient.getInstance()
+
         if filename == "" and apiclient.getCurrentPentest() != "":
             calendarName = apiclient.getCurrentPentest()
         elif filename != "":
@@ -1200,12 +1197,33 @@ class Appli(tkinterDnD.Tk):
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(calendarName))
                 return
+            self.initUI()
             
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.statusbar.reset()
             self.treevw.refresh()
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":calendarName})
+            self.settings.reloadSettings()
+            self.refresh_tabs()
             self.nbk.select("Main View")
+
+    def refresh_tabs(self):
+        apiclient = APIClient.getInstance()
+        if apiclient.isAdmin():
+            self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
+        else:
+            self.nbk.delete("Admin")
+        pentest_type = self.settings.getPentestType()
+        for module in self.modules:
+            pentest_type_allowed = pentest_type.lower() in module["object"].__class__.pentest_types
+            all_are_authorized = "all" in module["object"].__class__.pentest_types
+            module_need_admin = module["object"].__class__.need_admin
+            is_admin = apiclient.isAdmin()
+            if (pentest_type_allowed or all_are_authorized) and (is_admin or not module_need_admin):
+                self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
+            else:    
+                self.nbk.delete(module["name"])
+
     def wrapCopyDb(self, _event=None):
         """
         Call default copy database from a callback event.

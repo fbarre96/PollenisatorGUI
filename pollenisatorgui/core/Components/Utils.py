@@ -277,6 +277,8 @@ def execute(command, timeout=None, printStdout=True):
                         timeout = (timeout-datetime.now()).total_seconds()
                         timer = Timer(timeout, proc.kill)
                         timer.start()
+                    else:
+                        timeout = None
             stdout, stderr = proc.communicate(None, timeout)
             if proc._killed:
                 if timer is not None:
@@ -290,7 +292,9 @@ def execute(command, timeout=None, printStdout=True):
                 if str(stderr) != "":
                     print(str(stderr))
         except Exception as e:
-            print(str(e))
+            import traceback
+            traceback.print_exc(file=sys.stdout)
+            print(repr(e))
             proc.kill()
             return -1, ""
         finally:

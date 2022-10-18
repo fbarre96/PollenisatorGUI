@@ -18,6 +18,8 @@ from pollenisatorgui.core.Application.Appli import Appli
 import pollenisatorgui.core.Components.Utils as Utils
 import tempfile
 import threading
+from getpass import getpass
+
 event_obj = threading.Event()
 
 
@@ -60,6 +62,65 @@ class GracefulKiller:
 #######################################
 ############## MAIN ###################
 #######################################
+def consoleConnect(force=False, askPentest=True):    
+    apiclient = APIClient.getInstance()
+    abandon = False
+    if force:
+        apiclient.disconnect()
+    while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
+        success = promptForConnection() is None
+    if apiclient.isConnected() and askPentest:
+        promptForPentest()
+    return not abandon
+        
+def promptForConnection():
+   
+    clientCfg = Utils.loadClientConfig()
+    host = clientCfg.get("host", "")
+    port = clientCfg.get("port", "5000")
+    https = str(clientCfg.get("https", "True")).title() == "True"
+
+    host_result = input(f'Server hostname (defaut {host}):')
+    if host_result.strip() == "":
+        host_result = host
+    port_result = input(f'Server Port (default  {port}):')
+    if port_result.strip() == "":
+        port_result = port
+    https_result = input(f'Use HTTPS (y/N)?').strip() == 'y'
+    
+    apiclient = APIClient.getInstance()
+    apiclient.reinitConnection()
+    res = apiclient.tryConnection({"host":host_result, "port":port_result, "https":https_result})
+    if res:
+        username_result = input(f'Please input username:')
+        password_result = getpass(prompt=f'Please input password:')
+        #  pylint: disable=len-as-condition
+        loginRes = apiclient.login(username_result, password_result)
+        return loginRes
+    else:
+        print("Failed to contact this server.")
+    return False
+
+def promptForPentest():
+    apiclient = APIClient.getInstance()
+    pentests = apiclient.getPentestList()
+    if pentests is None:
+        pentests = []
+    else:
+        pentests = [x["nom"] for x in pentests][::-1]
+    i = 0
+    while i<=0:
+        for i_p, pentest in enumerate(pentests):
+            print(f"{i_p+1} : {pentest}")
+        try:
+            i = int(input("Selection (1-"+str(len(pentests))+"): "))
+            if i <= 0 or i > len(pentests):
+                print("Invalid selection, input must be between 1 and "+str(len(pentests)))
+                i = 0
+        except ValueError:
+            i = 0
+    apiclient.setCurrentPentest(pentests[i-1])
+
 def pollex():
     """Send a command to execute for pollenisator-gui running instance
     """
@@ -75,6 +136,9 @@ def pollex():
     cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
     apiclient = APIClient.getInstance()
     apiclient.tryConnection()
+    res = apiclient.tryAuth()
+    if not res:
+        consoleConnect()
     cmdName +="::"+str(time.time()).replace(" ","-")
     commands = Command.fetchObjects({"bin_path":{'$regex':bin_name}})
     choices = set()
@@ -140,6 +204,9 @@ def pollup():
 def uploadFile(filename, plugin='auto-detect'):
     apiclient = APIClient.getInstance()
     apiclient.tryConnection()
+    res = apiclient.tryAuth()
+    if not res:
+        consoleConnect()
     print(f"INFO : Uploading results {filename}")
     msg = apiclient.importExistingResultFile(filename, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), "")
     print(msg)
@@ -155,6 +222,11 @@ def pollwatch():
             elif event.event_type == 'created':
                 # Event is created, you can process it now
                 uploadFile(event.src_path)
+    apiclient = APIClient.getInstance()
+    apiclient.tryConnection()
+    res = apiclient.tryAuth()
+    if not res:
+        consoleConnect()
     observer = Observer()
     observer.schedule(Handler(), '.', recursive=True)
     observer.start()
