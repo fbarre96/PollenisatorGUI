@@ -213,11 +213,9 @@ class Defect(Element):
         """
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
-            print("UPDATING TEMPLATE n updateASTemplate"+str(pipeline_set))
             res = apiclient.updateDefectTemplate(ObjectId(self._id), {"title": self.title, "synthesis":self.synthesis, "description":self.description,
                          "ease": self.ease, "impact": self.impact,
                          "risk": self.risk, "type": list(self.mtype), "language":self.language, "fixes":self.fixes})
-            print(res)
         else:
             apiclient.updateDefectTemplate(ObjectId(self._id), pipeline_set)
 

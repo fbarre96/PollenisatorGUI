@@ -82,6 +82,7 @@ class ScanManager:
         self.btn_autoscan = None
         self.btn_docker_worker = None
         self.parent = None
+        self.sio = None
         self.workerTv = None
         self.linkTw = linkedTreeview
         self.local_scans = dict()
@@ -372,6 +373,12 @@ class ScanManager:
                 return False, "Worker did not boot in time, cannot add commands to wave"
             return res
         return False, ""
+
+    def onClosing(self):
+        apiclient = APIClient.getInstance()
+        apiclient.deleteWorker(apiclient.getUser()) 
+        if self.sio is not None:
+            self.sio.disconnect()
 
     def registerAsWorker(self):
         waves = Wave.fetchObjects({})

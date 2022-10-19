@@ -433,7 +433,13 @@ class DefectView(ViewElement):
             if results is not None:
                 result = results[0]
                 d_o = Defect()
-                types = result["type"].split(",")
+                if isinstance(result.get("type"), str):
+                    types = result["type"].split(",")
+                elif isinstance(result.get("type"), list):
+                    types = result.get("type")
+                else:
+                    tk.messagebox.showerror("Multi insert error", f"Invalid defect result for : {title}. Wrong type : {result.get('type')}")
+                    return False
                 d_o.initialize("", "", "", result["title"], result["synthesis"], result["description"],
                             result["ease"], result["impact"], result["risk"], "N/A", types, result["language"], "", result["fixes"])
                 d_o.addInDb()

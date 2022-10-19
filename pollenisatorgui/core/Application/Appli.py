@@ -533,6 +533,9 @@ class Appli(tkinterDnD.Tk):
         print("Stopping application...")
         if self.sio is not None:
             self.sio.disconnect()
+            self.sio.eio.disconnect()
+        if self.scanManager is not None:
+            self.scanManager.onClosing()
         for module in self.modules:
             if callable(getattr(module["object"], "onClosing", None)):
                 module["object"].onClosing()
