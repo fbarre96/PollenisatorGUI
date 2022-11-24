@@ -14,6 +14,7 @@ from pollenisatorgui.core.Components.Utils import getIconDir, execute, openPathF
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
+from pollenisatorgui.core.Application.Dialogs.ChildDialogToast import ChildDialogToast
 from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.Application.Dialogs.ChildDialogRemarkView import ChildDialogRemarkView
 from pollenisatorgui.core.Models.Remark import Remark	
@@ -308,25 +309,43 @@ class Report(Module):
         tv = event.widget
         if tv.identify_row(event.y) not in tv.selection():
             tv.selection_set(tv.identify_row(event.y))    
+            moving_item = tv.selection()[0]
+            moving_item = tv.item(moving_item)
             self.movingSelection = tv.identify_row(event.y)
+            self.drag_toast = ttk.Label(self.parent, text=moving_item["text"])
+            root = tv.winfo_toplevel()
+            abs_coord_x = root.winfo_pointerx() - self.parent.winfo_rootx() + 10
+            abs_coord_y = root.winfo_pointery() - self.parent.winfo_rooty() +3
+            self.drag_toast.place(x=abs_coord_x,y=abs_coord_y)
 
     def dragRelease(self, event):
+        if self.drag_toast is not None:
+            self.drag_toast.destroy()
+            self.drag_toast = None
         if self.movingSelection is None or self.lastMovedTo is None:
             return
         tv = event.widget
         apiclient = APIClient.getInstance()
-        if tv.identify_row(event.y) in tv.selection():
+        if tv.identify_row(event.y) in tv.get_children():
             apiclient.moveDefect(self.movingSelection, self.lastMovedTo)
+            children = tv.get_children()
+            iid_moving = children.index(self.lastMovedTo)
+            tv.move(self.movingSelection, '', iid_moving)
             self.movingSelection = None
             self.lastMovedTo = None
+            
 
     def dragMove(self, event):
         tv = event.widget
         rowToMove = tv.identify_row(event.y)
         moveto = tv.index(rowToMove)    
         self.lastMovedTo = rowToMove if rowToMove != self.movingSelection else self.lastMovedTo
-        for s in tv.selection():
-            tv.move(s, '', moveto)
+        if self.drag_toast:
+            root = tv.winfo_toplevel()
+            abs_coord_x = root.winfo_pointerx() - self.parent.winfo_rootx() + 10
+            abs_coord_y = root.winfo_pointery() - self.parent.winfo_rooty() +3
+            self.drag_toast.place(x=abs_coord_x,y=abs_coord_y)
+     
 
     def reset(self):
         """
@@ -459,8 +478,8 @@ class Report(Module):
         newValues[columnType] = ", ".join(defect_m.mtype)
         newValues[columnRedactor] = defect_m.redactor
         self.treevw.item(defect_m.getId(), text=defect_m.title, tags=(newRisk), values=newValues)
-        if self.movingSelection is None:
-            self.treevw.move(defect_m.getId(), '', int(defect_m.index))
+        #if self.movingSelection is None:
+        self.treevw.move(defect_m.getId(), '', int(defect_m.index))
       
     def OnDoubleClick(self, event):
         """
@@ -627,8 +646,7 @@ class Report(Module):
             return
         openPathForUser(path, folder_only=True)
 
-    def handleNotif(self, collection, iid, action):
-
+    def handleNotif(self, db, collection, iid, action):
         apiclient = APIClient.getInstance()
         if action == "update":
             if collection == "defects":

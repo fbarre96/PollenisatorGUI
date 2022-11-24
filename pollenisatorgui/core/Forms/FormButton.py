@@ -35,7 +35,7 @@ class FormButton(Form):
         Args:
             parent: parent form panel.
         """
-        self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None))
+        self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None), style=self.getKw("style", None))
         self.btn.bind('<Button-1>', self.callback)
         for bind, bind_call in self.getKw("binds", {}).items():
             self.btn.bind(bind, bind_call)

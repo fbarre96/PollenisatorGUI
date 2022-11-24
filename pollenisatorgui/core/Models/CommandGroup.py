@@ -18,17 +18,17 @@ class CommandGroup(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command group is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}),
-                        name(""), owner(""), priority("0"), commands([]),
+                        name(""), priority("0"), commands([]),
                         max_thread("1")
         """
         if valuesFromDb is None:
             valuesFromDb = {}
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("owner", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("commands", []),
+        self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("commands", []),
                         valuesFromDb.get("max_thread", 1), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, owner, priority=0, commands=None, max_thread=1, indb="pollenisator", infos=None):
+    def initialize(self, name, priority=0, commands=None, max_thread=1, indb="pollenisator", infos=None):
         """Set values of command group
         Args:
             name: the command group name
@@ -42,7 +42,6 @@ class CommandGroup(Element):
         if commands is None:
             commands = []
         self.name = name
-        self.owner = owner
         self.priority = int(priority)
         self.commands = commands
         self.max_thread = int(max_thread)
@@ -72,7 +71,7 @@ class CommandGroup(Element):
         apiclient = APIClient.getInstance()
         
         res, id = apiclient.insert("group_commands", {
-            "name": self.name, "indb":self.indb, "owner": self.owner, "priority": int(self.priority), "commands": self.commands, "max_thread": int(self.max_thread)})
+            "name": self.name, "indb":self.indb, "priority": int(self.priority), "commands": self.commands, "max_thread": int(self.max_thread)})
         if not res:
             return False, id
         self._id = id
@@ -125,7 +124,7 @@ class CommandGroup(Element):
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
             # Update in database
-            apiclient.update("group_commands", ObjectId(self._id), {"name": self.name, "owner":self.owner, "priority": int(self.priority), "commands": self.commands, "max_thread": int(self.max_thread)})
+            apiclient.update("group_commands", ObjectId(self._id), {"name": self.name,  "priority": int(self.priority), "commands": self.commands, "max_thread": int(self.max_thread)})
         else:
             apiclient.update("group_commands",  ObjectId(self._id), pipeline_set)
 
@@ -138,7 +137,7 @@ class CommandGroup(Element):
             Returns the list of command groups name found inside the database. List may be empty.
         """
         apiclient = APIClient.getInstance()
-        gcommands = apiclient.getCommandGroups({"owner": apiclient.getUser()})
+        gcommands = apiclient.getCommandGroups({})
         ret = []
         for gcommand in gcommands:
             ret.append(gcommand["name"])
@@ -160,9 +159,3 @@ class CommandGroup(Element):
         """
         return {"_id": self._id}
 
-    def isMine(self):
-        user = APIClient.getInstance().getUser()
-        return user == self.owner
-        
-    def isWorker(self):
-        return self.owner == "Worker"

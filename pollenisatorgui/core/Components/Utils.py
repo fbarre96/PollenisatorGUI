@@ -526,6 +526,7 @@ def executeInExternalTerm(command, with_bash=True, env={}):
             if not command_term.endswith(" "):
                 command_term += " "
             command_term += command
+            print(command_term)
             subprocess.Popen(command_term, shell=True, env=env, cwd=getExportDir())
         else:
             tk.messagebox.showerror(

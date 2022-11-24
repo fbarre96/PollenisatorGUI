@@ -149,7 +149,7 @@ class AuthInfo(Module):
         for t in toInsert:
             apiclient.insert("auth", {"name": t[0], "value":t[1], "type":self.typeCombo.get().lower()})
 
-    def handleNotif(self, collection, iid, action):
+    def handleNotif(self, db, collection, iid, action):
         apiclient = APIClient.getInstance()
         if action == "insert":	
             res = apiclient.find("auth", {"_id": ObjectId(iid)}, False)	

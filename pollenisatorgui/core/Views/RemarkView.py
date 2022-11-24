@@ -60,7 +60,7 @@ class RemarkView(ViewElement):
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
         modelData = self.controller.getData()
-        self.form.addFormSearchBar("Search Remark", APIClient.searchRemark, self.form)
+        self.form.addFormSearchBar("Search Remark", self.searchCallback, self.form)
         topPanel = self.form.addFormPanel(grid=True)
         self.imgTypeForm = topPanel.addFormImage(Utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
@@ -70,6 +70,13 @@ class RemarkView(ViewElement):
             self.completeInsertWindow()
         else:
             self.showForm()
+
+    def searchCallback(self, searchreq):
+        remarks_obj, remarks_errors = APIClient.searchRemark(searchreq)
+        if remarks_obj:
+            for i, remark in enumerate(remarks_obj):
+                remarks_obj[i]["TITLE"] = remark["title"]
+        return remarks_obj, remarks_errors
 
     def openModifyWindow(self, addButtons=True):
         """

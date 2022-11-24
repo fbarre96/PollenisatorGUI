@@ -253,7 +253,7 @@ class ActiveDirectory(Module):
         res = apiclient.insert( ActiveDirectory.collName+"/users", {"username": username, "domain": domain, "password": password})
         
      
-    def handleNotif(self, collection, iid, action):
+    def handleNotif(self, db, collection, iid, action):
         apiclient = APIClient.getInstance()
         res = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(iid)}, False)
         if action == "insert":

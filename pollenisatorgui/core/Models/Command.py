@@ -17,7 +17,7 @@ class Command(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}), name(""), 
-                         text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owner=""
+                         text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owners=[]
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
@@ -28,9 +28,9 @@ class Command(Element):
                             "lvl", "network"),
                         valuesFromDb.get("ports", ""),
                         bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), 
-                        valuesFromDb.get("owner", ""), valuesFromDb.get("infos", {}))
+                        valuesFromDb.get("owners", []), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, bin_path, plugin="Default", text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, owner="", infos=None):
+    def initialize(self, name, bin_path, plugin="Default", text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, owners=[], infos=None):
         """Set values of command
         Args:
             name: the command name
@@ -43,7 +43,7 @@ class Command(Element):
             types: type for the command. Lsit of string. Default to None.
             indb: db name : global (pollenisator database) or  local pentest database
             timeout: a timeout to kill stuck tools and retry them later. Default is 300 (in seconds)
-            owner: the owner of the command
+            owners: the owners of the command
             infos: a dictionnary with key values as additional information. Default to None
         Returns:
             this object
@@ -59,7 +59,7 @@ class Command(Element):
         self.indb = indb
         self.timeout = timeout
         self.types = types if types is not None else []
-        self.owner = owner
+        self.owners = owners
         return self
 
     def delete(self):
@@ -86,7 +86,7 @@ class Command(Element):
         apiclient = APIClient.getInstance()
         res, id = apiclient.insert("commands", {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin, "lvl": self.lvl,
                                                                             "text": self.text,
-                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout), "owner": self.owner})
+                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout), "owners": self.owners})
         if not res:
             return False, id
         self._id = id
@@ -168,7 +168,7 @@ class Command(Element):
         apiclient = APIClient.getInstance()
         if user is None:
             user = apiclient.getUser()
-        ds = apiclient.findCommand({"owner":user})
+        ds = apiclient.findCommand({"owners":user})
         if ds is None:
             return None
         for d in ds:
@@ -180,11 +180,8 @@ class Command(Element):
 
     def isMine(self):
         user = APIClient.getInstance().getUser()
-        return user == self.owner
+        return user in self.owners
         
-    def isWorker(self):
-        return self.owner == "Worker"
-
     def __str__(self):
         """
         Get a string representation of a command.
@@ -192,11 +189,11 @@ class Command(Element):
         Returns:
             Returns the command's name string.
         """
-        return self.owner+":"+self.name
+        return self.name
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
         Returns:
             A dict (1 key :"name")
         """
-        return {"name": self.name, "owner":self.owner}
+        return {"name": self.name}

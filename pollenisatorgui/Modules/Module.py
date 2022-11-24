@@ -26,10 +26,10 @@ class Module:
         if apiclient.getCurrentPentest() != db:
             return
         if hasattr(self.__class__, "collName") and collection == self.__class__.collName:
-            self.handleNotif(collection, iid, action)
+            self.handleNotif(db, collection, iid, action)
         else:
             if hasattr(self.__class__, "collNames") and collection in self.__class__.collNames:
-                self.handleNotif(collection, iid, action)
+                self.handleNotif(db, collection, iid, action)
 
-    def handleNotif(self, collection, iid, action):
+    def handleNotif(self, db, collection, iid, action):
         pass # NOT implemented

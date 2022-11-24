@@ -43,6 +43,7 @@ class PollenisatorTreeview(ttk.Treeview):
 
     def configureTags(self):
         self.tag_configure('OOS', background="grey")
+        self.tag_configure('known_command', background="spring green")
         tags = Settings.getTags()
         for tag, color in tags.items():
             try:

@@ -159,6 +159,8 @@ class APIClient():
 
     def isConnected(self):
         return self.headers.get("Authorization", "") != ""
+
+    
     
     def isAdmin(self):
         return "admin" in self.scope
@@ -419,6 +421,99 @@ class APIClient():
             return None
 
     @handle_api_errors
+    def findCheckItem(self, pipeline=None, many=True):
+        pipeline = {} if pipeline is None else pipeline
+        api_url = '{0}find/pollenisator/cheatsheet'.format(self.api_url_base)
+        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
+        data["many"] = many
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+    
+    @handle_api_errors
+    def findCheckInstance(self, pipeline=None, many=True):
+        apiclient = APIClient.getInstance()
+        pentest = apiclient.getCurrentPentest()
+        pipeline = {} if pipeline is None else pipeline
+        pentest = apiclient.getCurrentPentest()
+        api_url = '{0}find/{1}/cheatsheet'.format(self.api_url_base, pentest)
+        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
+        data["many"] = many
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def updateCheckInstance(self, iid, updatePipeline):
+        apiclient = APIClient.getInstance()
+        pentest = apiclient.getCurrentPentest()
+        api_url = '{0}cheatsheet/{1}/{2}'.format(self.api_url_base, pentest, str(iid))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(updatePipeline, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+    
+    @handle_api_errors
+    def updateCheckItem(self, iid, updatePipeline):
+        api_url = '{0}cheatsheet/{1}'.format(self.api_url_base, str(iid))
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(updatePipeline, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+    
+    @handle_api_errors
+    def insertCheckItem(self, data):
+        api_url = '{0}cheatsheet/'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res["res"], res["iid"]
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def deleteCheckInstance(self, iid):
+        apiclient = APIClient.getInstance()
+        pentest = apiclient.getCurrentPentest()
+        api_url = '{0}cheatsheet/{1}/{2}'.format(self.api_url_base, pentest, str(iid))
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def deleteCheckItem(self, iid):
+        api_url = '{0}cheatsheet/{1}'.format(self.api_url_base, str(iid))
+        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
     def deleteCommand(self, command_iid):
         api_url = '{0}commands/delete/{1}'.format(self.api_url_base, command_iid)
         response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
@@ -639,28 +734,6 @@ class APIClient():
         api_url = '{0}settings/update'.format(self.api_url_base)
         data = {"key":key, "value":json.dumps(value)}
         response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
-        if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-        elif response.status_code >= 400:
-            raise ErrorHTTP(response)
-        else:
-            return None
-
-    @handle_api_errors
-    def addMyCommandsToWave(self, wave_iid):
-        api_url = '{0}waves/addMyCommandsToWave/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), str(wave_iid))
-        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
-        if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-        elif response.status_code >= 400:
-            raise ErrorHTTP(response)
-        else:
-            return None
-
-    @handle_api_errors
-    def addWorkerCommandsToWave(self, wave_iid):
-        api_url = '{0}waves/addWorkerCommandsToWave/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), str(wave_iid))
-        response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
@@ -961,14 +1034,11 @@ class APIClient():
         return None        
 
     @handle_api_errors
-    def exportCommands(self, forWorker=False):
+    def exportCommands(self):
         api_url = '{0}exportCommands'.format(self.api_url_base)
-        if forWorker:
-            api_url += "/worker"
-            filename = "worker_commands.json"
         response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
-            filename = "my_commands.json" if not forWorker else "worker_commands.json"
+            filename = "commands.json" 
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
@@ -1330,6 +1400,16 @@ class APIClient():
         response = requests.post(api_url, headers=self.headers, proxies=proxies, verify=False)
         if response.status_code == 200:
             return ""
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+    @handle_api_errors
+    def getCheckInstanceInfos(self, checkinstance_iid):
+        api_url = '{0}cheatsheet/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), str(checkinstance_iid))
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
             raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
         return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)

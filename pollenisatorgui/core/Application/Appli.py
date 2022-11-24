@@ -369,27 +369,32 @@ class Appli(tkinterDnD.Tk):
         self.quitting = True
         return
 
-    def forceUpdate(self, version):
-        tkinter.messagebox.showwarning("Update necessary", f"Clash of version. Expecting API version {version}.")
+    def forceUpdate(self, api_version, my_version):
+        tkinter.messagebox.showwarning("Update necessary", f"Clash of version. Expecting API {api_version} and you are compatible with {my_version}. Please reinstall following the instructions in README. (git pull; pip install .)")
 
     def openConnectionDialog(self, force=False):
         # Connect to database and choose database to open
         apiclient = APIClient.getInstance()
         abandon = False
+        connectionTest = apiclient.tryConnection(force=force)
         if force:
             apiclient.disconnect()
-        while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
+        res = apiclient.tryAuth()
+        if not res: 
+            apiclient.disconnect()
+        while (not connectionTest or not apiclient.isConnected()) and not abandon:
             abandon = self.promptForConnection() is None
+            connectionTest = apiclient.tryConnection(force=force)
         if not abandon:
             apiclient = APIClient.getInstance()
             apiclient.attach(self)
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
-                self.forceUpdate(".".join(srv_version.split(".")[:-1]))
+                self.forceUpdate(".".join(srv_version.split(".")[:-1]), Appli.version_compatible)
                 self.onClosing()
                 return False
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
-                self.forceUpdate(".".join(srv_version.split(".")[:-1]))
+                self.forceUpdate(".".join(srv_version.split(".")[:-1]), Appli.version_compatible)
                 self.onClosing()
                 return False
             if self.sio is not None:
@@ -509,10 +514,13 @@ class Appli(tkinterDnD.Tk):
                 self.treevw.notify(notification["db"],  notification["collection"], notification["iid"], notification["action"], "")
                 self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
                 self.treevw.configureTags()
+            for module in self.modules:
+                if callable(getattr(module["object"], "notify", None)):
+                    module["object"].notify(notification["db"], notification["collection"],
+                            notification["iid"], notification["action"], notification.get("parent", ""))
         else:
             if notification["collection"] == "settings":
                 self.settings.notify(notification["db"], notification["iid"], notification["action"])
-                
                 self.statusbar.refreshUI()
             else:
                 self.treevw.notify(notification["db"], notification["collection"],
@@ -575,6 +583,8 @@ class Appli(tkinterDnD.Tk):
                               command=self.importExistingTools)
         fileMenu2.add_command(label="Reset unfinished tools",
                               command=self.resetUnfinishedTools)
+        fileMenu2.add_command(label="Test local tools",
+                              command=self.testLocalTools)
         fileMenu2.add_command(label="Refresh (F5)",
                               command=self.refreshView)
         fileMenuUser = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
@@ -956,6 +966,21 @@ class Appli(tkinterDnD.Tk):
             self.statusbar.reset()
             self.treevw.load()
 
+    def testLocalTools(self):
+        """ test local binary path with which"""
+        import shutil
+        apiclient = APIClient.getInstance()
+        self.settings._reloadLocalSettings()
+        commands = apiclient.find("commands", {"owners":apiclient.getUser()}, multi=True)
+        for command in commands:
+            bin_path = self.settings.local_settings.get("my_commands", {}).get(command["name"])
+            if bin_path is None:
+                tk.messagebox.showerror("Missing a binary path", f"The local settings for {command['name']} is not set. Missing local binary path.")
+                return False
+            if not shutil.which(bin_path):
+                tk.messagebox.showerror("Invalid binary path", f"The local settings for {command['name']} is not recognized. ({bin_path}).")
+        tk.messagebox.showinfo("Test local tools success", "All binary path exists")
+        return True
     def exportCalendar(self):
         """
         Dump a pentest database to an archive file gunzip.
@@ -982,7 +1007,7 @@ class Appli(tkinterDnD.Tk):
         dialog = ChildDialogQuestion(self, "Ask question", "Do you want to export your commands or Worker's commands.", ["My commands", "Worker"])
         self.wait_window(dialog.app)
         apiclient = APIClient.getInstance()
-        res, msg = apiclient.exportCommands(forWorker=dialog.rvalue == "Worker")
+        res, msg = apiclient.exportCommands()
         if res:
             tkinter.messagebox.showinfo(
                 "Export pollenisator database", "Export completed in "+str(msg))

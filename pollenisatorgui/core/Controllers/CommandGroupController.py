@@ -52,10 +52,9 @@ class CommandGroupController(ControllerElement):
         commands_dict = values["Commands"]
         commands = [k for k, v in commands_dict.items() if v == 1]
         max_thread = values["Shared threads"]
-        owner = values.get("owner", APIClient.getInstance().getUser())
         # Insert in database
         indb = values["indb"]
-        self.model.initialize(name, owner, priority, commands, max_thread, indb)
+        self.model.initialize(name, priority, commands, max_thread, indb)
         ret, _ = self.model.addInDb()
         if not ret:
             # command failed to be inserted, a duplicate exists
@@ -75,7 +74,7 @@ class CommandGroupController(ControllerElement):
         Returns:
             dict with keys name, commands,, priority, max_thread, _id, tags and infos
         """
-        return {"name": self.model.name, "indb":self.model.indb, "owner":self.model.owner, "commands": self.model.commands, "priority": self.model.priority, "max_thread": self.model.max_thread,
+        return {"name": self.model.name, "indb":self.model.indb, "commands": self.model.commands, "priority": self.model.priority, "max_thread": self.model.max_thread,
                 "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
@@ -84,8 +83,3 @@ class CommandGroupController(ControllerElement):
             "commandgroup" """
         return "commandgroup"
 
-    def isMine(self):
-        return self.model.isMine()
-
-    def isWorker(self):
-        return self.model.isWorker()

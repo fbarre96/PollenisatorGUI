@@ -348,31 +348,19 @@ class ScanManager:
 
     def runWorkerOnServer(self):
         apiclient = APIClient.getInstance()
-        waves = Wave.fetchObjects({})
-        waves_associations = {}
-        for wave in waves:
-            waves_associations[wave.wave] = str(wave.getId())
-        dialog = ChildDialogCombo(self.parent, list(waves_associations.keys()), "Choose a destination wave")
-        self.parent.wait_window(dialog.app)
-        if dialog.rvalue is None:
-            return False, "No selection made"
-        if isinstance(dialog.rvalue, str):
-            wave_target = dialog.rvalue
-            res = apiclient.addWorkerCommandsToWave(waves_associations[wave_target])
-            docker_name = apiclient.getDockerForPentest(apiclient.getCurrentPentest())
-            dialog = ChildDialogProgress(self.parent, "Start docker", "Waiting for docker to boot 0/4", progress_mode="indeterminate")
-            dialog.show()
-            nb_try = 0
-            max_try = 3
-            while docker_name not in self.workerTv.get_children() and nb_try < max_try:
-                dialog.update(msg=f"Waiting for docker to boot {nb_try+1}/{max_try+1}")
-                time.sleep(3)
-                nb_try += 1
-            dialog.destroy()
-            if docker_name not in self.workerTv.get_children():
-                return False, "Worker did not boot in time, cannot add commands to wave"
-            return res
-        return False, ""
+        docker_name = apiclient.getDockerForPentest(apiclient.getCurrentPentest())
+        dialog = ChildDialogProgress(self.parent, "Start docker", "Waiting for docker to boot 0/4", progress_mode="indeterminate")
+        dialog.show()
+        nb_try = 0
+        max_try = 3
+        while docker_name not in self.workerTv.get_children() and nb_try < max_try:
+            dialog.update(msg=f"Waiting for docker to boot {nb_try+1}/{max_try+1}")
+            time.sleep(3)
+            nb_try += 1
+        dialog.destroy()
+        if docker_name not in self.workerTv.get_children():
+            return False, "Worker did not boot in time, cannot add commands to wave"
+        return True, ""
 
     def onClosing(self):
         apiclient = APIClient.getInstance()
@@ -381,40 +369,32 @@ class ScanManager:
             self.sio.disconnect()
 
     def registerAsWorker(self):
-        waves = Wave.fetchObjects({})
-        waves_associations = {}
-        for wave in waves:
-            waves_associations[wave.wave] = str(wave.getId())
-        dialog = ChildDialogCombo(self.parent, list(waves_associations.keys()), "Choose a destination wave")
-        self.parent.wait_window(dialog.app)
-        if dialog.rvalue is None:
-            return False, "No selection made"
-        if isinstance(dialog.rvalue, str):
-            wave_target = dialog.rvalue
-            self.sio = socketio.Client()
-            apiclient = APIClient.getInstance()
-            self.sio.connect(apiclient.api_url)
-            name = apiclient.getUser()
-            print("REGISTER "+str(name))
-            self.sio.emit("register", {"name":name})
-            @self.sio.event
-            def executeCommand(data):
-                print("GOT EXECUTE "+str(data))
-                toolId = data.get("toolId")
-                tool = Tool.fetchObject({"_id":ObjectId(toolId)})
-                if tool is None:
-                    return
-                self.launchTask(tool, True, apiclient.getUser())
-            dialog = ChildDialogProgress(self.parent, "Registering", "Waiting for register 0/4", progress_mode="indeterminate")
-            dialog.show()
-            nb_try = 0
-            max_try = 3
-            while name not in self.workerTv.get_children() and nb_try < max_try:
-                dialog.update(msg=f"Waiting for registering {nb_try+1}/{max_try+1}")
-                time.sleep(2)
-                nb_try += 1
-            dialog.destroy()
-            if name not in self.workerTv.get_children():
-                return False, "Worker did not boot in time, cannot add commands to wave"
-            apiclient.addMyCommandsToWave(waves_associations[wave_target])
+        self.settings._reloadLocalSettings()
+        self.sio = socketio.Client()
+        apiclient = APIClient.getInstance()
+        self.sio.connect(apiclient.api_url)
+        name = apiclient.getUser()
+        bins = list(set(self.settings.local_settings.get("my_commands",{}).values()))
+        print("REGISTER "+str(name))
+        print("KNOWNS BINS "+str(bins))
+        self.sio.emit("register", {"name":name, "binaries":bins})
+        @self.sio.event
+        def executeCommand(data):
+            print("GOT EXECUTE "+str(data))
+            toolId = data.get("toolId")
+            tool = Tool.fetchObject({"_id":ObjectId(toolId)})
+            if tool is None:
+                return
+            self.launchTask(tool, True, apiclient.getUser())
+        dialog = ChildDialogProgress(self.parent, "Registering", "Waiting for register 0/4", progress_mode="indeterminate")
+        dialog.show()
+        nb_try = 0
+        max_try = 3
+        while name not in self.workerTv.get_children() and nb_try < max_try:
+            dialog.update(msg=f"Waiting for registering {nb_try+1}/{max_try+1}")
+            time.sleep(2)
+            nb_try += 1
+        dialog.destroy()
+        if name not in self.workerTv.get_children():
+            return False, "Worker did not boot in time, cannot add commands to wave"
             

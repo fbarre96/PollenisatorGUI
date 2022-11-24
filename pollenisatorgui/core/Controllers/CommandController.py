@@ -1,6 +1,7 @@
 """Controller for command object. Mostly handles conversion between mongo data and python objects"""
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Controllers.ControllerElement import ControllerElement
+from pollenisatorgui.core.Components.Settings import Settings
 import bson
 
 class CommandController(ControllerElement):
@@ -19,6 +20,13 @@ class CommandController(ControllerElement):
         # Get form values
         self.model.bin_path = values.get(
             "Bin path", self.model.bin_path)
+        local_bin_path = values.get(
+            "My binary path", None)
+        if local_bin_path is not None:
+            settings = Settings()
+            settings.local_settings["my_commands"] = settings.local_settings.get("my_commands", {})
+            settings.local_settings["my_commands"][self.model.name] = local_bin_path
+            settings.saveLocalSettings()
         self.model.plugin = values.get(
             "Plugin", self.model.plugin)
         self.model.text = values.get("Command line options", self.model.text)
@@ -28,7 +36,7 @@ class CommandController(ControllerElement):
         types = values.get("Types", {})
         types = [k for k, v in types.items() if v == 1]
         self.model.types = list(types)
-        self.model.owner = values.get("owner", "")
+        self.model.owners = values.get("owners", [])
         # Update in database
         self.model.update()
 
@@ -56,10 +64,10 @@ class CommandController(ControllerElement):
         types = values["Types"]
         indb = values["indb"]
         timeout = values["Timeout"]
-        owner = values["owner"]
+        owners = values["owners"]
         types = [k for k, v in types.items() if v == 1]
         self.model.initialize(name, bin_path, plugin, 
-                              text, lvl, ports, safe, list(types), indb, timeout, owner)
+                              text, lvl, ports, safe, list(types), indb, timeout, owners)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:
@@ -76,7 +84,7 @@ class CommandController(ControllerElement):
         """
         return {"name": self.model.name, "bin_path":self.model.bin_path, "plugin":self.model.plugin, "lvl": self.model.lvl, "safe": bool(self.model.safe), "text": self.model.text,
                 "ports": self.model.ports, "timeout": self.model.timeout,
-                "types": self.model.types, "indb":self.model.indb, "owner": self.model.owner, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
+                "types": self.model.types, "indb":self.model.indb, "owners": self.model.owners, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
         """Return a string describing the type of object
@@ -104,5 +112,3 @@ class CommandController(ControllerElement):
     def isMine(self):
         return self.model.isMine()
 
-    def isWorker(self):
-        return self.model.isWorker()

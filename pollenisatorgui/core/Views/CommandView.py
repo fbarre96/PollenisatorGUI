@@ -30,14 +30,15 @@ class CommandView(ViewElement):
         Args:
             default: a dict of default values for inputs (priority, priority, max_thread). Default to empty respectively "0", "0", "1"
         """
-        self.form.addFormHidden("owner", default.get("owner", ""))
+        self.form.addFormHidden("owners", default.get("owners", []))
         panel_bottom = self.form.addFormPanel(grid=True)
         row = 0
-        panel_bottom.addFormLabel("Binary path", row=row)
+        panel_bottom.addFormLabel("Common binary name", row=row)
         panel_bottom.addFormStr("Bin path", r"", default.get("bin_path", ""), width=30, column=1, row=row)
         panel_bottom.addFormHelper(
-            "The local binary path to use for this command.", column=2, row=row)
+            "The binary name (nmap for Nmap, dirsearch for Diresearch even if it's dir.py for exemple).", column=2, row=row)
         row += 1
+        
         panel_bottom.addFormLabel("Plugin", row=row)
         panel_bottom.addFormCombo("Plugin", APIClient.getInstance().getPlugins(), default.get("plugin", "Default") ,width=30, column=1, row=row)
         panel_bottom.addFormHelper(
@@ -83,11 +84,18 @@ class CommandView(ViewElement):
         panel_bottom.addFormHelper(
             "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...",column=2)
         panel_bottom = self.form.addFormPanel()
-
+        
         if not self.controller.isMine():
-            panel_bottom.addFormButton("Duplicate to my commands", self.controller.addToMyCommands)
+            panel_bottom.addFormButton("Add to my commands", self.controller.addToMyCommands)
+        else:
+            settings = Settings()
+            settings._reloadLocalSettings()
+            my_commands = settings.local_settings.get("my_commands", {})
+            default = my_commands.get(modelData["name"], modelData["bin_path"])
+            panel_bottom.addFormLabel("My binary path")
+            panel_bottom.addFormStr("My binary path", r"", default, width=30)
         self._commonWindowForms(modelData)
-        self.completeModifyWindow(self.controller.isMine() or self.controller.isWorker())
+        self.completeModifyWindow(addTags=False)
 
     def openInsertWindow(self):
         """
@@ -143,9 +151,12 @@ class CommandView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+        tags = self.controller.getTags()
+        if self.controller.isMine():
+            tags.append("known_command")
         self.appliTw.insert(parentNode, "end", str(
-            self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
-        if "hidden" in self.controller.getTags():
+            self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getClassIcon())
+        if "hidden" in tags:
             self.hide()
 
     def getParentNode(self):
@@ -155,12 +166,7 @@ class CommandView(ViewElement):
         Returns:
             return the saved command_node node inside the Appli class.
         """
-        apiclient = APIClient.getInstance()
-        if self.controller.isMine():
-            return self.appliTw.my_commands_node
-        elif self.controller.isWorker():
-            return self.appliTw.worker_commands_node
-        return self.appliTw.others_commands_node
+        return self.appliTw.commands_node
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""

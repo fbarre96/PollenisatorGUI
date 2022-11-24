@@ -42,9 +42,6 @@ class WaveView(ViewElement):
                 defaults.append(str(c))
         self.form.addFormChecklist(
             "Commands", commands_names, defaults, values=comms_values)
-        panel = self.form.addFormPanel()
-        panel.addFormButton("Add my commands to wave", self.addMyCommandsToWave)
-        panel.addFormButton("Add Worker commands to wave", self.addWorkerCommandsToWave)
         self.completeModifyWindow()
 
     def openInsertWindow(self):
@@ -123,11 +120,4 @@ class WaveView(ViewElement):
             return the saved waves_node inside the Appli class.
         """
         return self.appliTw.waves_node
-
-
-    def addMyCommandsToWave(self, event=None):
-        self.controller.addMyCommandsToWave()
-
-    def addWorkerCommandsToWave(self, event=None):
-        self.controller.addWorkerCommandsToWave()
 

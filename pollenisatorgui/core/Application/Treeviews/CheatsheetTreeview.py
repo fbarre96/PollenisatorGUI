@@ -2,54 +2,54 @@
 """
 import tkinter as tk
 from bson.objectid import ObjectId
-from pollenisatorgui.core.Models.Command import Command
-from pollenisatorgui.core.Models.CommandGroup import CommandGroup
-from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
-from pollenisatorgui.core.Views.CommandView import CommandView
-from pollenisatorgui.core.Views.MultiCommandView import MultiCommandView
-from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
-from pollenisatorgui.core.Controllers.CommandController import CommandController
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 
+from pollenisatorgui.core.Models.CheckItem import CheckItem
+from pollenisatorgui.core.Views.CheckItemView import CheckItemView
+from pollenisatorgui.core.Views.MultiCheckItemView import MultiCheckItemView
+from pollenisatorgui.core.Controllers.CheckItemController import CheckItemController
 
-class CommandsTreeview(PollenisatorTreeview):
-    """CommandsTreeview class
+from pollenisatorgui.core.Models.CheckInstance import CheckInstance
+from pollenisatorgui.core.Views.CheckInstanceView import CheckInstanceView
+from pollenisatorgui.core.Controllers.CheckInstanceController import CheckInstanceController
+
+class CheatsheetTreeview(PollenisatorTreeview):
+    """CheatsheetTreeview class
     Inherit PollenisatorTreeview.
     Ttk treeview class with added functions to handle the command objects.
     """
 
-    def __init__(self, appli, parentFrame):
+    def __init__(self, appli, parentFrame, viewFrame):
         """
         Args:
             appli: a reference to the main Application object.
             parentFrame: the parent tkinter window object.
         """
         super().__init__(appli, parentFrame)
-        self.commands_node = None  # parent of all commands nodes
-        self.group_command_node = None  # parent of all group commands nodes
+        self.viewFrame = viewFrame
         self.openedViewFrameId = None  # if of the currently opened object in the view frame
 
-    
+    def attachViewFrame(self, viewFrame):
+        self.viewFrame = viewFrame
+
 
     def initUI(self, _event=None):
         """Initialize the user interface widgets and binds them.
         Args:
             _event: not used but mandatory
         """
-        if self.commands_node is not None:
-            return
         self._initContextualsMenus()
-        self.heading('#0', text='Commands', anchor=tk.W)
+        self.title = "Cheatsheet"
+        self.heading('#0', text='Checks', anchor=tk.W)
         self.column('#0', stretch=tk.YES, minwidth=300, width=300)
         self.bind("<Button-3>", self.doPopup)
         self.bind("<<TreeviewSelect>>", self.onTreeviewSelect)
         #self.bind("<Return>", self.onTreeviewSelect)
         #self.bind("<Button-1>", self.onTreeviewSelect)
         self.bind('<Delete>', self.deleteSelected)
-        self.load()
-
+    
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
         Open the selected object view on the view frame.
@@ -62,26 +62,16 @@ class CommandsTreeview(PollenisatorTreeview):
         if len(selection) == 1:
             item = super().onTreeviewSelect(event)
             if isinstance(item, str):
-                apiclient = APIClient.getInstance()
-                if str(item) == "mycommands":
-                    user = apiclient.getUser()
-                    objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"owners":[user]})))
-                    objView.openInsertWindow()
-                elif str(item) == "commands":
-                    objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({})))
-                    objView.openInsertWindow()
-                elif str(item) == "command_groups":
-                    objView = CommandGroupView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup()))
+                if "pentest|" not in str(item):
+                    objView = CheckItemView(
+                        self, self.viewFrame, self.appli, CheckItemController(CheckItem({"category":str(item)})))
                     objView.openInsertWindow()
             else:
                 self.openModifyWindowOf(item)
         elif len(selection) > 1:
             # Multi select:
-            multiView = MultiCommandView(self, self.appli.commandsViewFrame, self.appli)
-            for widget in self.appli.commandsViewFrame.winfo_children():
+            multiView = MultiCheckItemView(self, self.viewFrame, self.appli)
+            for widget in self.viewFrame.winfo_children():
                 widget.destroy()
             multiView.form.clear()
             multiView.openModifyWindow()
@@ -105,7 +95,7 @@ class CommandsTreeview(PollenisatorTreeview):
         """
         objView = self.getViewFromId(str(dbId))
         if objView is not None:
-            for widget in self.appli.commandsViewFrame.winfo_children():
+            for widget in self.viewFrame.winfo_children():
                 widget.destroy()
             objView.form.clear()
             self.openedViewFrameId = str(dbId)
@@ -118,7 +108,7 @@ class CommandsTreeview(PollenisatorTreeview):
         Args:
             _searchModel: (Deprecated) inherited not used. 
         """
-        for widget in self.appli.commandsViewFrame.winfo_children():
+        for widget in self.viewFrame.winfo_children():
             widget.destroy()
         self.delete(*self.get_children())
 
@@ -128,21 +118,21 @@ class CommandsTreeview(PollenisatorTreeview):
         """
         Load the treeview with database information
         """
-        self.commands_node = self.insert(
-            "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
-        commands = Command.fetchObjects({})
-        for command in commands:
-            command_vw = CommandView(
-                self, self.appli.commandsViewFrame, self.appli, CommandController(command))
-            command_vw.addInTreeview()
-        self.group_command_node = self.insert("", "end", str(
-            "command_groups"), text="Command Groups", image=CommandGroupView.getClassIcon())
-        command_groups = CommandGroup.fetchObjects({})
-        for command_group in command_groups:
-            command_group_vw = CommandGroupView(
-                self, self.appli.commandsViewFrame, self.appli, CommandGroupController(command_group))
-            command_group_vw.addInTreeview()
-        
+       
+        checkitems = CheckItem.fetchObjects({})
+        checkitems = sorted(checkitems, key=lambda x:x.step)
+        for checkitem in checkitems:
+            checkitem_vw = CheckItemView(
+                self, self.viewFrame, self.appli, CheckItemController(checkitem))
+            checkitem_vw.addInTreeview()
+
+        checkinstances = CheckInstance.fetchObjects({})
+        for checkinstance in checkinstances:
+            if checkinstance.check_m is not None:
+                checkinstance_vw = CheckInstanceView(
+                    self, self.viewFrame, self.appli, CheckInstanceController(checkinstance))
+                checkinstance_vw.addInTreeview()
+            
     def deleteSelected(self, _event):
         """
         Interface to delete a database object from an event.
@@ -171,7 +161,7 @@ class CommandsTreeview(PollenisatorTreeview):
                         toDelete[viewtype] = []
                     toDelete[viewtype].append(view.controller.getDbId())
             apiclient = APIClient.getInstance()
-            apiclient.bulkDeleteCommands(toDelete)
+            apiclient.bulkDelete(toDelete)
 
     def refresh(self):
         """Alias to self.load method"""
@@ -184,9 +174,6 @@ class CommandsTreeview(PollenisatorTreeview):
         self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
                                       foreground='black', activebackground='#A8CF4D', activeforeground='white')
         self.contextualMenu.add_command(
-            label="Duplicate command", command=self.duplicateCommand)
-        self.contextualMenu.add_separator()
-        self.contextualMenu.add_command(
             label="Sort children", command=self.sort)
         self.contextualMenu.add_command(
             label="Expand", command=self.expand)
@@ -198,19 +185,6 @@ class CommandsTreeview(PollenisatorTreeview):
         super()._initContextualsMenus
         return self.contextualMenu
 
-    def duplicateCommand(self, _event=None):
-        for selected in self.selection():
-            view_o = self.getViewFromId(selected)
-            if view_o is not None:
-                if isinstance(view_o, CommandView):
-                    data = view_o.controller.getData()
-                    del data["_id"]
-                    data["name"] = data["name"] + "_dup"
-                    objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command(data)))
-                    objView.openInsertWindow()
-                    
-
     def notify(self, db, collection, iid, action, parent):
         """
         Callback for the observer pattern implemented in mongo.py.
@@ -221,7 +195,7 @@ class CommandsTreeview(PollenisatorTreeview):
             action: update/insert/delete. It was the action performed on the iid
             parent: the mongo ObjectId of the parent. Only if action in an insert.
         """
-        if db != "pollenisator":
+        if collection != "cheatsheet":
             return
         # Delete
         apiclient = APIClient.getInstance()
@@ -233,24 +207,11 @@ class CommandsTreeview(PollenisatorTreeview):
 
         # Insert
         if action == "insert":
-            if collection == "commands":
-                if db == "pollenisator":
-                    res = apiclient.findCommand({"_id": ObjectId(iid)})
-                    if res:
-                        res = Command(res[0])
-                else:
-                    res = Command.fetchObject({"_id": ObjectId(iid)})
-                view = CommandView(self, self.appli.commandsViewFrame,
-                                   self.appli, CommandController(res))
+            if collection == "cheatsheet":
+                checkitem = CheckItem.fetchObject({"_id":ObjectId(iid)})
+                view = CheckItemView(self, self.viewFrame,
+                                   self.appli, CheckItemController(checkitem))
                 parent = None
-            elif collection == "group_commands":
-                res = apiclient.getCommandGroups({"_id": ObjectId(iid)})
-                if res is not None:
-                    if isinstance(res, list) and res:
-                        res = res[0]
-                        view = CommandGroupView(self, self.appli.commandsViewFrame,
-                                                self.appli, CommandGroupController(CommandGroup(res)))
-                        parent = None
             try:
                 view.addInTreeview(parent)
                 if view is not None:
@@ -267,9 +228,8 @@ class CommandsTreeview(PollenisatorTreeview):
             except tk.TclError:
                 if view is not None:
                     view.addInTreeview()
-            if str(self.appli.openedViewFrameId) == str(iid):
-                for widget in self.appli.viewframe.winfo_children():
-                    widget.destroy()
+            if str(self.openedViewFrameId) == str(iid):
+                view.clearWindow()
                 view.openModifyWindow()
             if view is not None:
                 view.controller.actualize()

@@ -44,7 +44,7 @@ class DefectView(ViewElement):
         settings.reloadSettings()
         modelData = self.controller.getData()
         topPanel = self.form.addFormPanel(grid=True)
-        s = topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, self.form, row=0, column= 0)
+        s = topPanel.addFormSearchBar("Search Defect", self.searchCallback, self.form, row=0, column= 0)
         topPanel.addFormLabel("Search Language",row=0, column=1)
         lang = topPanel.addFormStr("lang", row=0, column=2)
         s.addOptionForm(lang)
@@ -132,6 +132,13 @@ class DefectView(ViewElement):
             self.completeInsertWindow()
         else:
             self.showForm()
+
+    def searchCallback(self, searchreq, **options):
+        defects_obj, defects_errors = APIClient.searchDefect(searchreq, **options)
+        if defects_obj:
+            for i, defect in enumerate(defects_obj):
+                defects_obj[i]["TITLE"] = defect["title"]
+        return defects_obj, defects_errors
 
     def deleteDefectTemplate(self, event):
         apiclient = APIClient.getInstance()

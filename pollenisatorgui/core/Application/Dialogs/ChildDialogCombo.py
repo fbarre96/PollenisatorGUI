@@ -8,7 +8,7 @@ class ChildDialogCombo:
     """
     Open a child dialog of a tkinter application to ask a user a calendar name.
     """
-    def __init__(self, parent, options, displayMsg="Choose a database to open:", default=None):
+    def __init__(self, parent, options, displayMsg="Choose a database to open:", default=None, **kwargs):
         """
         Open a child dialog of a tkinter application to ask a combobox option.
 
@@ -28,7 +28,7 @@ class ChildDialogCombo:
         lbl = ttk.Label(appFrame, text=displayMsg)
         lbl.pack(pady=5)
         self.box_template = ttk.Combobox(
-            appFrame, values=tuple(options), state="readonly")
+            appFrame, values=tuple(options), state="readonly", width=kwargs.get('width',None))
         if default is not None:
             self.box_template.set(default)
         self.box_template.pack(padx=10, pady=5)

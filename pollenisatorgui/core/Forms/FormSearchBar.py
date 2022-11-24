@@ -83,10 +83,11 @@ class FormSearchBar(Form):
             return
         list_choice = []
         for result in self._results:
-            list_choice.append(result["title"])
+            list_choice.append(result["TITLE"])
         self.combo_search['values'] = list_choice
         if len(list_choice) > 0:
             self.combo_search.set(list_choice[0])
+        if len(list_choice) == 1:
             self.postSelect()
 
     def postSelect(self, _event=None):
@@ -100,13 +101,17 @@ class FormSearchBar(Form):
                                 if getattr(subform_depth, "addItem", None) is None:
                                     subform_depth.setValue(selected[subform_depth.name.lower()])
                                 else:
-                                    subform_depth.addItem(text=selected[subform_depth.name.lower()])
+                                    itemToAdd = selected[subform_depth.name.lower()]
+                                    if isinstance(itemToAdd, dict):
+                                        subform_depth.addItem(**itemToAdd)
                 else:
                     if subform.name.lower() in selected.keys():
                         if getattr(subform, "addItem", None) is None:
                             subform.setValue(selected[subform.name.lower()])
                         else:
-                            subform.addItem(text=selected[subform.name.lower()])
+                            itemToAdd = selected[subform.name.lower()]
+                            if isinstance(itemToAdd, dict):
+                                subform.addItem(**itemToAdd)
 
     def getValue(self):
         """
@@ -118,7 +123,7 @@ class FormSearchBar(Form):
         title = self.combo_search.get()
         if self._results is not None:
             for elem in self._results:
-                if elem["title"] == title:
+                if elem["TITLE"] == title:
                     return elem
         return None
 

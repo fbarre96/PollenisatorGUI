@@ -6,8 +6,10 @@ import os
 import time
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
+import shutil
 from pollenisatorgui.core.Components.apiclient import APIClient
 import pollenisatorgui.core.Components.Utils as Utils
+from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Models.Interval import Interval
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Command import Command
@@ -59,6 +61,17 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
             return False, str(exc)
     outputDir = os.path.join(outputDir, toolFileName)
     comm = comm.replace("|outputDir|", outputDir)
+    settings = Settings()
+    my_commands = settings.local_settings.get("my_commands", {})
+    bin_path = my_commands.get(toolModel.name)
+    if bin_path is None:
+        if shutil.which(command_dict["bin_path"]):
+            bin_path = command_dict["bin_path"]
+        else:
+            toolModel.setStatus(["error"])
+            toolModel.notes = str(toolModel.name)+" : no binary path setted"
+            return False, str(toolModel.name)+" : no binary path setted"
+    comm = bin_path + " " + comm
     toolModel.updateInfos({"cmdline":comm})
 
     # Get tool's wave time limit searching the wave intervals

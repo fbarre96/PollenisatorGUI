@@ -27,9 +27,9 @@ class CommandGroupView(ViewElement):
         panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         if modelData["indb"] == "pollenisator":
-            commands = apiclient.findCommand({"owner":modelData["owner"]})
+            commands = apiclient.findCommand({})
         else:
-            commands = apiclient.find("commands", {"owner":modelData["owner"]}, True)
+            commands = apiclient.find("commands", {}, True)
         commands_names = []
         defaults = []
         comms_values = []
@@ -61,16 +61,15 @@ class CommandGroupView(ViewElement):
         """
         modelData = self.controller.getData()
         self.form.addFormHidden("indb", modelData["indb"])
-        self.form.addFormHidden("owner", modelData.get("owner", None))
         panel = self.form.addFormPanel(grid=True)
         panel.addFormLabel("Name")
         panel.addFormStr("Name", r".*\S.*", "", column=1)
         panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         if modelData["indb"] == "pollenisator":
-            commands = apiclient.findCommand({"owner":modelData["owner"]})
+            commands = apiclient.findCommand({})
         else:
-            commands = apiclient.find("commands", {"owner":modelData["owner"]}, True)
+            commands = apiclient.find("commands", {}, True)
         commands_names = []
         comms_values = []
         for command_dict in commands:
@@ -111,8 +110,4 @@ class CommandGroupView(ViewElement):
             return the saved group_command_node node inside the Appli class.
         """
         apiclient = APIClient.getInstance()
-        if self.controller.isMine():
-            return self.appliTw.my_group_command_node
-        elif self.controller.isWorker():
-            return self.appliTw.worker_group_command_node
         return self.appliTw.group_command_node

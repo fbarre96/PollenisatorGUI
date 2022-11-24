@@ -47,8 +47,10 @@ class ChildDialogToast(tk.Toplevel):
         label.pack(fill=tk.BOTH)
         self.transparency = 1.0
         fadingTime = self.kwargs.get("fadingTime", 1.0)
-        self.timer_fade = threading.Timer(fadingTime, self.fade)
-        self.timer_fade.start()
+        self.timer_fade = None
+        if fadingTime is not None:
+            self.timer_fade = threading.Timer(fadingTime, self.fade)
+            self.timer_fade.start()
         try:
             self.wait_visibility()
             self.transient(self.parent)
@@ -57,6 +59,9 @@ class ChildDialogToast(tk.Toplevel):
             self.lift()
         except tk.TclError:
             pass
+    
+    def moveto(self, x, y):
+        self.wm_geometry("+%d+%d" % (x, y))
 
     def fade(self):
         try:

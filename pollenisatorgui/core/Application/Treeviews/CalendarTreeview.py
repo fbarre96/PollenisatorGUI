@@ -453,20 +453,15 @@ class CalendarTreeview(PollenisatorTreeview):
                 elif str(item) == "mycommands":
                     user = apiclient.getUser()
                     objView = CommandView(
-                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owner":user})))
+                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owners":[user]})))
                     objView.openInsertWindow()
-                elif str(item) == "workercommands":
-                    user = "Worker"
+                elif str(item) == "commands":
                     objView = CommandView(
-                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest(), "owner":user})))
+                        self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest()})))
                     objView.openInsertWindow()
-                elif str(item) == "mygroupcommands":
+                elif str(item) == "groupcommands":
                     objView = CommandGroupView(
-                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest(), "owner":apiclient.getUser()})))
-                    objView.openInsertWindow()
-                elif str(item) == "workergroupcommands":
-                    objView = CommandGroupView(
-                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest(), "owner":"Worker"})))
+                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest()})))
                     objView.openInsertWindow()
                 elif str(item) == "ips":
                     objView = MultipleIpView(
@@ -562,16 +557,8 @@ class CalendarTreeview(PollenisatorTreeview):
             "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
         self.group_command_node = self.insert(
             "", "end", "groupcommands", text="Command Groups", image=CommandGroupView.getClassIcon())
-        self.my_group_command_node = self.insert(
-            self.group_command_node, "end", "mygroupcommands", text="My Command Groups", image=CommandGroupView.getClassIcon())
-        self.worker_group_command_node = self.insert(
-            self.group_command_node, "end", "workergroupcommands", text="Worker Command Groups", image=CommandGroupView.getClassIcon())
-        self.my_commands_node = self.insert(
-            self.commands_node, "end", "mycommands", text="My commands", image=CommandView.getClassIcon())
-        self.worker_commands_node = self.insert(
-            self.commands_node, "end", "workercommands", text="Worker commands", image=CommandView.getClassIcon())  
-        self.others_commands_node = self.insert(
-            self.commands_node, "end", "otherscommands", text="Others commands", image=CommandView.getClassIcon())
+        self.commands_node = self.insert(
+            self.commands_node, "end", "mycommands", text="Commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({}, apiclient.getCurrentPentest())
         for command in commands:
             command_vw = CommandView(

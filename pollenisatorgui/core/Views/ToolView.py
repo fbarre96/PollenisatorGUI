@@ -11,6 +11,7 @@ from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
 import pollenisatorgui.core.Components.Utils as Utils
+from bson import ObjectId, errors
 import os
 from shutil import which
 
@@ -130,46 +131,53 @@ class ToolView(ViewElement):
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
-        hasWorkers = len(apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()}))
-        #Ready is legacy, OOS and/or OOT should be used
-        if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
-            if apiclient.getUser() in modelData["name"]:
+        try:
+            command_d = apiclient.find("commands", {"_id":ObjectId(modelData["command_iid"])}, False)
+            workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d["bin_path"]})
+            workers = [x["name"] for x in workers]
+            hasWorkers = len(workers)
+            #Ready is legacy, OOS and/or OOT should be used
+            if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
+                if apiclient.getUser() in command_d["owners"]:
+                    actions_panel.addFormButton(
+                        "Local launch", self.localLaunchCallback, side="right")
+                if any(x in command_d["owners"] for x in workers):
+                    actions_panel.addFormButton(
+                        "Run on worker", self.launchCallback, side="right")
+                elif apiclient.getUser() not in command_d["owners"]:
+                    actions_panel.addFormLabel(
+                        "Info", "Tool is ready", side="right")
+            elif "OOS" in self.controller.getStatus() or "OOT" in self.controller.getStatus():
                 actions_panel.addFormButton(
                     "Local launch", self.localLaunchCallback, side="right")
-            elif hasWorkers and "Worker" in modelData["name"]:
-                actions_panel.addFormButton(
-                    "Run on worker", self.launchCallback, side="right")
-            else:
-                actions_panel.addFormLabel(
-                    "Info", "Tool is ready", side="right")
-        elif "OOS" in self.controller.getStatus() or "OOT" in self.controller.getStatus():
-            actions_panel.addFormButton(
-                "Local launch", self.localLaunchCallback, side="right")
-            if hasWorkers:
-                actions_panel.addFormButton(
-                    "Run on worker", self.launchCallback, side="right")
-            else:
-                actions_panel.addFormLabel(
-                    "Info", "Tool is ready but no worker found", side="right")
-        elif "running" in self.controller.getStatus():
-            actions_panel.addFormButton(
-                "Stop", self.stopCallback, side="right")
-        elif "done" in self.controller.getStatus():
-            actions_panel.addFormButton(
-                "Download result file", self.downloadResultFile, side="right")
-            try:
-                mod = Utils.loadPlugin(self.controller.model.getCommand()["plugin"])
-                pluginActions = mod.getActions(self.controller.model)
-            except KeyError:  # Happens when parsed an existing file.:
-                pluginActions = None
-            except Exception:
-                pluginActions = None
-            if pluginActions is not None:
-                for pluginAction in pluginActions:
+                if hasWorkers:
                     actions_panel.addFormButton(
-                        pluginAction, pluginActions[pluginAction], side="right")
+                        "Run on worker", self.launchCallback, side="right")
+                else:
+                    actions_panel.addFormLabel(
+                        "Info", "Tool is ready but no worker found", side="right")
+            elif "running" in self.controller.getStatus():
                 actions_panel.addFormButton(
-                    "Reset", self.resetCallback, side="right")
+                    "Stop", self.stopCallback, side="right")
+            elif "done" in self.controller.getStatus():
+                actions_panel.addFormButton(
+                    "Download result file", self.downloadResultFile, side="right")
+                try:
+                    mod = Utils.loadPlugin(self.controller.model.getCommand()["plugin"])
+                    pluginActions = mod.getActions(self.controller.model)
+                except KeyError:  # Happens when parsed an existing file.:
+                    pluginActions = None
+                except Exception:
+                    pluginActions = None
+                if pluginActions is not None:
+                    for pluginAction in pluginActions:
+                        actions_panel.addFormButton(
+                            pluginAction, pluginActions[pluginAction], side="right")
+                    actions_panel.addFormButton(
+                        "Reset", self.resetCallback, side="right")
+        except errors.InvalidId:
+            pass
+
         defect_panel = self.form.addFormPanel(grid=True)
         defect_panel.addFormButton("Create defect", self.createDefectCallback)
         defect_panel.addFormButton("Show associated command", self.showAssociatedCommand, column=1)

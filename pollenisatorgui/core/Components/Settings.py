@@ -475,7 +475,7 @@ class Settings:
         users = apiclient.searchUsers(searchreq)
         if users is None:
             return [], "Invalid response from API"
-        ret = [{"title":user, "additional pentesters names":user} for user in users]
+        ret = [{"TITLE":user, "additional pentesters names":user} for user in users]
         return ret, ""
 
     def on_ok(self):
