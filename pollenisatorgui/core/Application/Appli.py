@@ -358,8 +358,11 @@ class Appli(tkinterDnD.Tk):
             self.wait_visibility()
             self.openConnectionDialog(force=True)
             self.promptCalendarName()
-        self.loadModulesInfos()
-            
+        self.loadModulesInfos() 
+        self.scanManager.nbk = self.nbk #FIXME ORDER, INITIALISATION of SCAN MANAGERis too early
+        self.scanManager.linkTw = self.treevw
+
+
     # OVERRIDE tk.Tk.report_callback_exception
     def report_callback_exception(self, exc, val, tb):
         self.show_error(exc, val, tb)

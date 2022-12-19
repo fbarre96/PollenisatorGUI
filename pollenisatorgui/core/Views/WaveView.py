@@ -38,7 +38,7 @@ class WaveView(ViewElement):
         for c in commands:
             commands_names.append(str(c))
             comms_values.append(c.getId())
-            if ObjectId(c.getId()) in modelData["wave_commands"]:
+            if str(c.getId()) in modelData["wave_commands"]:
                 defaults.append(str(c))
         self.form.addFormChecklist(
             "Commands", commands_names, defaults, values=comms_values)

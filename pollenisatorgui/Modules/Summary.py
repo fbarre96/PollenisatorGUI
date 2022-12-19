@@ -238,8 +238,11 @@ class Summary(Module):
                 port_text = port.port
                 if port.proto == "udp":
                     port_text = "udp/"+port_text
-                treevw.insert('', 'end', str(port.getId()),
+                try:
+                    treevw.insert('', 'end', str(port.getId()),
                               text=port_text, tags=list(port.getTags()))
+                except:
+                    pass
                 count += 1
         treevw.configure(height=count)
         treevw.update_idletasks()

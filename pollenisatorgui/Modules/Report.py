@@ -663,12 +663,13 @@ class Report(Module):
 
 def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):
     apiclient = APIClient.getInstance()
-    res = apiclient.generateReport(modele, client, contract, mainRedac, curr_lang)
+    res, msg = apiclient.generateReport(modele, client, contract, mainRedac, curr_lang)
     dialog.destroy()
-    if res == None:
+    if not res:
         tkinter.messagebox.showerror(
-            "Failure", str(res))
-    tkinter.messagebox.showinfo(
-        "Success", "The document was generated in "+str(res))
-    openPathForUser(res, folder_only=True)
-    
+            "Failure", str(msg))
+    else:
+        tkinter.messagebox.showinfo(
+            "Success", "The document was generated in "+str(msg))
+        openPathForUser(msg, folder_only=True)
+        

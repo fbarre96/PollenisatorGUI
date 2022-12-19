@@ -297,12 +297,12 @@ class Settings:
                     for line_key, line_value in v.items():
                         tag, color = line_key, line_value
                         if tag not in existing_settings["tags"]["value"]:
-                            apiclient.registerTag(tag, color, False)
+                            apiclient.registerTag(apiclient.getCurrentPentest(), tag, color)
                         else:
                             apiclient.updateTag(tag, color, False)
                     for tag in existing_settings["tags"].get("value",{}):
                         if tag not in v:
-                            apiclient.unregisterTag(tag, False)
+                            apiclient.unregisterTag(apiclient.getCurrentPentest(), tag)
                 else:
                     apiclient.updateInDb(apiclient.getCurrentPentest(), "settings", {"key":k}, {"$set":{"value": v}})
 

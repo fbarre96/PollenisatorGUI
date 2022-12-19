@@ -13,6 +13,24 @@ from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Models.Interval import Interval
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Command import Command
+import logging
+import threading
+import sys
+
+logging.basicConfig(filename='error.log', encoding='utf-8', level=logging.DEBUG)
+event_obj = threading.Event()
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(stream=sys.stdout)
+logger.addHandler(handler)
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = handle_exception
 
 def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False):
     """
@@ -32,7 +50,9 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
         Exception: if a plugin considered a failure.
     """
     # Connect to given calendar
+    logging.debug("executeTool: Execute tool locally:" +str(local)+" setTimer:"+str(setTimer)+" toolId:"+str(toolId))
     APIClient.setInstance(apiclient)
+    logging.debug("executeTool: Execute tool locally:" +str(local)+" setTimer:"+str(setTimer)+" toolId:"+str(toolId))
     toolModel = Tool.fetchObject({"_id":ObjectId(toolId)})
     command_dict = toolModel.getCommand()
     if command_dict is None and toolModel.text != "":
@@ -41,6 +61,7 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
     success, comm, fileext = apiclient.getCommandLine(toolId)
     if not success:
         print(str(comm))
+        logging.debug("Autoscan: Execute tool locally error in getting commandLine : "+str(toolId))
         toolModel.setStatus(["error"])
         return False, str(comm)
     
@@ -57,6 +78,7 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
             pass
         else:
             print(str(exc))
+            logging.debug("Autoscan: Execute tool locally error in creating output directory : "+str(exc))
             toolModel.setStatus(["error"])
             return False, str(exc)
     outputDir = os.path.join(outputDir, toolFileName)
@@ -70,6 +92,7 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
         else:
             toolModel.setStatus(["error"])
             toolModel.notes = str(toolModel.name)+" : no binary path setted"
+            logging.debug("Autoscan: Execute tool locally no bin path setted : "+str(toolModel.name))
             return False, str(toolModel.name)+" : no binary path setted"
     comm = bin_path + " " + comm
     toolModel.updateInfos({"cmdline":comm})
@@ -84,16 +107,20 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
         timeLimit = min(datetime.now()+timedelta(0, int(command_dict.get("timeout", 0))), timeLimit)
     ##
     try:
+        logging.debug('Autoscan: TASK STARTED:'+toolModel.name)
+        logging.debug("Autoscan: Will timeout at "+str(timeLimit))
         print(('TASK STARTED:'+toolModel.name))
         print("Will timeout at "+str(timeLimit))
         # Execute the command with a timeout
         returncode, stdout = Utils.execute(comm, timeLimit, True)
         if returncode == -1:
             toolModel.setStatus(["timedout"])
+            logging.debug("Autoscan: TOOL timedout at "+str(timeLimit))
             return False, "timedout"
     except Exception as e:
         print(str(e))
         toolModel.setStatus(["error"])
+        logging.debug("Autoscan: TOOL error "+str(e))
         return False, str(e)
     # Execute found plugin if there is one
     outputfile = outputDir+fileext
@@ -103,6 +130,7 @@ def executeTool(apiclient, toolId, local=True, allowAnyCommand=False, setTimer=F
         #toolModel.markAsNotDone()
         print(str(msg))
         toolModel.setStatus(["error"])
+        logging.debug("Autoscan: import tool result error "+str(msg))
         return False, str(msg)
           
     # Delay

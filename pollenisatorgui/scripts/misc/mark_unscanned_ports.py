@@ -5,7 +5,7 @@ from pollenisatorgui.core.Components.apiclient import APIClient
 
 def main(apiclient):
 	APIClient.setInstance(apiclient)
-	apiclient.registerTag("unscanned", "yellow")
+	apiclient.registerTag(apiclient.getCurrentPentest(), "unscanned", "yellow")
 	ports = Port.fetchObjects({})
 	n = 0
 	for port in ports:

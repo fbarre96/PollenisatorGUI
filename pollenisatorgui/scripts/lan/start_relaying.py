@@ -42,7 +42,6 @@ def main(apiclient):
             if dialog.rvalue is not None:
                 responder_conf = dialog.rvalue.strip()
                 Utils.executeInExternalTerm(f"sudo sed -i -E 's/(HTTP|SMB) = On/\1 = Off/gm' {responder_conf}")
-                #TODO, ask interface
                 Utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -dvw --lm --disable-ess")
     cmd = ""
     if dialog.rvalue == "Yes":

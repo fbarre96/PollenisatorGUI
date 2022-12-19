@@ -15,7 +15,7 @@ from shutil import which
 import shlex
 import tkinter  as tk
 import tkinter.ttk as ttk
-import sv_ttk
+import logging
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -239,6 +239,7 @@ def fitNowTime(dated, datef):
     return today > date_start and date_end > today
 
 def handleProcKill(proc):
+    logging.debug(f"Utils execute: handleProcKill {proc}")
     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     proc._killed = True
 
@@ -264,7 +265,7 @@ def execute(command, timeout=None, printStdout=True):
         proc._killed = False
         signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
         signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
-        time.sleep(1) #HACK Break if not there when launching fast custom tools on local host
+        time.sleep(1) #HACK Break if not there when launching fast custom tools on local host for unknown reason
         try:
             timer = None
             if timeout is not None:
@@ -272,15 +273,19 @@ def execute(command, timeout=None, printStdout=True):
                     timeout = (timeout-datetime.now()).total_seconds()
                     timer = Timer(timeout, proc.kill)
                     timer.start()
+                    logging.debug("Utils execute: timer start "+str(timeout))
                 else:
                     if timeout.year < datetime.now().year+1:
                         timeout = (timeout-datetime.now()).total_seconds()
                         timer = Timer(timeout, proc.kill)
                         timer.start()
+                        logging.debug("Utils execute: timer start "+str(timeout))
                     else:
                         timeout = None
+            logging.debug(f"Utils execute: timeout:{timeout} command:{command}")
             stdout, stderr = proc.communicate(None, timeout)
             if proc._killed:
+                logging.debug(f"Utils execute: command killed command:{command}")
                 if timer is not None:
                     timer.cancel()
                 return -1, ""
@@ -293,6 +298,7 @@ def execute(command, timeout=None, printStdout=True):
                     print(str(stderr))
         except Exception as e:
             import traceback
+            logging.debug(f"Utils execute: command ended with exception {repr(e)}")
             traceback.print_exc(file=sys.stdout)
             print(repr(e))
             proc.kill()

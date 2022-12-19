@@ -742,9 +742,9 @@ class APIClient():
             return None
 
     @handle_api_errors
-    def registerTag(self, name, color, isGlobal=False):
+    def registerTag(self, pentest, name, color):
         api_url = '{0}settings/registerTag'.format(self.api_url_base)
-        data = {"name":name, "color":color, "global":isGlobal}
+        data = {"name":name, "color":color, "pentest":pentest}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -754,9 +754,9 @@ class APIClient():
             return None
     
     @handle_api_errors
-    def unregisterTag(self, name, isGlobal=False):
+    def unregisterTag(self,pentest, name):
         api_url = '{0}settings/unregisterTag'.format(self.api_url_base)
-        data = {"name":name, "global":isGlobal}
+        data = {"name":name, "pentest":pentest}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1165,14 +1165,14 @@ class APIClient():
             out_path = os.path.join(dir_path, "../../exports/")
             f = tk.filedialog.asksaveasfilename(defaultextension=ext, initialdir=out_path, initialfile=out_name+ext)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel". and empty tuple if close by cross
-                return
+                return False, "No report created"
             filename = str(f)
             with open(filename, mode='wb') as f:
                 f.write(response.content)
-                return os.path.normpath(filename)
+                return True, os.path.normpath(filename)
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, response.content.decode("utf-8"))
-        return response.content.decode("utf-8")
+            return False, response.content.decode("utf-8")
+        return False, response.content.decode("utf-8")
 
     @handle_api_errors
     def getTemplateList(self, lang):
