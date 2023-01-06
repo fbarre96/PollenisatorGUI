@@ -15,7 +15,7 @@ from shutil import which
 import shlex
 import tkinter  as tk
 import tkinter.ttk as ttk
-import logging
+from pollenisatorgui.core.Components.logger_config import logger
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -239,11 +239,11 @@ def fitNowTime(dated, datef):
     return today > date_start and date_end > today
 
 def handleProcKill(proc):
-    logging.debug(f"Utils execute: handleProcKill {proc}")
+    logger.debug(f"Utils execute: handleProcKill {proc}")
     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     proc._killed = True
 
-def execute(command, timeout=None, printStdout=True):
+def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=None):
     """
     Execute a bash command and print output
 
@@ -258,10 +258,10 @@ def execute(command, timeout=None, printStdout=True):
     Raises:
         Raise a KeyboardInterrupt if the command was interrupted by a KeyboardInterrupt (Ctrl+c)
     """
-   
+    
     try:
         proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
         proc._killed = False
         signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
         signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
@@ -273,19 +273,30 @@ def execute(command, timeout=None, printStdout=True):
                     timeout = (timeout-datetime.now()).total_seconds()
                     timer = Timer(timeout, proc.kill)
                     timer.start()
-                    logging.debug("Utils execute: timer start "+str(timeout))
+                    logger.debug("Utils execute: timer start "+str(timeout))
                 else:
                     if timeout.year < datetime.now().year+1:
                         timeout = (timeout-datetime.now()).total_seconds()
                         timer = Timer(timeout, proc.kill)
                         timer.start()
-                        logging.debug("Utils execute: timer start "+str(timeout))
+                        logger.debug("Utils execute: timer start "+str(timeout))
                     else:
                         timeout = None
-            logging.debug(f"Utils execute: timeout:{timeout} command:{command}")
+            logger.debug(f"Utils execute: timeout:{timeout} command:{command}")
+            output = b""
+            os.set_blocking(proc.stdout.fileno(), False)
+            os.set_blocking(proc.stdin.fileno(), False)
+            while proc.poll() is None:
+                if queue is not None and queue.qsize() > 0:
+                    key = queue.get()
+                    proc.stdin.write(key.encode())
+                    data = proc.stdout.read()
+                    queueResponse.put(data)
+                    time.sleep(0.5)
             stdout, stderr = proc.communicate(None, timeout)
+            queueResponse.put(stdout)
             if proc._killed:
-                logging.debug(f"Utils execute: command killed command:{command}")
+                logger.debug(f"Utils execute: command killed command:{command}")
                 if timer is not None:
                     timer.cancel()
                 return -1, ""
@@ -298,7 +309,7 @@ def execute(command, timeout=None, printStdout=True):
                     print(str(stderr))
         except Exception as e:
             import traceback
-            logging.debug(f"Utils execute: command ended with exception {repr(e)}")
+            logger.debug(f"Utils execute: command ended with exception {repr(e)}")
             traceback.print_exc(file=sys.stdout)
             print(repr(e))
             proc.kill()

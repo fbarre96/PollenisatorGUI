@@ -237,6 +237,8 @@ class CalendarTreeview(PollenisatorTreeview):
             label="Unhide children", command=self.unhide)
         self.contextualMenu.add_separator()
         self.contextualMenu.add_command(
+            label="Debug", command=self.showDebug)
+        self.contextualMenu.add_command(
             label="Close", command=self.closeMenu)
         return self.contextualMenu
 
@@ -686,6 +688,16 @@ class CalendarTreeview(PollenisatorTreeview):
     def hideAndUpdate(self):
         """Hide object with contextualMenu attached in the treeview and store this effect in its tags."""
         self.hide(None, True)
+    
+    def showDebug(self):
+        """Hide object with contextualMenu attached in the treeview and store this effect in its tags."""
+        
+        node = str(self.contextualMenu.selection)
+        view_o = self.getViewFromId(node)
+        msg = str(view_o)+"\n"+str(view_o.controller.getDbId())+"\n"
+        data = view_o.controller.getData()
+        msg += str(data)
+        tk.messagebox.showinfo("Debug", msg)
 
     def hideSelection(self, _event=None):
         """ Hide selected objects in the treeview and store this effect in their tags."""

@@ -18,7 +18,7 @@ import docker
 import re
 import socketio
 from bson import ObjectId
-import logging
+from pollenisatorgui.core.Components.logger_config import logger
 
 try:
     import git
@@ -109,13 +109,13 @@ class ScanManager:
                 return
         self.btn_autoscan.configure(text="Stop Scanning", command=self.stopAutoscan)
         apiclient.sendStartAutoScan()
-        logging.debug('Ask start autoscan')
+        logger.debug('Ask start autoscan')
     
     def stop(self):
         """Stop an automatic scan. Will try to stop running tools."""
         apiclient = APIClient.getInstance()
         apiclient.sendStopAutoScan()
-        logging.debug('Ask stop autoscan')
+        logger.debug('Ask stop autoscan')
 
     def refreshUI(self):
         """Reload informations and renew widgets"""
@@ -160,7 +160,7 @@ class ScanManager:
             else:
                 self.btn_autoscan = ttk.Button(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
-        logging.debug('Refresh scan manager UI')
+        logger.debug('Refresh scan manager UI')
 
     def initUI(self, parent):
         """Create widgets and initialize them
@@ -267,7 +267,7 @@ class ScanManager:
         print("Stopping auto... ")
         apiclient = APIClient.getInstance()
         apiclient.sendStopAutoScan()
-        logging.debug('Ask stop autoscan from UI')
+        logger.debug('Ask stop autoscan from UI')
 
     def parseFiles(self, default_path=""):
         """
@@ -309,34 +309,52 @@ class ScanManager:
             isIncluded = apiclient.getCurrentPentest() == worker.get("pentest", "")
             apiclient.setWorkerInclusion(worker_hostname, not (isIncluded))
 
+    def getToolProgress(self, toolId):
+        thread, queue, queueResponse = self.local_scans.get(str(toolId), (None, None,None))
+        if thread is None or queue is None:
+            return ""
+        progress = ""
+        if thread.is_alive():
+            queue.put("\n")
+            progress = queueResponse.get()
+            return progress
+        return ""
+
     def stopTask(self, toolId):
-        thread = self.local_scans.get(str(toolId), None)
+        thread, queue, queueResponse = self.local_scans.get(str(toolId), (None, None, None))
         if thread is None:
             return False
         thread.terminate()
+        del self.local_scans[str(toolId)]
         return True
 
-    def launchTask(self, toolModel, checks=True, worker=""):
-        logging.debug("Launch task for tool "+str(toolModel.getId()))
+    def launchTask(self, toolModel, checks=True, worker="", infos={}):
+        logger.debug("Launch task for tool "+str(toolModel.getId()))
         apiclient = APIClient.getInstance()
         launchableToolId = toolModel.getId()
         for item in list(self.local_scans.keys()):
-            if not self.local_scans[item].is_alive():
-                logging.debug("Proc finished : "+str(self.local_scans[item]))
-                del self.local_scans[item]
+            process_info = self.local_scans.get(item, None)
+            if process_info is not None and not process_info[0].is_alive():
+                logger.debug("Proc finished : "+str(self.local_scans[item]))
+                try:
+                    del self.local_scans[item]
+                except KeyError:
+                    pass
         if worker == "" or worker == "localhost" or worker == apiclient.getUser():
-            if self.local_scans.get(str(launchableToolId)) is None:
-                logging.debug("Launch task (start process) , local worker , for tool "+str(toolModel.getId()))
+            if self.local_scans.get(str(launchableToolId), None) is None:
+                logger.debug("Launch task (start process) , local worker , for tool "+str(toolModel.getId()))
                 thread = None
-                thread = multiprocessing.Process(target=executeTool, args=(apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser())))
+                queue = multiprocessing.Queue()
+                queueResponse = multiprocessing.Queue()
+                thread = multiprocessing.Process(target=executeTool, args=(queue, queueResponse, apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser()), infos, logger))
                 thread.start()
-                self.local_scans[str(launchableToolId)] = thread
-                logging.debug('Local tool launched '+str(toolModel.getId()))
+                self.local_scans[str(launchableToolId)] = (thread, queue, queueResponse)
+                logger.debug('Local tool launched '+str(toolModel.getId()))
             else:
-                logging.debug('Local tool already running '+str(toolModel.getId()))
+                logger.debug('Local tool already running '+str(toolModel.getId()))
 
         else:
-            logging.debug('laucnh task, send remote tool launch '+str(toolModel.getId()))
+            logger.debug('laucnh task, send remote tool launch '+str(toolModel.getId()))
             apiclient.sendLaunchTask(toolModel.getId(), checks, worker)
 
 
@@ -378,11 +396,20 @@ class ScanManager:
         return True, ""
 
     def onClosing(self):
-        logging.debug("Scan manager on closing state")
+        logger.debug("Scan manager on closing state")
         apiclient = APIClient.getInstance()
         apiclient.deleteWorker(apiclient.getUser()) 
         if self.sio is not None:
             self.sio.disconnect()
+
+    def beacon(self):
+        pentest = ""
+        apiclient = APIClient.getInstance()
+        if self.local_scans:
+            pentest = apiclient.getCurrentPentest() # pentest
+        self.sio.emit("keepalive", {"name":apiclient.getUser(), "running_tasks":[str(x) for x in self.local_scans]})
+        timer = threading.Timer(5.0, self.beacon)
+        timer.start()
 
     def registerAsWorker(self):
         self.settings._reloadLocalSettings()
@@ -397,14 +424,35 @@ class ScanManager:
         @self.sio.event
         def executeCommand(data):
             print("GOT EXECUTE "+str(data))
-            logging.debug("Got execute "+str(data))
+            logger.debug("Got execute "+str(data))
             toolId = data.get("toolId")
+            infos = data.get("infos")
             tool = Tool.fetchObject({"_id":ObjectId(toolId)})
             if tool is None:
-                logging.debug("Local worker scan was requested but tool not found : "+str(toolId))
+                logger.debug("Local worker scan was requested but tool not found : "+str(toolId))
                 return
-            logging.debug("Local worker launch task: tool  "+str(toolId))
-            self.launchTask(tool, True, apiclient.getUser())
+            logger.debug("Local worker launch task: tool  "+str(toolId))
+            self.launchTask(tool, True, apiclient.getUser(), infos=infos)
+
+        @self.sio.event
+        def stopCommand(data):
+            print("GOT STOP "+str(data))
+            logger.debug("Got stop "+str(data))
+            toolId = data.get("toolId")
+            self.stopTask(toolId)
+
+        @self.sio.event
+        def getProgress(data): 
+            print("Get Progress "+str(data))
+            logger.debug("get progress "+str(data))
+            toolId = data.get("tool_iid")
+            msg = self.getToolProgress(toolId)
+            print(msg)
+            self.sio.emit("getProgressResult", {"result":msg})
+        
+        
+        timer = threading.Timer(5.0, self.beacon)
+        timer.start()
         dialog = ChildDialogProgress(self.parent, "Registering", "Waiting for register 0/4", progress_mode="indeterminate")
         dialog.show()
         nb_try = 0

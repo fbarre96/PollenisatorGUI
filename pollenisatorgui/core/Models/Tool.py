@@ -280,7 +280,7 @@ class Tool(Element):
 
     
 
-    def markAsRunning(self, workerName):
+    def markAsRunning(self, workerName, infos):
         """Set this tool status as running but keeps OOT or OOS.
         Sets the starting date to current time and ending date to "None"
         Args:
@@ -295,6 +295,7 @@ class Tool(Element):
             newStatus.append("OOT")
         self.status = newStatus
         self.scanner_ip = workerName
+        self.infos.update(infos)
         self.update()
 
     def markAsNotDone(self):

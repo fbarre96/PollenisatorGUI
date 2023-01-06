@@ -10,6 +10,7 @@ from pollenisatorgui.core.Models.Defect import Defect
 from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogInfo import ChildDialogInfo
+from pollenisatorgui.core.Application.Dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
 import pollenisatorgui.core.Components.Utils as Utils
 from bson import ObjectId, errors
 import os
@@ -159,6 +160,8 @@ class ToolView(ViewElement):
             elif "running" in self.controller.getStatus():
                 actions_panel.addFormButton(
                     "Stop", self.stopCallback, side="right")
+                actions_panel.addFormButton(
+                    "Remote Interaction", self.remoteInteraction, side="right")
             elif "done" in self.controller.getStatus():
                 actions_panel.addFormButton(
                     "Download result file", self.downloadResultFile, side="right")
@@ -312,6 +315,11 @@ class ToolView(ViewElement):
                 widget.destroy()
             self.openModifyWindow()
 
+    def remoteInteraction(self, _event=None):
+        apiclient = APIClient.getInstance()
+        dialog = ChildDialogRemoteInteraction(self.controller)
+        dialog.app.wait_window(dialog.app)
+        
     def stopCallback(self, _event=None):
         """
         Callback for the launch tool stop button. Will stop this task. #TODO move to ToolController
