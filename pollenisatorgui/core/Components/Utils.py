@@ -243,7 +243,7 @@ def handleProcKill(proc):
     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     proc._killed = True
 
-def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=None):
+def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=None, cwd=None):
     """
     Execute a bash command and print output
 
@@ -261,7 +261,7 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
     
     try:
         proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid, cwd=cwd)
         proc._killed = False
         signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
         signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
@@ -286,7 +286,7 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
             output = b""
             os.set_blocking(proc.stdout.fileno(), False)
             os.set_blocking(proc.stdin.fileno(), False)
-            while proc.poll() is None:
+            while proc.poll() is None and queue is not None and queueResponse is not None:
                 if queue is not None and queue.qsize() > 0:
                     key = queue.get()
                     proc.stdin.write(key.encode())
@@ -294,7 +294,8 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
                     queueResponse.put(data)
                     time.sleep(0.5)
             stdout, stderr = proc.communicate(None, timeout)
-            queueResponse.put(stdout)
+            if queueResponse is not None:
+                queueResponse.put(stdout)
             if proc._killed:
                 logger.debug(f"Utils execute: command killed command:{command}")
                 if timer is not None:

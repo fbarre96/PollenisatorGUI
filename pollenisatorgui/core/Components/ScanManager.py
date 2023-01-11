@@ -10,6 +10,7 @@ from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
+from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.AutoScanWorker import executeTool
 from PIL import Image, ImageTk
 import pollenisatorgui.core.Components.Utils as Utils
@@ -122,12 +123,14 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         workers = apiclient.getWorkers()
         running_scans = Tool.fetchObjects({"status":"running"})
-        for children in self.scanTv.get_children():
-            try:
+        try:
+            for children in self.scanTv.get_children():
                 self.scanTv.delete(children)
-            except:
-                pass
-        
+        except tk.TclError:
+            pass
+        except RuntimeError:
+            return
+    
         for running_scan in running_scans:
             try:
                 self.scanTv.insert('','end', running_scan.getId(), text=running_scan.infos.get("group_name",""), values=(running_scan.name, running_scan.dated), image=self.running_icon)
@@ -160,6 +163,20 @@ class ScanManager:
             else:
                 self.btn_autoscan = ttk.Button(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
+        if len(workers) == 0:
+            options = ["Register this computer as worker", "Run a worker on server"]
+            if git_available:
+                options.append("Run worker locally")
+            options.append("Cancel")
+            dialog = ChildDialogQuestion(self.parent, "Register worker ?", "There is no running worker. What do you want to do ?", options)
+            self.parent.wait_window(dialog.app)
+            if dialog.rvalue is not None:
+                if dialog.rvalue.endswith("server"):
+                    self.runWorkerOnServer()
+                elif dialog.rvalue.endswith("worker"):
+                    self.registerAsWorker()
+                elif dialog.rvalue.endswith("locally"):
+                    self.launchDockerWorker()
         logger.debug('Refresh scan manager UI')
 
     def initUI(self, parent):
@@ -185,13 +202,11 @@ class ScanManager:
         btn_pane = ttk.Frame(self.parent)
         self.btn_setInclusion = ttk.Button(btn_pane, text="Include/exclude selected worker", command=self.setWorkerInclusion)
         self.btn_setInclusion.pack(padx=5, side=tk.RIGHT)
-        self.docker_image = tk.PhotoImage(file=Utils.getIcon("baleine.png"))
-        self.docker_download_image = tk.PhotoImage(file=Utils.getIcon("baleine_download.png"))
         self.btn_ServerWorker = ttk.Button(btn_pane, command=self.runWorkerOnServer, text="Start remote worker")
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         
         if git_available:
-            self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, image=self.docker_image, style="icon.TButton")
+            self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, text="Start worker locally")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
         self.btn_ServerWorker = ttk.Button(btn_pane, command=self.registerAsWorker, text="Register as worker")
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
@@ -341,18 +356,22 @@ class ScanManager:
                 except KeyError:
                     pass
         if worker == "" or worker == "localhost" or worker == apiclient.getUser():
-            if self.local_scans.get(str(launchableToolId), None) is None:
-                logger.debug("Launch task (start process) , local worker , for tool "+str(toolModel.getId()))
-                thread = None
-                queue = multiprocessing.Queue()
-                queueResponse = multiprocessing.Queue()
-                thread = multiprocessing.Process(target=executeTool, args=(queue, queueResponse, apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser()), infos, logger))
-                thread.start()
-                self.local_scans[str(launchableToolId)] = (thread, queue, queueResponse)
-                logger.debug('Local tool launched '+str(toolModel.getId()))
-            else:
-                logger.debug('Local tool already running '+str(toolModel.getId()))
-
+            scan = self.local_scans.get(str(launchableToolId), None)
+            if scan is not None:
+                if scan[0].is_alive():
+                    logger.debug('Local tool already running '+str(toolModel.getId()))
+                    return
+                else:
+                    del self.local_scans[str(launchableToolId)]
+                    scan = None
+            logger.debug("Launch task (start process) , local worker , for tool "+str(toolModel.getId()))
+            thread = None
+            queue = multiprocessing.Queue()
+            queueResponse = multiprocessing.Queue()
+            thread = multiprocessing.Process(target=executeTool, args=(queue, queueResponse, apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser()), infos, logger))
+            thread.start()
+            self.local_scans[str(launchableToolId)] = (thread, queue, queueResponse)
+            logger.debug('Local tool launched '+str(toolModel.getId()))
         else:
             logger.debug('laucnh task, send remote tool launch '+str(toolModel.getId()))
             apiclient.sendLaunchTask(toolModel.getId(), checks, worker)
@@ -464,4 +483,5 @@ class ScanManager:
         dialog.destroy()
         if name not in self.workerTv.get_children():
             return False, "Worker did not boot in time, cannot add commands to wave"
+        apiclient.setWorkerInclusion(name, True)
             

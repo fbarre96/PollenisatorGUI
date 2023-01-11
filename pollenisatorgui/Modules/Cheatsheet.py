@@ -81,12 +81,14 @@ class Cheatsheet(Module):
             self.tkApp, self.frameTw, self.viewframe)
         self.treevw.heading("#0", text="Cheatsheets")
         self.treevw.initUI()
+        btn_filter = ttk.Button(self.frameTw, text="Filter done checks")
         scbVSel = ttk.Scrollbar(self.frameTw,
                                 orient=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
+        btn_filter.grid(row=1, column=0, sticky=tk.S)
         self.paned.add(self.frameTw)
         self.myscrollbarMain = tk.Scrollbar(self.paned, orient="vertical", command=self.canvasMain.yview)
         self.myscrollbarMain.pack(side="right", fill=tk.BOTH)

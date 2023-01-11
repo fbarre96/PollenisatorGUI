@@ -173,7 +173,7 @@ def pollex():
         comm = comm.replace("|outputDir|", outputFilePath)
         if (verbose):
             print("Executing command : "+str(comm))
-        returncode, stdout = Utils.execute(comm, None, True)
+        returncode, stdout = Utils.execute(comm, None, True, cwd=tmpdirname)
         #if stdout.strip() != "":
         #    print(stdout.strip())
         if not os.path.exists(outputFilePath):

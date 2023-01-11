@@ -1234,7 +1234,8 @@ class Appli(tkinterDnD.Tk):
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":calendarName})
             self.settings.reloadSettings()
             self.refresh_tabs()
-            self.nbk.select("Main View")
+            
+            self.nbk.select("Scan")
 
     def refresh_tabs(self):
         apiclient = APIClient.getInstance()

@@ -83,8 +83,8 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
             logger.debug("Autoscan: Execute tool locally error in creating output directory : "+str(exc))
             toolModel.setStatus(["error"])
             return False, str(exc)
-    outputDir = os.path.join(outputDir, toolFileName)
-    comm = comm.replace("|outputDir|", outputDir)
+    outputPath = os.path.join(outputDir, toolFileName)
+    comm = comm.replace("|outputDir|", outputPath)
     settings = Settings()
     my_commands = settings.local_settings.get("my_commands", {})
     bin_path = my_commands.get(toolModel.name)
@@ -119,7 +119,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         print(('TASK STARTED:'+toolModel.name))
         print("Will timeout at "+str(timeLimit))
         # Execute the command with a timeout
-        returncode, stdout = Utils.execute(comm, timeLimit, True, queue, queueResponse)
+        returncode, stdout = Utils.execute(comm, timeLimit, True, queue, queueResponse, cwd=outputDir)
         if returncode == -1:
             toolModel.setStatus(["timedout"])
             logger.debug("Autoscan: TOOL timedout at "+str(timeLimit))
@@ -130,7 +130,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         logger.debug("Autoscan: TOOL error "+str(e))
         return False, str(e)
     # Execute found plugin if there is one
-    outputfile = outputDir+fileext
+    outputfile = outputPath+fileext
     plugin = "auto-detect" if command_dict["plugin"] == "" else command_dict["plugin"] 
     msg = apiclient.importToolResult(toolId, plugin, outputfile)
     if msg != "Success":

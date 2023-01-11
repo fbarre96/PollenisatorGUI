@@ -937,7 +937,7 @@ class APIClient():
         api_url = '{0}tools/{1}/importResult/{2}'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
         if not os.path.isfile(local_path):
             return "Failure to open provided file"
-        with io.open(local_path, mode='r', encoding='utf-8', errors="ignore") as f:
+        with io.open(local_path, mode='rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, headers=h, proxies=proxies, verify=False)
