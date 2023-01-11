@@ -960,7 +960,7 @@ class APIClient():
     @handle_api_errors
     def importExistingResultFile(self, filepath, plugin, default_target="", command_used=""):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
-        with io.open(filepath, mode='r', encoding='utf-8', errors="ignore") as f:
+        with io.open(filepath, mode='rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
             response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":default_target, "cmdline":command_used}, proxies=proxies, verify=False)
