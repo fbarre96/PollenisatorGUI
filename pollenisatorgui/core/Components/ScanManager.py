@@ -325,7 +325,7 @@ class ScanManager:
             apiclient.setWorkerInclusion(worker_hostname, not (isIncluded))
 
     def getToolProgress(self, toolId):
-        thread, queue, queueResponse = self.local_scans.get(str(toolId), (None, None,None))
+        thread, queue, queueResponse, toolModel = self.local_scans.get(str(toolId), (None, None,None,None))
         if thread is None or queue is None:
             return ""
         progress = ""
@@ -336,11 +336,15 @@ class ScanManager:
         return ""
 
     def stopTask(self, toolId):
-        thread, queue, queueResponse = self.local_scans.get(str(toolId), (None, None, None))
+        thread, queue, queueResponse, toolModel = self.local_scans.get(str(toolId), (None, None, None, None))
         if thread is None:
             return False
-        thread.terminate()
+        try:
+            thread.terminate()
+        except:
+            pass
         del self.local_scans[str(toolId)]
+        toolModel.markAsNotRunning()
         return True
 
     def launchTask(self, toolModel, checks=True, worker="", infos={}):
@@ -370,7 +374,7 @@ class ScanManager:
             queueResponse = multiprocessing.Queue()
             thread = multiprocessing.Process(target=executeTool, args=(queue, queueResponse, apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser()), infos, logger))
             thread.start()
-            self.local_scans[str(launchableToolId)] = (thread, queue, queueResponse)
+            self.local_scans[str(launchableToolId)] = (thread, queue, queueResponse, toolModel)
             logger.debug('Local tool launched '+str(toolModel.getId()))
         else:
             logger.debug('laucnh task, send remote tool launch '+str(toolModel.getId()))
@@ -422,13 +426,13 @@ class ScanManager:
             self.sio.disconnect()
 
     def beacon(self):
-        pentest = ""
         apiclient = APIClient.getInstance()
-        if self.local_scans:
-            pentest = apiclient.getCurrentPentest() # pentest
-        self.sio.emit("keepalive", {"name":apiclient.getUser(), "running_tasks":[str(x) for x in self.local_scans]})
-        timer = threading.Timer(5.0, self.beacon)
-        timer.start()
+        try:
+            self.sio.emit("keepalive", {"name":apiclient.getUser(), "running_tasks":[str(x) for x in self.local_scans]})
+            timer = threading.Timer(5.0, self.beacon)
+            timer.start()
+        except socketio.exceptions.BadNamespaceError:
+            pass
 
     def registerAsWorker(self):
         self.settings._reloadLocalSettings()
@@ -455,7 +459,6 @@ class ScanManager:
 
         @self.sio.event
         def stopCommand(data):
-            print("GOT STOP "+str(data))
             logger.debug("Got stop "+str(data))
             toolId = data.get("toolId")
             self.stopTask(toolId)
