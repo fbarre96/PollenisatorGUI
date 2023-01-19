@@ -24,23 +24,17 @@ class Command(Element):
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("bin_path", ""), valuesFromDb.get("plugin", ""), 
-                        valuesFromDb.get("text", ""), valuesFromDb.get(
-                            "lvl", "network"),
-                        valuesFromDb.get("ports", ""),
-                        bool(valuesFromDb.get("safe", True)), valuesFromDb.get("types", []), valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), 
+                        valuesFromDb.get("text", ""), 
+                        valuesFromDb.get("indb", "pollenisator"), valuesFromDb.get("timeout", 300), 
                         valuesFromDb.get("owners", []), valuesFromDb.get("infos", {}))
 
-    def initialize(self, name, bin_path, plugin="Default", text="", lvl="network", ports="", safe=True, types=None, indb=False, timeout=300, owners=[], infos=None):
+    def initialize(self, name, bin_path, plugin="Default", text="", indb=False, timeout=300, owners=[], infos=None):
         """Set values of command
         Args:
             name: the command name
             bin_path: local command, binary path or command line
             plugin: plugin that goes with this command
             text: the command line options. Default is "".
-            lvl: level of the command. Must be either "wave", "network", "domain", "ip", "port" or a module name. Default is "network"
-            ports: allowed proto/port, proto/service or port-range for this command
-            safe: True or False with True as default. Indicates if autoscan is authorized to launch this command.
-            types: type for the command. Lsit of string. Default to None.
             indb: db name : global (pollenisator database) or  local pentest database
             timeout: a timeout to kill stuck tools and retry them later. Default is 300 (in seconds)
             owners: the owners of the command
@@ -52,20 +46,16 @@ class Command(Element):
         self.bin_path = bin_path
         self.plugin = plugin
         self.text = text
-        self.lvl = lvl
-        self.ports = ports
-        self.safe = bool(safe)
+        
         self.infos = infos if infos is not None else {}
         self.indb = indb
         self.timeout = timeout
-        self.types = types if types is not None else []
         self.owners = owners
         return self
 
     def delete(self):
         """
         Delete the command represented by this model in database.
-        Also delete it from every group_commands.
         Also delete it from every waves's wave_commands
         Also delete every tools refering to this command.
         """
@@ -84,9 +74,9 @@ class Command(Element):
                 * mongo ObjectId : already existing object if duplicate, create object id otherwise 
         """
         apiclient = APIClient.getInstance()
-        res, id = apiclient.insert("commands", {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin, "lvl": self.lvl,
+        res, id = apiclient.insert("commands", {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin, 
                                                                             "text": self.text,
-                                                                           "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb": self.indb, "timeout": int(self.timeout), "owners": self.owners})
+                                                                           "indb": self.indb, "timeout": int(self.timeout), "owners": self.owners})
         if not res:
             return False, id
         self._id = id
@@ -102,7 +92,7 @@ class Command(Element):
         
         if pipeline_set is None:
             apiclient.update("commands", self._id, {"timeout": int(self.timeout),
-                         "text": self.text, "ports": self.ports, "safe": bool(self.safe), "types": self.types, "indb":self.indb, "plugin":self.plugin, "bin_path":self.bin_path})
+                         "text": self.text, "indb":self.indb, "plugin":self.plugin, "bin_path":self.bin_path})
            
         else:
             apiclient.update("commands", self._id, pipeline_set)

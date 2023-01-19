@@ -89,12 +89,7 @@ class Wave(Element):
         """
         return self.wave
 
-    def getTools(self):
-        """Return scope assigned tools as a list of mongo fetched tools dict
-        Returns:
-            list of defect raw mongo data dictionnaries
-        """
-        return Tool.fetchObjects({"wave": self.wave, "lvl": "wave"})
+ 
 
     def getAllTools(self):
         """Return all tools being part of this wave as a list of mongo fetched tools dict.

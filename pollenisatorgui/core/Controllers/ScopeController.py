@@ -83,12 +83,12 @@ class ScopeController(ControllerElement):
         """
         return {"wave": self.model.wave, "scope": self.model.scope, "notes": self.model.notes, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
-    def getTools(self):
-        """Return scope assigned tools as a list of mongo fetched tools dict
+    def getChecks(self):
+        """Return scope assigned checks as a list of checkInstance
         Returns:
-            list of defect raw mongo data dictionnaries
+            list of checkInstance objects
         """
-        return self.model.getTools()
+        return self.model.getChecks()
 
     def getType(self):
         """Returns a string describing the type of object

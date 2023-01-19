@@ -59,12 +59,12 @@ class WaveController(ControllerElement):
         """
         return self.model.getIntervals()
 
-    def getTools(self):
-        """Return scope assigned tools as a list of mongo fetched tools dict
+    def getChecks(self):
+        """Return wave assigned checks as a list of checkInstance
         Returns:
-            list of defect raw mongo data dictionnaries
+            list of checkInstance objects
         """
-        return self.model.getTools()
+        return self.model.getChecks()
 
     def getAllTools(self):
         """Return all tools being part of this wave as a list of mongo fetched tools dict.

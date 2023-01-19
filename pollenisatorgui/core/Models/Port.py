@@ -134,13 +134,6 @@ class Port(Element):
         """
         return str(self.ip)+":"+str(self)
 
-    def getTools(self):
-        """Return port assigned tools as a list of mongo fetched defects dict
-        Returns:
-            list of tool raw mongo data dictionnaries
-        """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("tools", {"lvl": "port", "ip": self.ip, "port": self.port, "proto": self.proto})
 
     def getDefects(self):
         """Return port assigned defects as a list of mongo fetched defects dict

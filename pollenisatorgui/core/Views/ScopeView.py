@@ -1,7 +1,10 @@
 """View for scope object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.Controllers.CheckInstanceController import CheckInstanceController
 from pollenisatorgui.core.Controllers.ToolController import ToolController
+from pollenisatorgui.core.Models.CheckInstance import CheckInstance
 from pollenisatorgui.core.Models.Tool import Tool
+from pollenisatorgui.core.Views.CheckInstanceView import CheckInstanceView
 from pollenisatorgui.core.Views.IpView import IpView
 from pollenisatorgui.core.Views.ToolView import ToolView
 from pollenisatorgui.core.Views.ViewElement import ViewElement
@@ -62,12 +65,12 @@ class ScopeView(ViewElement):
         except:
             pass
         if addChildren:
-            tools = self.controller.getTools()
-            for tool in tools:
-                tool_o = ToolController(Tool(tool))
-                tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
-                tool_vw.addInTreeview(str(
-                   self.controller.getDbId()))
+            checks = self.controller.getChecks()
+            for check in checks:
+                check_o = CheckInstanceController(check)
+                check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
+                check_vw.addInTreeview(str(self.controller.getDbId()))
+          
         if "hidden" in self.controller.getTags():
             self.hide()
 

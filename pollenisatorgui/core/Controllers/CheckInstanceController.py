@@ -52,9 +52,12 @@ class CheckInstanceController(ControllerElement):
     def getCategory(self):
         return self.model.check_m.category
     
-    def getParent(self):
-        return self.model.parent
+    def getTarget(self):
+        return self.model.target_iid
 
+    def getTools(self):
+        return self.model.getTools()
+        
     def actualize(self):
         """Ask the model to reload its data from database
         """

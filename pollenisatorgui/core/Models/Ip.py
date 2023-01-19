@@ -187,13 +187,7 @@ class Ip(Element):
         """
         return self.ip
 
-    def getTools(self):
-        """Return ip assigned tools as a list of mongo fetched defects dict
-        Returns:
-            list of tool raw mongo data dictionnaries
-        """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("tools", {"lvl": "ip", "ip": self.ip})
+
 
     def getPorts(self):
         """Returns ip assigned ports as a list of mongo fetched defects dict

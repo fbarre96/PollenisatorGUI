@@ -3,11 +3,8 @@
 import tkinter as tk
 from bson.objectid import ObjectId
 from pollenisatorgui.core.Models.Command import Command
-from pollenisatorgui.core.Models.CommandGroup import CommandGroup
-from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
 from pollenisatorgui.core.Views.CommandView import CommandView
 from pollenisatorgui.core.Views.MultiCommandView import MultiCommandView
-from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
 from pollenisatorgui.core.Controllers.CommandController import CommandController
 from pollenisatorgui.core.Application.Treeviews.PollenisatorTreeview import PollenisatorTreeview
 from pollenisatorgui.core.Components.apiclient import APIClient
@@ -28,7 +25,6 @@ class CommandsTreeview(PollenisatorTreeview):
         """
         super().__init__(appli, parentFrame)
         self.commands_node = None  # parent of all commands nodes
-        self.group_command_node = None  # parent of all group commands nodes
         self.openedViewFrameId = None  # if of the currently opened object in the view frame
 
     
@@ -53,7 +49,7 @@ class CommandsTreeview(PollenisatorTreeview):
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
         Open the selected object view on the view frame.
-        IF it's a parent commands or command_groups node, opens Insert
+        IF it's a parent commands or other node, opens Insert
         ELSE open a modify window
         Args:
             event: filled with the callback, contains data about line clicked
@@ -71,10 +67,6 @@ class CommandsTreeview(PollenisatorTreeview):
                 elif str(item) == "commands":
                     objView = CommandView(
                         self, self.appli.commandsViewFrame, self.appli, CommandController(Command({})))
-                    objView.openInsertWindow()
-                elif str(item) == "command_groups":
-                    objView = CommandGroupView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandGroupController(CommandGroup()))
                     objView.openInsertWindow()
             else:
                 self.openModifyWindowOf(item)
@@ -135,13 +127,6 @@ class CommandsTreeview(PollenisatorTreeview):
             command_vw = CommandView(
                 self, self.appli.commandsViewFrame, self.appli, CommandController(command))
             command_vw.addInTreeview()
-        self.group_command_node = self.insert("", "end", str(
-            "command_groups"), text="Command Groups", image=CommandGroupView.getClassIcon())
-        command_groups = CommandGroup.fetchObjects({})
-        for command_group in command_groups:
-            command_group_vw = CommandGroupView(
-                self, self.appli.commandsViewFrame, self.appli, CommandGroupController(command_group))
-            command_group_vw.addInTreeview()
         
     def deleteSelected(self, _event):
         """
@@ -243,14 +228,7 @@ class CommandsTreeview(PollenisatorTreeview):
                 view = CommandView(self, self.appli.commandsViewFrame,
                                    self.appli, CommandController(res))
                 parent = None
-            elif collection == "group_commands":
-                res = apiclient.getCommandGroups({"_id": ObjectId(iid)})
-                if res is not None:
-                    if isinstance(res, list) and res:
-                        res = res[0]
-                        view = CommandGroupView(self, self.appli.commandsViewFrame,
-                                                self.appli, CommandGroupController(CommandGroup(res)))
-                        parent = None
+           
             try:
                 view.addInTreeview(parent)
                 if view is not None:

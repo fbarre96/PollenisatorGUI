@@ -176,14 +176,6 @@ class Scope(Element):
         """
         return self.scope
 
-    def getTools(self):
-        """Return port assigned tools as a list of mongo fetched defects dict
-        Returns:
-            list of tool raw mongo data dictionnaries
-        """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("tools", {"wave": self.wave, "$or": [{"lvl": "network"}, {"lvl": "domain"}], "scope": self.scope})
-
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
         Returns:

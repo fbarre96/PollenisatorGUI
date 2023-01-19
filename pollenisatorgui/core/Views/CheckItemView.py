@@ -45,13 +45,43 @@ class CheckItemView(ViewElement):
         self.checktypeForm = panel_bottom.addFormCombo("Check type", ("manual_commands", "auto_commands", "script", "manual"), default=default.get("check_type","manual"),  binds={"<<ComboboxSelected>>": lambda ev: self.updateCheckType(action)}, row=0, column=1)
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormChecklist("Pentest types", list(Settings.getPentestTypes().keys()), default.get("pentest_types", []), row=1, column=1)
+        panel_bottom = self.form.addFormPanel(grid=True)
+        lvl = ["network", "domain", "ip", "port", "wave"]
+        for module in self.mainApp.modules:
+            module_info = getattr(module["object"], "module_info", {})
+            lvl += module_info.get("registerLvls", [])
+        panel_bottom.addFormLabel("Level", row=0, column=0)
+        panel_bottom.addFormCombo(
+            "Level", lvl, default.get("lvl", "network"), row=0, column=1)
+        panel_bottom.addFormHelper(
+            "lvl wave: will run on each wave once\nlvl network: will run on each NetworkIP once\nlvl domain: will run on each scope domain once\nlvl ip: will run on each ip/hostname once\nlvl port: will run on each port once", row=0, column=2)
+        panel_bottom = self.form.addFormPanel(grid=True)
+        panel_bottom.addFormLabel("Ports/Services (if level is port only)")
+        panel_bottom.addFormStr(
+            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", default.get("ports", ""), width=50, column=1)
+        panel_bottom.addFormHelper(
+            "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
+
         if default.get("parent") is None:
-            panel_bottom.addFormLabel("Category", row=2, column=0)
-            panel_bottom.addFormStr("Category", r"", default.get("category", ""), width=50, row=2, column=1)
+            panel_bottom.addFormLabel("Category", row=1, column=0)
+            panel_bottom.addFormStr("Category", r"", default.get("category", ""), width=50, row=1, column=1)
+        panel = self.form.addFormPanel(grid=True)
+        panel.addFormLabel("Priority")
+        panel.addFormStr(
+            "Priority", r"\d+", default["priority"], width=5, column=1)
+        panel.addFormHelper(
+            "Defines the priority of this group of command when an auto scan is running.\nAutoscan will try to launch the highest priority (0 is max) and the highest+1.", column=2)
+        
         panel_bottom = self.form.addFormPanel()
         panel_bottom.addFormLabel("Description")
         panel_bottom.addFormText("Description", r"", default.get("description", ""), height=10, side="right")
         if "commands" in default.get("check_type", "manual"):
+            formCommands = self.form.addFormPanel(grid=True)
+            formCommands.addFormLabel("Shared threads")
+            formCommands.addFormStr("Shared threads", r"\d+",
+                            default["max_thread"], width=2, column=1)
+            panel.addFormHelper(
+                "Number of parallel execution allowed for every command in this group at any given moment.", column=2)
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormSearchBar("Commands search", self.searchCallback, self.form, side=tk.TOP)
             formTv.addFormLabel("Commands associated", side=tk.LEFT)
@@ -96,7 +126,7 @@ class CheckItemView(ViewElement):
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Title", column=0)
         panel_top.addFormStr("Title", r".+", default=modelData.get("title", ""), column=1)
-      
+
         self._commonWindowForms(modelData, action="modify")
         if modelData.get("parent") is None:
             self.form.addFormButton("Add a step", self.addStep)
@@ -115,12 +145,14 @@ class CheckItemView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new Command
         """
+        data = self.controller.getData()
         self._initContextualMenu()
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Title", column=0)
         panel_top.addFormStr("Title", r".+", column=1, width=50)
-
-        self._commonWindowForms(self.controller.getData(), action="insert")
+        
+       
+        self._commonWindowForms(data, action="insert")
         self.completeInsertWindow()
 
     def addInTreeview(self, parentNode=None):
@@ -145,12 +177,9 @@ class CheckItemView(ViewElement):
         """
         apiclient = APIClient.getInstance()
         category = self.controller.getCategory()
+      
         try:
-            self.appliTw.insert("", "end", "global", text="Setup Cheatsheets")
-        except tk.TclError:
-            pass
-        try:
-            self.appliTw.insert("global", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getClassIcon())
+            self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getClassIcon())
         except tk.TclError:
             pass
         parent = self.controller.getParent()
@@ -212,7 +241,11 @@ class CheckItemView(ViewElement):
     def key(self):
         """Returns a key for sorting this node
         Returns:
-            string, key to sort
+            tuple, key to sort
         """
-        return str(self.controller.getModelRepr()).lower()
+        return tuple([ord(c) for c in str(self.controller.getModelRepr()).lower()])
 
+    # function that converts a string into a lsit of ascii values
+    def convert(self, string):  
+        li = list(string.split(" ")) 
+        return li   

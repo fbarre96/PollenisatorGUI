@@ -23,12 +23,14 @@ class CheckInstance(Element):
             valuesFromDb = dict()
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
             "tags", []), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("check_iid"), valuesFromDb.get("parent"), valuesFromDb.get("status", ""), valuesFromDb.get("notes", ""))
+        self.initialize(valuesFromDb.get("check_iid"), valuesFromDb.get("target_iid"),valuesFromDb.get("target_type"), valuesFromDb.get("parent"), valuesFromDb.get("status", ""), valuesFromDb.get("notes", ""))
         
-    def initialize(self, check_iid, parent, status, notes):
+    def initialize(self, check_iid, target_iid, target_type, parent, status, notes):
         apiclient = APIClient.getInstance()
         self.check_iid = check_iid
         self.parent = parent
+        self.target_iid = target_iid
+        self.target_type = target_type
         self.status = status
         self.notes = notes
         self.check_m = CheckItem.fetchObject({"_id":ObjectId(check_iid)})
@@ -101,10 +103,14 @@ class CheckInstance(Element):
             yield CheckInstance(d)
     
     def getData(self):
-        return {"_id": self._id,  "check_iid": self.check_iid, "parent":self.parent, "status": self.status, "notes": self.notes}
+        return {"_id": self._id,  "check_iid": self.check_iid, "target_type": self.target_type, "parent":self.parent, "status": self.status, "notes": self.notes}
 
     def getCheckItem(self):
         return self.check_m
+
+    def getTools(self):
+        apiclient = APIClient.getInstance()
+        return apiclient.find("tools", {"check_iid": str(self._id)})
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.

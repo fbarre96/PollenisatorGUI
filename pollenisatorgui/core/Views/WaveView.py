@@ -1,5 +1,8 @@
 """View for wavr object. Handle node in treeview and present forms to user when interacted with."""
 import tkinter as tk
+from pollenisatorgui.core.Controllers.CheckInstanceController import CheckInstanceController
+from pollenisatorgui.core.Models.CheckInstance import CheckInstance
+from pollenisatorgui.core.Views.CheckInstanceView import CheckInstanceView
 
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Models.Command import Command
@@ -97,12 +100,11 @@ class WaveView(ViewElement):
                 interval_vw = IntervalView(
                     self.appliTw, self.appliViewFrame, self.mainApp, IntervalController(Interval(interval)))
                 interval_vw.addInTreeview(dates_node)
-            tools = self.controller.getTools()
-            for tool in tools:
-                tool_o = ToolController(tool)
-                tool_vw = ToolView(
-                    self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
-                tool_vw.addInTreeview(str(self.controller.getDbId()))
+            checks = self.controller.getChecks()
+            for check in checks:
+                check_o = CheckInstanceController(check)
+                check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
+                check_vw.addInTreeview(str(self.controller.getDbId()))
             scopes = self.controller.getScopes()
             for scope in scopes:
                 scope_o = ScopeController(Scope(scope))

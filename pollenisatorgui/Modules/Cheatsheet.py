@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 from bson.objectid import ObjectId
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.Modules.Module import Module
+from pollenisatorgui.core.Models.CheckItem import CheckItem
 from pollenisatorgui.core.Application.Treeviews.CheatsheetTreeview import CheatsheetTreeview
 
 class Cheatsheet(Module):
@@ -43,6 +44,7 @@ class Cheatsheet(Module):
         Fetch data from database
         """
         apiclient = APIClient.getInstance()
+        
 
     def displayData(self):
         """
@@ -81,14 +83,14 @@ class Cheatsheet(Module):
             self.tkApp, self.frameTw, self.viewframe)
         self.treevw.heading("#0", text="Cheatsheets")
         self.treevw.initUI()
-        btn_filter = ttk.Button(self.frameTw, text="Filter done checks")
+        btn_add_check = ttk.Button(self.frameTw, text="Add a check", command=self.createCheck)
         scbVSel = ttk.Scrollbar(self.frameTw,
                                 orient=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
-        btn_filter.grid(row=1, column=0, sticky=tk.S)
+        btn_add_check.grid(row=1, column=0, sticky=tk.S)
         self.paned.add(self.frameTw)
         self.myscrollbarMain = tk.Scrollbar(self.paned, orient="vertical", command=self.canvasMain.yview)
         self.myscrollbarMain.pack(side="right", fill=tk.BOTH)
@@ -145,7 +147,13 @@ class Cheatsheet(Module):
         selected = self.treevw.selection()
         apiclient.bulkDelete({"cheatsheet":selected}) 
 
+    def createCheck(self, event=None):
+
+        self.treevw.openInsertWindow(CheckItem())
 
     def handleNotif(self, db, collection, iid, action):
-        self.treevw.notify(db, collection, iid, action, None)
+        if db == "pollenisator":
+            self.treevw.notify(db, collection, iid, action, None)
+        else:
+            self.treevwApp.notify(db, collection, iid, action, None)
 

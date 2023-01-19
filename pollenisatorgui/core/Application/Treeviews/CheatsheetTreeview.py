@@ -11,9 +11,7 @@ from pollenisatorgui.core.Views.CheckItemView import CheckItemView
 from pollenisatorgui.core.Views.MultiCheckItemView import MultiCheckItemView
 from pollenisatorgui.core.Controllers.CheckItemController import CheckItemController
 
-from pollenisatorgui.core.Models.CheckInstance import CheckInstance
-from pollenisatorgui.core.Views.CheckInstanceView import CheckInstanceView
-from pollenisatorgui.core.Controllers.CheckInstanceController import CheckInstanceController
+
 
 class CheatsheetTreeview(PollenisatorTreeview):
     """CheatsheetTreeview class
@@ -53,7 +51,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
         Open the selected object view on the view frame.
-        IF it's a parent commands or command_groups node, opens Insert
+        IF it's a parent commands or other node, opens Insert
         ELSE open a modify window
         Args:
             event: filled with the callback, contains data about line clicked
@@ -76,6 +74,10 @@ class CheatsheetTreeview(PollenisatorTreeview):
             multiView.form.clear()
             multiView.openModifyWindow()
 
+    def openInsertWindow(self, check_item):
+        objView = CheckItemView(
+                        self, self.viewFrame, self.appli, CheckItemController(check_item))
+        objView.openInsertWindow()
 
     def doPopup(self, event):
         """Open the popup 
@@ -126,12 +128,6 @@ class CheatsheetTreeview(PollenisatorTreeview):
                 self, self.viewFrame, self.appli, CheckItemController(checkitem))
             checkitem_vw.addInTreeview()
 
-        checkinstances = CheckInstance.fetchObjects({})
-        for checkinstance in checkinstances:
-            if checkinstance.check_m is not None:
-                checkinstance_vw = CheckInstanceView(
-                    self, self.viewFrame, self.appli, CheckInstanceController(checkinstance))
-                checkinstance_vw.addInTreeview()
             
     def deleteSelected(self, _event):
         """

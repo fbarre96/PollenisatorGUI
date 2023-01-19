@@ -1,9 +1,12 @@
 """View for ip object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.Controllers.CheckInstanceController import CheckInstanceController
+from pollenisatorgui.core.Models.CheckInstance import CheckInstance
 from pollenisatorgui.core.Models.Port import Port
 from pollenisatorgui.core.Models.Tool import Tool
 from pollenisatorgui.core.Models.Defect import Defect
 from pollenisatorgui.core.Models.Ip import Ip
+from pollenisatorgui.core.Views.CheckInstanceView import CheckInstanceView
 from pollenisatorgui.core.Views.PortView import PortView
 from pollenisatorgui.core.Views.ToolView import ToolView
 from pollenisatorgui.core.Views.DefectView import DefectView
@@ -87,14 +90,14 @@ class IpView(ViewElement):
                 self.appliTw, self.appliViewFrame, self.mainApp, defect_o)
             defect_vw.addInTreeview(str(self.controller.getDbId()))
 
-    def _insertChildrenTools(self):
+    def _insertChildrenChecks(self):
         """Create a tools list node and insert every children tools in database as ToolView under this node"""
-        tools = self.controller.getTools()
-        for tool in tools:
-            tool_o = ToolController(Tool(tool))
-            tool_vw = ToolView(
-                self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
-            tool_vw.addInTreeview(str(self.controller.getDbId()))
+        checks = self.controller.getChecks()
+        for check in checks:
+            check_o = CheckInstanceController(check)
+            check_vw = CheckInstanceView(
+                self.appliTw, self.appliViewFrame, self.mainApp, check_o)
+            check_vw.addInTreeview(str(self.controller.getDbId()))
 
     def _insertChildrenPorts(self, ip_node):
         """Insert every children port in database as DefectView under this node directly"""
@@ -128,7 +131,7 @@ class IpView(ViewElement):
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         if addChildren and ip_node is not None:
             self._insertChildrenDefects()
-            self._insertChildrenTools()
+            self._insertChildrenChecks()
             self._insertChildrenPorts(ip_node)
         # self.appliTw.sort(parentNode)
         if "hidden" in self.controller.getTags():

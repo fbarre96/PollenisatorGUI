@@ -11,6 +11,7 @@ from pollenisatorgui.core.Application.Dialogs.ChildDialogFileParser import Child
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
+from pollenisatorgui.core.Models.CheckInstance import CheckInstance
 from pollenisatorgui.AutoScanWorker import executeTool
 from PIL import Image, ImageTk
 import pollenisatorgui.core.Components.Utils as Utils
@@ -130,10 +131,11 @@ class ScanManager:
             pass
         except RuntimeError:
             return
-    
         for running_scan in running_scans:
+            check = CheckInstance.fetchObject({"_id":ObjectId(running_scan.check_iid)})
+            group_name = "" if check is None else check.check_m.title
             try:
-                self.scanTv.insert('','end', running_scan.getId(), text=running_scan.infos.get("group_name",""), values=(running_scan.name, running_scan.dated), image=self.running_icon)
+                self.scanTv.insert('','end', running_scan.getId(), text=group_name, values=(running_scan.name, running_scan.dated), image=self.running_icon)
             except tk.TclError:
                 pass
         for children in self.workerTv.get_children():
@@ -344,7 +346,7 @@ class ScanManager:
         except:
             pass
         del self.local_scans[str(toolId)]
-        toolModel.markAsNotRunning()
+        toolModel.markAsNotDone()
         return True
 
     def launchTask(self, toolModel, checks=True, worker="", infos={}):
@@ -359,15 +361,16 @@ class ScanManager:
                     del self.local_scans[item]
                 except KeyError:
                     pass
+
         if worker == "" or worker == "localhost" or worker == apiclient.getUser():
             scan = self.local_scans.get(str(launchableToolId), None)
             if scan is not None:
-                if scan[0].is_alive():
-                    logger.debug('Local tool already running '+str(toolModel.getId()))
+                if scan[0].is_alive() and str(scan[0].pid) != "":
                     return
                 else:
                     del self.local_scans[str(launchableToolId)]
                     scan = None
+
             logger.debug("Launch task (start process) , local worker , for tool "+str(toolModel.getId()))
             thread = None
             queue = multiprocessing.Queue()

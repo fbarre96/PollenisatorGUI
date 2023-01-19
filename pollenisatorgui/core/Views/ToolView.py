@@ -133,7 +133,7 @@ class ToolView(ViewElement):
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         try:
-            command_d = apiclient.find("commands", {"_id":ObjectId(modelData["command_iid"])}, False)
+            command_d = apiclient.find("commands", {"original_iid":str(modelData["command_iid"])}, False)
             workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d["bin_path"]})
             workers = [x["name"] for x in workers]
             hasWorkers = len(workers)
@@ -194,21 +194,8 @@ class ToolView(ViewElement):
             _addChildren: not used for tools
         """
         if parentNode is None:
-            parentNode = ToolView.DbToTreeviewListId(
-                self.controller.getParentId())
-            nodeText = str(self.controller.getModelRepr())
-        elif parentNode == '':
-            # For a filter all node are added to the root which is '' in tkinter
-            nodeText = self.controller.getDetailedString()
-        else:
-            # if a parent node is given it is the model parent, the treeview parent can be retrivied with ToolView.DbToTreeviewListId
-            parentNode = ToolView.DbToTreeviewListId(parentNode)
-            nodeText = str(self.controller.getModelRepr())
-        try:
-            parentNode = self.appliTw.insert(
-                self.controller.getParentId(), 0, parentNode, text="Tools", image=self.getClassIcon())
-        except TclError:  #  trigger if tools list node already exist
-            pass
+            parentNode = self.controller.getParentId()
+        nodeText = str(self.controller.getModelRepr())
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(

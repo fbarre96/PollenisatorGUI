@@ -3,6 +3,8 @@
 from venv import create
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.ScriptManager import ScriptManager
+from pollenisatorgui.core.Controllers.ToolController import ToolController
+from pollenisatorgui.core.Views.ToolView import ToolView
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Models.Tool import Tool
@@ -129,7 +131,7 @@ class CheckInstanceView(ViewElement):
             tv_commands = []
             for command_name, status in infos.get("tools_status", {}).items():
                 tv_commands.append([command_name, f'{status["done"]}/{status["total"]}'])
-            if check_m.check_type == "manual_commands":
+            if True==True:#if check_m.check_type == "manual_commands": #
                 formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
                 dict_of_tools = infos.get("tools_not_done")
                 lambdas = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools.keys()]
@@ -168,7 +170,7 @@ class CheckInstanceView(ViewElement):
         ScriptManager.executeScript(script)
     
 
-    def addInTreeview(self, parentNode=None):
+    def addInTreeview(self, parentNode=None, addChildren=True):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
@@ -176,8 +178,18 @@ class CheckInstanceView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-        self.appliTw.insert(parentNode, "end", str(
-            self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
+        try:
+            self.appliTw.insert(parentNode, "end", str(
+                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
+        except tk.TclError:
+            pass
+        if addChildren:
+            tools = self.controller.getTools()
+            for tool in tools:
+                tool_o = ToolController(Tool(tool))
+                tool_vw = ToolView(
+                    self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
+                tool_vw.addInTreeview(str(self.controller.getDbId()))
         if "hidden" in self.controller.getTags():
             self.hide()
 
@@ -188,20 +200,10 @@ class CheckInstanceView(ViewElement):
         Returns:
             return the saved command_node node inside the Appli class.
         """
-        createdParentNode = self.controller.getCategory()
-        try:
-            self.appliTw.insert("", "end", "pentest", text="CheatSheet for pentest")
-        except tk.TclError:
-            pass
-        try:
-            if createdParentNode != "":
-                createdParentNode = self.appliTw.insert("pentest", "end", "pentest|"+createdParentNode, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getClassIcon())
-        except tk.TclError:
-            pass
-        parent = self.controller.getParent()
+        parent = self.controller.getTarget()
         if parent is not None and parent != "":
             return parent
-        return "pentest|"+self.controller.getCategory()
+        return None
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
@@ -243,7 +245,6 @@ class CheckInstanceView(ViewElement):
     def key(self):
         """Returns a key for sorting this node
         Returns:
-            string, key to sort
+            tuple, key to sort
         """
-        return str(self.controller.getModelRepr()).lower()
-
+        return tuple([ord(c) for c in str(self.controller.getModelRepr()).lower()])

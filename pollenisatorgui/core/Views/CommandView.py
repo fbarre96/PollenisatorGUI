@@ -61,28 +61,13 @@ class CommandView(ViewElement):
         self.form.addFormHidden("indb", self.controller.getData()["indb"])
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Name", modelData["name"], sticky=tk.NW)
-        panel_top.addFormLabel("Level", modelData["lvl"], row=1, sticky=tk.NW)
-        panel_top_bis = self.form.addFormPanel(grid=True)
-        panel_top_bis.addFormChecklist(
-            "Types", Settings.getPentestTypes().keys(), modelData["types"], column=1)
-        panel_safe = self.form.addFormPanel(grid=True)
-        panel_safe.addFormLabel("Safe")
-        panel_safe.addFormCheckbox(
-            "Safe", "Safe", modelData["safe"], column=1)
-        panel_safe.addFormHelper(
-            "If checked, this command can be run by an auto scan.", column=2)
+        
         panel_text = self.form.addFormPanel()
         panel_text.addFormLabel("Command line options", side="top")
         panel_text.addFormHelper(
             """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|, |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|, |ip.infos.*| |port.infos.*|""", side="right")
         panel_text.addFormText("Command line options", r"",
                                modelData["text"], self.menuContextuel, side="left", height=5)
-        panel_bottom = self.form.addFormPanel(grid=True)
-        panel_bottom.addFormLabel("Ports/Services", column=0)
-        panel_bottom.addFormStr(
-            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", modelData["ports"], self.popup, width=50, column=1)
-        panel_bottom.addFormHelper(
-            "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...",column=2)
         panel_bottom = self.form.addFormPanel()
         
         if not self.controller.isMine():
@@ -108,37 +93,13 @@ class CommandView(ViewElement):
         panel_top.addFormLabel("Name")
         panel_top.addFormStr("Name", r"\S+", data.get("name", ""), None, column=1)
         panel_top.addFormLabel("Level", row=1)
-        lvl = ["network", "domain", "ip", "port", "wave"]
-        for module in self.mainApp.modules:
-            module_info = getattr(module["object"], "module_info", {})
-            lvl += module_info.get("registerLvls", [])
-        panel_top.addFormCombo(
-            "Level", lvl, data.get("lvl", "network"), row=1, column=1)
-        panel_top.addFormHelper(
-            "lvl wave: will run on each wave once\nlvl network: will run on each NetworkIP once\nlvl domain: will run on each scope domain once\nlvl ip: will run on each ip/hostname once\nlvl port: will run on each port once", row=1, column=2)
-        panel_types = self.form.addFormPanel(grid=True)
-        panel_types.addFormChecklist(
-            "Types", Settings.getPentestTypes(), data.get("types", []), row=2, column=1)
-        panel_types.addFormHelper(
-            "This command will be added by default on pentest having a type checked in this list.\nThis list can be modified on settings.", column=2)
-        panel_safe = self.form.addFormPanel(grid=True)
-        panel_safe.addFormLabel("Safe")
-        panel_safe.addFormCheckbox(
-            "Safe", "Safe", data.get("safe", False), column=1)
-        panel_safe.addFormHelper(
-            "If checked, this command can be run by an auto scan.", column=2)
+        
         panel_text = self.form.addFormPanel()
         panel_text.addFormLabel("Command line options", side="top")
         panel_text.addFormHelper(
             """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|, |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|, |ip.infos.*| |port.infos.*|""", side="right")
         panel_text.addFormText("Command line options",
                                r"", data.get("text", ""), self.menuContextuel, side="top", height=5)
-        panel_bottom = self.form.addFormPanel(grid=True)
-        panel_bottom.addFormLabel("Ports/Services")
-        panel_bottom.addFormStr(
-            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", data.get("ports", ""), width=50, column=1)
-        panel_bottom.addFormHelper(
-            "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
 
         self._commonWindowForms(self.controller.getData())
         self.completeInsertWindow()
@@ -269,6 +230,6 @@ class CommandView(ViewElement):
     def key(self):
         """Returns a key for sorting this node
         Returns:
-            string, key to sort
+            tuple, key to sort
         """
-        return str(self.controller.getModelRepr()).lower()
+        return tuple([ord(c) for c in str(self.controller.getModelRepr()).lower()])

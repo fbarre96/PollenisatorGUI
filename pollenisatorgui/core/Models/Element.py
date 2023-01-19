@@ -32,7 +32,7 @@ class Element(object):
 
     @classmethod
     def fetchObject(cls, pipeline):
-        """Fetch one element from database and return the CommandGroup object 
+        """Fetch one element from database and return the object 
         Args:
             pipeline: a Mongo search pipeline (dict)
         Returns:
@@ -67,6 +67,14 @@ class Element(object):
             bson.objectid.ObjectId
         """
         return self._id
+
+    def getChecks(self):
+        """Return wave assigned checks as a list of checkInstance objects
+        Returns:
+            list of CheckInstance objects
+        """
+        from pollenisatorgui.core.Models.CheckInstance import CheckInstance
+        return CheckInstance.fetchObjects({"target_iid": str(self._id)})
 
     def getParentId(self):
         """Returns the mongo id  of this element parent.

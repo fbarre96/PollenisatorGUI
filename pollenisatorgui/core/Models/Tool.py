@@ -34,7 +34,7 @@ class Tool(Element):
         self.resultfile = ""
         self.plugin_used = ""
         self.status = []
-        self.initialize(valuesFromDb.get("command_iid", ""), valuesFromDb.get("wave", ""),
+        self.initialize(valuesFromDb.get("command_iid", ""), valuesFromDb.get("check_iid", ""), valuesFromDb.get("wave", ""),
                         valuesFromDb.get("name", ""),
                         valuesFromDb.get(
                             "scope", ""), valuesFromDb.get("ip", ""),
@@ -47,7 +47,7 @@ class Tool(Element):
                         valuesFromDb.get(
                             "scanner_ip", "None"), valuesFromDb.get("status", []), valuesFromDb.get("notes", ""), valuesFromDb.get("resultfile", ""), valuesFromDb.get("plugin_used", ""), valuesFromDb.get("tags", []), valuesFromDb.get("infos", {}))
 
-    def initialize(self, command_iid, wave="", name="", scope="", ip="", port="", proto="tcp", lvl="", text="",
+    def initialize(self, command_iid, check_iid=None, wave="", name="", scope="", ip="", port="", proto="tcp", lvl="", text="",
                    dated="None", datef="None", scanner_ip="None", status=None, notes="", resultfile="", plugin_used="", tags=None, infos=None):
         
         """Set values of tool
@@ -74,6 +74,7 @@ class Tool(Element):
             this object
         """
         self.command_iid = command_iid
+        self.check_iid = None if check_iid is None else str(check_iid)
         self.name = name
         self.wave = wave
         self.scope = scope
@@ -120,6 +121,7 @@ class Tool(Element):
             return False, existing["_id"]
         # Those are added to base after tool's unicity verification
         base["command_iid"] = self.command_iid
+        base["check_iid"] = self.check_iid
         base["scanner_ip"] = self.scanner_ip
         base["dated"] = self.dated
         base["datef"] = self.datef
@@ -169,7 +171,7 @@ class Tool(Element):
         if self.command_iid == "":
             return None
         commandTemplate = apiclient.findInDb(apiclient.getCurrentPentest(),
-                                                 "commands", {"_id": ObjectId(self.command_iid)}, False)
+                                                 "commands", {"original_iid": str(self.command_iid)}, False)
         return commandTemplate
 
     @classmethod
@@ -232,15 +234,17 @@ class Tool(Element):
         """
         apiclient = APIClient.getInstance()
         try:
-            if self.lvl == "wave":
-                wave = apiclient.find("waves", {"wave": self.wave}, False)
-                return wave["_id"]
-            elif self.lvl == "network" or self.lvl == "domain":
-                return apiclient.find("scopes", {"wave": self.wave, "scope": self.scope}, False)["_id"]
-            elif self.lvl == "ip":
-                return apiclient.find("ips", {"ip": self.ip}, False)["_id"]
-            else:
-                return apiclient.find("ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)["_id"]
+            if self.check_iid is not None:
+                return self.check_iid
+            # if self.lvl == "wave":
+            #     wave = apiclient.find("waves", {"wave": self.wave}, False)
+            #     return wave["_id"]
+            # elif self.lvl == "network" or self.lvl == "domain":
+            #     return apiclient.find("scopes", {"wave": self.wave, "scope": self.scope}, False)["_id"]
+            # elif self.lvl == "ip":
+            #     return apiclient.find("ips", {"ip": self.ip}, False)["_id"]
+            # else:
+            #     return apiclient.find("ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)["_id"]
         except TypeError:
             # None type returned:
             return None
@@ -250,12 +254,9 @@ class Tool(Element):
         Get a string representation of a tool.
 
         Returns:
-            Returns the tool name. The wave name is prepended if tool lvl is "port" or "ip"
+            Returns the tool name. 
         """
-        ret = self.name
-        if self.lvl == "ip" or self.lvl == "port":
-            ret = self.wave+"-"+ret
-        return ret
+        return self.name
 
     def getDetailedString(self):
         """
@@ -295,6 +296,8 @@ class Tool(Element):
             newStatus.append("OOT")
         self.status = newStatus
         self.scanner_ip = workerName
+        if infos is None:
+            infos = {}
         self.infos.update(infos)
         self.update()
 

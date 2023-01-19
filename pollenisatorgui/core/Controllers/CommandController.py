@@ -30,12 +30,7 @@ class CommandController(ControllerElement):
         self.model.plugin = values.get(
             "Plugin", self.model.plugin)
         self.model.text = values.get("Command line options", self.model.text)
-        self.model.ports = values.get("Ports/Services", self.model.ports)
-        self.model.safe = bool(values.get("Safe", self.model.safe))
         self.model.timeout = str(values.get("Timeout", self.model.timeout))
-        types = values.get("Types", {})
-        types = [k for k, v in types.items() if v == 1]
-        self.model.types = list(types)
         self.model.owners = values.get("owners", [])
         # Update in database
         self.model.update()
@@ -57,17 +52,13 @@ class CommandController(ControllerElement):
         bin_path = values["Bin path"]
         plugin = values["Plugin"]
         text = values["Command line options"]
-        ports = values["Ports/Services"]
         name = values["Name"]
-        lvl = values["Level"]
-        safe = bool(values["Safe"])
-        types = values["Types"]
         indb = values["indb"]
         timeout = values["Timeout"]
         owners = values["owners"]
         types = [k for k, v in types.items() if v == 1]
         self.model.initialize(name, bin_path, plugin, 
-                              text, lvl, ports, safe, list(types), indb, timeout, owners)
+                              text,  indb, timeout, owners)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:
@@ -82,9 +73,9 @@ class CommandController(ControllerElement):
         Returns:
             dict with keys name, lvl, safe, text, ports, priority, max_thread, priority, types, _id, tags and infos
         """
-        return {"name": self.model.name, "bin_path":self.model.bin_path, "plugin":self.model.plugin, "lvl": self.model.lvl, "safe": bool(self.model.safe), "text": self.model.text,
-                "ports": self.model.ports, "timeout": self.model.timeout,
-                "types": self.model.types, "indb":self.model.indb, "owners": self.model.owners, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
+        return {"name": self.model.name, "bin_path":self.model.bin_path, "plugin":self.model.plugin,  "text": self.model.text,
+                "timeout": self.model.timeout,
+                "indb":self.model.indb, "owners": self.model.owners, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
 
     def getType(self):
         """Return a string describing the type of object

@@ -74,12 +74,12 @@ class IpController(ControllerElement):
         """
         return self.model.getDefects()
 
-    def getTools(self):
-        """Return ip assigned tools as a list of mongo fetched defects dict
+    def getChecks(self):
+        """Return ip assigned checks as a list of mongo fetched checks instance
         Returns:
-            list of defect raw mongo data dictionnaries
+            list of checkInstance objects
         """
-        return self.model.getTools()
+        return self.model.getChecks()
 
     def getPorts(self):
         """Return ip assigned ports as a list of mongo fetched defects dict

@@ -94,7 +94,7 @@ class Interval(Element):
 
     def __str__(self):
         """
-        Get a string representation of a command group.
+        Get a string representation of an interval
 
         Returns:
             Returns the string "Interval".

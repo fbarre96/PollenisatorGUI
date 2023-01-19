@@ -275,9 +275,9 @@ class ViewElement(object):
     def key(self):
         """Returns a key for sorting this node
         Returns:
-            string, basic key: string so alphanumerical sorting will be used
+            tuple, key to sort
         """
-        return str(self.controller.getModelRepr())
+        return tuple([ord(c) for c in str(self.controller.getModelRepr()).lower()])
 
     @classmethod
     def list_tuple_to_dict(cls, list_of_tuple):

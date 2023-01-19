@@ -44,23 +44,27 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
     logger.addHandler(handler)
 
     def handle_exception(exc_type, exc_value, exc_traceback):
+        logger.debug("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
 
         logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
 
     sys.excepthook = handle_exception
     # Connect to given calendar
     logger.debug("executeTool: Execute tool locally:" +str(local)+" setTimer:"+str(setTimer)+" toolId:"+str(toolId))
     APIClient.setInstance(apiclient)
-    logger.debug("executeTool: Execute tool locally:" +str(local)+" setTimer:"+str(setTimer)+" toolId:"+str(toolId))
     toolModel = Tool.fetchObject({"_id":ObjectId(toolId)})
+    logger.debug("executeTool: get command for toolId:"+str(toolId))
     command_dict = toolModel.getCommand()
     if command_dict is None and toolModel.text != "":
         command_dict = {"plugin":toolModel.plugin_used, "timeout":0}
     msg = ""
     success, comm, fileext = apiclient.getCommandLine(toolId)
+    logger.debug("executeTool: got command line for toolId:"+str(toolId))
     if not success:
         print(str(comm))
         logger.debug("Autoscan: Execute tool locally error in getting commandLine : "+str(toolId))
@@ -104,7 +108,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
     elif toolModel.wave == "Custom commands" or (local and not setTimer):
         timeLimit = None
     else:
-        timeLimit = getWaveTimeLimit(toolModel.wave)
+        timeLimit = getWaveTimeLimit()
     # adjust timeLimit if the command has a lower timeout
     if command_dict is not None and timeLimit is not None:
         timeLimit = min(datetime.now()+timedelta(0, int(command_dict.get("timeout", 0))), timeLimit)
@@ -145,14 +149,14 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         print(msg)
     return True, outputfile
     
-def getWaveTimeLimit(waveName):
+def getWaveTimeLimit():
     """
     Return the latest time limit in which this tool fits. The tool should timeout after that limit
 
     Returns:
         Return the latest time limit in which this tool fits.
     """
-    intervals = Interval.fetchObjects({"wave": waveName})
+    intervals = Interval.fetchObjects({})
     furthestTimeLimit = datetime.now()
     for intervalModel in intervals:
         if Utils.fitNowTime(intervalModel.dated, intervalModel.datef):

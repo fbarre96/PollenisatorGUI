@@ -394,18 +394,6 @@ class APIClient():
         except ErrorHTTP as e:
             raise e
 
-    @handle_api_errors
-    def getCommandGroups(self, pipeline=None):
-        pipeline = {} if pipeline is None else pipeline
-        api_url = '{0}group_commands/find'.format(self.api_url_base)
-        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
-        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=proxies, verify=False)
-        if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-        elif response.status_code >= 400:
-            raise ErrorHTTP(response)
-        else:
-            return None
 
     @handle_api_errors
     def findCommand(self, pipeline=None):
@@ -524,16 +512,6 @@ class APIClient():
         else:
             return None
 
-    @handle_api_errors
-    def deleteCommandGroup(self, group_command_iid):
-        api_url = '{0}group_commands/delete/{1}'.format(self.api_url_base, group_command_iid)
-        response = requests.delete(api_url, headers=self.headers, proxies=proxies, verify=False)
-        if response.status_code == 200:
-            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-        elif response.status_code >= 400:
-            raise ErrorHTTP(response)
-        else:
-            return None
 
     @handle_api_errors    
     def findInDb(self, pentest, collection, pipeline=None, multi=True):

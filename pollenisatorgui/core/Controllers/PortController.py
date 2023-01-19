@@ -72,12 +72,12 @@ class PortController(ControllerElement):
         """
         return self.model.getDefects()
 
-    def getTools(self):
-        """Return port assigned tools as a list of mongo fetched tools dict
+    def getChecks(self):
+        """Return ports assigned checks as a list of mongo fetched checks
         Returns:
-            list of defect raw mongo data dictionnaries
+            list of checkInstance objects
         """
-        return self.model.getTools()
+        return self.model.getChecks()
 
     def getType(self):
         """Returns a string describing the type of object

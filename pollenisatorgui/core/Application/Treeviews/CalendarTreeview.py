@@ -10,10 +10,10 @@ from pollenisatorgui.core.Models.Ip import Ip
 from pollenisatorgui.core.Models.Port import Port
 from pollenisatorgui.core.Models.Scope import Scope
 from pollenisatorgui.core.Models.Tool import Tool
+from pollenisatorgui.core.Models.CheckInstance import CheckInstance
 from pollenisatorgui.core.Models.Wave import Wave
 from pollenisatorgui.core.Models.Defect import Defect
 from pollenisatorgui.core.Models.Command import Command
-from pollenisatorgui.core.Models.CommandGroup import CommandGroup
 from pollenisatorgui.core.Views.IntervalView import IntervalView
 from pollenisatorgui.core.Views.IpView import IpView
 from pollenisatorgui.core.Views.MultipleIpView import MultipleIpView
@@ -22,11 +22,12 @@ from pollenisatorgui.core.Views.MultiSelectionView import MultiSelectionView
 from pollenisatorgui.core.Views.PortView import PortView
 from pollenisatorgui.core.Views.ScopeView import ScopeView
 from pollenisatorgui.core.Views.ToolView import ToolView
+from pollenisatorgui.core.Views.CheckInstanceView import CheckInstanceView
 from pollenisatorgui.core.Views.WaveView import WaveView
 from pollenisatorgui.core.Views.DefectView import DefectView
 from pollenisatorgui.core.Views.CommandView import CommandView
-from pollenisatorgui.core.Views.CommandGroupView import CommandGroupView
 from pollenisatorgui.core.Controllers.WaveController import WaveController
+from pollenisatorgui.core.Controllers.CheckInstanceController import CheckInstanceController
 from pollenisatorgui.core.Controllers.PortController import PortController
 from pollenisatorgui.core.Controllers.ScopeController import ScopeController
 from pollenisatorgui.core.Controllers.ToolController import ToolController
@@ -34,7 +35,6 @@ from pollenisatorgui.core.Controllers.DefectController import DefectController
 from pollenisatorgui.core.Controllers.IpController import IpController
 from pollenisatorgui.core.Controllers.IntervalController import IntervalController
 from pollenisatorgui.core.Controllers.CommandController import CommandController
-from pollenisatorgui.core.Controllers.CommandGroupController import CommandGroupController
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Application.Dialogs.ChildDialogCustomCommand import ChildDialogCustomCommand
@@ -320,9 +320,9 @@ class CalendarTreeview(PollenisatorTreeview):
             elif collection == "commands":
                 view = CommandView(self, self.appli.viewframe,
                                 self.appli, CommandController(Command(res)))
-            elif collection == "group_commands":
-                view = CommandGroupView(self, self.appli.viewframe,
-                                self.appli, CommandGroupController(CommandGroup(res)))
+            elif collection == "cheatsheet":
+                view = CheckInstanceView(self, self.appli.viewframe,
+                                self.appli, CheckInstanceController(CheckInstance(res)))
             try:
                 if view is not None:
                     view.addInTreeview()
@@ -461,10 +461,6 @@ class CalendarTreeview(PollenisatorTreeview):
                     objView = CommandView(
                         self, self.appli.viewframe, self.appli, CommandController(Command({"indb":apiclient.getCurrentPentest()})))
                     objView.openInsertWindow()
-                elif str(item) == "groupcommands":
-                    objView = CommandGroupView(
-                        self, self.appli.viewframe, self.appli, CommandGroupController(CommandGroup({"indb":apiclient.getCurrentPentest()})))
-                    objView.openInsertWindow()
                 elif str(item) == "ips":
                     objView = MultipleIpView(
                         self, self.appli.viewframe, self.appli, IpController(Ip()))
@@ -542,8 +538,9 @@ class CalendarTreeview(PollenisatorTreeview):
         nbObjects += apiclient.count("scopes")
         nbObjects += apiclient.count("ips")
         nbObjects += apiclient.count("ports")
-        nbObjects += apiclient.count("tools")
+        nbObjects += apiclient.count("cheatsheets")
         nbObjects += apiclient.count("commands")
+        nbObjects += apiclient.count("tools")
         onePercentNbObject = nbObjects//100 if nbObjects > 100 else 1
         nbObjectTreated = 0
         self.delete(*self.get_children())
@@ -557,8 +554,8 @@ class CalendarTreeview(PollenisatorTreeview):
 
         self.commands_node = self.insert(
             "", "end", "commands", text="Commands", image=CommandView.getClassIcon())
-        self.group_command_node = self.insert(
-            "", "end", "groupcommands", text="Command Groups", image=CommandGroupView.getClassIcon())
+        # self.group_command_node = self.insert(
+        #     "", "end", "groupcommands", text="Command Groups", image=CommandGroupView.getClassIcon())
         self.commands_node = self.insert(
             self.commands_node, "end", "mycommands", text="Commands", image=CommandView.getClassIcon())
         commands = Command.fetchObjects({}, apiclient.getCurrentPentest())
@@ -566,11 +563,11 @@ class CalendarTreeview(PollenisatorTreeview):
             command_vw = CommandView(
                 self, self.appli.viewframe, self.appli, CommandController(command))
             command_vw.addInTreeview()
-        group_commands = CommandGroup.fetchObjects({}, apiclient.getCurrentPentest())
-        for command_groupe_vw in group_commands:
-            command_groupe_vw = CommandGroupView(
-                self, self.appli.viewframe, self.appli, CommandGroupController(command_groupe_vw))
-            command_groupe_vw.addInTreeview()
+        # group_commands = CommandGroup.fetchObjects({}, apiclient.getCurrentPentest())
+        # for command_groupe_vw in group_commands:
+        #     command_groupe_vw = CommandGroupView(
+        #         self, self.appli.viewframe, self.appli, CommandGroupController(command_groupe_vw))
+        #     command_groupe_vw.addInTreeview()
         waves = Wave.fetchObjects({})
         for wave in waves:
             wave_o = WaveController(wave)
@@ -633,7 +630,18 @@ class CalendarTreeview(PollenisatorTreeview):
             if nbObjectTreated % onePercentNbObject == 0:
                 step += 1
                 dialog.update(step)
-        # Adding tool objects
+        #Adding Cheatsheet objects
+        checks = CheckInstance.fetchObjects({})
+        for check in checks:
+            check_o = CheckInstanceController(check)
+            check_vw = CheckInstanceView(self, self.appli.viewframe, self.appli, check_o)
+            check_vw.addInTreeview(None)
+            self.appli.statusbar.notify(check_vw.controller.getTags())
+            nbObjectTreated += 1
+            if nbObjectTreated % onePercentNbObject == 0:
+                step += 1
+                dialog.update(step)
+        #Adding Tools objects
         tools = Tool.fetchObjects({})
         for tool in tools:
             tool_o = ToolController(tool)
