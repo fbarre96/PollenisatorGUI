@@ -117,12 +117,14 @@ def setStyle(tkApp, _event=None):
     style.configure("TButton", background="#73B723",
                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
     style.configure("icon.TButton", background="white", borderwidth=0)
-    style.configure("link.TButton", background="white",
-                   foreground="73B723", font=('Sans', '10', 'bold'), borderwidth=0)
+    style.configure("icon_white.TButton", background="#73B723", borderwidth=0)
+
+    style.configure("link.TButton", background="white", foreground="#73B723", font=('Sans', '10', 'underline'), borderwidth=0)
     style.configure("Notebook.TButton", background="#73B723",
                    foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
     style.configure("Notebook.TFrame", background="#73B723")
     style.map('TButton', background=[('active', '#73D723')])
+    style.map('link.TButton', foreground=[('active', '#73D723')], background=[('active', 'white')])
     #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
     style.map('Treeview', foreground=fixedMap('foreground', style),
                 background=fixedMap('background', style))

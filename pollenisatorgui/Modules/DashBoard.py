@@ -1,19 +1,10 @@
 """Dashboard module to display pentest info"""
-import os
 import tkinter as tk
-import tkinter.messagebox
 import tkinter.ttk as ttk
-from datetime import datetime
-from os import listdir
-from os.path import isfile, join
 
-from bson.objectid import ObjectId
 from PIL import Image, ImageTk
 
-from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
-from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.Application.Dialogs.ChildDialogProgress import ChildDialogProgress
-from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Models.Ip import Ip
 from pollenisatorgui.core.Models.Port import Port

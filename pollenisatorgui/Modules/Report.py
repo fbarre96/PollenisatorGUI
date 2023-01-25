@@ -423,12 +423,12 @@ class Report(Module):
 
     def addDefectCallback(self):
         """Open an insert defect view form in a child window"""
-        dialog = ChildDialogDefectView(self.tkApp, self.settings)
+        dialog = ChildDialogDefectView(self.tkApp, "Add a security defect", self.settings)
         self.parent.wait_window(dialog.app)
 
     def browseDefectsCallback(self):	
         """Open an multiview insert defect view form in a child window"""	
-        dialog = ChildDialogDefectView(self.tkApp, self.settings, None, True)	
+        dialog = ChildDialogDefectView(self.tkApp, "Add and edit multiple defect", self.settings, None, True)	
         self.parent.wait_window(dialog.app)	
 		
     def addRemarkCallback(self):	
@@ -492,7 +492,7 @@ class Report(Module):
         if item is None or item == '':
             return
         defect_m = Defect.fetchObject({"_id": ObjectId(item)})
-        dialog = ChildDialogDefectView(self.tkApp, self.settings, defect_m)
+        dialog = ChildDialogDefectView(self.tkApp, "Edit defect", self.settings, defect_m)
         self.parent.wait_window(dialog.app)
         self.updateDefectInTreevw(defect_m)
 

@@ -1,15 +1,16 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
-from venv import create
+import tkinter.ttk as ttk
 from pollenisatorgui.core.Components.apiclient import APIClient
 from pollenisatorgui.core.Components.ScriptManager import ScriptManager
+from pollenisatorgui.core.Application.Dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
 from pollenisatorgui.core.Controllers.ToolController import ToolController
 from pollenisatorgui.core.Views.ToolView import ToolView
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Components.Settings import Settings
 from pollenisatorgui.core.Models.Tool import Tool
-from pollenisatorgui.core.Models.Command import Command
 import pollenisatorgui.core.Components.Utils as Utils
+
 
 from bson import ObjectId
 import os
@@ -44,9 +45,9 @@ class CheckInstanceView(ViewElement):
         if status == "":
             status = modelData.get("status", "")
         if status == "":
-            status = "not done"
-        iconStatus = "not_done"
-        if "not done" in status: # order is important as "done" is not_done but not the other way
+            status = "todo"
+        iconStatus = "todo"
+        if "todo" in status: # order is important as "done" is not_done but not the other way
             ui = self.__class__.not_done_icon
             cache = self.__class__.cached_not_ready_icon
             iconStatus = "not_done"
@@ -104,6 +105,7 @@ class CheckInstanceView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
+        self.clearWindow()
         infos = self.controller.getCheckInstanceInfos()
         modelData = self.controller.getData()
         check_m = self.controller.getCheckItem()
@@ -115,34 +117,69 @@ class CheckInstanceView(ViewElement):
         if default_status == "":
             default_status = modelData.get("status", "")
         if default_status == "":
-            default_status = "not done"
-        panel_top.addFormCombo("Status", ["not done", "running","done"], default=default_status, row=0, column=1, pady=5)
+            default_status = "todo"
+        panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, row=0, column=1, pady=5)
         panel_top.addFormLabel("Description", row=1, column=0)
         panel_top.addFormText("Description", r"", default=check_m.description, width=60, height=5, state="disabled", row=1, column=1, pady=5)
         panel_top.addFormLabel("Notes", row=2, column=0)
         panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), width=60, height=5, row=2, column=1, pady=5)
         if "commands" in check_m.check_type:
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-            formTv.addFormLabel("Commands associated", side=tk.LEFT)
             from PIL import ImageTk, Image
 
-            self.buttonRunImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'execute.png'))
-
-            tv_commands = []
-            for command_name, status in infos.get("tools_status", {}).items():
-                tv_commands.append([command_name, f'{status["done"]}/{status["total"]}'])
-            if True==True:#if check_m.check_type == "manual_commands": #
-                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
-                dict_of_tools = infos.get("tools_not_done")
-                lambdas = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools.keys()]
-                row=0
-                for tool_iid, tool_string in dict_of_tools.items():
-                    formCommands.addFormLabel(tool_string, row=row, column=0)
-                    formCommands.addFormButton("Run", lambdas[row], row=row, column=1, image=self.buttonRunImage, style="icon.TButton")
-                    row+=1
-                    print(tool_string+":"+tool_iid)
-            formTv.addFormTreevw(
-                "Commands", ("Command names", "ratio completed"), tv_commands, height=5, width=40, pady=5, fill=tk.X, side=tk.RIGHT, doubleClickBinds=[None, None])
+            self.buttonExecuteImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'execute.png'))
+            self.buttonRunImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'tab_terminal.png'))
+            self.buttonDownloadImage = ImageTk.PhotoImage(Image.open(Utils.getIconDir()+'download.png'))
+            
+            dict_of_tools_not_done = infos.get("tools_not_done")
+            dict_of_tools_running = infos.get("tools_running")
+            dict_of_tools_done = infos.get("tools_done")
+            lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
+            lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
+            lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+            row=0
+            for tool_iid, tool_string in dict_of_tools_not_done.items():
+                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
+                formCommands.addFormButton("Execute", lambdas_not_done[row], row=row, column=1, image=self.buttonExecuteImage, style="icon.TButton")
+                row+=1
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+            row=0
+            for tool_iid, tool_string in dict_of_tools_running.items():
+                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
+                formCommands.addFormButton("Peek", lambdas_running[row], row=row, column=1, image=self.buttonRunImage, style="icon.TButton")
+                row+=1
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
+            row=0
+            for tool_iid, tool_data in dict_of_tools_done.items():
+                tool_m = Tool(tool_data)
+                tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
+                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W, style="link.TButton", infos={"iid":tool_iid})
+                if tool_m.tags:
+                    for tag in tool_m.tags:
+                        registeredTags = Settings.getTags()
+                        keys = list(registeredTags.keys())
+                        column = 0
+                        item_no = 0
+                        
+                        s = ttk.Style(self.mainApp)
+                        color = registeredTags.get(tag, "white")
+                        try: # CHECK IF COLOR IS VALID
+                            ttk.Label(self.mainApp, background=color)
+                        except tk.TclError as e:
+                            #color incorrect
+                            color = "white"
+                        s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
+                        tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0, style=""+color+".Default.TLabel")
+                        column += 1
+                        item_no += 1
+                        if column == 4:
+                            column = 0
+                        if column == 0:
+                            tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
+                tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes, width=60, height=5, side=tk.LEFT)
+                tool_panel.addFormButton("Download", lambdas_done[row], image=self.buttonDownloadImage, style="icon_white.TButton", side=tk.LEFT, anchor=tk.E)
+                row+=1
 
             #for command, status in infos.get("tools_status", {}).items():
         elif "script" in check_m.check_type:
@@ -158,10 +195,37 @@ class CheckInstanceView(ViewElement):
     
     def launchToolCallbackLambda(self, tool_iid):
         return lambda event: self.launchToolCallback(tool_iid)
+
+    def peekToolCallbackLambda(self, tool_iid):
+        return lambda event: self.peekToolCallback(tool_iid)
+
+    def downloadToolCallbackLambda(self, tool_iid):
+        return lambda event: self.downloadToolCallback(tool_iid)
+
+    def openToolDialog(self, event, infos):
+        tool_iid = infos.get("iid")
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, None, self.mainApp, ToolController(tool_m))
+        tool_vw.openInDialog()
+        self.openModifyWindow()
+
     
     def launchToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         self.mainApp.scanManager.launchTask(tool_m)
+        self.openModifyWindow()
+
+    def peekToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        dialog = ChildDialogRemoteInteraction(ToolController(tool_m))
+        dialog.app.wait_window(dialog.app)
+        
+
+    def downloadToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
+        tool_vw.downloadResultFile()
+        
 
     def viewScript(self, script):
         ScriptManager.openScriptForUser(script)
@@ -183,13 +247,13 @@ class CheckInstanceView(ViewElement):
                 self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError:
             pass
-        if addChildren:
-            tools = self.controller.getTools()
-            for tool in tools:
-                tool_o = ToolController(Tool(tool))
-                tool_vw = ToolView(
-                    self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
-                tool_vw.addInTreeview(str(self.controller.getDbId()))
+        # if addChildren:
+        #     tools = self.controller.getTools()
+        #     for tool in tools:
+        #         tool_o = ToolController(Tool(tool))
+        #         tool_vw = ToolView(
+        #             self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
+        #         tool_vw.addInTreeview(str(self.controller.getDbId()))
         if "hidden" in self.controller.getTags():
             self.hide()
 

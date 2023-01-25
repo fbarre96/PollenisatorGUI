@@ -171,7 +171,7 @@ class Tool(Element):
         if self.command_iid == "":
             return None
         commandTemplate = apiclient.findInDb(apiclient.getCurrentPentest(),
-                                                 "commands", {"original_iid": str(self.command_iid)}, False)
+                                                 "commands", {"_id": ObjectId(self.command_iid)}, False)
         return commandTemplate
 
     @classmethod
@@ -235,16 +235,16 @@ class Tool(Element):
         apiclient = APIClient.getInstance()
         try:
             if self.check_iid is not None:
-                return self.check_iid
-            # if self.lvl == "wave":
-            #     wave = apiclient.find("waves", {"wave": self.wave}, False)
-            #     return wave["_id"]
-            # elif self.lvl == "network" or self.lvl == "domain":
-            #     return apiclient.find("scopes", {"wave": self.wave, "scope": self.scope}, False)["_id"]
-            # elif self.lvl == "ip":
-            #     return apiclient.find("ips", {"ip": self.ip}, False)["_id"]
-            # else:
-            #     return apiclient.find("ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)["_id"]
+                return None
+            if self.lvl == "wave":
+                wave = apiclient.find("waves", {"wave": self.wave}, False)
+                return wave["_id"]
+            elif self.lvl == "network" or self.lvl == "domain":
+                return apiclient.find("scopes", {"wave": self.wave, "scope": self.scope}, False)["_id"]
+            elif self.lvl == "ip":
+                return apiclient.find("ips", {"ip": self.ip}, False)["_id"]
+            else:
+                return apiclient.find("ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)["_id"]
         except TypeError:
             # None type returned:
             return None

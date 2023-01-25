@@ -162,7 +162,11 @@ class DefectView(ViewElement):
     def openInChildDialog(self, defect_model, isTemplate=True):
         from pollenisatorgui.core.Application.Dialogs.ChildDialogDefectView import ChildDialogDefectView
         defect_model.isTemplate = isTemplate
-        dialog = ChildDialogDefectView(self.mainApp, self.mainApp.settings, defect_model)
+        if defect_model.isTemplate:
+            title = "Edit a security defect template"
+        else:
+            title = "Edit a security defect"
+        dialog = ChildDialogDefectView(self.mainApp, title, self.mainApp.settings, defect_model)
         self.mainApp.wait_window(dialog.app)
         return dialog.rvalue
 

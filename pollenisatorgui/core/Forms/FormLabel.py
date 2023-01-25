@@ -32,7 +32,9 @@ class FormLabel(Form):
         Args:
             parent: parent FormPanel.
         """
-        lbl = ttk.Label(parent.panel, text=self.name+" : "+self.text, width=self.getKw("width", None), justify=tk.LEFT)
+        if self.text == "":
+            self.text = self.name + " : "
+        lbl = ttk.Label(parent.panel, text=self.text, width=self.getKw("width", None), justify=tk.LEFT, style=self.getKw("style", None))
         if parent.gridLayout:
     
             lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)

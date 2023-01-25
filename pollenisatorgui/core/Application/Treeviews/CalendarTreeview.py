@@ -334,6 +334,10 @@ class CalendarTreeview(PollenisatorTreeview):
         if action == "update":
             try:
                 view = self.getViewFromId(str(iid))
+                if isinstance(view, CheckInstanceView):
+                    print("check update")
+                if collection == "cheatsheet":
+                    print("check update")
                 if view is not None:
                     item = self.item(str(iid))
                     oldTags = item["tags"]
@@ -642,7 +646,7 @@ class CalendarTreeview(PollenisatorTreeview):
                 step += 1
                 dialog.update(step)
         #Adding Tools objects
-        tools = Tool.fetchObjects({})
+        tools = Tool.fetchObjects({"check_iid":""})
         for tool in tools:
             tool_o = ToolController(tool)
             tool_vw = ToolView(self, self.appli.viewframe, self.appli, tool_o)

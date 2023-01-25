@@ -541,7 +541,7 @@ class ChildDialogUser:
         panel_info.addFormStr("Username", "", user_data.get("username", ""), status="readonly", row=1, column=1)
         panel_info.addFormLabel("Password", row=2)
         panel_info.addFormStr("Password", "", user_data.get("password", ""), status="readonly", row=2, column=1)
-        panel.addFormLabel("Desc", text=f"{user_data.get('desc', '')}" , side="top")
+        panel.addFormLabel("Desc", text=f"Desc : {user_data.get('desc', '')}" , side="top")
         groups = user_data.get('groups', []) 
         if groups is None:
             groups = []

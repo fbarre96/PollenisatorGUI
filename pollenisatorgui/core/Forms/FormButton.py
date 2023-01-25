@@ -27,6 +27,10 @@ class FormButton(Form):
         self.kwargs = kwargs
         self.btn = None
         self.wid_kwargs = None
+        self.infos = {}
+
+    def callback_infos(self, event):
+        self.callback(event, self.infos)
 
     def constructView(self, parent):
         """
@@ -36,10 +40,14 @@ class FormButton(Form):
             parent: parent form panel.
         """
         self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None), style=self.getKw("style", None))
-        self.btn.bind('<Button-1>', self.callback)
+        self.infos = self.getKw("infos", {})
+        if len(self.infos) > 0:
+            self.btn.bind('<Button-1>', self.callback_infos)
+        else:
+            self.btn.bind('<Button-1>', self.callback)
         for bind, bind_call in self.getKw("binds", {}).items():
             self.btn.bind(bind, bind_call)
-
+        
         if parent.gridLayout:
             self.btn.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), sticky=self.getKw("sticky", tk.W), **self.kwargs)
         else:

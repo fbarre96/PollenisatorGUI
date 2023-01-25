@@ -1,5 +1,7 @@
 """View for tool object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.Application.Dialogs import ChildDialogView
+from pollenisatorgui.core.Application.Dialogs.ChildDialogToolView import ChildDialogToolView
 from pollenisatorgui.core.Views.ViewElement import ViewElement
 from pollenisatorgui.core.Components.apiclient import APIClient
 import tkinter.messagebox
@@ -107,6 +109,14 @@ class ToolView(ViewElement):
                 return self.__class__.cached_not_ready_icon
         return cache
 
+    def openInDialog(self):
+        """
+        Open a dialog to show the tool information.
+        """
+        dialog = ChildDialogToolView(self.mainApp, "Modify tool", self)
+        self.mainApp.wait_window(dialog.app)
+        return dialog.rvalue
+
     def openModifyWindow(self):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Tool
@@ -133,7 +143,7 @@ class ToolView(ViewElement):
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         try:
-            command_d = apiclient.find("commands", {"original_iid":str(modelData["command_iid"])}, False)
+            command_d = apiclient.find("commands", {"_id":ObjectId(modelData["command_iid"])}, False)
             workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d["bin_path"]})
             workers = [x["name"] for x in workers]
             hasWorkers = len(workers)
@@ -195,6 +205,8 @@ class ToolView(ViewElement):
         """
         if parentNode is None:
             parentNode = self.controller.getParentId()
+            if parentNode is None:
+                return
         nodeText = str(self.controller.getModelRepr())
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
@@ -251,6 +263,7 @@ class ToolView(ViewElement):
 
     def showAssociatedCommand(self, _event=None):
         if self.appliTw is not None:
+            print(self.appliTw)
             self.appliTw.showItem(self.controller.getData()["command_iid"])
             
 
@@ -303,7 +316,6 @@ class ToolView(ViewElement):
             self.openModifyWindow()
 
     def remoteInteraction(self, _event=None):
-        apiclient = APIClient.getInstance()
         dialog = ChildDialogRemoteInteraction(self.controller)
         dialog.app.wait_window(dialog.app)
         
