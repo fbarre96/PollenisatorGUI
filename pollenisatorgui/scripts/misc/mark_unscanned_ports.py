@@ -1,6 +1,6 @@
-from pollenisatorgui.core.Models.Port import Port
-from pollenisatorgui.core.Models.Tool import Tool
-from pollenisatorgui.core.Components.apiclient import APIClient
+from pollenisatorgui.core.models.port import Port
+from pollenisatorgui.core.models.tool import Tool
+from pollenisatorgui.core.components.apiclient import APIClient
 
 
 def main(apiclient):

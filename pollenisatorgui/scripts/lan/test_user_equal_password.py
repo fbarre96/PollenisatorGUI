@@ -1,5 +1,5 @@
-from pollenisatorgui.core.Components.apiclient import APIClient
-import pollenisatorgui.core.Components.Utils as Utils
+from pollenisatorgui.core.components.apiclient import APIClient
+import pollenisatorgui.core.components.utils as utils
 import tempfile
 import os
 import shutil
@@ -27,5 +27,5 @@ def main(apiclient):
             with open(file_name, "w") as f:
                 f.write(users+"\n")
             exec += 1
-            Utils.executeInExternalTerm(f"'pollex cme smb {dc_info['ip']} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success'")
+            utils.executeInExternalTerm(f"'pollex cme smb {dc_info['ip']} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success'")
     return True, f"Launched {exec} cmes"

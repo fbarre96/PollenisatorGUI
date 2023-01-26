@@ -1,5 +1,5 @@
 from pollenisatorgui.core.plugins.plugin import Plugin
-from pollenisatorgui.core.Models.Port import Port
+from pollenisatorgui.core.models.port import Port
 import webbrowser
 
 class Nikto(Plugin):

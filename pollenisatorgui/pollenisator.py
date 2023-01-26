@@ -6,20 +6,20 @@
 # Major version released: 09/2019
 # @version: 2.2
 """
-from pollenisatorgui.core.Models.Command import Command
+from pollenisatorgui.core.models.command import Command
 import time
 import tkinter as tk
 import os
 import sys
 import shlex
 import signal
-from pollenisatorgui.core.Components.apiclient import APIClient
-from pollenisatorgui.core.Application.Appli import Appli
-import pollenisatorgui.core.Components.Utils as Utils
+from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.application.Appli import Appli
+import pollenisatorgui.core.components.utils as utils
 import tempfile
 import threading
 from getpass import getpass
-from pollenisatorgui.core.Components.logger_config import logger
+from pollenisatorgui.core.components.logger_config import logger
 event_obj = threading.Event()
 
 class GracefulKiller:
@@ -74,7 +74,7 @@ def consoleConnect(force=False, askPentest=True):
         
 def promptForConnection():
    
-    clientCfg = Utils.loadClientConfig()
+    clientCfg = utils.loadClientConfig()
     host = clientCfg.get("host", "")
     port = clientCfg.get("port", "5000")
     https = str(clientCfg.get("https", "True")).title() == "True"
@@ -173,7 +173,7 @@ def pollex():
         comm = comm.replace("|outputDir|", outputFilePath)
         if (verbose):
             print("Executing command : "+str(comm))
-        returncode, stdout = Utils.execute(comm, None, True, cwd=tmpdirname)
+        returncode, stdout = utils.execute(comm, None, True, cwd=tmpdirname)
         #if stdout.strip() != "":
         #    print(stdout.strip())
         if not os.path.exists(outputFilePath):

