@@ -11,7 +11,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogAskFile import ChildDia
 from pollenisatorgui.core.application.ScrollableTreeview import ScrollableTreeview
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.forms.formpanel import FormPanel
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 import tempfile
 from bson import ObjectId
 import pollenisatorgui.core.components.utils as utils

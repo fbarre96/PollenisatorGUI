@@ -4,7 +4,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.ScrollableTreeview import ScrollableTreeview
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 from bson import ObjectId
 from pollenisatorgui.core.components.settings import Settings
 

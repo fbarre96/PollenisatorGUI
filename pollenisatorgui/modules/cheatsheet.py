@@ -4,7 +4,7 @@ import tkinter.messagebox
 import tkinter.ttk as ttk
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.application.Treeviews.CheatsheetTreeview import CheatsheetTreeview
 

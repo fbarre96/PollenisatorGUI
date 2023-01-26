@@ -6,7 +6,7 @@ from pollenisatorgui.core.models.ip import Ip
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 
 
 class ScrollFrame(tk.Frame):

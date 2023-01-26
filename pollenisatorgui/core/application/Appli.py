@@ -36,7 +36,7 @@ from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.filter import Filter
 from pollenisatorgui.core.models.port import Port
-import pollenisatorgui.Modules
+import pollenisatorgui.modules
 
 class FloatingHelpWindow(tk.Toplevel):
     """floating basic window with helping text inside
@@ -431,15 +431,15 @@ class Appli(tkinterDnD.Tk):
         discovered_plugins = {
             name: importlib.import_module(name)
             for finder, name, ispkg
-            in iter_namespace(pollenisatorgui.Modules) if not name.endswith(".Module")
+            in iter_namespace(pollenisatorgui.modules) if not name.endswith(".Module")
         }
         self.modules = []
-        for name, module in discovered_plugins.items():
-            module_class = getattr(module, name.split(".")[-1])
-            module_obj = module_class(self, self.settings)
-            
-            self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":ImageTk.PhotoImage(Image.open(utils.getIconDir()+module_obj.iconName))})
-    
+        from pollenisatorgui.modules.module import REGISTRY
+        for name, module_class in REGISTRY.items():
+            if name != "Module":
+                module_obj = module_class(self, self.settings)
+                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":ImageTk.PhotoImage(Image.open(utils.getIconDir()+module_obj.iconName))})
+        
     def loadModulesInfos(self):
         for module in self.modules:
             if callable(getattr(module["object"], "loadModuleInfo", False)):

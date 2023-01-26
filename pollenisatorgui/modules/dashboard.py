@@ -11,7 +11,7 @@ from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.models.tool import Tool
 import pollenisatorgui.core.components.utils as utils
 
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 
 class DashBoard(Module):
     """

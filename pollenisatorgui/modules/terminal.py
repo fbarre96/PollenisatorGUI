@@ -8,7 +8,7 @@ from pollenisatorgui.core.views.waveview import WaveView
 from pollenisatorgui.core.views.ipview import IpView
 from pollenisatorgui.core.views.portview import PortView
 from pollenisatorgui.core.views.scopeview import ScopeView
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 
 class Terminal(Module):
     iconName = "tab_terminal.png"

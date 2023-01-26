@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 
 
 class AuthInfo(Module):

@@ -19,7 +19,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogDefectView import Child
 from pollenisatorgui.core.application.dialogs.ChildDialogRemarkView import ChildDialogRemarkView
 from pollenisatorgui.core.models.remark import Remark	
 from pollenisatorgui.core.views.remarkview import RemarkView
-from pollenisatorgui.Modules.module import Module
+from pollenisatorgui.modules.module import Module
 
 class Report(Module):
     """
