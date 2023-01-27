@@ -6,7 +6,7 @@ import tkinter.ttk as ttk
 
 class ChildDialogCombo:
     """
-    Open a child dialog of a tkinter application to ask a user a calendar name.
+    Open a child dialog of a tkinter application with a combobox.
     """
     def __init__(self, parent, options, displayMsg="Choose a database to open:", default=None, **kwargs):
         """

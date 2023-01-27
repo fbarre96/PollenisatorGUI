@@ -163,8 +163,11 @@ class CheckItemView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-        self.appliTw.insert(parentNode, "end", str(
-            self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        try:
+            self.appliTw.insert(parentNode, "end", str(
+                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        except tk.TclError:
+            pass
         if "hidden" in self.controller.getTags():
             self.hide()
 
@@ -175,9 +178,7 @@ class CheckItemView(ViewElement):
         Returns:
             return the saved command_node node inside the Appli class.
         """
-        apiclient = APIClient.getInstance()
         category = self.controller.getCategory()
-      
         try:
             self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getClassIcon())
         except tk.TclError:

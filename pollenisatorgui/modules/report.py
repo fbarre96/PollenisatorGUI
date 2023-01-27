@@ -609,7 +609,7 @@ class Report(Module):
 
     def generateReportWord(self):
         """
-        Export a calendar defects to a word formatted file.
+        Export a pentest defects to a word formatted file.
         """
         if self.ent_client.get().strip() == "":
             tk.messagebox.showerror(
@@ -655,7 +655,7 @@ class Report(Module):
         elif action == "insert":	
             view = None	
             res = Defect.fetchObject({"_id": ObjectId(iid)})	
-            # Defect insertion takes place in calendarTreeview,	
+            # Defect insertion takes place in pentest treeview,	
             # Remarks don't appear in the treeview, only in this module, so must notify here	
             if collection == "remarks":	
                 self.addRemark(Remark.fetchObject({"_id":ObjectId(iid)}))

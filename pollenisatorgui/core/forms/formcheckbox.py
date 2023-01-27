@@ -11,6 +11,8 @@ class FormCheckbox(Form):
     Default setted values: 
         if pack : padx = pady = 5, side = right
         if grid: row = column = 0 sticky = "west"
+    Kwargs:
+        binds:  a dictionnary of tkinter binding with shortcut as key and callback as value
     """
     def __init__(self, name, text, default, **kwargs):
         """
@@ -42,6 +44,10 @@ class FormCheckbox(Form):
             self.val.set(0)
         self.chk = ttk.Checkbutton(
             parent.panel, text=self.text, variable=self.val)
+        binds = self.getKw("binds", {})
+        for bind in binds:
+            self.chk.bind(bind, binds[bind])
+        
         if parent.gridLayout:
             self.chk.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), sticky=self.getKw("sticky", tk.W), **self.kwargs)
         else:

@@ -125,7 +125,7 @@ class Port(Element):
         Returns:
             Returns the string protocole/port number.
         """
-        return self.proto+"/"+str(self.port)
+        return self.proto+"/"+str(self.port)+" "+str(self.service)
 
     def getDetailedString(self):
         """Returns a detailed string describing this port.

@@ -22,7 +22,7 @@ event_obj = threading.Event()
 def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False, infos={}, logger_given=None):
     """
      remote task
-    Execute the tool with the given toolId on the given calendar name.
+    Execute the tool with the given toolId on the given pentest name.
     Then execute the plugin corresponding.
     Any unhandled exception will result in a task-failed event in the class.
 
@@ -54,7 +54,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         return
 
     sys.excepthook = handle_exception
-    # Connect to given calendar
+    # Connect to given pentest
     logger.debug("executeTool: Execute tool locally:" +str(local)+" setTimer:"+str(setTimer)+" toolId:"+str(toolId))
     APIClient.setInstance(apiclient)
     toolModel = Tool.fetchObject({"_id":ObjectId(toolId)})

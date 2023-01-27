@@ -325,7 +325,7 @@ class APIClient():
 
     def attach(self, observer):
         """
-        Attach an observer to the database. All attached observers will be notified when a modication is done to a calendar through the methods presented below.
+        Attach an observer to the database. All attached observers will be notified when a modication is done to a pentest through the methods presented below.
 
         Args:
             observer: the observer that implements a notify(collection, iid, action) function

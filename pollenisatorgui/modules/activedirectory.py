@@ -8,7 +8,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDi
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
 from pollenisatorgui.core.application.dialogs.ChildDialogAskFile import ChildDialogAskFile
-from pollenisatorgui.core.application.ScrollableTreeview import ScrollableTreeview
+from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.modules.module import Module

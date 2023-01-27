@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.modules.module import Module
 from pollenisatorgui.core.models.checkitem import CheckItem
-from pollenisatorgui.core.application.Treeviews.CheatsheetTreeview import CheatsheetTreeview
+from pollenisatorgui.core.application.treeviews.CheatsheetTreeview import CheatsheetTreeview
 
 class Cheatsheet(Module):
     iconName = "tab_cheatsheet.png"

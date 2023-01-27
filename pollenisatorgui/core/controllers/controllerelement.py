@@ -54,12 +54,14 @@ class ControllerElement:
         """
         self.model.updateInfos(infos)
 
-    def getModelRepr(self):
+    def getModelRepr(self, detailed=False):
         """Returns a string representation of the model
         Returns:
             a string conversion of the model
         """
         try:
+            if detailed:
+                return self.model.getDetailedString()
             return str(self.model)
         except TypeError:
             return "Error"

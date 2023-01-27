@@ -78,8 +78,8 @@ def start_docker(dialog, force_reinstall):
 class ScanManager:
     """Scan model class"""
 
-    def __init__(self, nbk, linkedTreeview, calendarToScan, settings):
-        self.calendarToScan = calendarToScan
+    def __init__(self, nbk, linkedTreeview, pentestToScan, settings):
+        self.pentestToScan = pentestToScan
         self.nbk = nbk
         self.settings = settings
         self.btn_autoscan = None
@@ -266,6 +266,7 @@ class ScanManager:
             self.nbk.select("Main View")
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
+            item = self.linkTw.parent(item)
             self.linkTw.see(item)
             self.linkTw.selection_set(item)
             self.linkTw.focus(item)

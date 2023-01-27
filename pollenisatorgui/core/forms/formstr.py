@@ -25,6 +25,7 @@ class FormStr(Form):
             default: a default value for the Entry, defauult is ""
             contextualMenu: (Opt.) a contextualMenu to open when right clicked. default is None
             kwargs: same keyword args as you would give to ttk.Entry
+                    + binds:  a dictionnary of tkinter binding with shortcut as key and callback as value
         """
         super().__init__(name)
         self.regexValidation = regexValidation
@@ -109,6 +110,8 @@ class FormStr(Form):
         self._initContextualMenu(self.entry)
 
         self.entry.bind("<Control-a>", self.selectAll)
+        for bind, bind_call in self.getKw("binds", {}).items():
+            self.entry.bind(bind, bind_call)
         self.val.set(self.default)
         if parent.gridLayout:
             self.entry.grid(row=self.getKw("row", 0), column=self.getKw(

@@ -234,7 +234,7 @@ class CheckInstanceView(ViewElement):
         ScriptManager.executeScript(script)
     
 
-    def addInTreeview(self, parentNode=None, addChildren=True):
+    def addInTreeview(self, parentNode=None, addChildren=True, detailed=False):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
@@ -244,7 +244,7 @@ class CheckInstanceView(ViewElement):
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
+                self.controller.getDbId()), text=str(self.controller.getModelRepr(detailed)), tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError:
             pass
         # if addChildren:
@@ -264,9 +264,13 @@ class CheckInstanceView(ViewElement):
         Returns:
             return the saved command_node node inside the Appli class.
         """
-        parent = self.controller.getTarget()
-        if parent is not None and parent != "":
-            return parent
+        if self.mainApp.settings.is_checklist_view():
+            return ""
+            
+        else:
+            parent = self.controller.getTarget()
+            if parent is not None and parent != "":
+                return parent
         return None
 
     def _initContextualMenu(self):

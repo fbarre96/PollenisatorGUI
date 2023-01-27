@@ -153,6 +153,10 @@ class Settings:
                     fav = term_name
         return fav
 
+    def is_checklist_view(self):
+        self._reloadLocalSettings()
+        return self.local_settings.get("checklist_view", False)
+
     def isTrapCommand(self):
         self._reloadLocalSettings()
         return self.local_settings.get("trap_commands", False)
@@ -544,3 +548,5 @@ class Settings:
             self._reloadGlobalSettings()
         else:
             self._reloadDbSettings()
+
+            

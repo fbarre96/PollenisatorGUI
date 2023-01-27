@@ -14,7 +14,7 @@ import sys
 import shlex
 import signal
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.core.application.Appli import Appli
+from pollenisatorgui.core.application.appli import Appli
 import pollenisatorgui.core.components.utils as utils
 import tempfile
 import threading

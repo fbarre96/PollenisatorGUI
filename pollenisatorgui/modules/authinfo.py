@@ -189,7 +189,7 @@ class AuthInfo(Module):
 
 class ChildDialogAuthInfo:
     """
-    Open a child dialog of a tkinter application to ask a user a calendar name.
+    Open a child dialog of a tkinter application to ask a user a pentest name.
     """
     def __init__(self, parent, displayMsg="Add a key value auth info (login:password) (cookie_name:value)"):
         """
