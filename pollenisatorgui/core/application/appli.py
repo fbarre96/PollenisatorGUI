@@ -37,6 +37,8 @@ from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.filter import Filter
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.models.port import Port
+from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
+from pollenisatorgui.core.views.checkitemview import CheckItemView
 import pollenisatorgui.modules
 
 class FloatingHelpWindow(tk.Toplevel):
@@ -345,7 +347,7 @@ class Appli(tkinterDnD.Tk):
         self.minsize(width=400, height=400)
         self.resizable(True, True)
         self.title("Pollenisator")
-        self.geometry("1220x830")
+        self.geometry("1320x830")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.settings = Settings()
         self.initModules()
@@ -635,7 +637,7 @@ class Appli(tkinterDnD.Tk):
         self.btnHelp.pack(side="left")
         searchFrame.pack(side="top", fill="x")
         #PANED PART
-        self.paned = tk.PanedWindow(self.mainPageFrame, height=800)
+        self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal", height=800)
         #RIGHT PANE : Canvas + frame
         self.canvasMain = tk.Canvas(self.paned, bg="white")
         self.viewframe = ttk.Frame(self.canvasMain)
@@ -650,7 +652,7 @@ class Appli(tkinterDnD.Tk):
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
         # FILTER PANE:
-        self.filtersFrame = ttk.Frame(self.paned)
+        self.filtersFrame = ttk.Frame(self.paned, style="Debug.TFrame")
         self.initFiltersFrame(self.filtersFrame)
         self.paned.add(self.filtersFrame)
         # END PANE PREP
@@ -666,10 +668,12 @@ class Appli(tkinterDnD.Tk):
         self.canvasMain.configure(yscrollcommand=self.myscrollbarMain.set)
         self.paned.add(self.canvasMain)
         self.paned.pack(fill=tk.BOTH, expand=1)
+        
         self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.nbk.add(self.mainPageFrame, "Main View", image=self.main_tab_img)
-    
+        self.after(50, lambda: self.paned.paneconfigure(self.filtersFrame, width=self.filtersFrame.winfo_reqwidth()))
+
     def searchbarSelectAll(self, _event):
         """
         Callback to select all the text in searchbar
@@ -755,19 +759,65 @@ class Appli(tkinterDnD.Tk):
 
     def initFiltersFrame(self, frame):
         """Populate the filter frame with cool widgets"""
-        form = FormPanel()
+        form = FormPanel( pady=0, padx=0, fill="y")
         checklistview = self.settings.is_checklist_view()
-        self.check_checklistView = form.addFormCheckbox("Checklist", "Checklist view", checklistview, binds={"<Button-1>":self.checklistViewSwap})
+        self.check_checklistView = form.addFormCheckbox("Checklist", "Checklist view", checklistview, command=self.checklistViewSwap, pady=0, padx=0, side="top")
+        show_only_todo = self.settings.is_show_only_todo()
+        self.check_show_only_todo = form.addFormCheckbox("Todos", "Show only todos", show_only_todo, command=self.showTodoSwap, pady=0, padx=0, side="top")
+        show_only_manual = self.settings.is_show_only_manual()
+        self.check_show_only_manual = form.addFormCheckbox("Manuals", "Show only manual checks", show_only_manual, command=self.showManualSwap, pady=0, padx=0, side="top")
+        
         form.constructView(frame)
 
     def checklistViewSwap(self, event=None):
-        # This is called before the checkbox changes value
-        val = not self.check_checklistView.getValue() # therefor the "not"
+        val = self.check_checklistView.getValue()
         self.settings.local_settings["checklist_view"] = val
         self.settings.saveLocalSettings()
         self.treevw.refresh()
 
+    def filters_changed(self):
+        self.treevw.unhideTemp() 
+        show_only_todo = self.check_show_only_todo.getValue()
+        if show_only_todo:
+            self.filter_todo()
+        show_only_manual = self.check_show_only_manual.getValue() 
+        if show_only_manual:
+            self.filter_manual()
+   
 
+    def showTodoSwap(self, event=None):
+        val = self.check_show_only_todo.getValue() 
+        self.settings.local_settings["show_only_todo"] = val
+        self.settings.saveLocalSettings()
+        self.filters_changed()
+
+    def filter_todo(self):
+        for values in self.treevw.views.values():
+            view = values["view"]
+            if not isinstance(view, CheckInstanceView):
+                continue
+            check_infos = view.controller.getCheckInstanceInfos()
+            status = check_infos.get("status", "")
+            if status == "":
+                status = check_infos.get("status", "")
+            if status == "":
+                status = "todo"
+            if status != "todo":
+                view.hide()
+
+    def showManualSwap(self, event=None):
+        val = self.check_show_only_manual.getValue() 
+        self.settings.local_settings["show_only_manual"] = val
+        self.settings.saveLocalSettings()
+        self.filters_changed()
+
+    def filter_manual(self):
+        for values in self.treevw.views.values():
+            view = values["view"]
+            if not isinstance(view, CheckInstanceView) and not isinstance(view, CheckItemView):
+                continue
+            if view.controller.isAuto():
+                view.hide()
 
     def initCommandsView(self):
         """Populate the command tab menu view frame with cool widgets"""

@@ -8,7 +8,7 @@ import json
 class CheckItemController(ControllerElement):
     """Inherits ControllerElement
     Controller for CheckItem object. Mostly handles conversion between mongo data and python objects"""
-    def doUpdate(self, values):
+    def doUpdate(self, values, updateInDb=True):
         """
         Update the command represented by this self.model in database with the given values.
 
@@ -31,8 +31,9 @@ class CheckItemController(ControllerElement):
         commands_raw = values.get("Commands", [])
         self.model.commands = [str(command[-1]) for command in commands_raw if str(command[-1]) != ""]
         self.model.script = values.get("Script", "")
-        # Update in database
-        self.model.update()
+        if updateInDb:
+            # Update in database
+            self.model.update()
 
     def doInsert(self, values):
         """
@@ -53,7 +54,7 @@ class CheckItemController(ControllerElement):
         ports = values["Ports/Services"]
         lvl = values["Level"]
         priority = values["Priority"]
-        max_thread = values["Shared threads"]
+        max_thread = values.get("Shared threads", 1)
         category = values.get("Category", "")
         commands_raw = values.get("Commands", [])
         check_type = values["Check type"]
@@ -82,6 +83,11 @@ class CheckItemController(ControllerElement):
             dict with keys 
         """
         return self.model.getData()
+
+    
+    def isAuto(self):
+        """Return True if this command is an auto command"""
+        return self.model.isAuto()
 
     def getType(self):
         """Return a string describing the type of object

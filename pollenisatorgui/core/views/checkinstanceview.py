@@ -32,16 +32,17 @@ class CheckInstanceView(ViewElement):
     cached_running_icon = None
     cached_not_ready_icon = None
 
-    def getIcon(self):
+    def getIcon(self, check_infos=None):
         """
         Load the object icon in cache if it is not yet done, and returns it
 
         Return:
             Returns the icon representing this object.
         """
-        infos = self.controller.getCheckInstanceInfos()
+        if check_infos is None:
+            check_infos = self.controller.getCheckInstanceInfos()
         modelData = self.controller.getData()
-        status = infos.get("status", "")
+        status = check_infos.get("status", "")
         if status == "":
             status = modelData.get("status", "")
         if status == "":
@@ -231,7 +232,8 @@ class CheckInstanceView(ViewElement):
         ScriptManager.openScriptForUser(script)
 
     def execScript(self, script):
-        ScriptManager.executeScript(script)
+        data = self.controller.getData()
+        ScriptManager.executeScript(script, data)
     
 
     def addInTreeview(self, parentNode=None, addChildren=True, detailed=False):
@@ -242,10 +244,13 @@ class CheckInstanceView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+        check_infos = self.controller.getCheckInstanceInfos()
+        text = check_infos.get("repr", "unknown") if self.mainApp.settings.is_checklist_view() else str(self)
+            
         try:
             self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr(detailed)), tags=self.controller.getTags(), image=self.getIcon())
-        except tk.TclError:
+                self.controller.getDbId()), text=text, tags=self.controller.getTags(), image=self.getIcon(check_infos))
+        except tk.TclError as e:
             pass
         # if addChildren:
         #     tools = self.controller.getTools()
@@ -254,7 +259,16 @@ class CheckInstanceView(ViewElement):
         #         tool_vw = ToolView(
         #             self.appliTw, self.appliViewFrame, self.mainApp, tool_o)
         #         tool_vw.addInTreeview(str(self.controller.getDbId()))
-        if "hidden" in self.controller.getTags():
+    
+        status = check_infos.get("status", "")
+        if status == "":
+            status = check_infos.get("status", "")
+        if status == "":
+            status = "todo"
+    
+        if "hidden" in self.controller.getTags() or (status != "todo" and self.mainApp.settings.is_show_only_todo()):
+            self.hide()
+        if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
             self.hide()
 
     def getParentNode(self):
@@ -265,7 +279,7 @@ class CheckInstanceView(ViewElement):
             return the saved command_node node inside the Appli class.
         """
         if self.mainApp.settings.is_checklist_view():
-            return ""
+            return str(self.controller.model.check_iid)
             
         else:
             parent = self.controller.getTarget()

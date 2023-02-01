@@ -3,7 +3,7 @@ import shutil
 import os
 from pollenisatorgui.core.components.apiclient import APIClient
 
-def main(apiclient):
+def main(apiclient, **kwargs):
 	APIClient.setInstance(apiclient)
 	if not shutil.which("gowitness"):
 		return False, "binary 'gowitness' is not in the PATH."

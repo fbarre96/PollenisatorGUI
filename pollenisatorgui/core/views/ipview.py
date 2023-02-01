@@ -1,30 +1,21 @@
 """View for ip object. Handle node in treeview and present forms to user when interacted with."""
 
 from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
-from pollenisatorgui.core.models.checkinstance import CheckInstance
 from pollenisatorgui.core.models.port import Port
-from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.models.ip import Ip
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.portview import PortView
-from pollenisatorgui.core.views.toolview import ToolView
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.portcontroller import PortController
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.controllers.ipcontroller import IpController
-from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.views.viewelement import ViewElement
+import pollenisatorgui.core.components.utils as utils
 from tkinter import TclError
 from bson.objectid import ObjectId
 import json
 
-def is_json(myjson):
-  try:
-    json.loads(myjson)
-  except ValueError as e:
-    return False
-  return True
 
 class IpView(ViewElement):
     """View for ip object. Handle node in treeview and present forms to user when interacted with.
@@ -46,7 +37,7 @@ class IpView(ViewElement):
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=10)
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
         buttons_panel = self.form.addFormPanel(grid=True)
         buttons_panel.addFormButton("Add a port", self.addPortCallback)
         buttons_panel.addFormButton(

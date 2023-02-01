@@ -56,7 +56,7 @@ class CommandController(ControllerElement):
         indb = values["indb"]
         timeout = values["Timeout"]
         owners = values["owners"]
-        types = [k for k, v in types.items() if v == 1]
+        #types = [k for k, v in types.items() if v == 1]
         self.model.initialize(name, bin_path, plugin, 
                               text,  indb, timeout, owners)
         # Insert in database

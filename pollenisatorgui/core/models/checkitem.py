@@ -129,5 +129,9 @@ class CheckItem(Element):
         """
         return {"title": self.title}
 
+    def isAuto(self):
+        """Return True if this command is an auto command"""
+        return "auto" in self.check_type
+
     def __str__(self):
         return self.title

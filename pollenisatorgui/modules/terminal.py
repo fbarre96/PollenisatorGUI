@@ -66,22 +66,23 @@ class Terminal(Module):
         """
         self.contextualMenu = tk.Menu(parentFrame, tearoff=0, background='#A8CF4D',
                                       foreground='black', activebackground='#A8CF4D', activeforeground='white')
-        self.contextualMenu.add_command(
-            label="Attack from terminal", command=self.attackFromTerminal)
+        # self.contextualMenu.add_command(
+        #     label="Attack from terminal", command=self.attackFromTerminal)
         return self.contextualMenu
 
-    def attackFromTerminal(self, _event=None):
-        for selected in self.treevw.selection():
-            view_o = self.treevw.getViewFromId(selected)
-            if view_o is not None:
-                lvl = "network" if isinstance(view_o, ScopeView) else None
-                lvl = "wave" if isinstance(view_o, WaveView) else lvl
-                lvl = "ip" if isinstance(view_o, IpView) else lvl
-                lvl = "port" if isinstance(view_o, PortView) else lvl
-                if lvl is not None:
-                    inst = view_o.controller.getData()
-                    Terminal.openTerminal(lvl+"|"+inst.get("wave", "Imported")+"|"+inst.get(
-                        "scope", "")+"|"+inst.get("ip", "")+"|"+inst.get("port", "")+"|"+inst.get("proto", ""))
-                else:
-                    tk.messagebox.showerror(
-                        "ERROR : Wrong selection", "You have to select a object that may have tools")
+    # def attackFromTerminal(self, _event=None):
+    #     for selected in self.treevw.selection():
+    #         view_o = self.treevw.getViewFromId(selected)
+    #         if view_o is not None:
+                
+    #             lvl = "network" if isinstance(view_o, ScopeView) else None
+    #             lvl = "wave" if isinstance(view_o, WaveView) else lvl
+    #             lvl = "ip" if isinstance(view_o, IpView) else lvl
+    #             lvl = "port" if isinstance(view_o, PortView) else lvl
+    #             if lvl is not None:
+    #                 inst = view_o.controller.getData()
+    #                 Terminal.openTerminal(lvl+"|"+inst.get("wave", "Imported")+"|"+inst.get(
+    #                     "scope", "")+"|"+inst.get("ip", "")+"|"+inst.get("port", "")+"|"+inst.get("proto", ""))
+    #             else:
+    #                 tk.messagebox.showerror(
+    #                     "ERROR : Wrong selection", "You have to select a object that may have tools")

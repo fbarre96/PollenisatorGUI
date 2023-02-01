@@ -92,7 +92,6 @@ class CommandView(ViewElement):
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Name")
         panel_top.addFormStr("Name", r"\S+", data.get("name", ""), None, column=1)
-        panel_top.addFormLabel("Level", row=1)
         
         panel_text = self.form.addFormPanel()
         panel_text.addFormLabel("Command line options", side="top")
@@ -115,8 +114,11 @@ class CommandView(ViewElement):
         tags = self.controller.getTags()
         if self.controller.isMine():
             tags.append("known_command")
-        self.appliTw.insert(parentNode, "end", str(
+        try:
+            self.appliTw.insert(parentNode, "end", str(
             self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getClassIcon())
+        except tk.TclError:
+            pass
         if "hidden" in tags:
             self.hide()
 

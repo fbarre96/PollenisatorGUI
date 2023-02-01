@@ -1389,7 +1389,7 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+            raise ErrorHTTP(response, {}, cls=JSONDecoder)
         return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
 
     @handle_api_errors
@@ -1402,3 +1402,25 @@ class APIClient():
             raise ErrorHTTP(response, False, response.text)
         else:
             return None
+
+    @handle_api_errors
+    def getToolDetailedString(self, tool_iid):
+        api_url = '{0}tools/{1}/{2}/getDetailedString'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return "Error reaching API"
+
+    @handle_api_errors
+    def getTriggerLevels(self):
+        api_url = '{0}/getTriggerLevels'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return []

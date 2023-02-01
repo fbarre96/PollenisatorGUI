@@ -106,6 +106,7 @@ def setStyle(tkApp, _event=None):
                    background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
     style.configure("Important.TFrame", background="#73B723")
     style.configure("TFrame", background="white")
+    style.configure("Debug.TFrame", background="red")
     style.configure("Important.TLabel", background="#73B723", foreground="white")
     style.configure("Pagination.TLabel", background="white", foreground="#73B723", font=('Sans', '10', 'underline') )
     style.configure("CurrentPagination.TLabel", background="white", foreground="#73B723", font=('Sans', '10', 'bold') )
@@ -556,3 +557,9 @@ def executeInExternalTerm(command, with_bash=True, env={}):
             "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
     return True
 
+def is_json(myjson):
+  try:
+    json.loads(myjson)
+  except ValueError as e:
+    return False
+  return True

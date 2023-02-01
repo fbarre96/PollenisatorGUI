@@ -120,6 +120,11 @@ class Tool(Element):
         if existing is not None:
             return False, existing["_id"]
         # Those are added to base after tool's unicity verification
+        base["name"] = self.name
+        base["ip"] = self.ip
+        base["scope"] = self.scope
+        base["port"] = self.port
+        base["proto"] = self.proto
         base["command_iid"] = self.command_iid
         base["check_iid"] = self.check_iid
         base["scanner_ip"] = self.scanner_ip
@@ -232,19 +237,10 @@ class Tool(Element):
         Returns:
             Returns the parent's ObjectId _id". or None if a type error occurs
         """
-        apiclient = APIClient.getInstance()
         try:
             if self.check_iid is not None:
                 return str(self.check_iid)
-            if self.lvl == "wave":
-                wave = apiclient.find("waves", {"wave": self.wave}, False)
-                return wave["_id"]
-            elif self.lvl == "network" or self.lvl == "domain":
-                return apiclient.find("scopes", {"wave": self.wave, "scope": self.scope}, False)["_id"]
-            elif self.lvl == "ip":
-                return apiclient.find("ips", {"ip": self.ip}, False)["_id"]
-            else:
-                return apiclient.find("ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)["_id"]
+            return None
         except TypeError:
             # None type returned:
             return None
@@ -265,13 +261,9 @@ class Tool(Element):
         Returns:
             string
         """
-        if self.lvl == "network" or self.lvl == "domain":
-            return str(self.scope)+" "+str(self)
-        elif self.lvl == "ip":
-            return str(self.ip)+" "+str(self)
-        else:
-            return str(self.ip)+":"+str(self.proto+"/"+self.port)+" "+str(self)
-
+        apiclient = APIClient.getInstance() 
+        return apiclient.getToolDetailedString(self.getId())
+        
     def getResultFile(self):
         """Returns the result file of this tool
         Returns:
@@ -321,18 +313,7 @@ class Tool(Element):
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
         Returns:
-            A dict (7 keys :"wave", "scope", "ip", "port", "proto", "name", "lvl")
+        {"wave": self.wave, "lvl": self.lvl, "check_iid":self.check_iid}
         """
-        base = {"wave": self.wave, "scope": "", "ip": "", "port": "",
-                "proto": "", "name": self.name, "lvl": self.lvl}
-        if self.lvl == "wave":
-            return base
-        if self.lvl in ("domain", "network"):
-            base["scope"] = self.scope
-            return base
-        base["ip"] = self.ip
-        if self.lvl == "ip":
-            return base
-        base["port"] = self.port
-        base["proto"] = self.proto
+        base = {"wave": self.wave, "name":self.name, "lvl": self.lvl, "check_iid":self.check_iid}
         return base

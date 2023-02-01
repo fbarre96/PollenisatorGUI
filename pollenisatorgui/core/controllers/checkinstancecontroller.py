@@ -1,9 +1,7 @@
 """Controller for command object. Mostly handles conversion between mongo data and python objects"""
-from turtle import title
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.controllers.controllerelement import ControllerElement
 import bson
-import json
 
 class CheckInstanceController(ControllerElement):
     """Inherits ControllerElement
@@ -54,10 +52,13 @@ class CheckInstanceController(ControllerElement):
     
     def getTarget(self):
         return self.model.target_iid
-
+    
     def getTools(self):
         return self.model.getTools()
         
+    def isAuto(self):
+        return self.model.check_m.isAuto()
+
     def actualize(self):
         """Ask the model to reload its data from database
         """

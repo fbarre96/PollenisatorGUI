@@ -158,14 +158,14 @@ class ScriptManager:
         self.app.destroy()
 
     @classmethod
-    def executeScript(cls, script_path):
+    def executeScript(cls, script_path, data={}):
         script_dir = ScriptManager.getScriptsDir()
         category_name = os.path.dirname(script_path.replace(script_dir, ""))
         category_name = re.sub(r"^/+", "",  category_name)
         script_name = ".".join(os.path.splitext(os.path.basename(script_path))[:-1])
         module = os.path.join("pollenisatorgui/scripts/",category_name, script_name).replace("/", '.')
         imported = importlib.import_module(module)
-        success, res = imported.main(APIClient.getInstance())
+        success, res = imported.main(APIClient.getInstance(), **data)
         if success:
             tk.messagebox.showinfo("Script finished", f"Script {script_name} finished.\n{res}")
         else:

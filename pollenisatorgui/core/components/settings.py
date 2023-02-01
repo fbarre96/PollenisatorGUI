@@ -154,15 +154,18 @@ class Settings:
         return fav
 
     def is_checklist_view(self):
-        self._reloadLocalSettings()
         return self.local_settings.get("checklist_view", False)
 
+    def is_show_only_todo(self):
+        return self.local_settings.get("show_only_todo", False)
+
+    def is_show_only_manual(self):
+        return self.local_settings.get("show_only_manual", False)
+
     def isTrapCommand(self):
-        self._reloadLocalSettings()
         return self.local_settings.get("trap_commands", False)
-    
+
     def setTrapCommand(self):
-        self._reloadLocalSettings()
         self.local_settings["trap_commands"] = self.visual_trap_commands.get()
         self.saveLocalSettings()
 

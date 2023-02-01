@@ -8,7 +8,7 @@ from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemController
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
-
+import os
 from bson import ObjectId
 import tkinter as tk
 
@@ -18,7 +18,10 @@ class CheckItemView(ViewElement):
     Attributes:
         icon: icon name to show in treeview. Icon filename must be in icon directory.
     """
-    icon = 'checklist.png'
+    default_icon = 'checklist.png'
+    cached_default_icon = None
+    icon_auto = 'auto.png'
+    cached_icon_auto = None
 
     def __init__(self, appTw, appViewFrame, mainApp, controller):
         """Constructor
@@ -33,6 +36,37 @@ class CheckItemView(ViewElement):
         self.checktypeForm = None
         super().__init__(appTw, appViewFrame, mainApp, controller)
 
+    def getIcon(self):
+        """
+        Load the object icon in cache if it is not yet done, and returns it
+
+        Return:
+            Returns the icon representing this object.
+        """
+        isAuto = self.controller.isAuto()
+        if isAuto: # order is important as "done" is not_done but not the other way
+            ui = self.__class__.icon_auto
+            cache = self.__class__.cached_icon_auto
+            iconStatus = "auto"
+        else:
+            cache = self.__class__.cached_default_icon
+            ui = self.__class__.default_icon
+            iconStatus = "default"
+        if cache is None:
+            from PIL import Image, ImageTk
+            abs_path = os.path.dirname(os.path.abspath(__file__))
+
+            path = os.path.join(abs_path, "../../icon/"+ui)
+            if iconStatus == "auto":
+                self.__class__.cached_icon_auto = ImageTk.PhotoImage(
+                    Image.open(path))
+                return self.__class__.cached_icon_auto
+            else:
+                self.__class__.cached_default_icon = ImageTk.PhotoImage(
+                    Image.open(path))
+                return self.__class__.cached_default_icon
+        return cache
+
     def _commonWindowForms(self, default={}, action="modify"):
         """Construct form parts identical between Modify and Insert forms
         Args:
@@ -42,17 +76,18 @@ class CheckItemView(ViewElement):
         self.form.addFormHidden("Parent", default.get("parent", ""))
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Check type", row=0, column=0)
-        self.checktypeForm = panel_bottom.addFormCombo("Check type", ("manual_commands", "auto_commands", "script", "manual"), default=default.get("check_type","manual"),  binds={"<<ComboboxSelected>>": lambda ev: self.updateCheckType(action)}, row=0, column=1)
+        self.checktypeForm = panel_bottom.addFormCombo("Check type", ("manual_commands", "auto_commands", "script", "manual"), 
+                                                        default=default.get("check_type","manual"),  
+                                                        binds={"<<ComboboxSelected>>": lambda ev: self.updateCheckType(action)},
+                                                        row=0, column=1)
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormChecklist("Pentest types", list(Settings.getPentestTypes().keys()), default.get("pentest_types", []), row=1, column=1)
         panel_bottom = self.form.addFormPanel(grid=True)
-        lvl = ["network", "domain", "ip", "port", "wave"]
-        for module in self.mainApp.modules:
-            module_info = getattr(module["object"], "module_info", {})
-            lvl += module_info.get("registerLvls", [])
+        apiclient = APIClient.getInstance()
+        lvls = apiclient.getTriggerLevels()
         panel_bottom.addFormLabel("Level", row=0, column=0)
         panel_bottom.addFormCombo(
-            "Level", lvl, default.get("lvl", "network"), row=0, column=1)
+            "Level", lvls, default.get("lvl", "network"), row=0, column=1)
         panel_bottom.addFormHelper(
             "lvl wave: will run on each wave once\nlvl network: will run on each NetworkIP once\nlvl domain: will run on each scope domain once\nlvl ip: will run on each ip/hostname once\nlvl port: will run on each port once", row=0, column=2)
         panel_bottom = self.form.addFormPanel(grid=True)
@@ -103,8 +138,9 @@ class CheckItemView(ViewElement):
             btn = formTv.addFormButton("Browse", lambda _event : self.browseScriptCallback(self.textForm))
 
     def updateCheckType(self, action):
-        newValue = self.checktypeForm.getValue()
-        self.controller.model.check_type = newValue
+        form_values = self.form.getValue()
+        form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
+        self.controller.doUpdate(form_values_as_dicts, updateInDb=False)
         self.form.clear()
         if action == "modify":
             self.openModifyWindow()
@@ -149,7 +185,7 @@ class CheckItemView(ViewElement):
         self._initContextualMenu()
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Title", column=0)
-        panel_top.addFormStr("Title", r".+", column=1, width=50)
+        panel_top.addFormStr("Title", r".+", default=data.get("title", ""), column=1, width=50)
         
        
         self._commonWindowForms(data, action="insert")
@@ -165,7 +201,7 @@ class CheckItemView(ViewElement):
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError:
             pass
         if "hidden" in self.controller.getTags():
@@ -180,7 +216,7 @@ class CheckItemView(ViewElement):
         """
         category = self.controller.getCategory()
         try:
-            self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getClassIcon())
+            self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError:
             pass
         parent = self.controller.getParent()

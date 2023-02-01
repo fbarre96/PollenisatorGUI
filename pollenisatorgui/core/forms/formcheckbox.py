@@ -47,6 +47,9 @@ class FormCheckbox(Form):
         binds = self.getKw("binds", {})
         for bind in binds:
             self.chk.bind(bind, binds[bind])
+        command = self.getKw("command", None)
+        if command is not None:
+            self.chk.configure(command=command)
         
         if parent.gridLayout:
             self.chk.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), sticky=self.getKw("sticky", tk.W), **self.kwargs)

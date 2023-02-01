@@ -63,7 +63,7 @@ class FormPanel(Form):
                 self.panel.pack(fill=self.getKw("fill", "both"), side=self.getKw(
                     "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), expand=True, **self.kwargs)
         else:  # Master panel, packing
-            self.panel.pack(fill="both", side="top", pady="5", padx="30", expand=True)
+            self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
 
     def checkForm(self):
         """

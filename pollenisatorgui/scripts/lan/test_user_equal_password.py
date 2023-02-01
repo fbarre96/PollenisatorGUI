@@ -4,7 +4,7 @@ import tempfile
 import os
 import shutil
 
-def main(apiclient):
+def main(apiclient, **kwargs):
     if not shutil.which("cme"):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)

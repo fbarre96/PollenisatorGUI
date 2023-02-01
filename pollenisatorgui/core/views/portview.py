@@ -2,26 +2,17 @@
 
 import webbrowser
 from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
-from pollenisatorgui.core.models.checkinstance import CheckInstance
-from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
-from pollenisatorgui.core.views.toolview import ToolView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
-from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.components.apiclient import APIClient
 from tkinter import TclError
 import json
+import pollenisatorgui.core.components.utils as utils
 
-def is_json(myjson):
-  try:
-    json.loads(myjson)
-  except ValueError as e:
-    return False
-  return True
 
 class PortView(ViewElement):
     """View for port object. Handle node in treeview and present forms to user when interacted with.
@@ -86,18 +77,18 @@ class PortView(ViewElement):
         top_panel.addFormText(
             "Notes", r"", modelData["notes"], None, side="top", height=10)
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
-        command_list = Command.fetchObjects({"lvl": "port"}, APIClient.getInstance().getCurrentPentest())
-        command_names = ["None"]
-        self.command_names_to_iid = {}
-        for command_doc in command_list:
-            command_names.append(command_doc.name)
-            self.command_names_to_iid[command_doc.name] = str(command_doc._id)
-        self.tool_panel = self.form.addFormPanel(grid=True)
-        self.tool_panel.addFormLabel("Tool to add")
-        self.tool_panel.addFormCombo(
-            "Tool to add", command_names, "None", column=1)
-        self.tool_panel.addFormButton("Add tool", self._addTool, column=2)
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
+        # command_list = Command.fetchObjects({"lvl": "port"}, APIClient.getInstance().getCurrentPentest()) #TODO lvl change
+        # command_names = ["None"]
+        # self.command_names_to_iid = {}
+        # for command_doc in command_list:
+        #     command_names.append(command_doc.name)
+        #     self.command_names_to_iid[command_doc.name] = str(command_doc._id)
+        # self.tool_panel = self.form.addFormPanel(grid=True)
+        # self.tool_panel.addFormLabel("Tool to add")
+        # self.tool_panel.addFormCombo(
+        #     "Tool to add", command_names, "None", column=1)
+        # self.tool_panel.addFormButton("Add tool", self._addTool, column=2)
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormButton("Add a security defect",
                                 self.addDefectCallback)

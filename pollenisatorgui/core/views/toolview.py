@@ -1,6 +1,5 @@
 """View for tool object. Handle node in treeview and present forms to user when interacted with."""
 
-from pollenisatorgui.core.application.dialogs import ChildDialogView
 from pollenisatorgui.core.application.dialogs.ChildDialogToolView import ChildDialogToolView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -16,7 +15,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction impor
 import pollenisatorgui.core.components.utils as utils
 from bson import ObjectId, errors
 import os
-from shutil import which
+import json
 
 
 class ToolView(ViewElement):
@@ -140,6 +139,8 @@ class ToolView(ViewElement):
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
+        top_panel.addFormLabel("Infos", side="left")
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         try:
@@ -219,7 +220,7 @@ class ToolView(ViewElement):
             self.hide()
 
     def downloadResultFile(self, _event=None):
-        """Callback for tool click #TODO move to ToolController
+        """Callback for tool click 
         Download the tool result file and asks the user if he or she wants to open it. 
         If OK, tries to open it
         Args:
@@ -250,7 +251,7 @@ class ToolView(ViewElement):
                 "Download failed", "the file does not exist on sftp server")
 
     def createDefectCallback(self, _event=None):
-        """Callback for tool click #TODO move to ToolController
+        """Callback for tool click 
         Creates an empty defect view and open it's insert window with notes = tools notes.
         """
         modelData = self.controller.getData()
@@ -269,7 +270,7 @@ class ToolView(ViewElement):
 
     def localLaunchCallback(self, _event=None):
         """
-        Callback for the launch tool button. Will launch it on localhost pseudo 'worker'.  #TODO move to ToolController
+        Callback for the launch tool button. Will launch it on localhost pseudo 'worker'. 
 
         Args:
             event: Automatically generated with a button Callback, not used.
@@ -283,7 +284,7 @@ class ToolView(ViewElement):
 
     def safeLaunchCallback(self, _event=None):
         """
-        Callback for the launch tool button. Will queue this tool to a worker. #TODO move to ToolController
+        Callback for the launch tool button. Will queue this tool to a worker. 
         Args:
             event: Automatically generated with a button Callback, not used.
         Returns:
@@ -294,7 +295,7 @@ class ToolView(ViewElement):
 
     def launchCallback(self, _event=None):
         """
-        Callback for the launch tool button. Will queue this tool to a worker. #TODO move to ToolController
+        Callback for the launch tool button. Will queue this tool to a worker. 
         Will try to launch respecting limits first. If it does not work, it will asks the user to force launch.
 
         Args:
@@ -321,7 +322,7 @@ class ToolView(ViewElement):
         
     def stopCallback(self, _event=None):
         """
-        Callback for the launch tool stop button. Will stop this task. #TODO move to ToolController
+        Callback for the launch tool stop button. Will stop this task. 
 
         Args:
             _event: Automatically generated with a button Callback, not used.
@@ -349,7 +350,7 @@ class ToolView(ViewElement):
 
     def resetCallback(self, _event=None):
         """
-        Callback for the reset tool stop button. Will reset the tool to a ready state. #TODO move to ToolController
+        Callback for the reset tool stop button. Will reset the tool to a ready state. 
 
         Args:
             event: Automatically generated with a button Callback, not used.
@@ -368,7 +369,7 @@ class ToolView(ViewElement):
         Returns:
             A string that should be unique to describe the parent list of tool node
         """
-        return str(parent_db_id)+"|Tools"
+        return str(parent_db_id)
 
     @classmethod
     def treeviewListIdToDb(cls, treeview_id):
@@ -378,7 +379,7 @@ class ToolView(ViewElement):
         Returns:
             the parent object mongo id as string
         """
-        return str(treeview_id).split("|")[0]
+        return str(treeview_id)
 
     def updateReceived(self):
         """Called when a tool update is received by notification.

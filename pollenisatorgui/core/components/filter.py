@@ -87,6 +87,7 @@ class TreeToCondition(Transformer):
 class ParseError(Exception):
     """Inherits Exception
     Class to raise parsing error"""
+    pass
 
 class Filter:
     """

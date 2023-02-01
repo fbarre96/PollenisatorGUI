@@ -122,17 +122,11 @@ class CheckInstance(Element):
     def __str__(self):
         return self.check_m.title
 
-    def getDetailedString(self):
+    def getCheckInstanceInfos(self):
         """
         Get a more detailed string representation of a check instance.
         Returns:
             string
         """
         apiclient = APIClient.getInstance()
-        target = apiclient.find(self.target_type, {"_id":ObjectId(self.target_iid)}, False)
-        if self.check_m.lvl == "network" or self.check_m.lvl == "domain":
-            return str(target.get("scope",""))
-        elif self.check_m.lvl == "ip":
-            return str(target.get("ip",""))
-        else:
-            return str(target.get("ip",""))+" "+str(target.get("proto","")+"/"+target.get("port",""))
+        return apiclient.getCheckInstanceInfos(self._id).get("repr")

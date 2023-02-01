@@ -388,14 +388,14 @@ class PollenisatorTreeview(ttk.Treeview):
     def unhideTemp(self):
         """Reattach all hidden objects but keep in memory that they are hidden.
         """
-        hiddens = sorted(self._hidden, key=lambda x: len(x[0]))
+        hiddens = self._hidden[::-1]
         for hidden in hiddens:
             itemId = hidden[0]
             parentId = '' if hidden[1] is None else hidden[1]
             try:
                 self.reattach(itemId, parentId, 0)
             except tk.TclError:
-                continue
+                pass
 
     def doFilterTreeview(self, query, show_hidden=True):
         """Apply the query on the treeview.
@@ -417,6 +417,11 @@ class PollenisatorTreeview(ttk.Treeview):
                 self._brutSearcher(results_iid)
             else:
                 self._brutTextSearcher(query)
+
+    # def insert(self, *args, **kwargs):
+    #     """Insert a new node in the treeview. Surcharge the ttk.Treeview insert method to check hidden nodes"""
+    #     iid = args[2]
+    #     return super().insert(*args, **kwargs)
         
     def _brutSearcher(self, results_iid, parentItem=''):
         """
