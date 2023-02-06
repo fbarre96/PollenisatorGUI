@@ -105,6 +105,8 @@ class IpView(ViewElement):
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             _addChildren: not used here
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+
         if parentNode is None:
             parentNode = self.getParentNode()
         ip_node = None
@@ -119,14 +121,15 @@ class IpView(ViewElement):
                 self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
         except TclError:
             pass
-        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         if addChildren and ip_node is not None:
             self._insertChildrenDefects()
             self._insertChildrenChecks()
             self._insertChildrenPorts(ip_node)
         # self.appliTw.sort(parentNode)
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         modelData = self.controller.getData()
         if not modelData["in_scopes"]:
             self.controller.addTag("OOS")

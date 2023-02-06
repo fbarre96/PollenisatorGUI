@@ -85,6 +85,14 @@ class Remark(Element):
         else:
             apiclient.updateInDb(apiclient.getCurrentPentest(),  {"_id":ObjectId(self._id)}, ObjectId(self._id), pipeline_set)
 
+    def getData(self):
+        """Return defect attributes as a dictionnary matching Mongo stored defects
+        Returns:
+            dict with keys title, ease, ipact, risk, redactor, type, notes, ip, port, proto, proofs, _id, tags, infos
+        """
+        return {"title": self.title, "type": self.type, "description": self.description}
+
+
     def _getParent(self):
         """
         Return the mongo ObjectId _id of the first parent of this object. For a Defect it is either an ip or a port depending on the Defect's level.

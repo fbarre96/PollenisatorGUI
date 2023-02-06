@@ -2,6 +2,7 @@
 
 import os
 from bson.objectid import ObjectId
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.components.apiclient import APIClient
 
@@ -247,13 +248,13 @@ class Defect(Element):
         except AttributeError:
             port = None
         
-        apiclient = APIClient.getInstance()
+        datamanager = DataManager.getInstance()
         if port is None:
             port = ""
         if port == "":
-            obj = apiclient.find("ips", {"ip": self.ip}, False)
+            obj = datamanager.find("ips", {"ip": self.ip}, False)
         else:
-            obj = apiclient.find(
+            obj = datamanager.find(
                 "ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)
         return obj["_id"]
 
@@ -355,3 +356,23 @@ class Defect(Element):
             A list of Defect
         """
         return APIClient.getInstance().getDefectTable()
+
+    @classmethod
+    def fetchPentestObjects(cls):
+        apiclient = APIClient.getInstance()
+        ds = apiclient.find(cls.coll_name, {"ip":{"$ne":""}}, True)
+        if ds is None:
+            return None
+        for d in ds:
+            # disabling this error as it is an abstract function
+            yield cls(d)  
+
+    def getData(self):
+        """Return defect attributes as a dictionnary matching Mongo stored defects
+        Returns:
+            dict with keys title, ease, ipact, risk, redactor, type, notes, ip, port, proto, proofs, _id, tags, infos
+        """
+        return {"title": self.title, "synthesis":self.synthesis, "description":self.description, "ease": self.ease, "impact": self.impact,
+                "risk": self.risk, "redactor": self.redactor, "type": self.mtype, "language":self.language, "notes": self.notes, "fixes":self.fixes,
+                "ip": self.ip, "port": self.port, "proto": self.proto,"index":self.index,
+                "proofs": self.proofs, "_id": self.getId(), "tags": self.tags, "infos": self.infos}

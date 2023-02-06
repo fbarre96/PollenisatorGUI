@@ -15,7 +15,6 @@ class ScrollFrame(tk.Frame):
     def __init__(self, parent):
         """Constructor"""
         super().__init__(parent)  # create a frame (self)
-
         # place canvas on self
         self.canvas = tk.Canvas(self, borderwidth=0, background="#ffffff")
         # place a frame on the canvas, this frame will hold the child widgets
@@ -90,6 +89,7 @@ class Summary(Module):
         Args:
             root: the root widget of tkinter
         """
+        super().__init__()
         self.linkTw = None
         self.root = root
         self.treeviews = {}

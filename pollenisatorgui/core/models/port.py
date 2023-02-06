@@ -1,5 +1,6 @@
 """Port Model"""
 
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.models.defect import Defect
@@ -115,8 +116,8 @@ class Port(Element):
         Returns:
             Returns the parent ip's ObjectId _id".
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("ips", {"ip": self.ip}, False)["_id"]
+        datamanager = DataManager.getInstance()
+        return datamanager.find("ips", {"ip":self.ip}, multi=False).get("_id")
 
     def __str__(self):
         """
@@ -134,14 +135,19 @@ class Port(Element):
         """
         return str(self.ip)+":"+str(self)
 
+    def getURL(self):
+        ssl = self.infos.get("SSL", None) == "True" or ("https" in self.service or "ssl" in self.service)
+        url = "https://" if ssl else "http://"
+        url += self.ip+":"+self.port+"/"
+        return url
 
     def getDefects(self):
         """Return port assigned defects as a list of mongo fetched defects dict
         Returns:
             list of defect raw mongo data dictionnaries
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("defects", {"ip": self.ip, "port": self.port, "proto": self.proto})
+        datamanager = DataManager.getInstance()
+        return datamanager.find("defects", {"ip": self.ip, "port": self.port, "proto": self.proto})
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
@@ -149,3 +155,11 @@ class Port(Element):
             A dict (3 keys :"ip", "port", "proto")
         """
         return {"ip": self.ip, "port": self.port, "proto": self.proto}
+
+    def getData(self):
+        """Return port attributes as a dictionnary matching Mongo stored ports
+        Returns:
+            dict with keys ip, port, proto, service, product, notes, _id, tags and infos
+        """
+        return {"ip": self.ip, "port": self.port, "proto": self.proto,
+                "service": self.service, "product": self.product, "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos}

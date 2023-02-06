@@ -22,6 +22,7 @@ class NetworkDiscovery(Module):
         """
         Constructor
         """
+        super().__init__()
         self.parent = None
         # self.networks = {}
         # self.tools = {}
@@ -150,22 +151,4 @@ class NetworkDiscovery(Module):
     #         except KeyError:
     #             pass
     #         self.tvNetworks.delete(select)
-
-    # def handleNotif(self, collection, iid, action):
-    #     apiclient = APIClient.getInstance()
-    #     res = apiclient.find(self.__class__.collName, {"_id": ObjectId(iid)}, False)
-    #     if action == "insert":
-    #         if res is None:
-    #             return
-    #         if res["type"] == "network":
-    #             tools = apiclient.find("tools", {"lvl":"NetworkDiscovery","infos.network":res["network"]}, True)
-    #             self.insertNetwork(res, tools)
-    #     elif action == "delete":
-    #         if res is None:
-    #             return
-    #         try:
-    #             if res["type"] == "network":
-    #                 self.tvNetworks.delete(str(iid))
-    #         except tk.TclError:
-    #             pass
 

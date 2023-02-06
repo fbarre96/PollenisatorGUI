@@ -20,6 +20,7 @@ class CheckItemView(ViewElement):
     """
     default_icon = 'checklist.png'
     cached_default_icon = None
+    icon = "checklist.png"
     icon_auto = 'auto.png'
     cached_icon_auto = None
 
@@ -196,16 +197,19 @@ class CheckItemView(ViewElement):
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+
         if parentNode is None:
             parentNode = self.getParentNode()
-        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError:
             pass
+        if hasattr(self.appliTw, "hide") and not self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
 
     def getParentNode(self):
         """
@@ -216,12 +220,15 @@ class CheckItemView(ViewElement):
         """
         category = self.controller.getCategory()
         try:
-            self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.getIcon())
+            self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.__class__.getClassIcon())
         except tk.TclError:
             pass
+        if hasattr(self.appliTw, "hide") and not self.mainApp.settings.is_checklist_view():
+            self.appliTw.hide(category, "checklist_view")
         parent = self.controller.getParent()
         if parent is not None and parent != "":
             return parent
+        
         return category
 
     def _initContextualMenu(self):

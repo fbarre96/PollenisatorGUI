@@ -2,6 +2,7 @@
 """
 import tkinter as tk
 import tkinter.ttk as ttk
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
 
 class StatusBar(ttk.Frame):
@@ -34,6 +35,7 @@ class StatusBar(ttk.Frame):
         self.statusbarController = statusbarController
         self.tagsCount = {}
         self.labelsTags = {}
+        DataManager.getInstance().attach(self)
 
     def refreshUI(self):
         for widget in self.winfo_children():
@@ -65,13 +67,19 @@ class StatusBar(ttk.Frame):
             addedTags: a list of tag names added
             removedTags: a list of tag names removed, default to []
         """
+        updated = False
         if not "hidden" in addedTags:
             for tag in addedTags:
                 if tag in self.tagsCount:
                     self.tagsCount[tag] += 1
+                    updated = True
         for tag in removedTags:
             if tag in self.tagsCount:
                 self.tagsCount[tag] -= 1
+                updated = True
+        if updated:
+            self._update()
+    
 
     def reset(self):
         """
@@ -79,9 +87,9 @@ class StatusBar(ttk.Frame):
         """
         for registeredTag in self.registeredTags:
             self.tagsCount[registeredTag] = 0
-        self.update()
+        self._update()
 
-    def update(self):
+    def _update(self):
         """
         Update all tags label to tags count
         """
@@ -91,6 +99,21 @@ class StatusBar(ttk.Frame):
                 label.update_idletasks()
         except Exception:
             pass
+
+    def update(self, dataManager, notification, obj, old_obj):
+        """
+        Update the status bar when a tag is added or removed
+        Args:
+            dataManager: the DataManager instance
+            notification: the notification type
+            obj: the object that has been added or removed
+        """
+        if notification["collection"] == "settings":
+            self.refreshUI()
+        if old_obj is not None and obj is not None:
+            if old_obj.tags != obj.tags:
+                self.notify(obj.tags, old_obj.tags)
+        
 
     def refreshTags(self, tags):
         self.registeredTags = tags

@@ -1,6 +1,7 @@
 """Wave Model. Stores which command should be launched and associates Interval and Scope"""
 
 from bson.objectid import ObjectId
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.models.ip import Ip
@@ -46,6 +47,10 @@ class Wave(Element):
         self.wave_commands = wave_commands if wave_commands is not None else []
         self.infos = infos if infos is not None else {}
         return self
+
+    def getData(self):
+        return{"wave": self.wave, "wave_commands": self.wave_commands, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+
 
     def delete(self):
         """
@@ -104,8 +109,8 @@ class Wave(Element):
         Returns:
             list of defect raw mongo data dictionnaries
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("intervals",
+        datamanager = DataManager.getInstance()
+        return datamanager.find("intervals",
                                   {"wave": self.wave})
 
     def getScopes(self):
@@ -113,8 +118,8 @@ class Wave(Element):
         Returns:
             list of defect raw mongo data dictionnaries
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("scopes", {"wave": self.wave})
+        datamanager = DataManager.getInstance()
+        return datamanager.find("scopes", {"wave": self.wave})
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
@@ -144,8 +149,8 @@ class Wave(Element):
             list of all wave names
         """
         ret = []
-        apiclient = APIClient.getInstance()
-        waves = apiclient.find("waves", {})
+        datamanager = DataManager.getInstance()
+        waves = datamanager.get("waves", '*', {}).values()
         for wave in waves:
             ret.append(wave["wave"])
         return ret

@@ -1,10 +1,11 @@
 """Element parent Model. Common ground for every model"""
 
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.models.metaelement import MetaElement
 from bson.objectid import ObjectId
-import pollenisatorgui.core.components.settings as settings
 
-class Element(object):
+
+class Element(metaclass=MetaElement):
     """
     Parent element for all model. This class should only be inherited.
 
@@ -44,6 +45,17 @@ class Element(object):
             return d
         # disabling this error as it is an abstract function
         return cls(d)  #  pylint: disable=no-value-for-parameter
+
+    @classmethod
+    def fetchPentestObjects(cls):
+        apiclient = APIClient.getInstance()
+        ds = apiclient.find(cls.coll_name, {}, True)
+        if ds is None:
+            return None
+        for d in ds:
+            # disabling this error as it is an abstract function
+            yield cls(d)  
+
 
     @classmethod
     def fetchObjects(cls, pipeline):
@@ -138,6 +150,8 @@ class Element(object):
         Returns:
             List of list of strings
         """
+        import pollenisatorgui.core.components.settings as settings
+
         tags = settings.Settings.getTags()
         return [tags, ["hidden"]]
 

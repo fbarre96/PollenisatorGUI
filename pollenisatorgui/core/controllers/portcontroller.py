@@ -48,16 +48,7 @@ class PortController(ControllerElement):
         ret = self.model.addInDb()
         return ret, 0  # 0 errors
 
-    def getData(self):
-        """Return port attributes as a dictionnary matching Mongo stored ports
-        Returns:
-            dict with keys ip, port, proto, service, product, notes, _id, tags and infos
-        """
-        if self.model is None:
-            return None
-        return {"ip": self.model.ip, "port": self.model.port, "proto": self.model.proto,
-                "service": self.model.service, "product": self.model.product, "notes": self.model.notes, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
-
+    
     def addCustomTool(self, command_iid):
         """Add command iid to instantiate as a tool in the model 
         Args:

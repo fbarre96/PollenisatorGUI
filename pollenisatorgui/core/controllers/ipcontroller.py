@@ -60,13 +60,7 @@ class IpController(ControllerElement):
                     total += 1
             return ret, total-accepted  # nb errors = total - accepted
 
-    def getData(self):
-        """Returns ip attributes as a dictionnary matching Mongo stored ips
-        Returns:
-            dict with keys ip, in_scopes, notes, _id, tags and infos
-        """
-        return {"ip": self.model.ip, "in_scopes": self.model.in_scopes, "notes": self.model.notes, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
-
+    
     def getDefects(self):
         """Return ip assigned defects as a list of mongo fetched defects dict
         Returns:

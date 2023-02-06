@@ -18,6 +18,7 @@ from PIL import ImageTk, Image
 import importlib
 import pkgutil
 import socketio
+from pollenisatorgui.core.components.datamanager import DataManager
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.treeviews.PentestTreeview import PentestTreeview
 from pollenisatorgui.core.application.treeviews.CommandsTreeview import CommandsTreeview
@@ -322,6 +323,7 @@ class Appli(tkinterDnD.Tk):
         self.viewframe = None
         self.frameTw = None
         self.treevw = None
+        self.datamanager = None
         self.myscrollbarMain = None
         #### COMMAND VIEW ####
         self.commandsPageFrame = None
@@ -350,6 +352,7 @@ class Appli(tkinterDnD.Tk):
         self.geometry("1320x830")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.settings = Settings()
+        self.datamanager = DataManager.getInstance()
         self.initModules()
         apiclient = APIClient.getInstance()
         self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
@@ -358,7 +361,10 @@ class Appli(tkinterDnD.Tk):
         opened = self.openConnectionDialog()
 
         if not opened:
-            self.wait_visibility()
+            try:
+                self.wait_visibility()
+            except tk.TclError: #closed dialog
+                return
             self.openConnectionDialog(force=True)
             self.promptPentestName()
         self.loadModulesInfos() 
@@ -509,31 +515,8 @@ class Appli(tkinterDnD.Tk):
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
     def handleNotif(self, notification):
-        if notification["db"] == "pollenisator":
-            if notification["collection"] == "workers":
-                self.scanManager.notify(notification["iid"], notification["action"])
-            elif "commands" in notification["collection"]:
-                self.commandsTreevw.notify(notification["db"], notification["collection"], notification["iid"], notification["action"], notification.get("parent", ""))
-            elif "settings" in notification["collection"]:
-                self.settings.notify(notification["db"], notification["iid"], notification["action"])
-                self.treevw.notify(notification["db"],  notification["collection"], notification["iid"], notification["action"], "")
-                self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
-                self.treevw.configureTags()
-            for module in self.modules:
-                if callable(getattr(module["object"], "notify", None)):
-                    module["object"].notify(notification["db"], notification["collection"],
-                            notification["iid"], notification["action"], notification.get("parent", ""))
-        else:
-            if notification["collection"] == "settings":
-                self.settings.notify(notification["db"], notification["iid"], notification["action"])
-                self.statusbar.refreshUI()
-            else:
-                self.treevw.notify(notification["db"], notification["collection"],
-                            notification["iid"], notification["action"], notification.get("parent", ""))
-            for module in self.modules:
-                if callable(getattr(module["object"], "notify", None)):
-                    module["object"].notify(notification["db"], notification["collection"],
-                            notification["iid"], notification["action"], notification.get("parent", ""))
+        self.datamanager.handleNotification(notification)
+        
 
    
 
@@ -672,7 +655,6 @@ class Appli(tkinterDnD.Tk):
         self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.nbk.add(self.mainPageFrame, "Main View", image=self.main_tab_img)
-        self.after(50, lambda: self.paned.paneconfigure(self.filtersFrame, width=self.filtersFrame.winfo_reqwidth()))
 
     def searchbarSelectAll(self, _event):
         """
@@ -775,41 +757,37 @@ class Appli(tkinterDnD.Tk):
         self.settings.saveLocalSettings()
         self.treevw.refresh()
 
-    def filters_changed(self):
-        self.treevw.unhideTemp() 
-        show_only_todo = self.check_show_only_todo.getValue()
-        if show_only_todo:
-            self.filter_todo()
-        show_only_manual = self.check_show_only_manual.getValue() 
-        if show_only_manual:
-            self.filter_manual()
-   
-
     def showTodoSwap(self, event=None):
         val = self.check_show_only_todo.getValue() 
         self.settings.local_settings["show_only_todo"] = val
         self.settings.saveLocalSettings()
-        self.filters_changed()
+        if val == 0:
+            self.unfilter("filter_todo")
+        else:
+            self.filter_todo()
 
     def filter_todo(self):
         for values in self.treevw.views.values():
             view = values["view"]
             if not isinstance(view, CheckInstanceView):
                 continue
-            check_infos = view.controller.getCheckInstanceInfos()
+            check_infos = view.controller.getCheckInstanceStatus()
             status = check_infos.get("status", "")
             if status == "":
-                status = check_infos.get("status", "")
+                status = view.controller.model.status
             if status == "":
                 status = "todo"
             if status != "todo":
-                view.hide()
-
+                view.hide("filter_todo")
+    
     def showManualSwap(self, event=None):
         val = self.check_show_only_manual.getValue() 
         self.settings.local_settings["show_only_manual"] = val
         self.settings.saveLocalSettings()
-        self.filters_changed()
+        if val == 0:
+            self.unfilter("filter_manual")
+        else:
+            self.filter_manual()
 
     def filter_manual(self):
         for values in self.treevw.views.values():
@@ -817,7 +795,10 @@ class Appli(tkinterDnD.Tk):
             if not isinstance(view, CheckInstanceView) and not isinstance(view, CheckItemView):
                 continue
             if view.controller.isAuto():
-                view.hide()
+                view.hide("filter_manual")
+    
+    def unfilter(self, reason):
+        self.treevw.unhide(reason)
 
     def initCommandsView(self):
         """Populate the command tab menu view frame with cool widgets"""
@@ -953,8 +934,9 @@ class Appli(tkinterDnD.Tk):
     def refreshUI(self):
         for widget in self.viewframe.winfo_children():
             widget.destroy()
-        
-        self.treevw.load()
+        self.after(50, lambda: self.paned.paneconfigure(self.filtersFrame, width=self.filtersFrame.winfo_reqwidth()))
+
+        self.treevw.refresh()
         # self.nbk.select("Main View")
 
     def quickSearchChanged(self, event=None):
@@ -1005,7 +987,7 @@ class Appli(tkinterDnD.Tk):
         """
         self.searchMode = False
         self.searchBar.reset()
-        self.treevw.unfilter()
+        self.treevw.unfilterAll()
 
     def refreshView(self, _event=None):
         """
@@ -1033,7 +1015,7 @@ class Appli(tkinterDnD.Tk):
         if activeTw is not None:
             if len(activeTw.selection()) == 1:
                 setViewOn = activeTw.selection()[0]
-            activeTw.refresh()
+            activeTw.refresh(force=True)
         if setViewOn is not None:
             try:
                 activeTw.see(setViewOn)
@@ -1050,15 +1032,15 @@ class Appli(tkinterDnD.Tk):
         apiclient = APIClient.getInstance()
         if apiclient.getCurrentPentest() != "":
             utils.resetUnfinishedTools()
-            self.statusbar.reset()
             self.treevw.load()
 
     def testLocalTools(self):
         """ test local binary path with which"""
         import shutil
+        datamanager = DataManager.getInstance()
         apiclient = APIClient.getInstance()
         self.settings._reloadLocalSettings()
-        commands = apiclient.find("commands", {"owners":apiclient.getUser()}, multi=True)
+        commands = datamanager.find("commands", {"owners":apiclient.getUser()})
         for command in commands:
             bin_path = self.settings.local_settings.get("my_commands", {}).get(command["name"])
             if bin_path is None:
@@ -1124,10 +1106,10 @@ class Appli(tkinterDnD.Tk):
 
     def findUnscannedPorts(self):
         ports = Port.fetchObjects({})
-        apiclient = APIClient.getInstance()
+        datamanager = DataManager.getInstance()
         for port in ports:
             port_key = port.getDbKey()
-            res = apiclient.find("tools", port_key, False)
+            res = datamanager.find("tools", port_key, multi=False)
             if res is None:
                 port.setTags(["unscanned"])
 
@@ -1313,8 +1295,6 @@ class Appli(tkinterDnD.Tk):
             self.initUI()
             
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
-            self.statusbar.reset()
-            self.treevw.refresh()
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":pentestName})
             self.settings.reloadSettings()
             self.refresh_tabs()

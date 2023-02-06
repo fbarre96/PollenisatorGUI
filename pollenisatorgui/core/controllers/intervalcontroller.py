@@ -42,13 +42,7 @@ class IntervalController(ControllerElement):
         ret, _ = self.model.addInDb()
         return ret, 0  # 0 errors
 
-    def getData(self):
-        """Return interval attributes as a dictionnary matching Mongo stored intervals
-        Returns:
-            dict with keys wave, dated, datef, _id, tags and infos
-        """
-        return {"wave": self.model.wave, "dated": self.model.dated, "datef": self.model.datef, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
-
+    
     def getType(self):
         """Return a string describing the type of object
         Returns:

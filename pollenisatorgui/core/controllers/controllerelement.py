@@ -30,6 +30,9 @@ class ControllerElement:
             return None
         return self.model.getParentId()
 
+    def getData(self):
+        return self.model.getData()
+
     def doDelete(self):
         """Ask the model to delete itself from database
         """

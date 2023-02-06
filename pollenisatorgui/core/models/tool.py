@@ -1,5 +1,6 @@
 """Tool Model. A tool is an instanciation of a command against a target"""
 
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.components.apiclient import APIClient
 from bson.objectid import ObjectId
@@ -115,8 +116,9 @@ class Tool(Element):
         """
         base = self.getDbKey()
         apiclient = APIClient.getInstance()
+        datamanager = DataManager.getInstance()
         # Checking unicity
-        existing = apiclient.find("tools", base, False)
+        existing = datamanager.find("tools", base, False)
         if existing is not None:
             return False, existing["_id"]
         # Those are added to base after tool's unicity verification
@@ -143,6 +145,17 @@ class Tool(Element):
         self._id = iid
         return True, iid
       
+    def  getData(self):
+        """Return scope attributes as a dictionnary matching Mongo stored scopes
+        Returns:
+            dict with keys name, wave, scope, ip, port, proto, lvl, text, dated, datef, scanner_ip, notes, status, _id, tags and infos
+        """
+
+        return {"name": self.name, "command_iid":self.command_iid, "check_iid": self.check_iid, "wave": self.wave, "scope": self.scope,
+                "ip": self.ip, "port": self.port, "proto": self.proto,
+                "lvl": self.lvl, "text": self.text, "dated": self.dated,
+                "datef": self.datef, "scanner_ip": self.scanner_ip,
+                "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos, "status":self.getStatus()}
 
     def setStatus(self,status):
         """Set this tool status with given list of status

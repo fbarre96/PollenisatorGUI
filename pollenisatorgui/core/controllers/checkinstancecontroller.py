@@ -34,9 +34,11 @@ class CheckInstanceController(ControllerElement):
     def getCheckItem(self):
         return self.model.getCheckItem()
 
-    def getCheckInstanceInfos(self):
-        apiclient = APIClient.getInstance()
-        return apiclient.getCheckInstanceInfos(self.model.getId())
+    def getCheckInstanceStatus(self):
+        return self.model.getCheckInstanceStatus()
+
+    def getCheckInstanceInfo(self):
+        return APIClient.getInstance().getCheckInstanceInfo(self.model.getId())
 
     def getType(self):
         """Return a string describing the type of object

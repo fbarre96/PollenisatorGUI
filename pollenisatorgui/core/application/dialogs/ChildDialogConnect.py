@@ -6,6 +6,95 @@ from PIL import ImageTk, Image
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.utils import loadClientConfig, saveClientConfig, getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
 
+
+class CollapsibleFrame(ttk.Frame):
+    def __init__(self, master, text=None, borderwidth=2, width=0, height=16, interior_padx=0, interior_pady=8, background=None, caption_separation=4, caption_font=None, caption_builder=None, icon_x=5):
+        ttk.Frame.__init__(self, master)
+        
+        self._is_opened = False
+
+        self._interior_padx = interior_padx
+        self._interior_pady = interior_pady
+
+        self._iconOpen = tk.PhotoImage(data="R0lGODlhEAAQAKIAAP///9TQyICAgEBAQAAAAAAAAAAAAAAAACwAAAAAEAAQAAADNhi63BMgyinFAy0HC3Xj2EJoIEOM32WeaSeeqFK+say+2azUi+5ttx/QJeQIjshkcsBsOp/MBAA7")
+        self._iconClose = tk.PhotoImage(data="R0lGODlhEAAQAKIAAP///9TQyICAgEBAQAAAAAAAAAAAAAAAACwAAAAAEAAQAAADMxi63BMgyinFAy0HC3XjmLeA4ngpRKoSZoeuDLmo38mwtVvKu93rIo5gSCwWB8ikcolMAAA7")
+        
+        height_of_icon = max(self._iconOpen.height(), self._iconClose.height())
+        width_of_icon = max(self._iconOpen.width(), self._iconClose.width())
+        
+        containerFrame_pady = (height_of_icon//2) +1
+
+        self._height = height
+        self._width = width
+
+        self._containerFrame = ttk.Frame(self, borderwidth=borderwidth, width=width, height=height, relief=tk.RIDGE, background=background)
+        self._containerFrame.pack(expand=True, fill=tk.X, pady=(containerFrame_pady,0))
+        
+        self.interior = ttk.Frame(self._containerFrame, background=background)
+
+        self._collapseButton = ttk.Label(self, borderwidth=0, image=self._iconOpen, relief=tk.RAISED)
+        self._collapseButton.place(in_= self._containerFrame, x=icon_x, y=-(height_of_icon//2), anchor=tk.NW, bordermode="ignore")
+        self._collapseButton.bind("<Button-1>", lambda event: self.toggle())
+
+        if caption_builder is None:
+            self._captionLabel = ttk.Label(self, anchor=tk.W, borderwidth=1, text=text)
+            if caption_font is not None:
+                self._captionLabel.configure(font=caption_font)
+        else:
+            self._captionLabel = caption_builder(self)
+            
+            if not isinstance(self._captionLabel, ttk.Widget):
+                raise Exception("'caption_builder' doesn't return a tkinter widget")
+
+        self.after(0, lambda: self._place_caption(caption_separation, icon_x, width_of_icon))
+
+    def update_width(self, width=None):
+        # Update could be devil
+        # http://wiki.tcl.tk/1255
+        self.after(0, lambda width=width:self._update_width(width))
+
+    def _place_caption(self, caption_separation, icon_x, width_of_icon):
+        self.update()
+        x = caption_separation + icon_x + width_of_icon
+        y = -(self._captionLabel.winfo_reqheight()//2)
+
+        self._captionLabel.place(in_= self._containerFrame, x=x, y=y, anchor=tk.NW, bordermode="ignore")
+
+    def _update_width(self, width):
+        self.update()
+        if width is None:
+            width=self.interior.winfo_reqwidth()
+
+        if isinstance(self._interior_pady, (list, tuple)):
+            width += self._interior_pady[0] + self._interior_pady[1]
+        else:
+            width += 2*self._interior_pady
+            
+        width = max(self._width, width)
+
+        self._containerFrame.configure(width=width)
+        
+    def open(self):
+        self._collapseButton.configure(image=self._iconClose)
+        
+        self._containerFrame.configure(height=self.interior.winfo_reqheight())
+        self.interior.pack(expand=True, fill=tk.X, padx=self._interior_padx, pady =self._interior_pady)
+
+        self._is_opened = True
+
+    def close(self):
+        self.interior.pack_forget()
+        self._containerFrame.configure(height=self._height)
+        self._collapseButton.configure(image=self._iconOpen)
+
+        self._is_opened = False
+    
+    def toggle(self):
+        if self._is_opened:
+            self.close()
+        else:
+            self.open()
+
 class ChildDialogConnect:
     """
     Open a child dialog of a tkinter application to ask server and login infos
@@ -82,21 +171,33 @@ class ChildDialogConnect:
         lbl_https.grid(row=2, column=0)
         self.check_https = ttk.Checkbutton(appFrame, variable=self.var_https, onvalue=True, offvalue=False, command=self.validateHost)
         self.check_https.grid(row=2, column=1)
-        self.validateHost()
+        
         lbl_login = ttk.Label(appFrame, text="Login: ")
-        lbl_login.grid(row=3, column=0)
+        lbl_login.grid(row=4, column=0)
         self.ent_login = ttk.Entry(
             appFrame, width="20")
-        self.ent_login.grid(row=3, column=1)
+        self.ent_login.grid(row=4, column=1)
         lbl_passwd = ttk.Label(appFrame, text="Password: ")
-        lbl_passwd.grid(row=4, column=0)
+        lbl_passwd.grid(row=5, column=0)
         self.password = tk.StringVar() 
         self.ent_passwd = ttk.Entry(
             appFrame, width="20", show="*", textvariable = self.password)
         self.ent_passwd.bind('<Return>', self.onOk)
-        self.ent_passwd.grid(row=4, column=1)
+        self.ent_passwd.grid(row=5, column=1)
         appFrame.pack(ipadx=10, ipady=10)
         self.ent_login.focus_set()
+        cf1 = CollapsibleFrame(appFrame, text = "Advanced options", interior_padx=5)
+        lbl_proxy = ttk.Label(cf1.interior, text="Proxy url : ")
+        lbl_proxy.grid(row=0, column=0)
+        self.ent_proxy = ttk.Entry(
+            cf1.interior)
+        self.ent_proxy.insert(tk.END, self.clientCfg.get("proxies", ""), )
+        self.ent_proxy.grid(row=0, column=1)
+        self.validateHost()
+
+        cf1.update_width()
+
+        cf1.grid(row=6,column=1)
 
         self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk, style="Accent.TButton")
         self.ok_button.bind('<Return>', self.onOk)
@@ -123,6 +224,7 @@ class ChildDialogConnect:
         config["host"] = self.ent_hostname.get()
         config["port"] = self.ent_port.get()
         config["https"] = self.var_https.get()
+        config["proxies"] = self.ent_proxy.get()
         return config
 
 
@@ -135,7 +237,12 @@ class ChildDialogConnect:
         apiclient.reinitConnection()
         config = self.getForm()
         self.img_indicator.config(image=self.waitingIcon())
-        return  apiclient.tryConnection(config)
+        res = apiclient.tryConnection(config)
+        if res:
+            self.img_indicator.config(image=self.validIcon())
+        else:
+            self.img_indicator.config(image=self.badIcon())
+        return res
 
     def valideLogin(self):
         pass

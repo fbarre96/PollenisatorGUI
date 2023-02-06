@@ -34,6 +34,7 @@ class Report(Module):
         """
         Constructor
         """
+        super().__init__()
         self.tkApp = None
         self.langs = ["en"]
         self.docx_models = []
@@ -463,6 +464,11 @@ class Report(Module):
         """
         if defect_m.isAssigned():
             return ""
+        try:
+            exist = self.treevw.item(defect_m.getId())
+        except:
+            self.addDefect(defect_m)
+            return
         columnEase = self.treevw['columns'].index("ease")
         columnImpact = self.treevw['columns'].index("impact")
         columnRisk = self.treevw['columns'].index("risk")
@@ -526,7 +532,8 @@ class Report(Module):
                 self.remarks_treevw.insert('', 'end', remark_o.title, values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))	
             except tk.TclError:	
                 # The defect already exists	
-                pass	
+                self.remarks_treevw.item(remark_o.title, values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))
+            
         self.resizeRemarkTreeview()	
                     
 	
@@ -646,19 +653,23 @@ class Report(Module):
             return
         openPathForUser(path, folder_only=True)
 
-    def handleNotif(self, db, collection, iid, action):
-        apiclient = APIClient.getInstance()
-        if action == "update":
-            if collection == "defects":
-                defect_m = Defect.fetchObject({"_id":ObjectId(iid)})
-                self.updateDefectInTreevw(defect_m, )
-        elif action == "insert":	
-            view = None	
-            res = Defect.fetchObject({"_id": ObjectId(iid)})	
-            # Defect insertion takes place in pentest treeview,	
-            # Remarks don't appear in the treeview, only in this module, so must notify here	
-            if collection == "remarks":	
-                self.addRemark(Remark.fetchObject({"_id":ObjectId(iid)}))
+    def update(self, dataManager, notif, obj, old_obj):
+        if obj is None:
+            return
+        
+        if notif["action"] == "delete":
+            if notif["collection"] == "remarks":
+                self.deleteRemarkInTreevw(obj)
+            elif notif["collection"] == "defects":
+                self.deleteDefectInTreevw(obj)
+            return
+        # insert ou update
+        if notif["collection"] == "remarks":
+            self.addRemark(Remark.fetchObject({"_id":ObjectId(notif["iid"])}))
+        elif notif["collection"] == "defects":
+            self.updateDefectInTreevw(obj)
+      
+        
 
 
 def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):

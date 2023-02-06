@@ -48,6 +48,7 @@ class ViewElement(object):
             path = os.path.join(abs_path, "../../icon/"+cls.icon)
             cls.cachedClassIcon = ImageTk.PhotoImage(Image.open(path))
         return cls.cachedClassIcon
+    
 
     def getIcon(self):
         """
@@ -211,10 +212,10 @@ class ViewElement(object):
             widget.destroy()
         self.form.constructView(self.appliViewFrame)
 
-    def hide(self):
+    def hide(self, reason="manual_hide"):
         """Tells the application treeview to hide this node
         """
-        self.appliTw.hide(str(self.controller.getDbId()))
+        self.appliTw.hide(str(self.controller.getDbId()), reason)
 
     def unhide(self):
         """Tells the application treeview to unhide this node
@@ -264,7 +265,7 @@ class ViewElement(object):
         except TclError:
             pass
         if "hidden" in tags:
-            self.hide()
+            self.hide("tags")
 
     def insertReceived(self):
         """Called when any view element insert is received by notificaiton

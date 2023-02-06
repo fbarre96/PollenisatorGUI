@@ -148,6 +148,7 @@ class PortView(ViewElement):
             nodeText = self.controller.getDetailedString()
         else:
             nodeText = str(self.controller.getModelRepr())
+
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(
@@ -169,8 +170,10 @@ class PortView(ViewElement):
                 check_vw.addInTreeview(str(self.controller.getDbId()))
         
         self.appliTw.sort(parentNode)
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
 
     def key(self):
         """Returns a key for sorting this node

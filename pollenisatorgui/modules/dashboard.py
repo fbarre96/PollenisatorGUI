@@ -23,6 +23,7 @@ class DashBoard(Module):
         """
         Constructor
         """
+        super().__init__()
         self.dashboardFrame = None
         self.parent = None
         self.treevw = None

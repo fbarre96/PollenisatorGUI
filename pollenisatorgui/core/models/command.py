@@ -181,9 +181,20 @@ class Command(Element):
         """
         return self.name
 
+    def getData(self):
+        """Return command attributes as a dictionnary matching Mongo stored commands
+        Returns:
+            dict with keys name, lvl, safe, text, ports, priority, max_thread, priority, types, _id, tags and infos
+        """
+        return {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin,  "text": self.text,
+                "timeout": self.timeout,
+                "indb":self.indb, "owners": self.owners, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+
+
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
         Returns:
             A dict (1 key :"name")
         """
         return {"name": self.name}
+

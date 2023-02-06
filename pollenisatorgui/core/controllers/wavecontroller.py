@@ -50,8 +50,7 @@ class WaveController(ControllerElement):
         Returns:
             dict with keys wave, wave_commands, tags and infos
         """
-        return {"wave": self.model.wave, "wave_commands": self.model.wave_commands, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
-
+        return self.model.getData()
     def getIntervals(self):
         """Return scope assigned intervals as a list of mongo fetched intervals dict
         Returns:

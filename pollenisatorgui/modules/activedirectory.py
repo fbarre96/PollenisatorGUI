@@ -31,11 +31,12 @@ class ActiveDirectory(Module):
         """
         Constructor
         """
+        super().__init__()
         self.parent = None
         self.users = {}
         self.computers = {}
         self.shares = {}
-    
+        
     
 
     @classmethod
@@ -253,10 +254,13 @@ class ActiveDirectory(Module):
         res = apiclient.insert( ActiveDirectory.collName+"/users", {"username": username, "domain": domain, "password": password})
         
      
-    def handleNotif(self, db, collection, iid, action):
+    def update(self, dataManager, notif, obj, old_obj):
+        if notif["collection"] != ActiveDirectory.collName:
+            return
         apiclient = APIClient.getInstance()
-        res = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(iid)}, False)
-        if action == "insert":
+        res = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(notif["iid"])}, False)
+        iid = notif["iid"]
+        if notif["action"] == "insert":
             if res is None:
                 return
             if res["type"] == "computer":
@@ -265,14 +269,14 @@ class ActiveDirectory(Module):
                 self.insertUser(res)
             elif res["type"] == "share":
                 self.insertShare(res)
-        elif action == "update":
+        elif notif["action"] == "update":
             if res is None:
                 return
             if res["type"] == "computer":
                 self.insertComputer(res)
             if res["type"] == "share":
                 self.insertShare(res)
-        elif action == "delete":
+        elif notif["action"] == "delete":
             if res is None:
                 return
             try:

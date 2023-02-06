@@ -1,5 +1,6 @@
 """Ip Model. Describes Hosts (not just IP now but domains too)"""
 
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -75,10 +76,9 @@ class Ip(Element):
             a list of scopes objects Mongo Ids where this IP/Domain is in scope.
         """
         ret = []
-        apiclient = APIClient.getInstance()
-        scopes = apiclient.find("scopes", {})
-        if scopes is None:
-            return ret
+        datamanager = DataManager.getInstance()
+        scopes = datamanager.get("scopes",'*',{}).values()
+       
         for scope in scopes:
             if self.fitInScope(scope["scope"]):
                 ret.append(str(scope["_id"]))
@@ -194,8 +194,8 @@ class Ip(Element):
         Returns:
             list of port raw mongo data dictionnaries
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("ports", {"ip": self.ip})
+        datamanager = DataManager.getInstance()
+        return datamanager.find("ports", {"ip": self.ip})
 
     def getDefects(self):
         """Returns ip assigned tools as a list of mongo fetched defects dict
@@ -239,6 +239,13 @@ class Ip(Element):
         """
         return re.search(r"([0-9]{1,3}\.){3}[0-9]{1,3}", ip) is not None
 
+    def getData(self):
+        """Returns ip attributes as a dictionnary matching Mongo stored ips
+        Returns:
+            dict with keys ip, in_scopes, notes, _id, tags and infos
+        """
+        return {"ip": self.ip, "in_scopes": self.in_scopes, "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+
     def _getParentId(self):
         """
         Return the mongo ObjectId _id of the first parent of this object.
@@ -257,8 +264,8 @@ class Ip(Element):
             return None
         ip_real = performLookUp(self.ip)
         if ip_real is not None:
-            apiclient = APIClient.getInstance()
-            ip_in_db = apiclient.find("ips", {"ip": ip_real}, False)
+            datamanager = DataManager.getInstance()
+            ip_in_db = datamanager.find("ips", {"ip": ip_real}, False)
             if ip_in_db is None:
                 return None
             self.parent = ip_in_db["_id"]

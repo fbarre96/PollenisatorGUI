@@ -21,7 +21,7 @@ class AuthInfo(Module):
         """
         Constructor
         """
-        
+        super().__init__()
         self.dashboardFrame = None
         self.parent = None
         self.treevw = None
@@ -149,15 +149,16 @@ class AuthInfo(Module):
         for t in toInsert:
             apiclient.insert("auth", {"name": t[0], "value":t[1], "type":self.typeCombo.get().lower()})
 
-    def handleNotif(self, db, collection, iid, action):
+    def update(self, dataManager, notif, obj, old_obj):
         apiclient = APIClient.getInstance()
-        if action == "insert":	
+        iid =  notif["iid"]
+        if notif["action"] == "insert":	
             res = apiclient.find("auth", {"_id": ObjectId(iid)}, False)	
             if res is None:
                 return
             self.treevw.insert(
                 '', 'end', res["_id"], text=res["name"], values=(res["value"], res["type"],))
-        elif action == "delete":
+        elif notif["action"] == "delete":
             try:
                 self.treevw.delete(str(iid))
             except tk.TclError:

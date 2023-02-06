@@ -51,6 +51,8 @@ class Settings:
         self.text_terms = None
         self.visual_trap_commands = None
         self.pentesters_treevw = None
+        from pollenisatorgui.core.components.datamanager import DataManager
+        DataManager.getInstance().attach(self)
 
     @classmethod
     def getPentestTags(cls):
@@ -546,8 +548,10 @@ class Settings:
             List of pentesters names"""
         return self.db_settings.get("pentesters", [])
 
-    def notify(self, db, iid, action):
-        if db == "pollenisator":
+    def update(self, dataManager, notif, obj, old_obj):
+        if notif["collection"] != "settings":
+            return
+        if notif["db"] == "pollenisator":
             self._reloadGlobalSettings()
         else:
             self._reloadDbSettings()

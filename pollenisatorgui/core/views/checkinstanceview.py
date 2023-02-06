@@ -40,7 +40,7 @@ class CheckInstanceView(ViewElement):
             Returns the icon representing this object.
         """
         if check_infos is None:
-            check_infos = self.controller.getCheckInstanceInfos()
+            check_infos = self.controller.getCheckInstanceStatus()
         modelData = self.controller.getData()
         status = check_infos.get("status", "")
         if status == "":
@@ -107,7 +107,7 @@ class CheckInstanceView(ViewElement):
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
         self.clearWindow()
-        infos = self.controller.getCheckInstanceInfos()
+        infos = self.controller.getCheckInstanceInfo()
         modelData = self.controller.getData()
         check_m = self.controller.getCheckItem()
         self._initContextualMenu()
@@ -241,12 +241,12 @@ class CheckInstanceView(ViewElement):
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+
         if parentNode is None:
             parentNode = self.getParentNode()
-        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-        check_infos = self.controller.getCheckInstanceInfos()
-        text = check_infos.get("repr", "unknown") if self.mainApp.settings.is_checklist_view() else str(self)
-            
+        text = self.controller.model.target_repr if self.mainApp.settings.is_checklist_view() else str(self)
+        check_infos = self.controller.getCheckInstanceStatus()
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=text, tags=self.controller.getTags(), image=self.getIcon(check_infos))
@@ -266,10 +266,12 @@ class CheckInstanceView(ViewElement):
         if status == "":
             status = "todo"
     
-        if "hidden" in self.controller.getTags() or (status != "todo" and self.mainApp.settings.is_show_only_todo()):
-            self.hide()
+        if "hidden" in self.controller.getTags():
+            self.hide("tags")
+        if  (status != "todo" and self.mainApp.settings.is_show_only_todo()):
+            self.hide("filter_todo")
         if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
-            self.hide()
+            self.hide("filter_manual")
 
     def getParentNode(self):
         """

@@ -9,6 +9,7 @@ import tkinter.ttk as ttk
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.filter import Filter, ParseError
@@ -40,6 +41,7 @@ class PollenisatorTreeview(ttk.Treeview):
         self.views = {}  # Dict of views stored in this treeview.
         self.contextualMenu = None
         self.configureTags()
+        datamanager = DataManager.getInstance().attach(self)
 
     def configureTags(self):
         self.tag_configure('OOS', background="grey")
@@ -93,7 +95,10 @@ class PollenisatorTreeview(ttk.Treeview):
                 Default is None.
         """
         if node is None:
-            nodeToSort = str(self.contextualMenu.selection)
+            try:
+                nodeToSort = str(self.contextualMenu.selection)
+            except:
+                return
         else:
             nodeToSort = node
             
@@ -122,6 +127,12 @@ class PollenisatorTreeview(ttk.Treeview):
             return self.views[dbId]["view"]
         except KeyError:
             return None
+
+    def updateView(self, dbId, model):
+        try:
+            self.views[dbId]["view"].controller.model = model
+        except KeyError:
+            pass
 
     def switchExpandCollapse(self, openAction=True, nodeToExpand=None):
         """
@@ -340,6 +351,7 @@ class PollenisatorTreeview(ttk.Treeview):
             True if the filter is done, else if an error occured. Most probably if the query is bad.
         """
         # Reload local settings and prepare search object.
+        self.unhideAll()
         searcher = None
         if query.strip() != "":
             try:
@@ -354,7 +366,7 @@ class PollenisatorTreeview(ttk.Treeview):
         
         return True
 
-    def unfilter(self):
+    def unfilterAll(self):
         """Reattach all detached objects and reposition them.
         """
         detached = sorted(self._detached, key=lambda x: len(x[0]))
@@ -385,7 +397,49 @@ class PollenisatorTreeview(ttk.Treeview):
         self._detached = []
         self._moved = []
 
-    def unhideTemp(self):
+    def unhide(self, reason):
+        hiddens = self._hidden[::-1]
+        toDel = []
+        for i, hidden in enumerate(hiddens):
+            itemId = hidden[0]
+            parentId = '' if hidden[1] is None else hidden[1]
+            
+            if reason in hidden[2]:
+                hidden[2].remove(reason)
+            elif reason == "*":
+                hidden[2] = []
+            if len(hidden[2]) == 0:
+                try:
+                    self.reattach(itemId, parentId, 0)
+                    
+                    toDel.append(i)
+                except tk.TclError:
+                    pass
+        for i in toDel[::-1]:
+            del hiddens[i]
+        self._hidden = hiddens[::-1]
+        
+    
+    def unhideNodeChildren(self, reason, node=None):
+        if node is None:
+            node = self.selection()[0]
+        hiddens = self._hidden[::-1]
+        for i, hidden in enumerate(hiddens):
+            itemId = hidden[0]
+            parentId = '' if hidden[1] is None else hidden[1]
+            if str(parentId) != str(node):
+                continue
+            if reason in hidden[2]:
+                hidden[2].remove(reason)
+            elif reason == "*":
+                hidden[2] = []
+            if len(hidden[2]) == 0:
+                try:
+                    self.reattach(itemId, parentId, 0)
+                except tk.TclError:
+                    pass
+
+    def unhideAll(self):
         """Reattach all hidden objects but keep in memory that they are hidden.
         """
         hiddens = self._hidden[::-1]
@@ -404,13 +458,13 @@ class PollenisatorTreeview(ttk.Treeview):
             show_hidden: will filter the hidden object as well and show them if they match the filter. Default to True.
         """
         # reattach every one
-        self.unfilter()
+        self.unfilterAll()
         if query is not None:
             if isinstance(query, Filter):
                 results_iid = query.getIds(self)
                 if len(results_iid) != 0:
                     if show_hidden:
-                        self.unhideTemp()
+                        self.unhideAll()
                 else:
                     tk.messagebox.showerror("No results", "No results found")
                     return

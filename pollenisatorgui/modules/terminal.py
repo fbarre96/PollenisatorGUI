@@ -16,6 +16,7 @@ class Terminal(Module):
     settings = None
 
     def __init__(self, parent, settings):
+        super().__init__()
         self.proc = None
         self.s = None
         self.__class__.settings = settings

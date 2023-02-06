@@ -68,15 +68,7 @@ class CommandController(ControllerElement):
         # Fetch the instance of this self.model now that it is inserted.
         return ret, 0  # 0 errors
 
-    def getData(self):
-        """Return command attributes as a dictionnary matching Mongo stored commands
-        Returns:
-            dict with keys name, lvl, safe, text, ports, priority, max_thread, priority, types, _id, tags and infos
-        """
-        return {"name": self.model.name, "bin_path":self.model.bin_path, "plugin":self.model.plugin,  "text": self.model.text,
-                "timeout": self.model.timeout,
-                "indb":self.model.indb, "owners": self.model.owners, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
-
+    
     def getType(self):
         """Return a string describing the type of object
         Returns:

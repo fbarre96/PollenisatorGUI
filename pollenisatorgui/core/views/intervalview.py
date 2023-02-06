@@ -52,7 +52,10 @@ class IntervalView(ViewElement):
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             _addChildren: not used here
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+
         parentDbId = parentNode
+
         if parentNode is None:
             parentNode = self.getParentNode()
         elif "intervals" not in parentNode:
@@ -62,14 +65,15 @@ class IntervalView(ViewElement):
                 self.controller.getParentId(), 0, parentNode, text="Intervals", image=self.getClassIcon())
         except TclError:  #  trigger if tools list node already exist
             pass
-        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
         except:
             pass
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
 
     def updateReceived(self):
         """Called when a interval update is received by notification.

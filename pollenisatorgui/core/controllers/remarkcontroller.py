@@ -45,15 +45,7 @@ class RemarkController(ControllerElement):
 
         return ret, 0  # 0 erros
 
-    def getData(self):
-        """Return defect attributes as a dictionnary matching Mongo stored defects
-        Returns:
-            dict with keys title, ease, ipact, risk, redactor, type, notes, ip, port, proto, proofs, _id, tags, infos
-        """
-        if self.model is None:
-            return None
-        return {"title": self.model.title, "type": self.model.type, "description": self.model.description}
-
+    
     def getType(self):
         """Returns a string describing the type of object
         Returns:

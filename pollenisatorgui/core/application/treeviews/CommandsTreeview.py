@@ -2,6 +2,7 @@
 """
 import tkinter as tk
 from bson.objectid import ObjectId
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.views.commandview import CommandView
 from pollenisatorgui.core.views.multicommandview import MultiCommandView
@@ -26,7 +27,7 @@ class CommandsTreeview(PollenisatorTreeview):
         super().__init__(appli, parentFrame)
         self.commands_node = None  # parent of all commands nodes
         self.openedViewFrameId = None  # if of the currently opened object in the view frame
-
+        
     
 
     def initUI(self, _event=None):
@@ -158,7 +159,7 @@ class CommandsTreeview(PollenisatorTreeview):
             apiclient = APIClient.getInstance()
             apiclient.bulkDeleteCommands(toDelete)
 
-    def refresh(self):
+    def refresh(self, force=True):
         """Alias to self.load method"""
         self.load()
 
@@ -195,8 +196,8 @@ class CommandsTreeview(PollenisatorTreeview):
                         self, self.appli.commandsViewFrame, self.appli, CommandController(Command(data)))
                     objView.openInsertWindow()
                     
-
-    def notify(self, db, collection, iid, action, parent):
+    
+    def update(self, dataManager, notification, obj, oldObj):
         """
         Callback for the observer pattern implemented in mongo.py.
 
@@ -206,8 +207,12 @@ class CommandsTreeview(PollenisatorTreeview):
             action: update/insert/delete. It was the action performed on the iid
             parent: the mongo ObjectId of the parent. Only if action in an insert.
         """
-        if db != "pollenisator":
+        if notification["db"] != "pollenisator":
             return
+        if notification["collection"] != "commands":
+            return
+        action = notification["action"]
+        iid = notification["iid"]
         # Delete
         apiclient = APIClient.getInstance()
         if action == "delete":
@@ -215,27 +220,18 @@ class CommandsTreeview(PollenisatorTreeview):
                 self.delete(ObjectId(iid))
             except tk.TclError:
                 pass  # item was not inserted in the treeview
-
         # Insert
         if action == "insert":
-            if collection == "commands":
-                if db == "pollenisator":
-                    res = apiclient.findCommand({"_id": ObjectId(iid)})
-                    if res:
-                        res = Command(res[0])
-                else:
-                    res = Command.fetchObject({"_id": ObjectId(iid)})
-                view = CommandView(self, self.appli.commandsViewFrame,
-                                   self.appli, CommandController(res))
-                parent = None
-           
+            res = Command.fetchObject({"_id": ObjectId(iid)})
+            view = CommandView(self, self.appli.commandsViewFrame,
+                                self.appli, CommandController(res))
+            parent = None
             try:
                 view.addInTreeview(parent)
                 if view is not None:
                     view.insertReceived()
             except tk.TclError:
                 pass
-
         if action == "update":
             try:
                 view = self.getViewFromId(str(iid))

@@ -135,3 +135,7 @@ class CheckItem(Element):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def fetchPentestObjects(cls):
+        return cls.fetchObjects({})

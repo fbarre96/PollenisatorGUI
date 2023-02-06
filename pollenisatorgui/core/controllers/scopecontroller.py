@@ -76,13 +76,7 @@ class ScopeController(ControllerElement):
                 total += 1
         return ret, total-accepted  # nb errors = total - accepted
 
-    def getData(self):
-        """Return scope attributes as a dictionnary matching Mongo stored scopes
-        Returns:
-            dict with keys wave, scope, notes, _id, tags and infos
-        """
-        return {"wave": self.model.wave, "scope": self.model.scope, "notes": self.model.notes, "_id": self.model.getId(), "tags": self.model.tags, "infos": self.model.infos}
-
+    
     def getChecks(self):
         """Return scope assigned checks as a list of checkInstance
         Returns:

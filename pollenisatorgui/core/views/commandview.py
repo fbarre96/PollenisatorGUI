@@ -108,9 +108,9 @@ class CommandView(ViewElement):
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         if parentNode is None:
             parentNode = self.getParentNode()
-        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         tags = self.controller.getTags()
         if self.controller.isMine():
             tags.append("known_command")
@@ -119,8 +119,10 @@ class CommandView(ViewElement):
             self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getClassIcon())
         except tk.TclError:
             pass
+        if hasattr(self.appliTw, "hide" ) and self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         if "hidden" in tags:
-            self.hide()
+            self.hide("tags")
 
     def getParentNode(self):
         """

@@ -1,5 +1,6 @@
 """Interval Model. Useful to limit in a time frame some tools"""
 
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -89,8 +90,16 @@ class Interval(Element):
         Returns:
             Returns the parent wave's ObjectId _id".
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.find("waves", {"wave": self.wave}, False)["_id"]
+        datamanager = DataManager.getInstance()
+        return datamanager.find("waves", {"wave": self.wave}, False)["_id"]
+
+    def getData(self):
+        """Return interval attributes as a dictionnary matching Mongo stored intervals
+        Returns:
+            dict with keys wave, dated, datef, _id, tags and infos
+        """
+        return {"wave": self.wave, "dated": self.dated, "datef": self.datef, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+
 
     def __str__(self):
         """

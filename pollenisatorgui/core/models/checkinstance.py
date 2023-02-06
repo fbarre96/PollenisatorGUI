@@ -1,7 +1,9 @@
 """CheckItem Model."""
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.models.tool import Tool
 from bson import ObjectId
 
 class CheckInstance(Element):
@@ -25,15 +27,19 @@ class CheckInstance(Element):
             "tags", []), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("check_iid"), valuesFromDb.get("target_iid"),valuesFromDb.get("target_type"), valuesFromDb.get("parent"), valuesFromDb.get("status", ""), valuesFromDb.get("notes", ""))
         
+   
     def initialize(self, check_iid, target_iid, target_type, parent, status, notes):
-        apiclient = APIClient.getInstance()
         self.check_iid = check_iid
         self.parent = parent
         self.target_iid = target_iid
         self.target_type = target_type
         self.status = status
         self.notes = notes
-        self.check_m = CheckItem.fetchObject({"_id":ObjectId(check_iid)})
+        from pollenisatorgui.core.components.datamanager import DataManager
+        datamanager = DataManager.getInstance()
+        self.check_m = datamanager.get("checkitems", str(check_iid), None)
+        if self.check_m is None:
+            self.check_m = CheckItem.fetchObject({"_id":ObjectId(check_iid)})
         if self.check_m is None:
             print(" Warning : Check item not found. Might have been deleted")
             return None
@@ -109,8 +115,8 @@ class CheckInstance(Element):
         return self.check_m
 
     def getTools(self):
-        apiclient = APIClient.getInstance()
-        return apiclient.find("tools", {"check_iid": str(self._id)})
+        datamanager = DataManager.getInstance()
+        return datamanager.find("tools", {"check_iid": str(self._id)})
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
@@ -122,11 +128,49 @@ class CheckInstance(Element):
     def __str__(self):
         return self.check_m.title
 
-    def getCheckInstanceInfos(self):
+    def getCheckInstanceStatus(self):
         """
         Get a more detailed string representation of a check instance.
         Returns:
             string
         """
-        apiclient = APIClient.getInstance()
-        return apiclient.getCheckInstanceInfos(self._id).get("repr")
+        data = self.getData()
+        check_item_data = self.check_m.getData()
+        data["check_item"] = check_item_data
+        data["tools_done"] = {}
+        data["tools_running"] = {}
+        data["tools_not_done"] = {}
+        all_complete = True
+        at_least_one = False
+        total = 0
+        done = 0
+        tools_to_add = self.getTools()
+        if tools_to_add is not None:
+            for tool in tools_to_add:
+                tool = Tool(tool)
+                if "done" in tool.getStatus():
+                    done += 1
+                    at_least_one = True
+                    data["tools_done"][str(tool.getId())] = tool.getData()
+                elif "running" in tool.getStatus():
+                    at_least_one = True
+                    data["tools_running"][str(
+                        tool.getId())] = tool.getData()
+                else:
+                    data["tools_not_done"][str(
+                        tool.getId())] = tool.getData()
+                total += 1
+
+        if done != total:
+            all_complete = False
+        if len(self.check_m.commands) > 0:
+            if at_least_one and all_complete:
+                data["status"] = "done"
+            elif at_least_one and not all_complete:
+                data["status"] = "running"
+            else:
+                data["status"] = "todo"
+        else:
+            data["status"] = ""
+        
+        return data

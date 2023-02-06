@@ -1,5 +1,6 @@
 """Hold functions to interact form the scan tab in the notebook"""
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.datamanager import DataManager
 import tkinter as tk
 import tkinter.ttk as ttk
 import multiprocessing
@@ -95,6 +96,7 @@ class ScanManager:
         self.nok_icon = ImageTk.PhotoImage(Image.open(path+"cross.png"))
         self.ok_icon = ImageTk.PhotoImage(Image.open(path+"done_tool.png"))
         self.running_icon = ImageTk.PhotoImage(Image.open(path+"running.png"))
+        DataManager.getInstance().attach(self)
 
     def startAutoscan(self):
         """Start an automatic scan. Will try to launch all undone tools."""
@@ -294,12 +296,14 @@ class ScanManager:
         dialog = ChildDialogFileParser(default_path)
         self.parent.wait_window(dialog.app)
 
-    def notify(self, _iid, _action):
+    def update(self, dataManager, notif, obj, old_obj):
         """
         Reload UI when notified
         """
-        if self.workerTv is not None:
-            self.refreshUI()
+        if notif["db"] == "pollenisator":
+            if notif["collection"] == "workers":
+                if self.workerTv is not None:
+                    self.refreshUI() # TODO : refresh only the worker treeview
 
     def OnWorkerDoubleClick(self, event):
         """Callback for treeview double click.

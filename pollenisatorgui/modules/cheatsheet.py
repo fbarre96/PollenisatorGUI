@@ -18,7 +18,7 @@ class Cheatsheet(Module):
         """
         Constructor
         """
-        
+        super().__init__()
         self.dashboardFrame = None
         self.parent = None
         self.infos = {}
@@ -151,9 +151,8 @@ class Cheatsheet(Module):
 
         self.treevw.openInsertWindow(CheckItem())
 
-    def handleNotif(self, db, collection, iid, action):
-        if db == "pollenisator":
-            self.treevw.notify(db, collection, iid, action, None)
-        else:
-            self.treevwApp.notify(db, collection, iid, action, None)
+    def update(self, dataManager, notif, obj, old_obj):
+        if notif["db"] == "pollenisator":
+            if self.treevw is not None:
+                self.treevw.update(dataManager, notif, obj, old_obj)
 

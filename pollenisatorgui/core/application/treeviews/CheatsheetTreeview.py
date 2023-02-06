@@ -159,7 +159,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
             apiclient = APIClient.getInstance()
             apiclient.bulkDelete(toDelete)
 
-    def refresh(self):
+    def refresh(self, force=True):
         """Alias to self.load method"""
         self.load()
 
@@ -181,16 +181,11 @@ class CheatsheetTreeview(PollenisatorTreeview):
         super()._initContextualsMenus
         return self.contextualMenu
 
-    def notify(self, db, collection, iid, action, parent):
-        """
-        Callback for the observer pattern implemented in mongo.py.
-
-        Args:
-            collection: the collection that has been modified
-            iid: the mongo ObjectId _id that was modified/inserted/deleted
-            action: update/insert/delete. It was the action performed on the iid
-            parent: the mongo ObjectId of the parent. Only if action in an insert.
-        """
+    def update(self, dataManager, notif, obj, old_obj):
+      
+        collection = notif["collection"]
+        action = notif["action"]
+        iid = notif["iid"]
         if collection != "cheatsheet":
             return
         # Delete
@@ -205,15 +200,17 @@ class CheatsheetTreeview(PollenisatorTreeview):
         if action == "insert":
             if collection == "cheatsheet":
                 checkitem = CheckItem.fetchObject({"_id":ObjectId(iid)})
-                view = CheckItemView(self, self.viewFrame,
+               
+                if checkitem is not None:
+                    view = CheckItemView(self, self.viewFrame,
                                    self.appli, CheckItemController(checkitem))
-                parent = None
-            try:
-                view.addInTreeview(parent)
-                if view is not None:
-                    view.insertReceived()
-            except tk.TclError:
-                pass
+                    parent = None
+                    try:
+                        view.addInTreeview(parent)
+                        if view is not None:
+                            view.insertReceived()
+                    except tk.TclError:
+                        pass
 
         if action == "update":
             try:

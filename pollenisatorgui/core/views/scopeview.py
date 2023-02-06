@@ -48,12 +48,14 @@ class ScopeView(ViewElement):
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             addChildren: If False, skip the tool insert. Useful when displaying search results
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view":self}
+
         parentDbId = parentNode
         if parentNode is None:
             parentNode = self.getParentNode()
         elif 'scopes' not in parentNode:
             parentNode = ScopeView.DbToTreeviewListId(parentDbId)
-        self.appliTw.views[str(self.controller.getDbId())] = {"view":self}
+
         try:
             parentNode = self.appliTw.insert(
                 self.controller.getParentId(), 0, parentNode, text="Scopes", image=self.getClassIcon())
@@ -70,9 +72,10 @@ class ScopeView(ViewElement):
                 check_o = CheckInstanceController(check)
                 check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
                 check_vw.addInTreeview(str(self.controller.getDbId()))
-          
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
 
     @classmethod
     def treeviewListIdToDb(cls, treeview_id):

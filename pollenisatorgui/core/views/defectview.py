@@ -389,11 +389,15 @@ class DefectView(ViewElement):
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             _addChildren: not used here
         """
+        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+
         if not self.controller.isAssigned():
             # Unassigned defect are loaded on the report tab
             return
         if self.controller.model is None:
             return
+        
+        
         if parentNode is None:
             parentNode = DefectView.DbToTreeviewListId(
                 self.controller.getParentId())
@@ -408,14 +412,16 @@ class DefectView(ViewElement):
                 self.controller.getParentId(), 0, parentNode, text="Defects", image=self.getIcon())
         except TclError:
             pass
-        self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(self.controller.getDbId()),
                                 text=nodeText, tags=self.controller.getTags(), image=self.getIcon())
         except TclError:
             pass
+    
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
 
     @classmethod
     def DbToTreeviewListId(cls, parent_db_id):

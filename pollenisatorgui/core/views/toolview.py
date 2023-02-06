@@ -1,6 +1,7 @@
 """View for tool object. Handle node in treeview and present forms to user when interacted with."""
 
 from pollenisatorgui.core.application.dialogs.ChildDialogToolView import ChildDialogToolView
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.apiclient import APIClient
 import tkinter.messagebox
@@ -143,8 +144,9 @@ class ToolView(ViewElement):
         top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
+        datamanager = DataManager.getInstance()
         try:
-            command_d = apiclient.find("commands", {"_id":ObjectId(modelData["command_iid"])}, False)
+            command_d = datamanager.get("commands", modelData["command_iid"])
             workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d["bin_path"]})
             workers = [x["name"] for x in workers]
             hasWorkers = len(workers)
@@ -208,6 +210,7 @@ class ToolView(ViewElement):
         if parentNode is None:
             mustHide = True 
             parentNode = self.controller.getParentId()
+
         nodeText = str(self.controller.getModelRepr())
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
@@ -216,8 +219,10 @@ class ToolView(ViewElement):
         except tk.TclError:
             pass
         self.appliTw.sort(parentNode)
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         if "hidden" in self.controller.getTags() or mustHide:
-            self.hide()
+            self.hide("tags")
 
     def downloadResultFile(self, _event=None):
         """Callback for tool click 

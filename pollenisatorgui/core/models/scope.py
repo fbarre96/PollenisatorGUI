@@ -1,5 +1,6 @@
 """Scope Model"""
 
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.models.ip import Ip
 from bson.objectid import ObjectId
@@ -127,8 +128,8 @@ class Scope(Element):
         settings = Settings()
         # get the domain ip so we can search for it in ipv4 range scopes.
         domainIp = utils.performLookUp(domain)
-        apiclient = APIClient.getInstance()
-        scopesOfWave = apiclient.find("scopes", {"wave": waveName})
+        datamanager = DataManager.getInstance()
+        scopesOfWave = datamanager.find("scopes", {"wave": waveName})
         for scopeOfWave in scopesOfWave:
             scopeIsANetworkIp = utils.isNetworkIp(scopeOfWave["scope"])
             if scopeIsANetworkIp:
@@ -163,8 +164,8 @@ class Scope(Element):
         Returns:
             Returns the parent wave's ObjectId _id".
         """
-        apiclient = APIClient.getInstance()
-        res = apiclient.find("waves", {"wave": self.wave}, False)
+        datamanager = DataManager.getInstance()
+        res = datamanager.find("waves", {"wave": self.wave}, False)
         return res["_id"]
 
     def __str__(self):
@@ -175,6 +176,13 @@ class Scope(Element):
             Returns the scope string (network ipv4 range or domain).
         """
         return self.scope
+
+    def getData(self):
+        """Return scope attributes as a dictionnary matching Mongo stored scopes
+        Returns:
+            dict with keys wave, scope, notes, _id, tags and infos
+        """
+        return {"wave": self.wave, "scope": self.scope, "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.

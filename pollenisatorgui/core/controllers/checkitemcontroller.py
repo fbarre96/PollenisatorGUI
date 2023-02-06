@@ -77,12 +77,7 @@ class CheckItemController(ControllerElement):
         # Fetch the instance of this self.model now that it is inserted.
         return ret, 0  # 0 errors
 
-    def getData(self):
-        """Return command attributes as a dictionnary matching Mongo stored commands
-        Returns:
-            dict with keys 
-        """
-        return self.model.getData()
+ 
 
     
     def isAuto(self):

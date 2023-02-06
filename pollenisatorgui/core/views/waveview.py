@@ -87,10 +87,11 @@ class WaveView(ViewElement):
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             addChildren: If False: skip interval, tools and scope insert. Useful when displaying search results.
         """
-        if parentNode is None:
-            parentNode = self.getParentNode()
         self.appliTw.views[str(self.controller.getDbId())] = {
             "view": self, 'parent': ''}
+        if parentNode is None:
+            parentNode = self.getParentNode()
+
         wave_node = self.appliTw.insert(parentNode, "end", str(self.controller.getDbId()), text=str(
             self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
         if addChildren:
@@ -111,8 +112,10 @@ class WaveView(ViewElement):
                 scope_vw = ScopeView(
                     self.appliTw, self.appliViewFrame, self.mainApp, scope_o)
                 scope_vw.addInTreeview(scopes_node)
+        if self.mainApp.settings.is_checklist_view():
+            self.hide("checklist_view")
         if "hidden" in self.controller.getTags():
-            self.hide()
+            self.hide("tags")
 
     def getParentNode(self):
         """
