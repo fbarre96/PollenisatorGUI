@@ -206,10 +206,13 @@ class CheckItemView(ViewElement):
                 self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError:
             pass
-        if hasattr(self.appliTw, "hide") and not self.mainApp.settings.is_checklist_view():
-            self.hide("checklist_view")
-        if "hidden" in self.controller.getTags():
-            self.hide("tags")
+        if hasattr(self.appliTw, "hide"):
+            if not self.mainApp.settings.is_checklist_view():
+                self.hide("checklist_view")
+            if "hidden" in self.controller.getTags():
+                self.hide("tags")
+            if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
+                self.hide("filter_manual")
 
     def getParentNode(self):
         """

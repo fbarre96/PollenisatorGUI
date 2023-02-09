@@ -72,7 +72,7 @@ class RemarkView(ViewElement):
             self.showForm()
 
     def searchCallback(self, searchreq):
-        remarks_obj, remarks_errors = APIClient.searchRemark(searchreq)
+        remarks_obj, remarks_errors = APIClient.getInstance().searchRemark(searchreq)
         if remarks_obj:
             for i, remark in enumerate(remarks_obj):
                 remarks_obj[i]["TITLE"] = remark["title"]
@@ -87,7 +87,7 @@ class RemarkView(ViewElement):
         """
         modelData = self.controller.getData()
         topPanel = self.form.addFormPanel(grid=True)
-        topPanel.addFormSearchBar("Search Remark", APIClient.searchRemark, topPanel, row=0, column=1, autofocus=False)
+        topPanel.addFormSearchBar("Search Remark", APIClient.getInstance().searchRemark, topPanel, row=0, column=1, autofocus=False)
         self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]), row=1)
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, row=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage})
         topPanel.addFormStr(

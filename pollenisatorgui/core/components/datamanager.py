@@ -2,7 +2,7 @@ import os
 from bson import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.models.metaelement import REGISTRY
-
+from multiprocessing import Manager
 class Subject:
     """Represents what is being observed"""
  
@@ -40,7 +40,6 @@ class DataManager(Subject):
     def load(self, forceReload=False):
         if len(self.data) > 0 and not forceReload:
             return
-        apiclient = APIClient.getInstance()
         for coll, model in REGISTRY.items():
             self.data[coll.lower()] = {}
             datas = model.fetchPentestObjects()
@@ -75,7 +74,6 @@ class DataManager(Subject):
                     return data
         return ret
             
-
     def getClass(self, class_str):
         for coll, model in REGISTRY.items():
             if coll.lower() == class_str or coll.lower()+"s" == class_str:
@@ -89,12 +87,12 @@ class DataManager(Subject):
             return 
         del self.data[collection][str(iid)]
         
-    def set(self, collecion, iid, newVal):
-        if collecion not in self.data.keys() and collecion+"s" in self.data.keys():
-            collecion = collecion+"s"
-        if collecion not in self.data.keys():
+    def set(self, collection, iid, newVal):
+        if collection not in self.data.keys() and collection+"s" in self.data.keys():
+            collection = collection+"s"
+        if collection not in self.data.keys():
             return 
-        self.data[collecion][str(iid)] = newVal
+        self.data[collection][str(iid)] = newVal
     
     @staticmethod
     def getInstance():
@@ -111,16 +109,19 @@ class DataManager(Subject):
         obj = None
         old_obj = None
         if notification["db"] != "pollenisator":
-            if notification.get("collection") in self.data.keys():
+            class_name = notification["collection"]
+            if class_name == "cheatsheet":
+                class_name = "checkinstance" # because cheatsheet in db pollenisator is CheckItem, CheckInstance otherwise
+            if class_name in self.data.keys() or class_name[:-1] in self.data.keys():
                 if notification["action"] == "update" or notification["action"] == "insert":
                     updated_data = apiclient.findInDb(notification["db"], notification["collection"], {"_id": ObjectId(notification["iid"])}, False)
-                    obj = self.getClass(notification["collection"]).__init__(updated_data)
-                    old_obj = self.get(notification["collection"], notification["iid"])
-                    self.set(notification["collection"], notification["iid"], obj)
+                    obj = self.getClass(class_name)(updated_data)
+                    old_obj = self.get(class_name, notification["iid"])
+                    self.set(class_name, notification["iid"], obj)
                 elif notification["action"] == "delete":
-                    self.remove(notification["collection"], notification["iid"])
+                    self.remove(class_name, notification["iid"])
                 try:
-                    data = self.get(notification["collection"], notification["iid"])
+                    data = self.get(class_name, notification["iid"])
                 except KeyError:
                     data = None
         self.notify(notification, obj, old_obj)

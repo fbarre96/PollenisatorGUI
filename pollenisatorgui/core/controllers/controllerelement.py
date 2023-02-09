@@ -31,6 +31,8 @@ class ControllerElement:
         return self.model.getParentId()
 
     def getData(self):
+        if self.model is None:
+            return {}
         return self.model.getData()
 
     def doDelete(self):

@@ -262,7 +262,7 @@ class CheckInstanceView(ViewElement):
     
         status = check_infos.get("status", "")
         if status == "":
-            status = check_infos.get("status", "")
+            status = self.controller.model.status
         if status == "":
             status = "todo"
     

@@ -38,6 +38,11 @@ def handle_api_errors(func):
     def wrapper(self, *args, **kwargs):
         try:
             res = func(self, *args, **kwargs)
+        except requests.exceptions.ProxyError:
+            cfg = utils.loadClientConfig()
+            cfg["proxies"] = ""
+            saveClientConfig(cfg)
+            return None
         except ErrorHTTP as err:
             if err.response.status_code == 401:
                 cfg = utils.loadClientConfig()
@@ -77,22 +82,18 @@ class APIClient():
         pid = os.getpid()
         APIClient.__instances[pid] = apiclient
 
-    @staticmethod
-    def searchDefect(searchTerms, **kwargs):
-        apiclient = APIClient.getInstance()
-        api_url = '{0}report/search'.format(apiclient.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=apiclient.headers, proxies=self.proxies, verify=False)
+    def searchDefect(self, searchTerms, **kwargs):
+        api_url = '{0}report/search'.format(self.api_url_base)
+        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res_obj["answers"], "\n".join(res_obj["errors"])
         else:
             return None, "Unexpected server response "+str(response.status_code)+"\n"+response.text    
 
-    @staticmethod
-    def searchRemark(searchTerms):
-        apiclient = APIClient.getInstance()
-        api_url = '{0}report/search'.format(apiclient.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"remark", "terms":searchTerms}), headers=apiclient.headers, proxies=self.proxies, verify=False)
+    def searchRemark(self, searchTerms):
+        api_url = '{0}report/search'.format(self.api_url_base)
+        response = requests.post(api_url, data=json.dumps({"type":"remark", "terms":searchTerms}), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res_obj["answers"], "\n".join(res_obj["errors"])
@@ -122,7 +123,7 @@ class APIClient():
         self.proxies = cfg.get("proxies", "")
         if isinstance(self.proxies, str):
             self.proxies = {"http": self.proxies, "https": self.proxies}
-            
+
         self.api_url = http_proto+"://"+host+":"+str(port)+"/"
         self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
 
@@ -527,8 +528,6 @@ class APIClient():
     @handle_api_errors    
     def findInDb(self, pentest, collection, pipeline=None, multi=True):
         pipeline = {} if pipeline is None else pipeline
-        if collection == "ActiveDirectory":
-            print("pass")
         api_url = '{0}find/{1}/{2}'.format(self.api_url_base, pentest, collection)
         data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder)), "many":multi}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=self.proxies, verify=False)

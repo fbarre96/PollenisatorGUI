@@ -125,6 +125,7 @@ class AutocompleteEntry(ttk.Entry):
         self.server_time = None
         self.lb = None
         self.lb_up = False
+        
 
     def changed(self, _name=None, _index=None, _mode=None):
         """
@@ -342,7 +343,7 @@ class Appli(tkinterDnD.Tk):
         self.helpFrame = None  # the floating help frame poping when the button is pressed
         dir_path = os.path.dirname(os.path.realpath(__file__))
         dir_path = os.path.join(dir_path, "../../icon/favicon.png")
-    
+        DataManager.getInstance().load()
         img = tk.PhotoImage(file=dir_path)
         self.resizable(True, True)
         self.iconphoto(True, img)

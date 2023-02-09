@@ -147,18 +147,18 @@ class ToolView(ViewElement):
         datamanager = DataManager.getInstance()
         try:
             command_d = datamanager.get("commands", modelData["command_iid"])
-            workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d["bin_path"]})
+            workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d.bin_path})
             workers = [x["name"] for x in workers]
             hasWorkers = len(workers)
             #Ready is legacy, OOS and/or OOT should be used
             if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
-                if apiclient.getUser() in command_d["owners"]:
+                if apiclient.getUser() in command_d.owners:
                     actions_panel.addFormButton(
                         "Local launch", self.localLaunchCallback, side="right")
-                if any(x in command_d["owners"] for x in workers):
+                if any(x in command_d.owners for x in workers):
                     actions_panel.addFormButton(
                         "Run on worker", self.launchCallback, side="right")
-                elif apiclient.getUser() not in command_d["owners"]:
+                elif apiclient.getUser() not in command_d.owners:
                     actions_panel.addFormLabel(
                         "Info", "Tool is ready", side="right")
             elif "OOS" in self.controller.getStatus() or "OOT" in self.controller.getStatus():
@@ -269,7 +269,6 @@ class ToolView(ViewElement):
 
     def showAssociatedCommand(self, _event=None):
         if self.appliTw is not None:
-            print(self.appliTw)
             self.appliTw.showItem(self.controller.getData()["command_iid"])
             
 

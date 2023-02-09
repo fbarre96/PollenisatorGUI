@@ -109,7 +109,7 @@ class DefectView(ViewElement):
         """
         settings = self.mainApp.settings
         settings.reloadSettings()
-        results, msg = APIClient.searchDefect("")
+        results, msg = APIClient.getInstance().searchDefect("")
         default_values = {}
         
         if results is not None:
@@ -134,7 +134,7 @@ class DefectView(ViewElement):
             self.showForm()
 
     def searchCallback(self, searchreq, **options):
-        defects_obj, defects_errors = APIClient.searchDefect(searchreq, **options)
+        defects_obj, defects_errors = APIClient.getInstance().searchDefect(searchreq, **options)
         if defects_obj:
             for i, defect in enumerate(defects_obj):
                 defects_obj[i]["TITLE"] = defect["title"]
@@ -228,7 +228,7 @@ class DefectView(ViewElement):
                 row += 1
         if not self.controller.isAssigned():
             if not self.controller.model.isTemplate:
-                topPanel.addFormSearchBar("Search Defect", APIClient.searchDefect, globalPanel, row=row, column=1, autofocus=False)
+                topPanel.addFormSearchBar("Search Defect", APIClient.getInstance().searchDefect, globalPanel, row=row, column=1, autofocus=False)
                 row += 1
             topPanel.addFormLabel("Title", row=row, column=0)
             topPanel.addFormStr(
@@ -446,7 +446,7 @@ class DefectView(ViewElement):
     def multi_insert(self):
         values = self.browse_down_treevw.getValue()
         for title in values:
-            results, msg = APIClient.searchDefect(title)
+            results, msg = APIClient.getInstance().searchDefect(title)
             if results is not None:
                 result = results[0]
                 d_o = Defect()

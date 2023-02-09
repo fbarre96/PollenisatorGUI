@@ -8,7 +8,7 @@ https://github.com/pypa/sampleproject
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # Get the long description from the README file
-version = 2.3
+version = 2.4
 # Taken from https://stackoverflow.com/questions/14399534/reference-requirements-txt-for-the-install-requires-kwarg-in-setuptools-setup-py/14399775#14399775
 with open('requirements.txt') as fp:
     required = fp.read().splitlines()
@@ -146,7 +146,7 @@ setup(
     # and refuse to install the project if the version does not match. If you
     # do not support Python 2, you can simplify this to '>=3.5' or similar, see
     # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
-    python_requires='>=3.7.*',
+    python_requires='>=3.7',
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
