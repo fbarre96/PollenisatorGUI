@@ -323,7 +323,7 @@ class Report(Module):
         if self.drag_toast is not None:
             self.drag_toast.destroy()
             self.drag_toast = None
-        if self.movingSelection is None or self.lastMovedTo is None:
+        if self.movingSelection is None or self.lastMovedTo is None or self.lastMovedTo == "":
             return
         tv = event.widget
         apiclient = APIClient.getInstance()
