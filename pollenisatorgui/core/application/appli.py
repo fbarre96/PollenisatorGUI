@@ -563,6 +563,10 @@ class Appli(tkinterDnD.Tk):
                              command=self.exportCommands)
         fileMenu.add_command(label="Import commands",
                              command=self.importCommands)
+        fileMenu.add_command(label="Export cheatsheet",
+                             command=self.exportCheatsheet)
+        fileMenu.add_command(label="Import cheatsheet",
+                             command=self.importCheatsheet)
         fileMenu.add_command(label="Import defect templates",
                              command=self.importDefectTemplates)                     
 
@@ -1083,6 +1087,18 @@ class Appli(tkinterDnD.Tk):
                 "Export pollenisator database", "Export completed in "+str(msg))
         else:
             tkinter.messagebox.showinfo(msg)
+    
+    def exportCheatsheet(self):
+        """
+        Dump pollenisator from database to an archive file gunzip.
+        """
+        apiclient = APIClient.getInstance()
+        res, msg = apiclient.exportCheatsheet()
+        if res:
+            tkinter.messagebox.showinfo(
+                "Export cheatsheet database", "Export completed in "+str(msg))
+        else:
+            tkinter.messagebox.showinfo(msg)
 
     def importPentest(self, name=None):
         """
@@ -1146,6 +1162,37 @@ class Appli(tkinterDnD.Tk):
             tkinter.messagebox.showerror("Command import", "Command import failed")
         else:
             tkinter.messagebox.showinfo("Command import", "Command import completed")
+        return success
+
+    def importCheatsheet(self, name=None):
+        """
+        Import a pollenisator cheatsheet file json to database.
+        Args:
+            name: The filename of the json command table exported previously
+        Returns:
+            None if name is None and filedialog is closed
+            True if commands successfully are imported
+            False otherwise.
+        """
+        filename = ""
+        if name is None:
+            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
+            if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+        else:
+            filename = name
+        try:
+            apiclient = APIClient.getInstance()
+            success = apiclient.importCheatsheet(filename)
+        except IOError:
+            tkinter.messagebox.showerror(
+                "Import Cheatsheet", "Import failed. "+str(filename)+" was not found or is not a file.")
+            return False
+        if not success:
+            tkinter.messagebox.showerror("Cheatsheet import", "Cheatsheet import failed")
+        else:
+            tkinter.messagebox.showinfo("Cheatsheet import", "Cheatsheet import completed")
         return success
 
     def importDefectTemplates(self, name=None):

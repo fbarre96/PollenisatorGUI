@@ -43,6 +43,16 @@ def handle_api_errors(func):
             cfg["proxies"] = ""
             saveClientConfig(cfg)
             return None
+        except requests.exceptions.ConnectionError:
+            cfg = utils.loadClientConfig()
+            cfg["host"] = ""
+            saveClientConfig(cfg)
+            return None
+        except requests.exceptions.InvalidURL:
+            cfg = utils.loadClientConfig()
+            cfg["host"] = ""
+            saveClientConfig(cfg)
+            return None
         except ErrorHTTP as err:
             if err.response.status_code == 401:
                 cfg = utils.loadClientConfig()
@@ -1043,7 +1053,25 @@ class APIClient():
             raise ErrorHTTP(response, False, response.text)
         return False, response.text  
 
-  
+    @handle_api_errors
+    def exportCheatsheet(self):
+        api_url = '{0}exportCheatsheet'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            filename = "cheatsheet.json" 
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            out_path = os.path.normpath(os.path.join(
+                dir_path, "../../exports/"))
+            f = tk.filedialog.asksaveasfilename(defaultextension=".json", initialdir=out_path, initialfile=filename)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            filename = str(f)
+            with open(filename, mode='wb') as f:
+                f.write(response.content)
+                return True, filename
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        return False, response.text    
 
     @handle_api_errors
     def dumpDb(self, pentest, collection=""):
@@ -1088,6 +1116,18 @@ class APIClient():
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200
+
+    @handle_api_errors
+    def importCheatsheet(self, filename):
+        api_url = '{0}importCheatsheet'.format(self.api_url_base)
+        with io.open(filename, mode='rb') as f:
+            h = self.headers.copy()
+            h.pop("Content-Type", None)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
+            if response.status_code >= 400:
+                raise ErrorHTTP(response, False)
+            return response.status_code == 200
+
     @handle_api_errors
     def importDefectTemplates(self, filename):
         api_url = '{0}report/DefectTemplates/import'.format(self.api_url_base)
