@@ -80,8 +80,8 @@ class Ip(Element):
         scopes = datamanager.get("scopes",'*',{}).values()
        
         for scope in scopes:
-            if self.fitInScope(scope["scope"]):
-                ret.append(str(scope["_id"]))
+            if self.fitInScope(scope.scope):
+                ret.append(str(scope.getId()))
         return ret
 
 
