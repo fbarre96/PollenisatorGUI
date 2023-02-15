@@ -1,5 +1,6 @@
 """View parent object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.application.dialogs.ChildDialogGenericView import ChildDialogGenericView
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import pollenisatorgui.core.components.settings as settings
 from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialogToast
@@ -252,7 +253,13 @@ class ViewElement(object):
         Return the parent node in treeview.
         """
         return self.__class__.DbToTreeviewListId(self.controller.getParentId())
-
+    def openInDialog(self):
+        """
+        Open a dialog to show the tool information.
+        """
+        dialog = ChildDialogGenericView(self.mainApp, "Modify", self)
+        self.mainApp.wait_window(dialog.app)
+        return dialog.rvalue
     def updateReceived(self):
         """Called when any view element update is received by notification.
         Resets the node tags according to database and hide it if "hidden" is in tags

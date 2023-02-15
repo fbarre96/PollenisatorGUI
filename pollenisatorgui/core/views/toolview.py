@@ -1,6 +1,6 @@
 """View for tool object. Handle node in treeview and present forms to user when interacted with."""
 
-from pollenisatorgui.core.application.dialogs.ChildDialogToolView import ChildDialogToolView
+from pollenisatorgui.core.application.dialogs.ChildDialogGenericView import ChildDialogGenericView
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -109,13 +109,7 @@ class ToolView(ViewElement):
                 return self.__class__.cached_not_ready_icon
         return cache
 
-    def openInDialog(self):
-        """
-        Open a dialog to show the tool information.
-        """
-        dialog = ChildDialogToolView(self.mainApp, "Modify tool", self)
-        self.mainApp.wait_window(dialog.app)
-        return dialog.rvalue
+    
 
     def openModifyWindow(self):
         """

@@ -269,6 +269,7 @@ class ScanManager:
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             item = self.linkTw.parent(item)
+            self.linkTw.unfilterAll()
             self.linkTw.see(item)
             self.linkTw.selection_set(item)
             self.linkTw.focus(item)

@@ -77,8 +77,8 @@ class CheckItemController(ControllerElement):
         # Fetch the instance of this self.model now that it is inserted.
         return ret, 0  # 0 errors
 
- 
-
+    def getChildren(self):
+        return self.model.getChildren()        
     
     def isAuto(self):
         """Return True if this command is an auto command"""

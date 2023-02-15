@@ -72,6 +72,8 @@ class DataManager(Subject):
                 ret.append(data)
                 if not multi:
                     return data
+        if not multi:
+            return None
         return ret
             
     def getClass(self, class_str):

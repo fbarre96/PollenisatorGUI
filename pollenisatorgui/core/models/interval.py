@@ -91,7 +91,10 @@ class Interval(Element):
             Returns the parent wave's ObjectId _id".
         """
         datamanager = DataManager.getInstance()
-        return datamanager.find("waves", {"wave": self.wave}, False)["_id"]
+        obj = datamanager.find("waves", {"wave": self.wave}, False)
+        if obj is None:
+            return None
+        return obj["_id"]
 
     def getData(self):
         """Return interval attributes as a dictionnary matching Mongo stored intervals

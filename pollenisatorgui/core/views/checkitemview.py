@@ -213,6 +213,7 @@ class CheckItemView(ViewElement):
                 self.hide("tags")
             if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
                 self.hide("filter_manual")
+            
 
     def getParentNode(self):
         """

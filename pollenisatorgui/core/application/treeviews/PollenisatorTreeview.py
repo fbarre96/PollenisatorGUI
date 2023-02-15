@@ -418,7 +418,7 @@ class PollenisatorTreeview(ttk.Treeview):
         for i in toDel[::-1]:
             del hiddens[i]
         self._hidden = hiddens[::-1]
-        
+
     
     def unhideNodeChildren(self, reason, node=None):
         if node is None:

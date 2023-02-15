@@ -1,7 +1,7 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
 import tkinter.ttk as ttk
-from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
 from pollenisatorgui.core.controllers.toolcontroller import ToolController
@@ -124,6 +124,9 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormText("Description", r"", default=check_m.description, width=60, height=5, state="disabled", row=1, column=1, pady=5)
         panel_top.addFormLabel("Notes", row=2, column=0)
         panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), width=60, height=5, row=2, column=1, pady=5)
+        panel_top.addFormLabel("Target", row=3, column=0)
+        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1, style="link.TButton")
+        
         if "commands" in check_m.check_type:
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             from PIL import ImageTk, Image
@@ -191,6 +194,7 @@ class CheckInstanceView(ViewElement):
             self.edit_icon = tk.PhotoImage(file = utils.getIcon("view_doc.png"))
             formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon, style="icon.TButton")
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon, style="icon.TButton")
+        
         self.completeModifyWindow(addTags=False)
 
     
@@ -210,7 +214,14 @@ class CheckInstanceView(ViewElement):
         tool_vw.openInDialog()
         self.openModifyWindow()
 
-    
+    def openTargetDialog(self, event):
+        data = self.controller.getData()
+        datamanager = DataManager.getInstance()
+        ret = datamanager.get(data["target_type"], data["target_iid"])
+        view = self.appliTw.modelToView(data["target_type"], ret)
+        view.openInDialog()
+        self.openModifyWindow()
+
     def launchToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         self.mainApp.scanManager.launchTask(tool_m)
@@ -245,7 +256,7 @@ class CheckInstanceView(ViewElement):
 
         if parentNode is None:
             parentNode = self.getParentNode()
-        text = self.controller.model.target_repr if self.mainApp.settings.is_checklist_view() else str(self)
+        text = self.controller.target_repr if self.mainApp.settings.is_checklist_view() else str(self)
         check_infos = self.controller.getCheckInstanceStatus()
         try:
             self.appliTw.insert(parentNode, "end", str(

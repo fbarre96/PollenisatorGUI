@@ -49,6 +49,20 @@ class CheckInstanceController(ControllerElement):
     def getStatus(self):
         return self.model.status
 
+    @property
+    def target_repr(self):
+        if hasattr(self.model, "target_repr"):
+            return self.model.target_repr
+        reprs = APIClient.getInstance().getCheckInstanceRepr([str(self.model.getId())])
+        if reprs:
+            self.model.target_repr = reprs.get(str(self.model.getId()), str(self.model))
+        else:
+            self.model.target_repr = str(self)
+    
+    @target_repr.setter
+    def target_repr(self, value):
+        self.model.target_repr = value
+
     def getCategory(self):
         return self.model.check_m.category
     

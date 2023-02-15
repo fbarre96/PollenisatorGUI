@@ -109,7 +109,7 @@ class CheckInstance(Element):
             yield CheckInstance(d)
     
     def getData(self):
-        return {"_id": self._id,  "check_iid": self.check_iid, "target_type": self.target_type, "parent":self.parent, "status": self.status, "notes": self.notes}
+        return {"_id": self._id,  "check_iid": self.check_iid, "target_type": self.target_type, "target_iid": self.target_iid,"parent":self.parent, "status": self.status, "notes": self.notes}
 
     def getCheckItem(self):
         return self.check_m

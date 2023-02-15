@@ -1,4 +1,5 @@
 """CheckItem Model."""
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.core.components.apiclient import APIClient
 from bson import ObjectId
@@ -113,6 +114,14 @@ class CheckItem(Element):
             return None
         for d in ds:
             yield CheckItem(d)
+
+    def getChildren(self):
+        """Return a list of all children of this check
+        Returns:
+            A list of CheckItem
+        """
+        datamanager = DataManager.getInstance()
+        return datamanager.find("checkinstance", {"check_iid": str(self._id)}, multi=True)
     
     def getData(self):
         return {"_id": self._id,  "title":self.title, "pentest_types":self.pentest_types, "lvl":self.lvl, "ports":self.ports, 

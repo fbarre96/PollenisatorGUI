@@ -117,7 +117,10 @@ class Port(Element):
             Returns the parent ip's ObjectId _id".
         """
         datamanager = DataManager.getInstance()
-        return datamanager.find("ips", {"ip":self.ip}, multi=False).get("_id")
+        obj = datamanager.find("waves", {"ip":self.ip}, False)
+        if obj is None:
+            return None
+        return obj.get("_id")
 
     def __str__(self):
         """
