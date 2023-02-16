@@ -7,7 +7,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialo
 import tkinter.messagebox
 from tkinter import ttk
 from tkinter import TclError
-import os
+import pollenisatorgui.core.components.utils as utils
 
 
 class ViewElement(object):
@@ -45,8 +45,7 @@ class ViewElement(object):
         """
         from PIL import Image, ImageTk
         if cls.cachedClassIcon == None:
-            abs_path = os.path.dirname(os.path.abspath(__file__))
-            path = os.path.join(abs_path, "../../icon/"+cls.icon)
+            path = utils.getIcon(cls.icon)
             cls.cachedClassIcon = ImageTk.PhotoImage(Image.open(path))
         return cls.cachedClassIcon
     

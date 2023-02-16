@@ -90,8 +90,7 @@ class ScanManager:
         self.workerTv = None
         self.linkTw = linkedTreeview
         self.local_scans = dict()
-        abs_path = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join(abs_path, "../../icon/")
+        path = utils.getIconDir()
         self.tool_icon = ImageTk.PhotoImage(Image.open(path+"tool.png"))
         self.nok_icon = ImageTk.PhotoImage(Image.open(path+"cross.png"))
         self.ok_icon = ImageTk.PhotoImage(Image.open(path+"done_tool.png"))

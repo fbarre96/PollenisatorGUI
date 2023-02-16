@@ -341,8 +341,7 @@ class Appli(tkinterDnD.Tk):
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        dir_path = os.path.join(dir_path, "../../icon/favicon.png")
+        dir_path = utils.getIconDir() +"favicon.png"
         DataManager.getInstance().load()
         img = tk.PhotoImage(file=dir_path)
         self.resizable(True, True)

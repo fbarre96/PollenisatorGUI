@@ -15,6 +15,7 @@ from shutil import which
 import shlex
 import tkinter  as tk
 import tkinter.ttk as ttk
+from PIL import Image, ImageTk
 from pollenisatorgui.core.components.logger_config import logger
 
 
@@ -88,8 +89,9 @@ def setStyle(tkApp, _event=None):
     """
 
     style = ttk.Style(tkApp)
-    #sv_ttk.set_theme("light")  # Set light theme
+    
     style.theme_use("clam")
+
     style.layout("Default.TButton", [('Button.border', {'sticky': 'nswe', 'border': '1', 'children': [('Button.focus', {'sticky': 'nswe', 'children': [('Button.padding', {'sticky': 'nswe', 'children': [('Button.label', {'sticky': 'nswe'})]})]})]})])
     style.configure("Default.TButton", relief="sunken",background="#73B723",
                      foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
@@ -115,8 +117,9 @@ def setStyle(tkApp, _event=None):
     style.configure("TCombobox", background="white")
     
     style.configure("TCheckbutton", background="white")
-    style.configure("TButton", background="#73B723",
-                   foreground="white", font=('Sans', '10', 'bold'), borderwidth=1)
+
+    style.configure("TButton", background="#73B723", border=4,
+                   foreground="white", image=button_rest, font=('Sans', '10', 'bold'), borderwidth=0)
     style.configure("icon.TButton", background="white", borderwidth=0)
     style.configure("icon_white.TButton", background="#73B723", borderwidth=0)
 
@@ -263,6 +266,9 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
     """
     
     try:
+        proxychains = True
+        if proxychains:
+            command = "proxychains " + command
         proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid, cwd=cwd)
         proc._killed = False
@@ -403,41 +409,32 @@ def getValidMarkIconPath():
     """Returns:
          a validation mark icon path
     """
-    p = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../icon/done_tool.png")
-    return p
+    return getIcon("done_tool.png")
 
 
 def getBadMarkIconPath():
     """Returns:
          a bad mark icon path
     """
-    p = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../icon/cross.png")
-    return p
+    return getIcon("cross.png")
 
 
 def getWaitingMarkIconPath():
     """Returns:
          a waiting icon path
     """
-    p = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../icon/waiting.png")
-    return p
+    return getIcon("waiting.png")
 
 def getIcon(name):
     """Returns : the path to an specified icon name
     """
-    return os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../icon/", name)
+    return getIconDir() + name
         
 def getHelpIconPath():
     """Returns:
          a help icon path
     """
-    p = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../icon/help.png")
-    return p
+    return getIcon("help.png")
 
 
 def getIconDir():
@@ -445,7 +442,7 @@ def getIconDir():
         the icon directory path
     """
     p = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../icon/")
+        os.path.realpath(__file__)), "../../theme/icon/")
     return p
 
 def getExportDir():

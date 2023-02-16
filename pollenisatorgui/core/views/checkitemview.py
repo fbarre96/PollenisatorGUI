@@ -8,7 +8,7 @@ from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemController
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
-import os
+import pollenisatorgui.core.components.utils as utils
 from bson import ObjectId
 import tkinter as tk
 
@@ -55,9 +55,8 @@ class CheckItemView(ViewElement):
             iconStatus = "default"
         if cache is None:
             from PIL import Image, ImageTk
-            abs_path = os.path.dirname(os.path.abspath(__file__))
 
-            path = os.path.join(abs_path, "../../icon/"+ui)
+            path = utils.getIcon(ui)
             if iconStatus == "auto":
                 self.__class__.cached_icon_auto = ImageTk.PhotoImage(
                     Image.open(path))

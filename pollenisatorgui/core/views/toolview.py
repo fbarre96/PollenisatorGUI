@@ -84,9 +84,7 @@ class ToolView(ViewElement):
 
         if cache is None:
             from PIL import Image, ImageTk
-            abs_path = os.path.dirname(os.path.abspath(__file__))
-
-            path = os.path.join(abs_path, "../../icon/"+ui)
+            path = utils.getIcon(ui)
             if iconStatus == "done":
                 self.__class__.cached_done_icon = ImageTk.PhotoImage(
                     Image.open(path))

@@ -1,7 +1,7 @@
 recursive-include pollenisatorgui/config *.cfg
 recursive-include pollenisatorgui/config/tools.d *.json
 recursive-include pollenisatorgui/config *
-recursive-include pollenisatorgui/icon *
+recursive-include pollenisatorgui/theme *
 recursive-include pollenisatorgui/scripts *
 include pollenisatorgui/exports/pollenisator_commands.gz
 include pollenisatorgui/exports/pollenisator_group_commands.gz
