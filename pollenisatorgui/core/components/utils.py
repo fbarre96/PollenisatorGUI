@@ -118,8 +118,8 @@ def setStyle(tkApp, _event=None):
     
     style.configure("TCheckbutton", background="white")
 
-    style.configure("TButton", background="#73B723", border=4,
-                   foreground="white", image=button_rest, font=('Sans', '10', 'bold'), borderwidth=0)
+    style.configure("TButton", background="#73B723",
+                   foreground="white",font=('Sans', '10', 'bold'), borderwidth=1)
     style.configure("icon.TButton", background="white", borderwidth=0)
     style.configure("icon_white.TButton", background="#73B723", borderwidth=0)
 
