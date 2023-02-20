@@ -1,6 +1,7 @@
 """A special form that contains all other forms"""
 
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinter as tk
 from pollenisatorgui.core.forms.formcombo import FormCombo
 from pollenisatorgui.core.forms.formchecklist import FormChecklist
@@ -14,6 +15,7 @@ from pollenisatorgui.core.forms.formfile import FormFile
 from pollenisatorgui.core.forms.formhidden import FormHidden
 from pollenisatorgui.core.forms.formtreevw import FormTreevw
 from pollenisatorgui.core.forms.formcheckbox import FormCheckbox
+from pollenisatorgui.core.forms.formswitch import FormSwitch
 from pollenisatorgui.core.forms.formhelper import FormHelper
 from pollenisatorgui.core.forms.formsearchbar import FormSearchBar
 
@@ -48,9 +50,9 @@ class FormPanel(Form):
             parent: parent view or parent FormPanel.
         """
         if isinstance(parent, FormPanel):  # Panel is a subpanel
-            self.panel = ttk.Frame(parent.panel)
+            self.panel = CTkFrame(parent.panel)
         else:
-            self.panel = ttk.Frame(parent)
+            self.panel = CTkFrame(parent)
         for form in self.subforms:
             form.constructView(self)
         if isinstance(parent, FormPanel):  # Panel is a subpanel
@@ -160,6 +162,20 @@ class FormPanel(Form):
             kwargs: keywords for FormCheckbox
         """
         f = FormCheckbox(name, text, default, **kwargs)
+        self.subforms.append(f)
+        return f
+    
+    def addFormSwitch(self, name, text, default, **kwargs):
+        """
+        Add a form switch to this panel.
+
+        Args:
+            name: the switch desired name
+            text: a label that will be in front of the switch
+            default: a boolean indicating if the switch should be check by default
+            kwargs: keywords for FormSwitch
+        """
+        f = FormSwitch(name, text, default, **kwargs)
         self.subforms.append(f)
         return f
 

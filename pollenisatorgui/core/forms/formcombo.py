@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 
 
@@ -24,7 +25,7 @@ class FormCombo(Form):
             name: the checklist name (id).
             choicesList: a list of string forming all the possible choices.
             default: a list of string that should be prechecked if in the choice list.
-            kwargs: same keyword args as you would give to ttk.Combobox
+            kwargs: same keyword args as you would give to CTkComboBox
         """
         super().__init__(name)
         self.choicesList = choicesList
@@ -39,8 +40,12 @@ class FormCombo(Form):
         Args:
             parent: parent FormPanel.
         """
-        self.box = ttk.Combobox(parent.panel, values=tuple(
-            self.choicesList), state=self.getKw("state", ""), width=self.getKw("width", None))
+        kw = {}
+        width = self.getKw("width", None)
+        if width is not None:
+            kw["width"] = int(width)
+        self.box = CTkComboBox(parent.panel, values=tuple(
+            self.choicesList), state=self.getKw("state", "normal"), **kw)
         if self.default is not None:
             self.box.set(self.default)
         binds = self.getKw("binds", {})

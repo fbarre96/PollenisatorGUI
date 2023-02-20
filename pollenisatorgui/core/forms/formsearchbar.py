@@ -2,6 +2,7 @@ import tkinter as tk
 from pollenisatorgui.core.forms.form import Form
 
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinter.messagebox
 
 
@@ -38,19 +39,19 @@ class FormSearchBar(Form):
             parent: parent FormPanel.
         """
         self.val = tk.StringVar()
-        frame = ttk.Frame(parent.panel)
-        lbl = ttk.Label(frame, text=self.name+" : ")
+        frame = CTkFrame(parent.panel)
+        lbl = CTkLabel(frame, text=self.name+" : ")
         lbl.grid(column=0, row=0)
-        self.entry = ttk.Entry(frame, textvariable=self.val, width=50)
+        self.entry = CTkEntry(frame, textvariable=self.val, width=200)
         self.entry.grid(column=1, row=0)
         self.entry.bind("<Control-a>", self.selectAll)
         self.val.set(self.default)
-        lbl = ttk.Label(frame, text="Search results : ")
+        lbl = CTkLabel(frame, text="Search results : ")
         lbl.grid(column=0, row=1)
         values = []
         if self.default != "":
             values.append(self.default)
-        self.combo_search = ttk.Combobox(frame, values=values, width=50, state="readonly")
+        self.combo_search = CTkComboBox(frame, values=values, width=200, state="readonly")
         self.combo_search.bind('<<ComboboxSelected>>', self.postSelect)
         if self.default != "":
             self.combo_search.set(self.default)

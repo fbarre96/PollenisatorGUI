@@ -15,6 +15,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogInfo import ChildDialog
 from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
 import pollenisatorgui.core.components.utils as utils
 from bson import ObjectId, errors
+from customtkinter import *
 import os
 import json
 

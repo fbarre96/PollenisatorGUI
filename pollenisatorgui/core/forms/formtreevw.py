@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pyperclip
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
@@ -183,17 +184,17 @@ class FormTreevw(Form):
         Args:
             parent: parent FormPanel.
         """
-        self.tvFrame = ttk.Frame(
+        self.tvFrame = CTkFrame(
             parent.panel, width=self.getKw("width", 600))
         self.treevw = ttk.Treeview(
             self.tvFrame, height=min(self.getKw("height", len(
                 self.default_values)+1), self.getKw("max_height", 10)))
         self.treevw.tag_configure("odd", background='light gray')
-        self.scbVSel = ttk.Scrollbar(self.tvFrame,
-                                     orient=tk.VERTICAL,
+        self.scbVSel = CTkScrollbar(self.tvFrame,
+                                     orientation=tk.VERTICAL,
                                      command=self.treevw.yview)
-        scbHSel = ttk.Scrollbar(
-            self.tvFrame, orient=tk.HORIZONTAL, command=self.treevw.xview)
+        scbHSel = CTkScrollbar(
+            self.tvFrame, orientation=tk.HORIZONTAL, command=self.treevw.xview)
         self.treevw.configure(yscrollcommand=self.scbVSel.set)
         self.treevw.configure(xscrollcommand=scbHSel.set)
 
@@ -202,7 +203,7 @@ class FormTreevw(Form):
         scbHSel.grid(row=1, column=0, sticky=tk.EW)
         if len(self.headings) > 1:
             self.treevw['columns'] = self.headings[1:]
-        root = ttk.Label()
+        root = CTkLabel(self.tvFrame)
         self.f = tk.font.Font(root, "Sans", bold=True, size=10)
         columnsLen = self.recurse_insert(self.default_values)
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.headings))]
@@ -355,7 +356,7 @@ class FormTreevw(Form):
                                values=["" for x in range(len(self.headings)-1)], tags=tags)
             currentHeight = len(self.treevw.get_children())
             if currentHeight < self.getKw("max_height", 5):
-                self.treevw.config(height=currentHeight)
+                self.treevw.configure(height=currentHeight)
 
     def selection(self):
         return self.treevw.selection()

@@ -2,6 +2,7 @@
 Module to add defects and export them
 """
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinter as tk
 import tkinter.messagebox
 import os
@@ -90,7 +91,7 @@ class Report(Module):
         self.tkApp = tkApp
         self.parent = parent
         ### MAIN PAGE FRAME ###
-        self.reportFrame = ttk.Frame(parent)
+        self.reportFrame = CTkFrame(parent)
 
         ### DEFECT TABLE ###
         self.rowHeight = 20
@@ -99,7 +100,7 @@ class Report(Module):
         # REMARK TREEVW	
         self.remarksFrame = ttk.LabelFrame(self.reportFrame, text="Remarks table")	
         self.paned_remarks = tk.PanedWindow(self.remarksFrame, orient=tk.VERTICAL, height=900)	
-        self.remarkframeTw = ttk.Frame(self.paned_remarks)	
+        self.remarkframeTw = CTkFrame(self.paned_remarks)	
         self.remarks_treevw = ttk.Treeview(self.remarkframeTw, style='Report.Treeview', height=0)	
         self.remarks_treevw["columns"] = ["Title", "Type"]	
         self.remarks_treevw.heading("#0", text='Title', anchor=tk.W)	
@@ -107,20 +108,20 @@ class Report(Module):
         self.remarks_treevw.bind("<Delete>", self.deleteSelectedRemarkItem)	
         
         self.remarks_treevw.grid(row=0, column=0, sticky=tk.NSEW)	
-        scbVSel = ttk.Scrollbar(self.remarkframeTw,	
-                                orient=tk.VERTICAL,	
+        scbVSel = CTkScrollbar(self.remarkframeTw,	
+                                orientation=tk.VERTICAL,	
                                 command=self.remarks_treevw.yview)	
         self.remarks_treevw.configure(yscrollcommand=scbVSel.set)	
         scbVSel.grid(row=0, column=1, sticky=tk.NS)	
         self.remarkframeTw.columnconfigure(0, weight=1)	
         self.remarkframeTw.rowconfigure(0, weight=1)	
         self.remarkframeTw.pack(side=tk.TOP, fill=tk.BOTH, pady=5, expand=1, padx=5)	
-        frameAllBelow = ttk.Frame(self.paned_remarks)	
-        frameBtnRemarks = ttk.Frame(frameAllBelow)	
-        btn_addRemark = ttk.Button(	
+        frameAllBelow = CTkFrame(self.paned_remarks)	
+        frameBtnRemarks = CTkFrame(frameAllBelow)	
+        btn_addRemark = CTkButton(	
             frameBtnRemarks, text="Add remark", command=self.addRemarkCallback)	
         btn_addRemark.pack(side=tk.LEFT, pady=5)	
-        btn_delRemark = ttk.Button(	
+        btn_delRemark = CTkButton(	
             frameBtnRemarks, text="Remove selected", command=self.deleteSelectedRemarkItem)	
         btn_delRemark.pack(side=tk.LEFT, pady=5)	
         frameBtnRemarks.pack(side=tk.TOP)	
@@ -129,7 +130,7 @@ class Report(Module):
         defectLabelFrame = ttk.LabelFrame(frameAllBelow, text="Defects table")	
         self.paned = tk.PanedWindow(defectLabelFrame, orient=tk.VERTICAL, height=800)
 
-        self.frameTw = ttk.Frame(self.paned)
+        self.frameTw = CTkFrame(self.paned)
         self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0)
         self.treevw['columns'] = ('ease', 'impact', 'risk', 'type', 'redactor')
         self.treevw.heading("#0", text='Title', anchor=tk.W)
@@ -160,8 +161,8 @@ class Report(Module):
         self.treevw.bind("<ButtonRelease-1>",self.dragRelease, add='+')
         self.treevw.bind("<B1-Motion>",self.dragMove, add='+')
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel = ttk.Scrollbar(self.frameTw,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(self.frameTw,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -169,76 +170,76 @@ class Report(Module):
         self.frameTw.columnconfigure(0, weight=1)
         self.frameTw.rowconfigure(0, weight=1)
         ### OFFICE EXPORT FRAME ###
-        belowFrame = ttk.Frame(self.paned)
-        frameBtn = ttk.Frame(belowFrame)
+        belowFrame = CTkFrame(self.paned)
+        frameBtn = CTkFrame(belowFrame)
         #lbl_help = FormHelper("DefectHelper", "Use del to delete a defect, use Alt+Arrows to order them")
         #lbl_help.constructView(frameBtn)
-        self.buttonUpImage = ImageTk.PhotoImage(Image.open(getIconDir()+'up-arrow.png'))
-        self.buttonDownImage = ImageTk.PhotoImage(Image.open(getIconDir()+'down-arrow.png'))
+        self.buttonUpImage = CTkImage(Image.open(getIconDir()+'up-arrow.png'))
+        self.buttonDownImage = CTkImage(Image.open(getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
-        btn_down = ttk.Button(frameBtn, image=self.buttonDownImage, command=self.bDown)
+        btn_down = CTkButton(frameBtn, image=self.buttonDownImage, command=self.bDown)
         btn_down.pack(side="left", anchor="center")
-        btn_up = ttk.Button(frameBtn, image=self.buttonUpImage, command=self.bUp)
+        btn_up = CTkButton(frameBtn, image=self.buttonUpImage, command=self.bUp)
         btn_up.pack(side="left", anchor="center")
-        btn_delDefect = ttk.Button(
+        btn_delDefect = CTkButton(
             frameBtn, text="Remove selection", command=self.deleteSelectedItem)
         btn_delDefect.pack(side=tk.RIGHT, padx=5)
-        btn_addDefect = ttk.Button(
+        btn_addDefect = CTkButton(
             frameBtn, text="Add a security defect", command=self.addDefectCallback)
         btn_addDefect.pack(side=tk.RIGHT, padx=5)
         
-        btn_setMainRedactor = ttk.Button(
+        btn_setMainRedactor = CTkButton(
             frameBtn, text="Set main redactor", command=self.setMainRedactor)
         btn_setMainRedactor.pack(side=tk.RIGHT, padx=5)
-        btn_browseDefects = ttk.Button(	
+        btn_browseDefects = CTkButton(	
 	            frameBtn, text="Browse defects templates", command=self.browseDefectsCallback)	
         btn_browseDefects.pack(side=tk.RIGHT, padx=5)
         frameBtn.pack(side=tk.TOP, pady=5)
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###
-        informations_frame = ttk.Frame(officeFrame)
-        lbl_client = ttk.Label(informations_frame, text="Client's name :")
+        informations_frame = CTkFrame(officeFrame)
+        lbl_client = CTkLabel(informations_frame, text="Client's name :")
         lbl_client.grid(row=0, column=0, sticky=tk.E)
-        self.ent_client = ttk.Entry(informations_frame, width=50)
+        self.ent_client = CTkEntry(informations_frame, width=50)
         self.ent_client.grid(row=0, column=1, sticky=tk.W)
-        lbl_contract = ttk.Label(informations_frame, text="Contract's name :")
+        lbl_contract = CTkLabel(informations_frame, text="Contract's name :")
         lbl_contract.grid(row=1, column=0, sticky=tk.E)
-        self.ent_contract = ttk.Entry(informations_frame, width=50)
+        self.ent_contract = CTkEntry(informations_frame, width=50)
         self.ent_contract.grid(row=1, column=1, sticky=tk.W)
 
-        lbl_lang = ttk.Label(informations_frame, text="Lang :")
+        lbl_lang = CTkLabel(informations_frame, text="Lang :")
         lbl_lang.grid(row=2, column=0, sticky=tk.E)
-        self.combo_lang = ttk.Combobox(informations_frame, values=self.langs, width=10)
+        self.combo_lang = CTkComboBox(informations_frame, values=self.langs, width=10)
         self.combo_lang.grid(row=2, column=1, sticky=tk.W)
         self.combo_lang.bind("<<ComboboxSelected>>", self.langChange)
         informations_frame.pack(side=tk.TOP, pady=10)
         ### WORD EXPORT FRAME ###
-        templatesFrame = ttk.Frame(officeFrame)
+        templatesFrame = CTkFrame(officeFrame)
         templatesFrame.grid_columnconfigure(2, minsize=70)
         templatesFrame.grid_columnconfigure(3, minsize=300)
-        lbl = ttk.Label(
+        lbl = CTkLabel(
             templatesFrame, text="Word template")
         lbl.grid(row=0, column=0, sticky=tk.E)
-        self.combo_word = ttk.Combobox(templatesFrame, values=self.docx_models, width=50)
+        self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models, width=50)
         self.combo_word.grid(row=0, column=1)
-        btn_word_template_dl = ttk.Button(templatesFrame)
-        self.btn_template_photo = tk.PhotoImage(file=os.path.join(getIconDir(), "download.png"))
-        btn_word_template_dl.config(image=self.btn_template_photo, command=self.downloadWordTemplate)
+        btn_word_template_dl = CTkButton(templatesFrame)
+        self.btn_template_photo = CTkImage(Image.open(os.path.join(getIconDir(), "download.png")))
+        btn_word_template_dl.configure(image=self.btn_template_photo, command=self.downloadWordTemplate)
         btn_word_template_dl.grid(row=0, column=2, sticky=tk.W)
-        btn_word = ttk.Button(
+        btn_word = CTkButton(
             templatesFrame, text="Generate Word report", command=self.generateReportWord, width=30)
         btn_word.grid(row=0, column=3, sticky=tk.E)
         ### POWERPOINT EXPORT FRAME ###
-        lbl = ttk.Label(templatesFrame,
+        lbl = CTkLabel(templatesFrame,
                         text="Powerpoint template")
         lbl.grid(row=1, column=0, sticky=tk.E, pady=20)
-        self.combo_pptx = ttk.Combobox(
+        self.combo_pptx = CTkComboBox(
             templatesFrame, values=self.pptx_models, width=50)
         self.combo_pptx.grid(row=1, column=1)
-        btn_pptx_template_dl = ttk.Button(templatesFrame)
-        btn_pptx_template_dl.config(image=self.btn_template_photo, command=self.downloadPptxTemplate)
+        btn_pptx_template_dl = CTkButton(templatesFrame)
+        btn_pptx_template_dl.configure(image=self.btn_template_photo, command=self.downloadPptxTemplate)
         btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
-        btn_ppt = ttk.Button(
+        btn_ppt = CTkButton(
             templatesFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint, width=30)
         btn_ppt.grid(row=1, column=3, sticky=tk.E)
         templatesFrame.pack(side=tk.TOP, fill=tk.X, pady=10)
@@ -313,7 +314,7 @@ class Report(Module):
             moving_item = tv.selection()[0]
             moving_item = tv.item(moving_item)
             self.movingSelection = tv.identify_row(event.y)
-            self.drag_toast = ttk.Label(self.parent, text=moving_item["text"])
+            self.drag_toast = CTkLabel(self.parent, text=moving_item["text"])
             root = tv.winfo_toplevel()
             abs_coord_x = root.winfo_pointerx() - self.parent.winfo_rootx() + 10
             abs_coord_y = root.winfo_pointery() - self.parent.winfo_rooty() +3
@@ -582,7 +583,7 @@ class Report(Module):
     def resizeDefectTreeview(self):
         currentHeight = len(self.treevw.get_children())
         if currentHeight <= 15:
-            self.treevw.config(height=currentHeight)
+            self.treevw.configure(height=currentHeight)
             sx, sy = self.paned.sash_coord(0)
             if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:
                 self.paned.paneconfigure(self.frameTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
@@ -590,7 +591,7 @@ class Report(Module):
     def resizeRemarkTreeview(self):	
         currentHeight = len(self.remarks_treevw.get_children())	
         if currentHeight <= 5:	
-            self.remarks_treevw.config(height=currentHeight)	
+            self.remarks_treevw.configure(height=currentHeight)	
             sx, sy = self.paned_remarks.sash_coord(0)	
             if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:	
                 self.paned_remarks.paneconfigure(self.remarkframeTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)

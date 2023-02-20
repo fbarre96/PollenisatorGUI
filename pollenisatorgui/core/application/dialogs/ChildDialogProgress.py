@@ -2,6 +2,7 @@
 """
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 
 class ChildDialogProgress:
@@ -9,7 +10,7 @@ class ChildDialogProgress:
     Open a child dialog of a tkinter application to inform the user about a ongoing process.
     """
 
-    def __init__(self, parent, title, msg, length=200, progress_mode="determinate", show_logs=False):
+    def __init__(self, parent, title, msg, speed=1, progress_mode="determinate", show_logs=False):
         """
         Open a child dialog of a tkinter application to display a progress bar.
 
@@ -22,23 +23,23 @@ class ChildDialogProgress:
                            indeterminate: bouncing progress bar.
                            determinate: Show progression of a value against a max value.
         """
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.transient(parent)
         self.app.resizable(False, False)
         self.app.title(title)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
-        self.lbl = ttk.Label(appFrame, text=msg)
+        self.lbl = CTkLabel(appFrame, text=msg)
         self.lbl.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.mode = progress_mode
         self.show_logs = show_logs
         if self.show_logs:
-            self.text_log = tk.scrolledtext.ScrolledText(
-                appFrame, relief=tk.SUNKEN, height=20, font = ("Sans", 10))
+            self.text_log = CTkTextbox(
+                appFrame, height=20, font = ("Sans", 10))
             self.text_log.pack(side=tk.BOTTOM, padx=10,pady=10,fill=tk.X)
-        self.progressbar = ttk.Progressbar(appFrame, orient="horizontal",
-                                           length=length, mode=progress_mode)
+        self.progressbar = CTkProgressBar(appFrame, orientation="horizontal",
+                                           indeterminate_speed=speed, determinate_speed=speed, mode=progress_mode)
         self.progressbar.pack(side=tk.BOTTOM, padx=10, pady=10, fill=tk.X)
         appFrame.pack(fill=tk.BOTH)
         try:
@@ -56,11 +57,7 @@ class ChildDialogProgress:
             - maximum: only for determinate mode. Set the goal value. Default to None.
             - startValue: only for determinate mode. Set the starting value. Default to None.
         """
-        if self.mode == "indeterminate":
-            self.progressbar.start()
-        elif self.mode == "determinate" and maximum is not None:
-            self.progressbar["value"] = startValue
-            self.progressbar["maximum"] = maximum
+        self.progressbar.start()
         self.app.update()
 
     def update(self, value=None, msg=None, log=None):
@@ -78,9 +75,9 @@ class ChildDialogProgress:
                     return
             elif self.mode == "determinate":
                 if value is None:
-                    self.progressbar["value"] += 1
+                    self.progressbar.step()
                 else:
-                    self.progressbar["value"] = value
+                    self.progressbar.step()
             if msg is not None:
                 self.lbl.configure(text=str(msg))
             if self.show_logs and log is not None:

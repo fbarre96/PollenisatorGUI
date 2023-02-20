@@ -2,10 +2,11 @@
 """
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import threading
 
 
-class ChildDialogToast(tk.Toplevel):
+class ChildDialogToast(CTkToplevel):
     """floating basic window with info text inside, fading away after a short time.
     """
 
@@ -41,9 +42,7 @@ class ChildDialogToast(tk.Toplevel):
         w = self.kwargs.get("width", 200)
         h = self.kwargs.get("height", 20)
         self.geometry("%dx%d" % (w, h))
-        label = ttk.Label(self, text=self.text, justify='left',
-                         relief='solid', borderwidth=1,
-                         font=("times", "12", "normal"))
+        label = CTkLabel(self, text=self.text, justify='left')
         label.pack(fill=tk.BOTH)
         self.transparency = 1.0
         fadingTime = self.kwargs.get("fadingTime", 1.0)

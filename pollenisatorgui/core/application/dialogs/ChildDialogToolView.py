@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.application.dialogs.ChildDialogView import ChildDialogView
 
 class DummyMainApp:

@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pyperclip
 
@@ -24,7 +25,7 @@ class FormStr(Form):
             regexValidation: a regex used to check the input in the checkForm function., default is ""
             default: a default value for the Entry, defauult is ""
             contextualMenu: (Opt.) a contextualMenu to open when right clicked. default is None
-            kwargs: same keyword args as you would give to ttk.Entry
+            kwargs: same keyword args as you would give to CTkEntry
                     + binds:  a dictionnary of tkinter binding with shortcut as key and callback as value
         """
         super().__init__(name)
@@ -105,8 +106,8 @@ class FormStr(Form):
             parent: parent FormPanel.
         """
         self.val = tk.StringVar()
-        self.entry = ttk.Entry(parent.panel, textvariable=self.val, width=self.getKw(
-            "width", 20), state=self.getKw("state", "normal"), show=self.getKw("show", None))
+        self.entry = CTkEntry(parent.panel, textvariable=self.val, width=self.getKw(
+            "width", 200), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
 
         self.entry.bind("<Control-a>", self.selectAll)

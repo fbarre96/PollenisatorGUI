@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 
 
@@ -19,7 +20,7 @@ class FormLabel(Form):
         Args:
             name: the label name.
             text: the text showed by the label.
-            kwargs: same keyword args as you would give to ttk.Label
+            kwargs: same keyword args as you would give to CTkLabel
         """
         super().__init__(name)
         self.text = text
@@ -34,7 +35,11 @@ class FormLabel(Form):
         """
         if self.text == "":
             self.text = self.name + " : "
-        lbl = ttk.Label(parent.panel, text=self.text, width=self.getKw("width", None), justify=tk.LEFT, style=self.getKw("style", None))
+        width=self.getKw("width", None)
+        kwargs = {}
+        if width is not None:
+            kwargs["width"] = int(width)
+        lbl = CTkLabel(parent.panel, text=self.text, justify=tk.LEFT, **kwargs)
         if parent.gridLayout:
     
             lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)

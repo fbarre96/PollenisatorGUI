@@ -1,6 +1,7 @@
 """Describe tkinter button with default common args"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 from pollenisatorgui.core.forms.form import Form
 
@@ -20,7 +21,7 @@ class FormButton(Form):
         Args:
             name: the button text.
             callback: a function that will be called when the button is clicked.
-            kwargs: same keyword args as you would give to ttk.Button
+            kwargs: same keyword args as you would give to CTkButton
         """
         super().__init__(name)
         self.callback = callback
@@ -39,7 +40,7 @@ class FormButton(Form):
         Args:
             parent: parent form panel.
         """
-        self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None), style=self.getKw("style", None))
+        self.btn = CTkButton(parent.panel, text=self.name, image=self.getKw("image", None))
         self.infos = self.getKw("infos", {})
         if len(self.infos) > 0:
             self.btn.bind('<Button-1>', self.callback_infos)

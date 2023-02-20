@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pollenisatorgui.core.components.utils as utils
 import tkinter.filedialog
@@ -27,7 +28,7 @@ class FormFile(Form):
             name: the entry name (id).
             regexValidation: a regex used to check the input in the checkForm function., default is ""
             default: a default value for the Entry, default is ""
-            kwargs: same keyword args as you would give to ttk.Frame + "modes" which is either "file" or "directory" 
+            kwargs: same keyword args as you would give to CTkFrame + "modes" which is either "file" or "directory" 
                     to choose which type of path picker to open
         """
         super().__init__(name)
@@ -44,20 +45,20 @@ class FormFile(Form):
             parent: parent FormPanel.
         """
         self.val = tk.StringVar()
-        frame = ttk.Frame(parent.panel)
-        listboxframe = ttk.Frame(frame)
+        frame = CTkFrame(parent.panel)
+        listboxframe = CTkFrame(frame)
         self.listbox = tk.Listbox(listboxframe, 
                               width=self.getKw("width", 20), height=self.getKw("height", 10), selectmode=tk.SINGLE)
         self.listbox.register_drop_target("*")
         self.listbox.bind('<<Drop:File>>', self.add_path_listbox)
         self.listbox.bind('<Delete>', self.delete_path_listbox)
-        self.scrolbar = tk.Scrollbar(
+        self.scrolbar = CTkScrollbar(
             listboxframe,
-            orient=tk.VERTICAL
+            orientation=tk.VERTICAL
         )
-        self.scrolbarH = tk.Scrollbar(
+        self.scrolbarH = CTkScrollbar(
             listboxframe,
-            orient=tk.HORIZONTAL
+            orientation=tk.HORIZONTAL
         )
         self.listbox.grid(row=0, column=0, sticky=tk.NSEW)
         self.scrolbar.grid(row=0, column=1, sticky=tk.NS)
@@ -67,23 +68,23 @@ class FormFile(Form):
         self.listbox.configure(xscrollcommand=self.scrolbarH.set)
 
         # view the content vertically using scrollbar
-        self.scrolbar.config(command=self.listbox.yview)
-        self.scrolbarH.config(command=self.listbox.xview)
+        self.scrolbar.configure(command=self.listbox.yview)
+        self.scrolbarH.configure(command=self.listbox.xview)
         for d in self.default:
             self.listbox.insert("end", d)
         listboxframe.pack(side="top", fill=tk.X, expand=1)
         self.modes = self.getKw("mode", "file").split("|")
-        btn_frame = ttk.Frame(frame)
-        info = ttk.Label(btn_frame, text="Or Drag and Drop")
+        btn_frame = CTkFrame(frame)
+        info = CTkLabel(btn_frame, text="Or Drag and Drop")
         info.pack(side="right", pady=5)
         if "file" in self.modes:
             text = self.getKw("text", "add file")
-            search_btn = ttk.Button(
+            search_btn = CTkButton(
                 btn_frame, text=text, command=lambda :self.on_click(None, parent))
             search_btn.pack(side="right", pady=5)
         if "directory" in self.modes:
             text = self.getKw("text", "add directory")
-            search_btn = ttk.Button(
+            search_btn = CTkButton(
                 btn_frame, text=text, command=lambda :self.on_click_dir(None, parent))
             search_btn.pack(side="right", pady=5)
         

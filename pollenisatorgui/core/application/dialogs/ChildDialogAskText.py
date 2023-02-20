@@ -1,6 +1,7 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 
 class ChildDialogAskText:
@@ -17,10 +18,10 @@ class ChildDialogAskText:
             default_path: a default path to be added
         """
         from pollenisatorgui.core.forms.formpanel import FormPanel
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
         self.app.title(info)
         self.rvalue = None
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.form.addFormLabel(
             "Input text", text=info, side=tk.TOP)

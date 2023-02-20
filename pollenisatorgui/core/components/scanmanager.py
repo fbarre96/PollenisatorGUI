@@ -3,6 +3,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import multiprocessing
 import threading
 import time
@@ -91,10 +92,10 @@ class ScanManager:
         self.linkTw = linkedTreeview
         self.local_scans = dict()
         path = utils.getIconDir()
-        self.tool_icon = ImageTk.PhotoImage(Image.open(path+"tool.png"))
-        self.nok_icon = ImageTk.PhotoImage(Image.open(path+"cross.png"))
-        self.ok_icon = ImageTk.PhotoImage(Image.open(path+"done_tool.png"))
-        self.running_icon = ImageTk.PhotoImage(Image.open(path+"running.png"))
+        self.tool_icon = CTkImage(Image.open(path+"tool.png"))
+        self.nok_icon = CTkImage(Image.open(path+"cross.png"))
+        self.ok_icon = CTkImage(Image.open(path+"done_tool.png"))
+        self.running_icon = CTkImage(Image.open(path+"running.png"))
         DataManager.getInstance().attach(self)
 
     def startAutoscan(self):
@@ -161,10 +162,10 @@ class ScanManager:
                     pass
         if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
-                self.btn_autoscan = ttk.Button(
+                self.btn_autoscan = CTkButton(
                     self.parent, text="Stop Scanning", command=self.stopAutoscan)
             else:
-                self.btn_autoscan = ttk.Button(
+                self.btn_autoscan = CTkButton(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
         if len(workers) == 0:
             options = ["Register this computer as worker", "Run a worker on server"]
@@ -191,10 +192,8 @@ class ScanManager:
             return
         apiclient = APIClient.getInstance()
         self.parent = parent
-        self.parent.configure(onfiledrop=self.dropFile)
+        #self.parent.configure(onfiledrop=self.dropFile) # TODO reenable when customtkinter implements DnD
         ### WORKER TREEVIEW : Which worker knows which commands
-        lblworker = ttk.Label(self.parent, text="Workers:")
-        lblworker.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
         self.workerTv = ttk.Treeview(self.parent)
         self.workerTv['columns'] = ('workers')
         self.workerTv.heading("#0", text='Workers', anchor=tk.W)
@@ -202,16 +201,16 @@ class ScanManager:
         self.workerTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.workerTv.bind("<Double-Button-1>", self.OnWorkerDoubleClick)
         self.workerTv.bind("<Delete>", self.OnWorkerDelete)
-        btn_pane = ttk.Frame(self.parent)
-        self.btn_setInclusion = ttk.Button(btn_pane, text="Include/exclude selected worker", command=self.setWorkerInclusion)
+        btn_pane = CTkFrame(self.parent)
+        self.btn_setInclusion = CTkButton(btn_pane, text="Include/exclude selected worker", command=self.setWorkerInclusion)
         self.btn_setInclusion.pack(padx=5, side=tk.RIGHT)
-        self.btn_ServerWorker = ttk.Button(btn_pane, command=self.runWorkerOnServer, text="Start remote worker")
+        self.btn_ServerWorker = CTkButton(btn_pane, command=self.runWorkerOnServer, text="Start remote worker")
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         
         if git_available:
-            self.btn_docker_worker = ttk.Button(btn_pane, command=self.launchDockerWorker, text="Start worker locally")
+            self.btn_docker_worker = CTkButton(btn_pane, command=self.launchDockerWorker, text="Start worker locally")
             self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
-        self.btn_ServerWorker = ttk.Button(btn_pane, command=self.registerAsWorker, text="Register as worker")
+        self.btn_ServerWorker = CTkButton(btn_pane, command=self.registerAsWorker, text="Register as worker")
         self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
         btn_pane.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
@@ -227,8 +226,6 @@ class ScanManager:
         #     except tk.TclError:
         #         pass
         #### TREEVIEW SCANS : overview of ongoing auto scan####
-        lblscan = ttk.Label(self.parent, text="Scan overview:")
-        lblscan.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
         self.scanTv = ttk.Treeview(self.parent)
         self.scanTv['columns'] = ('Tool', 'Started at')
         self.scanTv.heading("#0", text='Scans', anchor=tk.W)
@@ -240,17 +237,17 @@ class ScanManager:
         #     self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
         #### BUTTONS FOR AUTO SCANNING ####
         if apiclient.getAutoScanStatus():
-            self.btn_autoscan = ttk.Button(
+            self.btn_autoscan = CTkButton(
                 self.parent, text="Stop Scanning", command=self.stopAutoscan)
             self.btn_autoscan.pack()
         else:
-            self.btn_autoscan = ttk.Button(
+            self.btn_autoscan = CTkButton(
                 self.parent, text="Start Scanning", command=self.startAutoscan)
             self.btn_autoscan.pack()
-        btn_parse_scans = ttk.Button(
+        btn_parse_scans = CTkButton(
             self.parent, text="Parse existing files", command=self.parseFiles)
         btn_parse_scans.pack(side="top",pady=10)
-        info = ttk.Label(self.parent, text="You can also drop your files / folder here")
+        info = CTkLabel(self.parent, text="You can also drop your files / folder here")
         info.pack()
 
     def dropFile(self, event):

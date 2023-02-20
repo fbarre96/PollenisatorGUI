@@ -2,6 +2,7 @@
 Ask the user to edit a user password"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -21,10 +22,10 @@ class ChildDialogEditPassword:
             askOldPwd : a boolean to use changePassword (user api) or resetPassword (admin api)
         """
         self.parent = parent
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.askOldPwd = askOldPwd
         self.app.title("Change "+str(username)+" password")
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.form.addFormLabel("Username")
         self.form.addFormStr("Username", ".+", default=username, readonly=True)

@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import webbrowser
 from pollenisatorgui.core.forms.formpanel import FormPanel
 
@@ -31,15 +32,15 @@ class ChildDialogException:
         """
         self.rvalue = None
         self.parent = parent
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.title(title)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.err = err
         self.form.addFormLabel(
             "An error occured. Please make an issue with the below stack trace and when it occured.", side=tk.TOP)
         self.form.addFormText("Error", ".+", str(self.err),
-                              None, side=tk.TOP)
+                              None, side=tk.TOP, height=500)
         self.form.addFormButton("Report bug", self.onOk, side=tk.RIGHT)
         self.form.addFormButton("Close", self.onError, side=tk.RIGHT)
         self.rvalue = None

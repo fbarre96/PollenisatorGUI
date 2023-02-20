@@ -8,6 +8,7 @@ import calendar
 import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.ttk as ttk
+from customtkinter import *
 import sys
 from datetime import datetime
 from datetime import timedelta
@@ -22,9 +23,10 @@ def get_calendar(locale, fwday):
 class ChildDialogDate:
     def __init__(self, parent=None):
         self.parent = parent
-        self.app = tk.Toplevel(self.parent)
+        self.app = CTkToplevel(self.parent)
+        self.app.title("Choose a date")
         self.app.resizable(False, False)
-        self.appFrame = ttk.Frame(self.app)
+        self.appFrame = CTkFrame(self.app)
         self.initCalendar(self.app)
         self.rvalue = None
         self.parent = parent
@@ -58,7 +60,7 @@ class ChildDialogDate:
             locale, firstweekday, year, month, selectbackground,
             selectforeground
         """
-        # remove custom options from kw before initializating ttk.Frame
+        # remove custom options from kw before initializating CTkFrame
         fwday = kw.pop('firstweekday', calendar.MONDAY)
         year = kw.pop('year', datetime.now().year)
         month = kw.pop('month', datetime.now().month)
@@ -95,7 +97,7 @@ class ChildDialogDate:
         elif item == 'selectforeground':
             self._canvas.itemconfigure(self._canvas.text, item=value)
         else:
-            ttk.Frame.__setitem__(self, item, value)
+            CTkFrame.__setitem__(self, item, value)
 
     def __getitem__(self, item):
         if item in ('year', 'month'):
@@ -105,7 +107,7 @@ class ChildDialogDate:
         elif item == 'selectforeground':
             return self._canvas.itemcget(self._canvas.text, 'fill')
         else:
-            r = ttk.tclobjs_to_py({item: ttk.Frame.__getitem__(self, item)})
+            r = ttk.tclobjs_to_py({item: CTkFrame.__getitem__(self, item)})
             return r[item]
 
     def __setup_styles(self):
@@ -119,10 +121,10 @@ class ChildDialogDate:
 
     def __place_widgets(self):
         # header frame and its widgets
-        hframe = ttk.Frame(self.appFrame)
+        hframe = CTkFrame(self.appFrame)
         lbtn = ttk.Button(hframe, style='L.TButton', command=self._prev_month)
         rbtn = ttk.Button(hframe, style='R.TButton', command=self._next_month)
-        self._header = ttk.Label(hframe, width=15, anchor='center')
+        self._header = CTkLabel(hframe, width=15, anchor='center')
         # the calendar
         self._calendar = ttk.Treeview(self.app, show='', selectmode='none', height=7)
 
@@ -158,14 +160,14 @@ class ChildDialogDate:
     def __minsize(self, evt):
         width, height = self._calendar.master.geometry().split('x')
         height = height[:height.index('+')]
-        self._calendar.master.minsize(width, height)
+        self._calendar.master.minsize(int(width), int(height))
 
     def _build_calendar(self):
         year, month = self._date.year, self._date.month
 
         # update header text (Month, YEAR)
         header = self._cal.formatmonthname(year, month, 0)
-        self._header['text'] = header.title()
+        self._header.configure(text=header.title())
 
         # update calendar shown dates
         cal = self._cal.monthdayscalendar(year, month)

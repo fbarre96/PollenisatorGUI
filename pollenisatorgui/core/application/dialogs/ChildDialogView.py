@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 
 class ChildDialogView:
@@ -16,18 +17,18 @@ class ChildDialogView:
             parent: the tkinter parent view to use for this window construction.
             model : A Defect model object to load default values. None to have empty fields, default is None.
         """
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.title = title
         self.parent = parent
         self.app.resizable(True, True)
         self.app.geometry("800x600")
-        self.container = ttk.Frame(self.app)
+        self.container = CTkFrame(self.app)
         self.container.columnconfigure(0, weight=1)
         self.container.rowconfigure(0, weight=1)
         self.rvalue = None
         self.canvas = tk.Canvas(self.container, bg="white")
-        self.appFrame = ttk.Frame(self.canvas)
-        self.myscrollbar = tk.Scrollbar(self.container, orient="vertical", command=self.canvas.yview)
+        self.appFrame = CTkFrame(self.canvas)
+        self.myscrollbar = CTkScrollbar(self.container, orientation="vertical", command=self.canvas.yview)
         self.canvas.bind('<Enter>', self.boundToMousewheel)
         self.canvas.bind('<Leave>', self.unboundToMousewheel)
         self.canvas.bind('<Configure>',  lambda e: self.canvas.configure(
@@ -39,10 +40,10 @@ class ChildDialogView:
 
     def completeDialogView(self, addButtons=True):
         if addButtons:
-            ok_button = ttk.Button(self.appFrame, text="OK")
+            ok_button = CTkButton(self.appFrame, text="OK")
             ok_button.pack(side="right", padx=5, pady=10)
             ok_button.bind('<Button-1>', self.okCallback)
-            cancel_button = ttk.Button(self.appFrame, text="Cancel")
+            cancel_button = CTkButton(self.appFrame, text="Cancel")
             cancel_button.pack(side="right", padx=5, pady=10, ipadx=10)
             cancel_button.bind('<Button-1>', self.cancel)
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))

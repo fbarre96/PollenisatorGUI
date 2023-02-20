@@ -3,6 +3,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 
 
@@ -21,7 +22,7 @@ class FormChecklist(Form):
             choicesList: a list of string forming all the possible choices.
             default: a list of string that should be prechecked if in the choice list.
             values: a list of value to return instead of the strings showing
-            kwargs: same keyword args as you would give to ttk.Frame
+            kwargs: same keyword args as you would give to CTkFrame
         """
         super().__init__(name)
         self.choicesList = choicesList
@@ -49,29 +50,29 @@ class FormChecklist(Form):
         """
         ################################ THIS is difficult to achieve as the forms positions and width are complicated to get.
         ################################ Temporary fix : hard coded max width.
-        frame = ttk.Frame(parent.panel)
+        frame = CTkFrame(parent.panel)
         self.val = []
-        lbl = ttk.Label(frame, text=self.name+" : ")
+        lbl = CTkLabel(frame, text=self.name+" : ")
         lbl.pack(side="top", pady=5, padx=10)
         self.checkallval = tk.IntVar()
-        chk = ttk.Checkbutton(
+        chk = CTkCheckBox(
             frame, text="All", variable=self.checkallval, command=self.checkall)
         chk.pack(side="top", pady=5, padx=10)
         if parent.gridLayout:
             frame.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), **self.kwargs)
         else:
             frame.pack(fill=self.getKw("fill", "x"), side=self.getKw("side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), **self.kwargs)
-        #frame = ttk.Frame(parent.panel)
+        #frame = CTkFrame(parent.panel)
         accx = 0
         for choice in self.choicesList:
             v1 = tk.IntVar()
             if choice in self.default:
                 v1.set(1)
             self.val.append(v1)
-            chk = ttk.Checkbutton(frame, text=choice,
+            chk = CTkCheckBox(frame, text=choice,
                                  variable=self.val[-1])
             if chk.winfo_reqwidth() + accx >= 400:
-                frame = ttk.Frame(parent.panel)
+                frame = CTkFrame(parent.panel)
                 accx = 0
             else:
                 accx += chk.winfo_reqwidth()

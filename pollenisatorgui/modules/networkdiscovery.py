@@ -2,6 +2,7 @@
 from ipaddress import IPv4Network, AddressValueError
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.modules.module import Module
@@ -78,15 +79,15 @@ class NetworkDiscovery(Module):
         self.parent = parent
         self.tkApp = tkApp
         self.treevwApp = treevw
-        self.moduleFrame = ttk.Frame(parent)
-        # frameNetworks = ttk.Frame(self.moduleFrame)
+        self.moduleFrame = CTkFrame(parent)
+        # frameNetworks = CTkFrame(self.moduleFrame)
         # self.tvNetworks = ScrollableTreeview(
         #     frameNetworks, ("Network", "host count", "tools"), binds={"<Delete>":self.deleteNetwork})
         # self.tvNetworks.pack(fill=tk.BOTH)
-        # addNetworkPanel = ttk.Frame(frameNetworks)
-        # self.addNetworkEntry = ttk.Entry(addNetworkPanel, width=20)
+        # addNetworkPanel = CTkFrame(frameNetworks)
+        # self.addNetworkEntry = CTkEntry(addNetworkPanel, width=20)
         # self.addNetworkEntry.pack(side="left")
-        # addNetworkButton = ttk.Button(addNetworkPanel, text="Add Network", command=self.addNetwork)
+        # addNetworkButton = CTkButton(addNetworkPanel, text="Add Network", command=self.addNetwork)
         # addNetworkButton.pack(side="right")
         # addNetworkPanel.pack(side="bottom")
         
@@ -94,14 +95,14 @@ class NetworkDiscovery(Module):
         # self.moduleFrame.columnconfigure(0, weight=1)
         # self.moduleFrame.columnconfigure(1, weight=1)
         apiclient = APIClient.getInstance()
-        frameActions = ttk.Frame(parent)
-        btn = ttk.Button(frameActions, text="try /24 ranges of discovered IPs", command=apiclient.addRangeMatchingIps)
+        frameActions = CTkFrame(parent)
+        btn = CTkButton(frameActions, text="try /24 ranges of discovered IPs", command=apiclient.addRangeMatchingIps)
         btn.pack()
-        btn = ttk.Button(frameActions, text="try ranges neighours", command=apiclient.addRangeCloseToOthers)
+        btn = CTkButton(frameActions, text="try ranges neighours", command=apiclient.addRangeCloseToOthers)
         btn.pack()
-        btn = ttk.Button(frameActions, text="try common ranges", command=apiclient.addCommonRanges)
+        btn = CTkButton(frameActions, text="try common ranges", command=apiclient.addCommonRanges)
         btn.pack()
-        btn = ttk.Button(frameActions, text="try all LAN ranges as /16", command=apiclient.addAllLANRanges)
+        btn = CTkButton(frameActions, text="try all LAN ranges as /16", command=apiclient.addAllLANRanges)
         btn.pack()
         self.moduleFrame.pack(padx=10, pady=10, side="top", fill=tk.BOTH, expand=True)
         frameActions.pack(padx=10, pady=10, side="top")

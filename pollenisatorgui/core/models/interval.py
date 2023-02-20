@@ -54,7 +54,7 @@ class Interval(Element):
         """
         apiclient = APIClient.getInstance()
         apiclient.delete(
-            "intervals", {"_id": self._id})
+            "intervals", self._id)
         
 
     def addInDb(self):

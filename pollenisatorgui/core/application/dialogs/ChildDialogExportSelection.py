@@ -2,6 +2,7 @@
 Ask the user to select fields and returns the selected options"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.views.viewelement import ViewElement
 
@@ -22,9 +23,9 @@ class ChildDialogExportSelection:
         """
         self.rvalue = None
         self.parent = parent
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.title("Export selection")
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.form.addFormChecklist("Fields", sorted(keys), [])
         self.form.addFormButton("Export", self.onOk)

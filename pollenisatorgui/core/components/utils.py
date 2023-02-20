@@ -15,9 +15,10 @@ from shutil import which
 import shlex
 import tkinter  as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from PIL import Image, ImageTk
 from pollenisatorgui.core.components.logger_config import logger
-
+import customtkinter
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -87,18 +88,18 @@ def setStyle(tkApp, _event=None):
     Args:
         _event: not used but mandatory
     """
-
+    
     style = ttk.Style(tkApp)
     
     style.theme_use("clam")
 
     style.layout("Default.TButton", [('Button.border', {'sticky': 'nswe', 'border': '1', 'children': [('Button.focus', {'sticky': 'nswe', 'children': [('Button.padding', {'sticky': 'nswe', 'children': [('Button.label', {'sticky': 'nswe'})]})]})]})])
-    style.configure("Default.TButton", relief="sunken",background="#73B723",
+    style.configure("Default.TButton", 
                      foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
     style.map('Default.TButton', background=[('active', '#73D723')])
     
     style.configure("Treeview.Heading", background="#73B723",
-                  foreground="white", relief="sunken", borderwidth=1)
+                  foreground="white", borderwidth=1)
     style.map('Treeview.Heading', background=[('active', '#73B723')])
     style.configure("TLabelframe", background="white",
                     labeloutside=False, bordercolor="#73B723")
@@ -460,6 +461,9 @@ def getMainDir():
     p = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), "../../")
     return p
+
+def getColorTheme():
+    return getMainDir()+"theme/pollenisator_theme.json"
 
 def drop_file_event_parser(event):
     """Parse event Callback of python-tkdnd on file drop event

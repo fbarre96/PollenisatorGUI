@@ -1,5 +1,6 @@
 """Controllers for summary view of notebook"""
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinter as tk
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.models.ip import Ip
@@ -20,7 +21,7 @@ class ScrollFrame(tk.Frame):
         # place a frame on the canvas, this frame will hold the child widgets
         self.viewPort = tk.Frame(self.canvas, background="#ffffff")
         # place a scrollbar on self
-        self.vsb = tk.Scrollbar(self, orient="vertical",
+        self.vsb = CTkScrollbar(self, orientation="vertical",
                                 command=self.canvas.yview)
         # attach scrollbar action to scroll of canvas
         self.canvas.configure(yscrollcommand=self.vsb.set)
@@ -119,7 +120,7 @@ class Summary(Module):
                 del self.treeviews[k]
             del self.treeviews
         self.treeviews = {}
-        self.frameTw = ttk.Frame(self.summaryFrame)
+        self.frameTw = CTkFrame(self.summaryFrame)
         self.frameTw.pack(side=tk.LEFT, padx=10, pady=10)
         self.loadSummary()
 
@@ -138,7 +139,7 @@ class Summary(Module):
             return
         self.linkTw = linkTw
         self.scroller = ScrollFrame(self.parent)
-        self.summaryFrame = ttk.Frame(self.scroller.viewPort)
+        self.summaryFrame = CTkFrame(self.scroller.viewPort)
         self.summaryFrame.pack(side=tk.TOP, anchor=tk.W,
                                fill=tk.BOTH, padx=10, pady=10)
         self.scroller.pack(side=tk.TOP, anchor=tk.W,
@@ -214,7 +215,7 @@ class Summary(Module):
         port_text = port_o["port"]
         if port_o["proto"] == "udp":
             port_text = "udp/"+port_text
-        treeviewToUpdate.config(height=len(treeviewToUpdate.get_children())+1)
+        treeviewToUpdate.configure(height=len(treeviewToUpdate.get_children())+1)
         treeviewToUpdate.insert('', 'end', str(
             port_o["_id"]), text=port_text, tags=list(port_o["tags"]))
 

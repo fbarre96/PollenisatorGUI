@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 from PIL import ImageTk, Image
 from pollenisatorgui.core.components.utils import getIconDir
@@ -25,10 +26,10 @@ class FormHelper(Form):
         Args:
             name: the helper name. Should not matter as it does not return data
             text: the helping message to be displayed
-            kwargs: same keyword args as you would give to ttk.Label
+            kwargs: same keyword args as you would give to CTkLabel
         """
         super().__init__(name)
-        FormHelper.img_class = ImageTk.PhotoImage(
+        FormHelper.img_class = CTkImage(
             Image.open(getIconDir()+"help.png"))
         self.text = text
         self.kwargs = kwargs
@@ -42,8 +43,8 @@ class FormHelper(Form):
         Args:
             parent: parent form panel.
         """
-        self.lbl = ttk.Label(
-            parent.panel, image=FormHelper.img_class)
+        self.lbl = CTkLabel(
+            parent.panel, text="", image=FormHelper.img_class)
         self.lbl.bind("<Enter>", self.enter)
         self.lbl.bind("<Leave>", self.close)
         if parent.gridLayout:
@@ -64,13 +65,13 @@ class FormHelper(Form):
         x += self.lbl.winfo_rootx() + 25
         y += self.lbl.winfo_rooty() + 20
         # creates a toplevel window
-        self.tw = tk.Toplevel(self.lbl)
+        self.tw = CTkToplevel(self.lbl)
+        self.tw.title("Helper")
         # Leaves only the label and removes the app window
         self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry("+%d+%d" % (x, y))
-        label = ttk.Label(self.tw, text=self.text, justify='left',
-                         background='light yellow', relief='solid', borderwidth=1,
-                         font=("times", "12", "normal"))
+        label = CTkLabel(self.tw, text=self.text, justify='left',
+                         fg_color='light yellow')
         label.pack(ipadx=1)
 
     def close(self, _event=None):

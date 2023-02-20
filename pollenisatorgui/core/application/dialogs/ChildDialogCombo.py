@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 
 class ChildDialogCombo:
@@ -18,22 +19,26 @@ class ChildDialogCombo:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
+        self.app.title("Choose option")
         self.app.resizable(False, False)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
         if options is None:
             self.onError()
-        lbl = ttk.Label(appFrame, text=displayMsg)
+        lbl = CTkLabel(appFrame, text=displayMsg)
         lbl.pack(pady=5)
-        self.box_template = ttk.Combobox(
-            appFrame, values=tuple(options), state="readonly", width=kwargs.get('width',None))
+        kw = {}
+        if kwargs.get('width', None) is not None:
+            kw["width"] = int(kwargs["width"])
+        self.box_template = CTkComboBox(
+            appFrame, values=tuple(options), state="readonly", **kw)
         if default is not None:
             self.box_template.set(default)
         self.box_template.pack(padx=10, pady=5)
         self.box_template.focus_set()
-        self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk, style="Accent.TButton")
+        self.ok_button = CTkButton(appFrame, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(padx=10, pady=5)
         appFrame.pack(ipadx=10, ipady=5)

@@ -2,6 +2,7 @@
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
+from customtkinter import *
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
@@ -80,13 +81,13 @@ class AuthInfo(Module):
         self.parent = parent
         self.tkApp = tkApp
         self.treevwApp = treevw
-        self.moduleFrame = ttk.Frame(parent)
+        self.moduleFrame = CTkFrame(parent)
 
         self.rowHeight = 20
         self.style = ttk.Style()
         self.style.configure('AuthInfo.Treeview', rowheight=self.rowHeight)
 
-        frameTwUsers = ttk.Frame(self.moduleFrame)
+        frameTwUsers = CTkFrame(self.moduleFrame)
         self.treevw = ttk.Treeview(
             frameTwUsers, style='AuthInfo.Treeview', height=10)
         self.treevw['columns'] = ('name', 'value', 'type')
@@ -98,8 +99,8 @@ class AuthInfo(Module):
         self.treevw.column('type', anchor=tk.W, width=30)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         self.treevw.bind('<Delete>', self.onAuthDelete)
-        scbVSel = ttk.Scrollbar(frameTwUsers,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(frameTwUsers,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -107,16 +108,16 @@ class AuthInfo(Module):
         frameTwUsers.columnconfigure(0, weight=1)
         frameTwUsers.rowconfigure(0, weight=1)
         frameTwUsers.grid(row=0, column=0, sticky=tk.NSEW, padx=5, pady=10)
-        frameActions = ttk.Frame(self.moduleFrame)
-        self.text_add_users = tk.scrolledtext.ScrolledText(
-            frameActions, relief=tk.SUNKEN, font = ("Sans", 10))
+        frameActions = CTkFrame(self.moduleFrame)
+        self.text_add_users = CTkTextbox(
+            frameActions, font = ("Sans", 10))
         self.text_add_users.pack(side=tk.TOP, padx=10,pady=10,fill=tk.X)
-        self.typeCombo = ttk.Combobox(frameActions, values=("Cookie", "Password", "Hash"), state="readonly")
-        self.typeCombo.current(0)
+        self.typeCombo = CTkComboBox(frameActions, values=("Cookie", "Password", "Hash"), state="readonly")
+        self.typeCombo.set("Cookie")
         self.typeCombo.pack(side=tk.TOP)
-        lblDesc = ttk.Label(frameActions, text="Format is Name:Value (UserName:Cookie or Login:password for exemple. Each entry on a new line)")
+        lblDesc = CTkLabel(frameActions, text="Format is Name:Value (UserName:Cookie or Login:password for exemple. Each entry on a new line)")
         lblDesc.pack(side=tk.TOP)
-        addBtn = ttk.Button(frameActions, text="Add auth info", command=self.insert_auths)
+        addBtn = CTkButton(frameActions, text="Add auth info", command=self.insert_auths)
         addBtn.pack(side=tk.TOP)
         frameActions.grid(row=0, column=1, sticky=tk.NSEW, padx=5, pady=10)
         self.moduleFrame.columnconfigure(0, weight=1)
@@ -201,32 +202,33 @@ class ChildDialogAuthInfo:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
+        self.app.title = "auth information"
         self.app.resizable(False, False)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
-        lbl = ttk.Label(appFrame, text=displayMsg)
+        lbl = CTkLabel(appFrame, text=displayMsg)
         lbl.pack(pady=5)
-        valFrame = ttk.Frame(self.app)
-        self.box = ttk.Combobox(
+        valFrame = CTkFrame(self.app)
+        self.box = CTkComboBox(
             valFrame, values=tuple(["Password","Cookie"]), state="readonly")
         self.box.bind('<<ComboboxSelected>>', self.box_modified)  
         self.box.set("Password")
         self.box.grid(column=0, row=0)
-        self.lbl_key = ttk.Label(valFrame, text="Login:")
+        self.lbl_key = CTkLabel(valFrame, text="Login:")
         self.lbl_key.grid(row=0, column=1)
-        self.entry_key = ttk.Entry(valFrame)
+        self.entry_key = CTkEntry(valFrame)
         self.entry_key.grid(row=0, column=2)
-        self.lbl_value = ttk.Label(valFrame, text="Password:")
+        self.lbl_value = CTkLabel(valFrame, text="Password:")
         self.lbl_value.grid(row=0, column=3)
-        self.entry_value = ttk.Entry(valFrame)
+        self.entry_value = CTkEntry(valFrame)
         self.entry_value.grid(row=0, column=4)
         valFrame.pack(ipadx=10, ipady=5, pady=10, padx=10)
-        self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk)
+        self.ok_button = CTkButton(appFrame, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(padx=10, pady=5, side="right")
-        self.cancel_button = ttk.Button(appFrame, text="Cancel", command=self.onError)
+        self.cancel_button = CTkButton(appFrame, text="Cancel", command=self.onError)
         self.cancel_button.pack(padx=10, pady=5, side="right")
         appFrame.pack(ipadx=10, ipady=5)
         try:

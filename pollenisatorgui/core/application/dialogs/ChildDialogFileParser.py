@@ -1,6 +1,7 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinterDnD
 import os
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -29,7 +30,7 @@ class ChildDialogFileParser:
         self.app.title("Upload result file")
         self.rvalue = None
         self.default = default_path
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         apiclient = APIClient.getInstance()
         self.form = FormPanel()
         self.form.addFormLabel(
@@ -84,7 +85,7 @@ class ChildDialogFileParser:
             else:
                 files.add(filepath)
         dialog = ChildDialogProgress(self.app, "Importing files", "Importing "+str(
-            len(files)) + " files. Please wait for a few seconds.", 200, "determinate")
+            len(files)) + " files. Please wait for a few seconds.", 100.0/len(files), "determinate")
         dialog.show(len(files))
         # LOOP ON FOLDER FILES
         results = {}
@@ -93,7 +94,7 @@ class ChildDialogFileParser:
             additional_results = apiclient.importExistingResultFile(file_path, plugin)
             for key, val in additional_results.items():
                 results[key] = results.get(key, 0) + val
-            dialog.update(f_i)
+            dialog.step()
         dialog.destroy()
         # DISPLAY RESULTS
         presResults = ""

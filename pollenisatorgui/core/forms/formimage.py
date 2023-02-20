@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 from PIL import ImageTk, Image
 
@@ -18,7 +19,7 @@ class FormImage(Form):
         Constructor for a form label
         Args:
             path: the path to the image
-            kwargs: same keyword args as you would give to ttk.Label
+            kwargs: same keyword args as you would give to CTkLabel
         """
         super().__init__("Image")
         self.path = path
@@ -32,8 +33,8 @@ class FormImage(Form):
             parent: parent FormPanel.
         """
         self.img = Image.open(self.path)
-        self.tkimage = ImageTk.PhotoImage(self.img)
-        self.lbl = ttk.Label(parent.panel, image=self.tkimage, justify=tk.LEFT)
+        self.tkimage = CTkImage(self.img)
+        self.lbl = CTkLabel(parent.panel, image=self.tkimage, justify=tk.LEFT)
         if parent.gridLayout:
             self.lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)
         else:
@@ -46,6 +47,6 @@ class FormImage(Form):
             _newval: not used"""
         self.path = newPath
         self.img = Image.open(newPath)
-        self.tkimage = ImageTk.PhotoImage(self.img)
+        self.tkimage = CTkImage(self.img)
         self.lbl.configure(image=self.tkimage)
         self.lbl.image = self.tkimage

@@ -1,6 +1,7 @@
 """Hold functions to interact with the settings"""
 import os
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinter as tk
 import tkinter.messagebox
 import json
@@ -254,7 +255,7 @@ class Settings:
             dict_for_tw[pentester] = tuple([pentester])
         self.pentesters_treevw.recurse_insert(dict_for_tw)
         terms_name = [term_cmd.split(" ")[0] for term_cmd in terms_cmd]
-        self.box_favorite_term.config(values=terms_name)
+        self.box_favorite_term.configure(values=terms_name)
         fav_term = self.getFavoriteTerm()
         if fav_term in terms_name:
             self.box_favorite_term.set(fav_term)
@@ -364,8 +365,8 @@ class Settings:
             self.reloadUI()
             return
         self.canvas = tk.Canvas(parent, bg="white")
-        self.settingsFrame = ttk.Frame(self.canvas)
-        self.myscrollbar = tk.Scrollbar(parent, orient="vertical", command=self.canvas.yview)
+        self.settingsFrame = CTkFrame(self.canvas)
+        self.myscrollbar = CTkScrollbar(parent, orientation="vertical", command=self.canvas.yview)
         self.myscrollbar.grid(column=1, row=0, sticky="ns")
         
         self.canvas.grid(column=0, row=0, sticky="nsew")
@@ -383,30 +384,30 @@ class Settings:
             self.settingsFrame, text="Discovered domains options:")
         lbl_domains.pack(padx=10, pady=10, side=tk.TOP,
                          anchor=tk.W, fill=tk.X, expand=tk.YES)
-        chkbox_include_domains_with_ip_in_scope = ttk.Checkbutton(lbl_domains, text="Check if discovered subdomains ips are in scope",
+        chkbox_include_domains_with_ip_in_scope = CTkSwitch(lbl_domains, text="Check if discovered subdomains ips are in scope",
                                                                   variable=self.visual_include_domains_with_ip_in_scope)
         chkbox_include_domains_with_ip_in_scope.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
 
-        chkbox_include_domains_with_topdomain_in_scope = ttk.Checkbutton(lbl_domains, text="Check if discovered subdomains have a top domain already in scope",
+        chkbox_include_domains_with_topdomain_in_scope = CTkSwitch(lbl_domains, text="Check if discovered subdomains have a top domain already in scope",
                                                                          variable=self.visual_include_domains_with_topdomain_in_scope)
         chkbox_include_domains_with_topdomain_in_scope.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
-        chkbox_include_all_domains = ttk.Checkbutton(lbl_domains, text="/!\\ Include every domain found in scope",
+        chkbox_include_all_domains = CTkSwitch(lbl_domains, text="/!\\ Include every domain found in scope",
                                                      variable=self.visual_include_all_domains)
         chkbox_include_all_domains.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
         
         frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminals:")
-        self.text_terms = tk.scrolledtext.ScrolledText(
-            frame_term, relief=tk.SUNKEN, height=4, width=130, font = ("Sans", 10))
+        self.text_terms = CTkTextbox(
+            frame_term, height=4, width=130, font = ("Sans", 10))
         self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
-        chkbox_trap_commands = ttk.Checkbutton(frame_term, text="Trap every command (instead of using pollex)", variable=self.visual_trap_commands)
+        chkbox_trap_commands = CTkSwitch(frame_term, text="Trap every command (instead of using pollex)", variable=self.visual_trap_commands)
         chkbox_trap_commands.pack(side=tk.TOP, pady=5)
-        frame_fav_term = ttk.Frame(frame_term)
-        lbl_fav_term = ttk.Label(frame_fav_term, text="Favorite term:")
+        frame_fav_term = CTkFrame(frame_term)
+        lbl_fav_term = CTkLabel(frame_fav_term, text="Favorite term:")
         lbl_fav_term.grid(row=0, column=0, sticky=tk.E, pady=5)
-        self.box_favorite_term = ttk.Combobox(frame_fav_term, values=(self.getTerms()), state="readonly")
+        self.box_favorite_term = CTkComboBox(frame_fav_term, values=(self.getTerms()), state="readonly")
         self.box_favorite_term.grid(row=0, column=1, sticky=tk.W, pady=5)
         
       
@@ -417,11 +418,11 @@ class Settings:
         lbl_SearchBar = ttk.LabelFrame(self.settingsFrame, text="Search settings:")
         lbl_SearchBar.pack(padx=10, pady=10, side=tk.TOP,
                            anchor=tk.W, fill=tk.X, expand=tk.YES)
-        chkbox_search_show_hidden = ttk.Checkbutton(lbl_SearchBar, text="Show hidden objects",
+        chkbox_search_show_hidden = CTkSwitch(lbl_SearchBar, text="Show hidden objects",
                                                     variable=self.visual_search_show_hidden)
         chkbox_search_show_hidden.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
-        chkbox_search_exact_match = ttk.Checkbutton(lbl_SearchBar, text="Exact match",
+        chkbox_search_exact_match = CTkSwitch(lbl_SearchBar, text="Exact match",
                                                     variable=self.visual_search_exact_match)
         chkbox_search_exact_match.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
@@ -430,19 +431,19 @@ class Settings:
             self.settingsFrame, text="Pentest parameters:")
         lblframe_pentest_params.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
-        lbl_pentest_type = ttk.Label(
+        lbl_pentest_type = CTkLabel(
             lblframe_pentest_params, text="Pentest type:")
         lbl_pentest_type.grid(row=0, column=0, sticky=tk.E)
-        self.box_pentest_type = ttk.Combobox(
+        self.box_pentest_type = CTkComboBox(
             lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()), state="readonly")
         self.box_pentest_type.grid(row=1, column=1, sticky=tk.W)
-        # self.text_pentesters = tk.scrolledtext.ScrolledText(
-        #     lblframe_pentest_params, relief=tk.SUNKEN, height=3, font = ("Sans", 10))
-        # lbl_pentesters = ttk.Label(
+        # self.text_pentesters = CTkTextbox(
+        #     lblframe_pentest_params, height=3, font = ("Sans", 10))
+        # lbl_pentesters = CTkLabel(
         #     lblframe_pentest_params, text="Pentester names:")
         # lbl_pentesters.grid(row=2, column=0, sticky=tk.E)
         # self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
-        form_pentesters_panel = ttk.Frame(self.settingsFrame)
+        form_pentesters_panel = CTkFrame(self.settingsFrame)
         self.form_pentesters = FormPanel(side=tk.TOP, fill=tk.X, pady=5)
         self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, self.form_pentesters, side=tk.TOP)
         self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
@@ -456,25 +457,25 @@ class Settings:
             self.settingsFrame, text="Other parameters:")
         lblframe_global_params.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
-        lbl_pentest_types = ttk.Label(
+        lbl_pentest_types = CTkLabel(
             lblframe_global_params, text="Pentests possible types:")
         lbl_pentest_types.grid(row=0, column=0, sticky=tk.E)
-        self.text_pentest_types = tk.scrolledtext.ScrolledText(
-            lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
+        self.text_pentest_types = CTkTextbox(
+            lblframe_global_params, height=6, font = ("Sans", 10))
         self.text_pentest_types.grid(row=0, column=1, sticky=tk.W)
-        lbl_tags = ttk.Label(
+        lbl_tags = CTkLabel(
             lblframe_global_params, text="Registered tags:")
         lbl_tags.grid(row=1, column=0, sticky=tk.E)
-        self.text_tags = tk.scrolledtext.ScrolledText(
-            lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
+        self.text_tags = CTkTextbox(
+            lblframe_global_params, height=6, font = ("Sans", 10))
         self.text_tags.grid(row=1, column=1, sticky=tk.W)
-        lbl_db_tags = ttk.Label(
+        lbl_db_tags = CTkLabel(
             lblframe_global_params, text="Pentest only tags:")
         lbl_db_tags.grid(row=2, column=0, sticky=tk.E)
-        self.text_db_tags = tk.scrolledtext.ScrolledText(
-            lblframe_global_params, relief=tk.SUNKEN, height=6, font = ("Sans", 10))
+        self.text_db_tags = CTkTextbox(
+            lblframe_global_params, height=6, font = ("Sans", 10))
         self.text_db_tags.grid(row=2, column=1, sticky=tk.W)
-        btn_save = ttk.Button(parent, text="Save", command=self.on_ok)
+        btn_save = CTkButton(parent, text="Save", command=self.on_ok)
         btn_save.grid(row=3, column=0, padx=10, pady=10, sticky="s")
         self.settingsFrame.pack(fill=tk.BOTH, expand=1)
 

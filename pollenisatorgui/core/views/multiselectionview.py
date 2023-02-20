@@ -36,9 +36,7 @@ class MultiSelectionView(ViewElement):
         listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
         for registeredTag, color in registeredTags.items():
             s = ttk.Style(self.mainApp)
-            s.configure(""+color+".Default.TButton", background=color, foreground="black", borderwidth=1, bordercolor='#000000')
-            s.map(""+color+".Default.TButton", foreground=[('active', "dark gray")], background=[('active', color)])
             btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[column], column=column)
-            btn_tag.configure(style=""+color+".Default.TButton")
+            btn_tag.configure(fg_color=color)
             column += 1
         self.showForm()

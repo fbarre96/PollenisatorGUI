@@ -1,7 +1,7 @@
 """Describe tkinter Text with default common args and an attached scrollbar"""
 
 import tkinter as tk
-import tkinter.scrolledtext
+from customtkinter import *
 import pyperclip
 from pollenisatorgui.core.forms.form import Form
 
@@ -90,8 +90,8 @@ class FormText(Form):
         """
         state = self.getKw("state", "normal")
         background = "white" if state == "normal" else "light grey"
-        self.text = tkinter.scrolledtext.ScrolledText(
-            parent.panel, relief=tk.SUNKEN, height=self.getKw("height", 20), width=self.getKw("width", 50), font=("Sans", 10), background=background)
+        self.text = CTkTextbox(
+            parent.panel, height=self.getKw("height", 200), width=self.getKw("width", 500), fg_color=background, border_width=1)
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
         try:
@@ -99,7 +99,7 @@ class FormText(Form):
         except tk.TclError as e:
             self.text.insert(tk.INSERT, "Error :\n"+str(e))
         if state == "disabled":
-            self.text.config(state="disabled")
+            self.text.configure(state="disabled")
         if parent.gridLayout:
             self.text.grid(row=self.getKw("row", 0), column=self.getKw(
                 "column", 0), sticky=self.getKw("sticky", tk.EW), **self.kwargs)
@@ -133,10 +133,10 @@ class FormText(Form):
             newval: the new value to be set inside the text
         """
         state = self.text.cget("state")
-        self.text.config(state="normal")
+        self.text.configure(state="normal")
         self.text.delete("1.0", "end")
         self.text.insert("1.0", self.sanitize(newval))
-        self.text.config(state=state)
+        self.text.configure(state=state)
 
     def checkForm(self):
         """

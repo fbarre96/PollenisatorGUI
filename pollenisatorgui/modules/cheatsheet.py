@@ -2,6 +2,7 @@
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
+from customtkinter import *
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.modules.module import Module
@@ -71,28 +72,28 @@ class Cheatsheet(Module):
         self.parent = parent
         self.tkApp = tkApp
         self.treevwApp = treevw
-        self.moduleFrame = ttk.Frame(parent)
+        self.moduleFrame = CTkFrame(parent)
         #PANED PART
         self.paned = tk.PanedWindow(self.moduleFrame, height=800)
         #RIGHT PANE : Canvas + frame
         self.canvasMain = tk.Canvas(self.paned, bg="white")
-        self.viewframe = ttk.Frame(self.canvasMain)
+        self.viewframe = CTkFrame(self.canvasMain)
         #LEFT PANE : Treeview
-        self.frameTw = ttk.Frame(self.paned)
+        self.frameTw = CTkFrame(self.paned)
         self.treevw = CheatsheetTreeview(
             self.tkApp, self.frameTw, self.viewframe)
         self.treevw.heading("#0", text="Cheatsheets")
         self.treevw.initUI()
-        btn_add_check = ttk.Button(self.frameTw, text="Add a check", command=self.createCheck)
-        scbVSel = ttk.Scrollbar(self.frameTw,
-                                orient=tk.VERTICAL,
+        btn_add_check = CTkButton(self.frameTw, text="Add a check", command=self.createCheck)
+        scbVSel = CTkScrollbar(self.frameTw,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
         btn_add_check.grid(row=1, column=0, sticky=tk.S)
         self.paned.add(self.frameTw)
-        self.myscrollbarMain = tk.Scrollbar(self.paned, orient="vertical", command=self.canvasMain.yview)
+        self.myscrollbarMain = CTkScrollbar(self.paned, orientation="vertical", command=self.canvasMain.yview)
         self.myscrollbarMain.pack(side="right", fill=tk.BOTH)
         self.canvasMain.bind('<Enter>', self.boundToMousewheelMain)
         self.canvasMain.bind('<Leave>', self.unboundToMousewheelMain)

@@ -1,4 +1,4 @@
-"""Describe tkinter checkbox with default common args"""
+"""Describe tkinter switch with default common args"""
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -6,9 +6,9 @@ from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 
 
-class FormCheckbox(Form):
+class FormSwitch(Form):
     """
-    Form field representing a checkbox.
+    Form field representing a switch.
     Default setted values: 
         if pack : padx = pady = 5, side = right
         if grid: row = column = 0 sticky = "west"
@@ -17,13 +17,13 @@ class FormCheckbox(Form):
     """
     def __init__(self, name, text, default, **kwargs):
         """
-        Constructor for a form checkbox
+        Constructor for a form switch
         
         Args:
-            name: the checkbox name (id).
-            text: the text on the checkbox
-            default: boolean indicating if the checkbox should be checked by default.
-            kwargs: same keyword args as you would give to CTkCheckBox
+            name: the switch name (id).
+            text: the text on the switch
+            default: boolean indicating if the switch should be checked by default.
+            kwargs: same keyword args as you would give to CTkSwitch
         """
         super().__init__(name)
         self.text = text
@@ -33,7 +33,7 @@ class FormCheckbox(Form):
 
     def constructView(self, parent):
         """
-        Create the checkbox view inside the parent view given
+        Create the switch view inside the parent view given
 
         Args:
             parent: parent form panel.
@@ -43,7 +43,7 @@ class FormCheckbox(Form):
             self.val.set(1)
         else:
             self.val.set(0)
-        self.chk = CTkCheckBox(
+        self.chk = CTkSwitch(
             parent.panel, text=self.text, variable=self.val)
         binds = self.getKw("binds", {})
         for bind in binds:
@@ -62,13 +62,13 @@ class FormCheckbox(Form):
         Return the form value. Required for a form.
 
         Returns:
-            Return True if the checkbox was checked, False otherwise.
+            Return True if the switch was checked, False otherwise.
         """
         return self.val.get() == 1
 
     def checkForm(self):
         """
-        Check if this form is correctly filled. A checkbox cannot be malformed.
+        Check if this form is correctly filled. A switch cannot be malformed.
 
         Returns:
             {

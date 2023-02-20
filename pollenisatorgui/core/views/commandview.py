@@ -34,18 +34,18 @@ class CommandView(ViewElement):
         panel_bottom = self.form.addFormPanel(grid=True)
         row = 0
         panel_bottom.addFormLabel("Common binary name", row=row)
-        panel_bottom.addFormStr("Bin path", r"", default.get("bin_path", ""), width=30, column=1, row=row)
+        panel_bottom.addFormStr("Bin path", r"", default.get("bin_path", ""), column=1, row=row)
         panel_bottom.addFormHelper(
             "The binary name (nmap for Nmap, dirsearch for Diresearch even if it's dir.py for exemple).", column=2, row=row)
         row += 1
         
         panel_bottom.addFormLabel("Plugin", row=row)
-        panel_bottom.addFormCombo("Plugin", APIClient.getInstance().getPlugins(), default.get("plugin", "Default") ,width=30, column=1, row=row)
+        panel_bottom.addFormCombo("Plugin", APIClient.getInstance().getPlugins(), default.get("plugin", "Default") , column=1, row=row)
         panel_bottom.addFormHelper(
             "The plugin handling this command.", column=2, row=row)
         row += 1
         panel_bottom.addFormLabel("Timeout (in secondes)", row=row)
-        panel_bottom.addFormStr("Timeout", r"\d+", default.get("timeout", "300"), width=10, column=1, row=row)
+        panel_bottom.addFormStr("Timeout", r"\d+", default.get("timeout", "300"), width=50, column=1, row=row)
         panel_bottom.addFormHelper(
             "The tool will cancel itself when this duration in second is reached to be run again later.", column=2, row=row)
         row += 1
@@ -67,7 +67,7 @@ class CommandView(ViewElement):
         panel_text.addFormHelper(
             """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|, |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|, |ip.infos.*| |port.infos.*|""", side="right")
         panel_text.addFormText("Command line options", r"",
-                               modelData["text"], self.menuContextuel, side="left", height=5)
+                               modelData["text"], self.menuContextuel, side="left", height=100)
         panel_bottom = self.form.addFormPanel()
         
         if not self.controller.isMine():
@@ -98,7 +98,7 @@ class CommandView(ViewElement):
         panel_text.addFormHelper(
             """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|, |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|, |ip.infos.*| |port.infos.*|""", side="right")
         panel_text.addFormText("Command line options",
-                               r"", data.get("text", ""), self.menuContextuel, side="top", height=5)
+                               r"", data.get("text", ""), self.menuContextuel, side="top", height=100)
 
         self._commonWindowForms(self.controller.getData())
         self.completeInsertWindow()

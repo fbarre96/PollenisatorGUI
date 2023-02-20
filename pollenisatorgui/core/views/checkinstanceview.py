@@ -1,6 +1,7 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
@@ -123,15 +124,15 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormLabel("Notes", row=2, column=0)
         panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), width=60, height=5, row=2, column=1, pady=5)
         panel_top.addFormLabel("Target", row=3, column=0)
-        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1, style="link.TButton")
+        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1)
         
         if "commands" in check_m.check_type:
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             from PIL import ImageTk, Image
 
-            self.buttonExecuteImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'execute.png'))
-            self.buttonRunImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
-            self.buttonDownloadImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'download.png'))
+            self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
+            self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
+            self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
             
             dict_of_tools_not_done = infos.get("tools_not_done")
             dict_of_tools_running = infos.get("tools_running")
@@ -142,21 +143,21 @@ class CheckInstanceView(ViewElement):
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
             for tool_iid, tool_string in dict_of_tools_not_done.items():
-                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
-                formCommands.addFormButton("Execute", lambdas_not_done[row], row=row, column=1, image=self.buttonExecuteImage, style="icon.TButton")
+                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, infos={"iid":tool_iid})
+                formCommands.addFormButton("Execute", lambdas_not_done[row], row=row, column=1, image=self.buttonExecuteImage)
                 row+=1
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
             for tool_iid, tool_string in dict_of_tools_running.items():
-                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
-                formCommands.addFormButton("Peek", lambdas_running[row], row=row, column=1, image=self.buttonRunImage, style="icon.TButton")
+                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, infos={"iid":tool_iid})
+                formCommands.addFormButton("Peek", lambdas_running[row], row=row, column=1, image=self.buttonRunImage)
                 row+=1
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             row=0
             for tool_iid, tool_data in dict_of_tools_done.items():
                 tool_m = Tool(tool_data)
                 tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
-                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W, style="link.TButton", infos={"iid":tool_iid})
+                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W, infos={"iid":tool_iid})
                 if tool_m.tags:
                     for tag in tool_m.tags:
                         registeredTags = Settings.getTags()
@@ -167,12 +168,12 @@ class CheckInstanceView(ViewElement):
                         s = ttk.Style(self.mainApp)
                         color = registeredTags.get(tag, "white")
                         try: # CHECK IF COLOR IS VALID
-                            ttk.Label(self.mainApp, background=color)
+                            CTkLabel(self.mainApp, fg_color=color)
                         except tk.TclError as e:
                             #color incorrect
                             color = "white"
                         s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
-                        tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0, style=""+color+".Default.TLabel")
+                        tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0)
                         column += 1
                         item_no += 1
                         if column == 4:
@@ -180,7 +181,7 @@ class CheckInstanceView(ViewElement):
                         if column == 0:
                             tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
                 tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes, width=60, height=5, side=tk.LEFT)
-                tool_panel.addFormButton("Download", lambdas_done[row], image=self.buttonDownloadImage, style="icon_white.TButton", side=tk.LEFT, anchor=tk.E)
+                tool_panel.addFormButton("Download", lambdas_done[row], image=self.buttonDownloadImage, side=tk.LEFT, anchor=tk.E)
                 row+=1
 
             #for command, status in infos.get("tools_status", {}).items():
@@ -188,10 +189,10 @@ class CheckInstanceView(ViewElement):
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
             self.textForm = formTv.addFormStr("Script", ".+", check_m.script)
-            self.execute_icon = tk.PhotoImage(file = utils.getIcon("execute.png"))
-            self.edit_icon = tk.PhotoImage(file = utils.getIcon("view_doc.png"))
-            formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon, style="icon.TButton")
-            formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon, style="icon.TButton")
+            self.execute_icon = CTkImage(file = utils.getIcon("execute.png"))
+            self.edit_icon = CTkImage(file = utils.getIcon("view_doc.png"))
+            formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon)
+            formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
         
         self.completeModifyWindow(addTags=False)
 

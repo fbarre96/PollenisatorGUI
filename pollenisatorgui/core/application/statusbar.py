@@ -2,12 +2,13 @@
 """
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
 
-class StatusBar(ttk.Frame):
+class StatusBar(CTkFrame):
     """StatusBar class. Show tagged numbers to user.
-    Inherits ttk.Frame
+    Inherits CTkFrame
     """
 
     def tagClicked(self, name):
@@ -28,9 +29,8 @@ class StatusBar(ttk.Frame):
         # Cannot be imported at module level as tkinter will not have loaded.
         import tkinter.font
         super().__init__(master)
-        label = ttk.Label(self, text="Tagged:", relief=None,
-                                style="Important.TLabel")
-        label.pack(side="left")
+        # label = CTkLabel(self, text="Tagged:")
+        # label.pack(side="left")
         self.registeredTags = []
         self.statusbarController = statusbarController
         self.tagsCount = {}
@@ -51,11 +51,11 @@ class StatusBar(ttk.Frame):
         for registeredTag, color in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
             try:
-                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black", borderwidth=1)
+                self.labelsTags[registeredTag] = CTkLabel(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), height=10, padx=3,anchor=tk.W, fg_color=color, text_color="black")
             except tk.TclError:
                 #color does not exist
                 color = "white"
-                self.labelsTags[registeredTag] = ttk.Label(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), relief=tk.SUNKEN, anchor=tk.W, background=color, foreground="black", borderwidth=1)
+                self.labelsTags[registeredTag] = CTkLabel(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), height=10, padx=3, anchor=tk.W, fg_color=color, text_color="black", border_width=1)
             self.labelsTags[registeredTag].pack(side="left", padx=1)
             self.labelsTags[registeredTag].bind('<Button-1>', listOfLambdas[column-1])
             column += 1
@@ -95,7 +95,7 @@ class StatusBar(ttk.Frame):
         """
         try:
             for tag, label in self.labelsTags.items():
-                label.config(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
+                label.configure(text=tag+" : "+str(self.tagsCount.get(tag, 0)))
                 label.update_idletasks()
         except Exception:
             pass

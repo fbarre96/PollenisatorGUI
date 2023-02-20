@@ -3,6 +3,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogEditPassword import ChildDialogEditPassword
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from PIL import Image, ImageTk
 import pollenisatorgui.core.components.utils as utils
 
@@ -46,36 +47,36 @@ class AdminView:
         
         #### BUTTONS FOR AUTO SCANNING ####
         lblAddUsername = ttk.LabelFrame(parent, text="Add user")
-        addUserFrame = ttk.Frame(lblAddUsername)
-        lblAddUser = ttk.Label(addUserFrame, text="Username:")
+        addUserFrame = CTkFrame(lblAddUsername)
+        lblAddUser = CTkLabel(addUserFrame, text="Username:")
         lblAddUser.grid(column=0, sticky=tk.E)
-        self.entryAddUser = ttk.Entry(addUserFrame, width=20)
+        self.entryAddUser = CTkEntry(addUserFrame, width=20)
         self.entryAddUser.grid(row=0, column=1, sticky=tk.W)
-        lblAddPwd = ttk.Label(addUserFrame, text="Password:")
+        lblAddPwd = CTkLabel(addUserFrame, text="Password:")
         lblAddPwd.grid(row=1, column=0, sticky=tk.E)
         self.password = tk.StringVar() 
-        entryAddPwd = ttk.Entry(addUserFrame, width=20, show="*", textvariable=self.password)
+        entryAddPwd = CTkEntry(addUserFrame, width=20, show="*", textvariable=self.password)
         entryAddPwd.grid(row=1, column=1, sticky=tk.W)
-        lblAddConfirmPwd = ttk.Label(addUserFrame, text="Confirm:")
+        lblAddConfirmPwd = CTkLabel(addUserFrame, text="Confirm:")
         lblAddConfirmPwd.grid(row=2, column=0, sticky=tk.E)
         self.confirmpassword = tk.StringVar() 
-        entryAddConfirmPwd = ttk.Entry(addUserFrame, width=20, show="*", textvariable=self.confirmpassword)
+        entryAddConfirmPwd = CTkEntry(addUserFrame, width=20, show="*", textvariable=self.confirmpassword)
         entryAddConfirmPwd.grid(row=2, column=1, sticky=tk.W)
-        lblName = ttk.Label(addUserFrame, text="Name:")
+        lblName = CTkLabel(addUserFrame, text="Name:")
         lblName.grid(row=3, column=0, sticky=tk.E)
-        self.name = ttk.Entry(addUserFrame, width=20)
+        self.name = CTkEntry(addUserFrame, width=20)
         self.name.grid(row=3, column=1, sticky=tk.W)
-        lblSurname = ttk.Label(addUserFrame, text="Surname:")
+        lblSurname = CTkLabel(addUserFrame, text="Surname:")
         lblSurname.grid(row=4, column=0, sticky=tk.E)
-        self.surname = ttk.Entry(addUserFrame, width=20)
+        self.surname = CTkEntry(addUserFrame, width=20)
         self.surname.grid(row=4, column=1, sticky=tk.W)
-        lblEmail = ttk.Label(addUserFrame, text="Email:")
+        lblEmail = CTkLabel(addUserFrame, text="Email:")
         lblEmail.grid(row=5, column=0, sticky=tk.E)
-        self.email = ttk.Entry(addUserFrame, width=30)
+        self.email = CTkEntry(addUserFrame, width=30)
         self.email.grid(row=5, column=1, sticky=tk.W)
-        self.add_user_icon = tk.PhotoImage(file=utils.getIcon("add_user.png"))
-        btn_addUser = ttk.Button(
-                addUserFrame, image=self.add_user_icon, command=self.addUser, style='Toolbutton')
+        self.add_user_icon = CTkImage(Image.open(utils.getIcon("add_user.png")))
+        btn_addUser = CTkButton(
+                addUserFrame, image=self.add_user_icon, command=self.addUser)
         btn_addUser.grid(row=6, column = 2, sticky=tk.W)
         addUserFrame.pack()
         lblAddUsername.pack()

@@ -2,6 +2,7 @@
 """
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 
 class ChildDialogInfo:
@@ -18,13 +19,13 @@ class ChildDialogInfo:
             title: title of the popup window
             msg: Message to show to the user
         """
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.resizable(False, False)
         self.app.title(title)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
-        lbl = ttk.Label(appFrame, text=msg)
+        lbl = CTkLabel(appFrame, text=msg)
         lbl.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         appFrame.pack(fill=tk.BOTH)
         try:

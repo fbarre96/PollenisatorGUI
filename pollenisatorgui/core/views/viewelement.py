@@ -1,12 +1,14 @@
 """View parent object. Handle node in treeview and present forms to user when interacted with."""
 
 from pollenisatorgui.core.application.dialogs.ChildDialogGenericView import ChildDialogGenericView
+from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import pollenisatorgui.core.components.settings as settings
 from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialogToast
 import tkinter.messagebox
 from tkinter import ttk
 from tkinter import TclError
+from customtkinter import *
 import pollenisatorgui.core.components.utils as utils
 
 
@@ -79,10 +81,12 @@ class ViewElement(object):
         """
         ret = True
         if showWarning:
-            ret = tkinter.messagebox.askokcancel(
-                "Delete", "You are going to delete this element, do you want to continue?")
-        if(ret):
-            self.controller.doDelete()
+            dialog = ChildDialogQuestion(self.parentFrame,
+                                     "DELETE WARNING", "Becareful for you are about to delete this entry and there is no turning back.", ["Delete", "Cancel"])
+            self.wait_window(dialog.app)
+            if dialog.rvalue != "Delete":
+                return
+        self.controller.doDelete()
 
     def update(self, event=None):
         """
@@ -180,14 +184,12 @@ class ViewElement(object):
                         panTags = self.form.addFormPanel(pady=0)
                     s = ttk.Style(self.mainApp)
                     try: # CHECK IF COLOR IS VALID
-                        ttk.Label(self.mainApp, background=color)
+                        CTkLabel(self.mainApp, fg_color=color)
                     except tkinter.TclError as e:
                         #color incorrect
                         color = "white"
-                    s.configure(""+color+".Default.TButton", background=color, foreground="black", borderwidth=1, bordercolor="black")
-                    s.map(""+color+".Default.TButton", foreground=[('active', "dark gray")], background=[('active', color)])
-                    btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no], side="left", padx=1, pady=0)
-                    btn_tag.configure(style=""+color+".Default.TButton")
+                    btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no],  side="left", padx=1, pady=0)
+                    btn_tag.configure(fg_color=color, border_width=1, text_color="black")
                     column += 1
                     item_no += 1
                     if column == 4:

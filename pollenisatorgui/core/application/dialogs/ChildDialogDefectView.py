@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.application.dialogs.ChildDialogView import ChildDialogView
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.defectcontroller import DefectController

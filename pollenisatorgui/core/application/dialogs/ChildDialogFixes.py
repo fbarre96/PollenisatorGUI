@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from PIL import ImageTk, Image
 from pollenisatorgui.core.application.dialogs.ChildDialogFixView import ChildDialogFixView
 import pollenisatorgui.core.components.utils as utils
@@ -18,7 +19,7 @@ class ChildDialogFixes:
         Args:
             parent: the tkinter parent view to use for this window construction.
         """
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.title("Edit defect fixes")
         self.app.resizable(True, True)
         self.rvalue = None
@@ -26,14 +27,14 @@ class ChildDialogFixes:
         self.pane_base_height = 31
         self.defectView = defectView
         self.fixes = defectView.controller.getData().get("fixes", [])
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         
         self.parent = None
         self.initUI(appFrame)
-        ok_button = ttk.Button(appFrame, text="OK")
+        ok_button = CTkButton(appFrame, text="OK")
         ok_button.pack(side="right", padx=5, pady=10)
         ok_button.bind('<Button-1>', self.okCallback)
-        cancel_button = ttk.Button(appFrame, text="Cancel")
+        cancel_button = CTkButton(appFrame, text="Cancel")
         cancel_button.pack(side="right", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)
         appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
@@ -83,8 +84,8 @@ class ChildDialogFixes:
        
         # FIXES TREEVW	
         fixesLabelFrame = ttk.LabelFrame(parent, text="Fixes table")	
-        self.paned = tk.PanedWindow(fixesLabelFrame, orient=tk.VERTICAL, height=400)
-        self.frameTw = ttk.Frame(self.paned)
+        self.paned = tk.PanedWindow(fixesLabelFrame, orientation=tk.VERTICAL, height=400)
+        self.frameTw = CTkFrame(self.paned)
         self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0)
         self.treevw['columns'] = ('execution', 'gain')
         self.treevw.heading("#0", text='Title', anchor=tk.W)
@@ -102,8 +103,8 @@ class ChildDialogFixes:
         self.treevw.bind("<ButtonRelease-1>",self.dragRelease, add='+')
         self.treevw.bind("<B1-Motion>",self.dragMove, add='+')
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel = ttk.Scrollbar(self.frameTw,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(self.frameTw,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -111,19 +112,19 @@ class ChildDialogFixes:
         self.frameTw.columnconfigure(0, weight=1)
         self.frameTw.rowconfigure(0, weight=1)
         ### OFFICE EXPORT FRAME ###
-        belowFrame = ttk.Frame(self.paned)
-        frameBtn = ttk.Frame(belowFrame)
-        self.buttonUpImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'up-arrow.png'))
-        self.buttonDownImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'down-arrow.png'))
+        belowFrame = CTkFrame(self.paned)
+        frameBtn = CTkFrame(belowFrame)
+        self.buttonUpImage = CTkImage(Image.open(utils.getIconDir()+'up-arrow.png'))
+        self.buttonDownImage = CTkImage(Image.open(utils.getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
-        btn_down = ttk.Button(frameBtn, image=self.buttonDownImage, command=self.bDown)
+        btn_down = CTkButton(frameBtn, image=self.buttonDownImage, command=self.bDown)
         btn_down.pack(side="left", anchor="center")
-        btn_up = ttk.Button(frameBtn, image=self.buttonUpImage, command=self.bUp)
+        btn_up = CTkButton(frameBtn, image=self.buttonUpImage, command=self.bUp)
         btn_up.pack(side="left", anchor="center")
-        btn_delFix = ttk.Button(
+        btn_delFix = CTkButton(
             frameBtn, text="Remove selection", command=self.deleteSelectedItem)
         btn_delFix.pack(side=tk.RIGHT, padx=5)
-        btn_addFix = ttk.Button(
+        btn_addFix = CTkButton(
             frameBtn, text="Add a fix", command=self.addFixCallback)
         btn_addFix.pack(side=tk.RIGHT, padx=5)
         frameBtn.pack(side=tk.TOP, pady=5)
@@ -232,7 +233,7 @@ class ChildDialogFixes:
 
     def resizeTreeview(self):
         currentHeight = len(self.treevw.get_children())
-        self.treevw.config(height=currentHeight)
+        self.treevw.configure(height=currentHeight)
         sx, sy = self.paned.sash_coord(0)
         if sy <= (currentHeight)*self.rowHeight + self.pane_base_height:
             self.paned.paneconfigure(self.frameTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)

@@ -7,7 +7,8 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.simpledialog
 import tkinter.ttk as ttk
-import tkinterDnD
+from customtkinter import *
+# TODO reenable with customtkinter import tkinterDnD
 import sys
 import os
 from tkinter import TclError
@@ -41,21 +42,22 @@ from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.checkitemview import CheckItemView
 import pollenisatorgui.modules
+import customtkinter
 
-class FloatingHelpWindow(tk.Toplevel):
+class FloatingHelpWindow(CTkToplevel):
     """floating basic window with helping text inside
     Inherit tkinter TopLevel
     Found on the internet (stackoverflow) but did not keep link sorry...
     """
 
     def __init__(self, w, h, posx, posy, *args, **kwargs):
-        tk.Toplevel.__init__(self, *args, **kwargs)
+        CTkToplevel.__init__(self, *args, **kwargs)
         self.title('Help: search')
         self.x = posx
         self.y = posy
         self.geometry(str(w)+"x"+str(h)+"+"+str(posx)+"+"+str(posy))
         self.resizable(0, 0)
-        self.config(bg='light yellow')
+        self.configure(bg='light yellow')
         self.grip = tk.Label(self, bitmap="gray25")
         self.grip.pack(side="left", fill="y")
         label = tk.Label(self, bg='light yellow', fg='black',
@@ -94,8 +96,8 @@ class FloatingHelpWindow(tk.Toplevel):
         self.geometry("+%s+%s" % (x, y))
 
 
-class AutocompleteEntry(ttk.Entry):
-    """Inherit ttk.Entry.
+class AutocompleteEntry(CTkEntry):
+    """Inherit CTkEntry.
     An entry with an autocompletion ability.
     Found on the internet : http://code.activestate.com/recipes/578253-an-entry-with-autocompletion-for-the-tkinter-gui/
     But a bit modified.
@@ -110,12 +112,13 @@ class AutocompleteEntry(ttk.Entry):
             kwargs: 
                 * width: default to 100
         """
-        ttk.Entry.__init__(self, *args, **kwargs)
+        CTkEntry.__init__(self, *args, **kwargs)
         self.width = kwargs.get("width",100)
         self.lista = set()
-        self.var = self["textvariable"]
-        if self.var == '':
-            self.var = self["textvariable"] = tk.StringVar()
+        self.var = self.cget("textvariable")
+        if self.var is None:
+            self.var = tk.StringVar()
+            self.configure(textvariable=self.var)
         self.var.trace('w', self.changed)
         
         self.bind("<Right>", self.selection)
@@ -236,11 +239,11 @@ def iter_namespace(ns_pkg):
     # the name.
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-class ButtonNotebook(ttk.Frame):
+class ButtonNotebook(CTkFrame):
     def __init__(self, parent, callbackSwitch):
         super().__init__(parent)
         style = ttk.Style()
-        self.frameButtons = ttk.Frame(self, style="Notebook.TFrame")
+        self.frameButtons = CTkFrame(self, fg_color=('#73D723','#73D723'))
         self.callbackSwitch = callbackSwitch
         self.tabs = {}
         self.current = None
@@ -251,13 +254,14 @@ class ButtonNotebook(ttk.Frame):
         if name not in self.tabs:
             self.tabs[name] = {"widget":widget, "image":image}
             widget.pack_forget()
-            btn = ttk.Button(self.frameButtons, text=name, image=image, compound=tk.TOP,  takefocus=False, style="Default.TButton")
+            btn = CTkButton(self.frameButtons, text=name, image=image, compound=tk.TOP)
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
             btn.pack(side="top", fill=tk.X, anchor="nw")
 
     def clicked(self, event):
-        name = event.widget.cget("text")
+        widget = event.widget.master
+        name = widget.cget("text")
         self.select(name)
 
     def getOpenTabName(self):
@@ -276,7 +280,7 @@ class ButtonNotebook(ttk.Frame):
         self.callbackSwitch(name)
 
 
-class Appli(tkinterDnD.Tk):
+class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkinterDnD
     """
     Main tkinter graphical application object.
     """
@@ -303,15 +307,15 @@ class Appli(tkinterDnD.Tk):
         self.sio = None #socketio client
         self.initialized = False
         utils.setStyle(self)
-        self.main_tab_img = ImageTk.PhotoImage(
+        self.main_tab_img = CTkImage(
             Image.open(utils.getIconDir()+"tab_main.png"))
-        self.commands_tab_img = ImageTk.PhotoImage(
+        self.commands_tab_img = CTkImage(
             Image.open(utils.getIconDir()+"tab_commands.png"))
-        self.scan_tab_img = ImageTk.PhotoImage(
+        self.scan_tab_img = CTkImage(
             Image.open(utils.getIconDir()+"tab_scan.png"))
-        self.settings_tab_img = ImageTk.PhotoImage(
+        self.settings_tab_img = CTkImage(
             Image.open(utils.getIconDir()+"tab_settings.png"))
-        self.admin_tab_img = ImageTk.PhotoImage(
+        self.admin_tab_img = CTkImage(
             Image.open(utils.getIconDir()+"tab_admin.png"))
         # HISTORY : Main view and command where historically in the same view;
         # This results in lots of widget here with a confusing naming style
@@ -446,7 +450,7 @@ class Appli(tkinterDnD.Tk):
         for name, module_class in REGISTRY.items():
             if name != "Module":
                 module_obj = module_class(self, self.settings)
-                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":ImageTk.PhotoImage(Image.open(utils.getIconDir()+module_obj.iconName))})
+                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIconDir()+module_obj.iconName))})
         
     def loadModulesInfos(self):
         for module in self.modules:
@@ -542,7 +546,7 @@ class Appli(tkinterDnD.Tk):
         Create the bar menu on top of the screen.
         """
         menubar = tk.Menu(self, tearoff=0, bd=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
-        self.config(menu=menubar)
+        self.configure(menu=menubar)
 
         self.bind('<F5>', self.refreshView)
         self.bind('<Control-o>', self.promptPentestName)
@@ -596,55 +600,54 @@ class Appli(tkinterDnD.Tk):
         """
         Fill the main view tab menu
         """
-        self.mainPageFrame = ttk.Frame(self.nbk)
-        searchFrame = ttk.Frame(self.mainPageFrame)
-        lblSearch = ttk.Label(searchFrame, text="Filter bar:")
+        self.mainPageFrame = CTkFrame(self.nbk)
+        searchFrame = CTkFrame(self.mainPageFrame)
+        lblSearch = CTkLabel(searchFrame, text="Filter bar:")
         lblSearch.pack(side="left", fill=tk.NONE)
         self.searchBar = AutocompleteEntry(self.settings, searchFrame)
-        #self.searchBar = ttk.Entry(searchFrame, width=108)
+        #self.searchBar = CTkEntry(searchFrame, width=108)
         self.searchBar.bind('<Return>', self.newSearch)
         self.searchBar.bind('<KP_Enter>', self.newSearch)
         self.searchBar.bind('<Control-a>', self.searchbarSelectAll)
         # searchBar.bind("<Button-3>", self.do_popup)
         self.searchBar.pack(side="left", fill="x", expand=True)
         self.quickSearchVal = tk.BooleanVar()
-        checkbox_quick_search = ttk.Checkbutton(searchFrame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
-        checkbox_quick_search.pack(side="left")
-        btnSearchBar = ttk.Button(searchFrame, style="icon.TButton")
-        self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
-        btnSearchBar.config(image=self.search_icon, command=self.newSearch)
+        checkbox_quick_search = CTkSwitch(searchFrame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
+        checkbox_quick_search.pack(side="left", padx=5)
+        self.search_icon = CTkImage(Image.open(utils.getIcon("search.png")))
+        btnSearchBar = CTkButton(searchFrame, text="", image=self.search_icon, fg_color="transparent", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
-        self.reset_icon = tk.PhotoImage(file=utils.getIcon("delete.png"))
-        btnReset = ttk.Button(searchFrame, image=self.reset_icon, command=self.resetButtonClicked, style="icon.TButton")
+        self.reset_icon = CTkImage(Image.open(utils.getIcon("delete.png")))
+        btnReset = CTkButton(searchFrame, image=self.reset_icon, text="",  fg_color="transparent", width=10,command=self.resetButtonClicked)
         btnReset.pack(side="left", fill="x")
-        self.btnHelp = ttk.Button(searchFrame, style="icon.TButton")
-        self.photo = tk.PhotoImage(file=utils.getHelpIconPath())
+        self.photo = CTkImage(Image.open(utils.getHelpIconPath()))
         self.helpFrame = None
-        self.btnHelp.config(image=self.photo, command=self.showSearchHelp)
+        self.btnHelp = CTkButton(searchFrame, text="",image=self.photo,  fg_color="transparent", width=10, command=self.showSearchHelp)
+
         self.btnHelp.pack(side="left")
         searchFrame.pack(side="top", fill="x")
         #PANED PART
         self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal", height=800)
         #RIGHT PANE : Canvas + frame
         self.canvasMain = tk.Canvas(self.paned, bg="white")
-        self.viewframe = ttk.Frame(self.canvasMain)
+        self.viewframe = CTkFrame(self.canvasMain)
         #LEFT PANE : Treeview
-        self.frameTw = ttk.Frame(self.paned)
+        self.frameTw = CTkFrame(self.paned)
         self.treevw = PentestTreeview(self, self.frameTw)
         self.treevw.initUI()
-        scbVSel = ttk.Scrollbar(self.frameTw,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(self.frameTw,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
         # FILTER PANE:
-        self.filtersFrame = ttk.Frame(self.paned, style="Debug.TFrame")
+        self.filtersFrame = CTkFrame(self.paned)
         self.initFiltersFrame(self.filtersFrame)
         self.paned.add(self.filtersFrame)
         # END PANE PREP
         self.paned.add(self.frameTw)
-        self.myscrollbarMain = tk.Scrollbar(self.paned, orient="vertical", command=self.canvasMain.yview)
+        self.myscrollbarMain = CTkScrollbar(self.paned, orientation="vertical", command=self.canvasMain.yview)
         self.myscrollbarMain.pack(side="right", fill=tk.BOTH)
         self.canvasMain.bind('<Enter>', self.boundToMousewheelMain)
         self.canvasMain.bind('<Leave>', self.unboundToMousewheelMain)
@@ -747,11 +750,11 @@ class Appli(tkinterDnD.Tk):
         """Populate the filter frame with cool widgets"""
         form = FormPanel( pady=0, padx=0, fill="y")
         checklistview = self.settings.is_checklist_view()
-        self.check_checklistView = form.addFormCheckbox("Checklist", "Checklist view", checklistview, command=self.checklistViewSwap, pady=0, padx=0, side="top")
+        self.check_checklistView = form.addFormSwitch("Checklist", "Checklist view", checklistview, command=self.checklistViewSwap, pady=0, padx=0, side="top", anchor="w")
         show_only_todo = self.settings.is_show_only_todo()
-        self.check_show_only_todo = form.addFormCheckbox("Todos", "Show only todos", show_only_todo, command=self.showTodoSwap, pady=0, padx=0, side="top")
+        self.check_show_only_todo = form.addFormSwitch("Todos", "Show only todos", show_only_todo, command=self.showTodoSwap, pady=0, padx=0, side="top", anchor="w")
         show_only_manual = self.settings.is_show_only_manual()
-        self.check_show_only_manual = form.addFormCheckbox("Manuals", "Show only manual checks", show_only_manual, command=self.showManualSwap, pady=0, padx=0, side="top")
+        self.check_show_only_manual = form.addFormSwitch("Manuals", "Show only manual checks", show_only_manual, command=self.showManualSwap, pady=0, padx=0, side="top", anchor="w")
         
         form.constructView(frame)
 
@@ -806,13 +809,13 @@ class Appli(tkinterDnD.Tk):
 
     def initCommandsView(self):
         """Populate the command tab menu view frame with cool widgets"""
-        self.commandsPageFrame = ttk.Frame(self.nbk)
+        self.commandsPageFrame = CTkFrame(self.nbk)
         self.commandPaned = tk.PanedWindow(self.commandsPageFrame, height=800)
-        self.commandsFrameTw = ttk.Frame(self.commandPaned)
+        self.commandsFrameTw = CTkFrame(self.commandPaned)
         self.canvas = tk.Canvas(self.commandPaned, bg="white")
         self.commandsFrameTw.pack(expand=True)
-        self.commandsViewFrame = ttk.Frame(self.canvas)
-        self.myscrollbarCommand = tk.Scrollbar(self.commandPaned, orient="vertical", command=self.canvas.yview)
+        self.commandsViewFrame = CTkFrame(self.canvas)
+        self.myscrollbarCommand = CTkScrollbar(self.commandPaned, orientation="vertical", command=self.canvas.yview)
         self.myscrollbarCommand.pack(side="right", fill=tk.BOTH)
         self.canvas.bind('<Enter>', self.boundToMousewheel)
         self.canvas.bind('<Leave>', self.unboundToMousewheel)
@@ -822,8 +825,8 @@ class Appli(tkinterDnD.Tk):
         self.commandsViewFrame.bind("<Configure>", self.scrollFrameFunc)
         self.canvas.configure(yscrollcommand=self.myscrollbarCommand.set)
         self.commandsTreevw = CommandsTreeview(self, self.commandsFrameTw)
-        scbVSel = ttk.Scrollbar(self.commandsFrameTw,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(self.commandsFrameTw,
+                                orientation=tk.VERTICAL,
                                 command=self.commandsTreevw.yview)
         self.commandsTreevw.configure(yscrollcommand=scbVSel.set)
         self.commandsTreevw.grid(row=0, column=0, sticky=tk.NSEW)
@@ -887,20 +890,20 @@ class Appli(tkinterDnD.Tk):
 
     def initSettingsView(self):
         """Add the settings view frame to the notebook widget and initialize its UI."""
-        self.settingViewFrame = ttk.Frame(self.nbk)
+        self.settingViewFrame = CTkFrame(self.nbk)
         self.settings.initUI(self.settingViewFrame)
         self.nbk.add(self.settingViewFrame, "Settings", image=self.settings_tab_img)
 
     def initScanView(self):
         """Add the scan view frame to the notebook widget. This does not initialize it as it needs a database to be opened."""
-        self.scanViewFrame = ttk.Frame(self.nbk)
+        self.scanViewFrame = CTkFrame(self.nbk)
         self.scanManager.initUI(self.scanViewFrame)
         self.nbk.add(self.scanViewFrame, "Scan", image=self.scan_tab_img)
 
     def initAdminView(self):
         """Add the admin button to the notebook"""
         self.admin = AdminView(self.nbk)
-        self.adminViewFrame = ttk.Frame(self.nbk)
+        self.adminViewFrame = CTkFrame(self.nbk)
         self.admin.initUI(self.adminViewFrame)
         self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
 
@@ -926,7 +929,7 @@ class Appli(tkinterDnD.Tk):
         self.initScanView()
         self.initSettingsView()
         for module in self.modules:
-            module["view"] = ttk.Frame(self.nbk)
+            module["view"] = CTkFrame(self.nbk)
             module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
         for module in self.modules:
             self.nbk.add(module["view"], module["name"].strip(), image=module["img"])

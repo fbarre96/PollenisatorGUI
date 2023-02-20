@@ -20,7 +20,10 @@ import tempfile
 import threading
 from getpass import getpass
 from pollenisatorgui.core.components.logger_config import logger
+import customtkinter
 event_obj = threading.Event()
+customtkinter.set_appearance_mode("system")
+customtkinter.set_default_color_theme(utils.getColorTheme())
 
 class GracefulKiller:
     """

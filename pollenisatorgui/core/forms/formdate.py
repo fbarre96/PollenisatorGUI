@@ -5,6 +5,7 @@ from tkinter import ttk
 import datetime as datetime
 from pollenisatorgui.core.forms.form import Form
 from PIL import ImageTk, Image
+from customtkinter import *
 from pollenisatorgui.core.components.utils import getIconDir
 from pollenisatorgui.core.application.dialogs.ChildDialogDate import ChildDialogDate
 
@@ -25,7 +26,7 @@ class FormDate(Form):
             root: the tkinter root window
             default: a list of string that should be prechecked if in the choice list.
             dateformat: a date format as a string see datetime.strptime documentation.
-            kwargs: same keyword args as you would give to ttk.Frame
+            kwargs: same keyword args as you would give to CTkFrame
         """
         super().__init__(name)
         self.dateformat = dateformat
@@ -33,7 +34,7 @@ class FormDate(Form):
         self.root = root
         self.kwargs = kwargs
         self.entry = None
-        FormDate.img_class = ImageTk.PhotoImage(
+        FormDate.img_class = CTkImage(
             Image.open(getIconDir()+"date.png"))
 
     def constructView(self, parent):
@@ -45,12 +46,12 @@ class FormDate(Form):
         """
         self.parent = parent
         self.val = tk.StringVar()
-        frame = ttk.Frame(parent.panel)
-        self.entry = ttk.Entry(frame, textvariable=self.val)
+        frame = CTkFrame(parent.panel)
+        self.entry = CTkEntry(frame, textvariable=self.val)
         self.val.set(self.default)
         self.entry.bind('<Control-a>', self.selectAll)
         self.entry.grid(row=0, column=0)
-        datepicker = ttk.Label(frame, image=FormDate.img_class)
+        datepicker = CTkLabel(frame, text="", image=FormDate.img_class)
         datepicker.grid(row=0,column=1, padx=5)
         datepicker.bind("<Button-1>", self.showDatePicker)
         if parent.gridLayout:

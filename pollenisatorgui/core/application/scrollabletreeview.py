@@ -1,9 +1,10 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import pyperclip
 
 
-class ScrollableTreeview(ttk.Frame):
+class ScrollableTreeview(CTkFrame):
     def __init__(self, root, columns, **kwargs):
         super().__init__(root)
         self.root = root
@@ -17,7 +18,7 @@ class ScrollableTreeview(ttk.Frame):
         self.treevw['columns'] = columns
         self.treevw.tag_configure("odd", background='light gray')
         self.treevw.tag_configure("known_command", background='spring green')
-        lbl = ttk.Label()
+        lbl = CTkLabel(self)
         self.f = tk.font.Font(lbl, "Sans", bold=True, size=10)
         self.columnsLen = [self.f.measure(column) for column in self.columns]
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.columns))]
@@ -28,11 +29,11 @@ class ScrollableTreeview(ttk.Frame):
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         for bindName, callback in kwargs.get("binds", {}).items():
             self.treevw.bind(bindName, callback)
-        scbVSel = ttk.Scrollbar(self,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(self,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
-        scbHSel = ttk.Scrollbar(
-            self, orient=tk.HORIZONTAL, command=self.treevw.xview)
+        scbHSel = CTkScrollbar(
+            self, orientation=tk.HORIZONTAL, command=self.treevw.xview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         self.treevw.configure(xscrollcommand=scbHSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -51,11 +52,11 @@ class ScrollableTreeview(ttk.Frame):
             for widget in self.pagePanel.winfo_children():
                 widget.grid_forget()
             self.pagePanel.forget()
-        self.pagePanel = ttk.Frame(self)
-        btn = ttk.Label(self.pagePanel, text="<<", style="Pagination.TLabel")
+        self.pagePanel = CTkFrame(self)
+        btn = CTkLabel(self.pagePanel, text="<<")
         btn.bind('<Button-1>', lambda event:self.goToPage("first"))
         btn.grid(padx=3)
-        btn = ttk.Label(self.pagePanel, text="<", style="Pagination.TLabel")
+        btn = CTkLabel(self.pagePanel, text="<")
         btn.bind('<Button-1>', lambda event:self.goToPage("previous"))
         btn.grid(row=0, column=1, padx=3)
         col = 2
@@ -63,18 +64,18 @@ class ScrollableTreeview(ttk.Frame):
         i = start 
         while i <= self.lastPage and i <= start + 5:
             if i == self.currentPage:
-                btn = ttk.Label(self.pagePanel, text=str(i), style="CurrentPagination.TLabel")
+                btn = CTkLabel(self.pagePanel, text=str(i))
                 btn.grid(column=col,row=0, padx=3)
             else:
-                btn = ttk.Label(self.pagePanel, text=str(i), style="Pagination.TLabel")
+                btn = CTkLabel(self.pagePanel, text=str(i))
                 btn.bind('<Button-1>', lambda event:self.goToPage(event))
                 btn.grid(column=col,row=0, padx=3)
             col +=1
             i += 1
-        btn = ttk.Label(self.pagePanel, text=">", style="Pagination.TLabel")
+        btn = CTkLabel(self.pagePanel, text=">")
         btn.bind('<Button-1>', lambda event:self.goToPage("next"))
         btn.grid(row=0, column=col, padx=3)
-        btn = ttk.Label(self.pagePanel, text=">>", style="Pagination.TLabel")
+        btn = CTkLabel(self.pagePanel, text=">>")
         btn.bind('<Button-1>', lambda event:self.goToPage("last"))
         btn.grid(row=0, column=col+1, padx=3)
         self.pagePanel.grid(row=2, column=0)

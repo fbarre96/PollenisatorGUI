@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import os
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -19,15 +20,15 @@ class ScriptManager:
             parent: the tkinter parent view to use for this window construction.
         """
         self.parent = parent
-        self.app = tk.Toplevel(parent)
+        self.app = CTkToplevel(parent)
         self.app.title("Scripts Manager")
         self.app.resizable(True, True)
         self.rvalue = None
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
          #PANED PART
         self.paned = tk.PanedWindow(appFrame, height=300)
         #RIGHT PANE : TAble
-        self.viewframe = ttk.Frame(self.paned)
+        self.viewframe = CTkFrame(self.paned)
         self.file_tree = CheckboxTreeview(self.viewframe)
         self.file_tree['columns'] = ('name', 'category')
         self.file_tree.heading('#0', text='Name')
@@ -35,26 +36,26 @@ class ScriptManager:
         self.file_tree.heading('#1', text='Category')
         self.file_tree.column("#1", stretch=tk.YES, minwidth=300, width=300)
         self.file_tree.pack(fill=tk.BOTH, expand=True)
-        btn_pane = ttk.Frame(self.viewframe)
+        btn_pane = CTkFrame(self.viewframe)
         if "execute" in whatfor:
-            self.execute_icone = tk.PhotoImage(file = utils.getIcon("execute.png"))
-            btn_execute = ttk.Button(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts, tooltip="Execute all selected scripts", style="icon.TButton")        
+            self.execute_icone = CTkImage(file = utils.getIcon("execute.png"))
+            btn_execute = CTkButton(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts, tooltip="Execute all selected scripts")        
             btn_execute.pack(side=tk.RIGHT, padx=3, pady=5)
         elif "select" in whatfor:
-            btn_select = ttk.Button(btn_pane, text="Select", command=self.returnSelection, tooltip="Choose selected script")        
+            btn_select = CTkButton(btn_pane, text="Select", command=self.returnSelection, tooltip="Choose selected script")        
             btn_select.pack(side=tk.RIGHT, padx=3, pady=5)
-        self.open_folder_icone = tk.PhotoImage(file = utils.getIcon("folder.png"))
-        btn_openPathForUser = ttk.Button(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openPathForUser, tooltip="Open scripts folder", style="icon.TButton")        
+        self.open_folder_icone = CTkImage(file = utils.getIcon("folder.png"))
+        btn_openPathForUser = CTkButton(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openPathForUser, tooltip="Open scripts folder")        
         btn_openPathForUser.pack(side=tk.RIGHT, padx=3, pady=5)
         
         btn_pane.pack(fill=tk.X, side=tk.BOTTOM, anchor=tk.E)
         #LEFT PANE : Treeview
-        self.frameTw = ttk.Frame(self.paned)
+        self.frameTw = CTkFrame(self.paned)
         self.treevw = ttk.Treeview(self.frameTw)
         self.treevw.pack()
         self.rvalue = None
-        scbVSel = ttk.Scrollbar(self.frameTw,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(self.frameTw,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
@@ -83,7 +84,7 @@ class ScriptManager:
             widget.destroy()
         script_dir = ScriptManager.getScriptsDir()
         if self.__class__.folder_icon is None:
-            self.__class__.folder_icon = ImageTk.PhotoImage(Image.open(utils.getIcon("folder.png")))
+            self.__class__.folder_icon = CTkImage(Image.open(utils.getIcon("folder.png")))
         parent = self.treevw.insert("", "end", " ", text="Scripts", image=self.__class__.folder_icon, open=True)
         self.treevw.focus(parent)
         self.treevw.selection_set(parent)

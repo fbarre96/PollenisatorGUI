@@ -1,6 +1,7 @@
 """Dashboard module to display pentest info"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 
 from PIL import Image, ImageTk
 
@@ -34,19 +35,19 @@ class DashBoard(Module):
 
         iconPath = utils.getIconDir()
         self.icons = {}
-        self.icons["tool"] = ImageTk.PhotoImage(
+        self.icons["tool"] = CTkImage(
             Image.open(iconPath+"tool.png"))
-        self.icons["cross"] = ImageTk.PhotoImage(
+        self.icons["cross"] = CTkImage(
             Image.open(iconPath+"cross.png"))
-        self.icons["running"] = ImageTk.PhotoImage(
+        self.icons["running"] = CTkImage(
             Image.open(iconPath+"running.png"))
-        self.icons["done"] = ImageTk.PhotoImage(
+        self.icons["done"] = CTkImage(
             Image.open(iconPath+"done_tool.png"))
-        self.icons["error"] = ImageTk.PhotoImage(
+        self.icons["error"] = CTkImage(
             Image.open(iconPath+"error_tool.png"))
-        self.icons["ready"] = ImageTk.PhotoImage(
+        self.icons["ready"] = CTkImage(
             Image.open(iconPath+"waiting.png"))
-        self.icons["Not ready"] = ImageTk.PhotoImage(
+        self.icons["Not ready"] = CTkImage(
             Image.open(iconPath+"cross.png"))
     
     def open(self):
@@ -181,13 +182,13 @@ class DashBoard(Module):
         if self.parent is not None:  # Already initialized
             return
         self.parent = parent
-        self.dashboardFrame = ttk.Frame(parent)
+        self.dashboardFrame = CTkFrame(parent)
 
         self.rowHeight = 20
         self.style = ttk.Style()
         self.style.configure('DashBoard.Treeview', rowheight=self.rowHeight)
 
-        frameTwHosts = ttk.Frame(self.dashboardFrame)
+        frameTwHosts = CTkFrame(self.dashboardFrame)
         self.treevw = ttk.Treeview(
             frameTwHosts, style='DashBoard.Treeview', height=5)
         self.treevw['columns'] = ('services')
@@ -196,8 +197,8 @@ class DashBoard(Module):
         self.treevw.heading('services', text='Services')
         self.treevw.column('services', anchor='center', width=40)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel = ttk.Scrollbar(frameTwHosts,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(frameTwHosts,
+                                orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -206,7 +207,7 @@ class DashBoard(Module):
         frameTwHosts.rowconfigure(0, weight=1)
         frameTwHosts.grid(row=0, column=0, sticky=tk.NSEW, padx=5, pady=10)
 
-        frameTwPports = ttk.Frame(self.dashboardFrame)
+        frameTwPports = CTkFrame(self.dashboardFrame)
         self.treevwport = ttk.Treeview(
             frameTwPports, style='DashBoard.Treeview', height=5)
         self.treevwport['columns'] = ('amount')
@@ -215,8 +216,8 @@ class DashBoard(Module):
         self.treevwport.heading('amount', text='Amount')
         self.treevwport.column('amount', anchor='center', width=40)
         self.treevwport.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel = ttk.Scrollbar(frameTwPports,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(frameTwPports,
+                                orientation=tk.VERTICAL,
                                 command=self.treevwport.yview)
         self.treevwport.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -224,7 +225,7 @@ class DashBoard(Module):
         frameTwPports.rowconfigure(0, weight=1)
         frameTwPports.grid(row=0, column=1, sticky=tk.NSEW, padx=5, pady=10)
 
-        frameTools = ttk.Frame(self.dashboardFrame)
+        frameTools = CTkFrame(self.dashboardFrame)
         self.treevwtools = ttk.Treeview(
             frameTools, style='DashBoard.Treeview', height=10)
         self.treevwtools['columns'] = ('ready', 'running', 'done', "error")
@@ -239,8 +240,8 @@ class DashBoard(Module):
         self.treevwtools.heading('#4', text='Error')
         self.treevwtools.column('#4', anchor='center', width=10)
         self.treevwtools.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel = ttk.Scrollbar(frameTools,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(frameTools,
+                                orientation=tk.VERTICAL,
                                 command=self.treevwtools.yview)
         self.treevwtools.configure(yscrollcommand=scbVSel.set)
         self.treevwtools.bind("<Motion>", self.mycallback)
@@ -249,7 +250,7 @@ class DashBoard(Module):
         frameTools.rowconfigure(0, weight=1)
         frameTools.grid(row=1, sticky=tk.NSEW, padx=5, pady=5, columnspan=2)
 
-        frameDefaults = ttk.Frame(self.dashboardFrame)
+        frameDefaults = CTkFrame(self.dashboardFrame)
         self.treevwDefaults = ttk.Treeview(
             frameDefaults, style='DashBoard.Treeview', height=15)
         self.treevwDefaults["columns"] = ('type', 'amount')
@@ -260,8 +261,8 @@ class DashBoard(Module):
         self.treevwDefaults.heading('amount', text='Amount')
         self.treevwDefaults.column('amount', anchor='center', width=40)
         self.treevwDefaults.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel = ttk.Scrollbar(frameDefaults,
-                                orient=tk.VERTICAL,
+        scbVSel = CTkScrollbar(frameDefaults,
+                                orientation=tk.VERTICAL,
                                 command=self.treevwDefaults.yview)
         self.treevwDefaults.configure(yscrollcommand=scbVSel.set)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)

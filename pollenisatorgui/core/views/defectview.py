@@ -119,8 +119,8 @@ class DefectView(ViewElement):
             self.browse_top_treevw = self.form.addFormTreevw("Defects", ("Title", "Risk"),
                                 default_values, side="top", fill="both", width=400, height=8, status="readonly", 
                                 binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
-        self.buttonUpImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'up-arrow.png'))
-        self.buttonDownImage = ImageTk.PhotoImage(Image.open(utils.getIconDir()+'down-arrow.png'))
+        self.buttonUpImage = CTkImage(Image.open(utils.getIconDir()+'up-arrow.png'))
+        self.buttonDownImage = CTkImage(Image.open(utils.getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
         buttonPan = self.form.addFormPanel(side="top", anchor="center", fill="none")
         btn_down = buttonPan.addFormButton("V", self.moveDownMultiTreeview, side="left", anchor="center", image=self.buttonDownImage)

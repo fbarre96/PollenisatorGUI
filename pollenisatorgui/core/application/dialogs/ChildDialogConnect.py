@@ -2,42 +2,46 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from PIL import ImageTk, Image
+from io import BytesIO
+import base64
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.utils import loadClientConfig, saveClientConfig, getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
 
 
-class CollapsibleFrame(ttk.Frame):
-    def __init__(self, master, text=None, borderwidth=2, width=0, height=16, interior_padx=0, interior_pady=8, background=None, caption_separation=4, caption_font=None, caption_builder=None, icon_x=5):
-        ttk.Frame.__init__(self, master)
+class CollapsibleFrame(CTkFrame):
+    def __init__(self, master, text=None, border_width=2, width=0, height=16, interior_padx=0, interior_pady=8, background=None, caption_separation=4, caption_font=None, caption_builder=None, icon_x=5):
+        CTkFrame.__init__(self, master)
         
         self._is_opened = False
 
         self._interior_padx = interior_padx
         self._interior_pady = interior_pady
 
-        self._iconOpen = tk.PhotoImage(data="R0lGODlhEAAQAKIAAP///9TQyICAgEBAQAAAAAAAAAAAAAAAACwAAAAAEAAQAAADNhi63BMgyinFAy0HC3Xj2EJoIEOM32WeaSeeqFK+say+2azUi+5ttx/QJeQIjshkcsBsOp/MBAA7")
-        self._iconClose = tk.PhotoImage(data="R0lGODlhEAAQAKIAAP///9TQyICAgEBAQAAAAAAAAAAAAAAAACwAAAAAEAAQAAADMxi63BMgyinFAy0HC3XjmLeA4ngpRKoSZoeuDLmo38mwtVvKu93rIo5gSCwWB8ikcolMAAA7")
-        
-        height_of_icon = max(self._iconOpen.height(), self._iconClose.height())
-        width_of_icon = max(self._iconOpen.width(), self._iconClose.width())
+        self._iconOpen = "R0lGODlhEAAQAKIAAP///9TQyICAgEBAQAAAAAAAAAAAAAAAACwAAAAAEAAQAAADNhi63BMgyinFAy0HC3Xj2EJoIEOM32WeaSeeqFK+say+2azUi+5ttx/QJeQIjshkcsBsOp/MBAA7"
+        self._iconClose = "R0lGODlhEAAQAKIAAP///9TQyICAgEBAQAAAAAAAAAAAAAAAACwAAAAAEAAQAAADMxi63BMgyinFAy0HC3XjmLeA4ngpRKoSZoeuDLmo38mwtVvKu93rIo5gSCwWB8ikcolMAAA7"
+        self._iconOpen = Image.open(BytesIO(base64.b64decode(self._iconOpen)))
+        self._iconClose = Image.open(BytesIO(base64.b64decode(self._iconClose)))
+        height_of_icon = max(self._iconOpen.height, self._iconClose.height)
+        width_of_icon = max(self._iconOpen.width, self._iconClose.width)
         
         containerFrame_pady = (height_of_icon//2) +1
 
         self._height = height
         self._width = width
 
-        self._containerFrame = ttk.Frame(self, borderwidth=borderwidth, width=width, height=height, relief=tk.RIDGE, background=background)
+        self._containerFrame = CTkFrame(self, border_width=border_width, width=width, height=height)
         self._containerFrame.pack(expand=True, fill=tk.X, pady=(containerFrame_pady,0))
         
-        self.interior = ttk.Frame(self._containerFrame, background=background)
+        self.interior = CTkFrame(self._containerFrame)
 
-        self._collapseButton = ttk.Label(self, borderwidth=0, image=self._iconOpen, relief=tk.RAISED)
+        self._collapseButton = CTkLabel(self,  text= "", image=CTkImage(self._iconOpen))
         self._collapseButton.place(in_= self._containerFrame, x=icon_x, y=-(height_of_icon//2), anchor=tk.NW, bordermode="ignore")
         self._collapseButton.bind("<Button-1>", lambda event: self.toggle())
 
         if caption_builder is None:
-            self._captionLabel = ttk.Label(self, anchor=tk.W, borderwidth=1, text=text)
+            self._captionLabel = CTkLabel(self, anchor=tk.W, text=text)
             if caption_font is not None:
                 self._captionLabel.configure(font=caption_font)
         else:
@@ -75,7 +79,7 @@ class CollapsibleFrame(ttk.Frame):
         self._containerFrame.configure(width=width)
         
     def open(self):
-        self._collapseButton.configure(image=self._iconClose)
+        self._collapseButton.configure(image=CTkImage(self._iconClose))
         
         self._containerFrame.configure(height=self.interior.winfo_reqheight())
         self.interior.pack(expand=True, fill=tk.X, padx=self._interior_padx, pady =self._interior_pady)
@@ -85,7 +89,7 @@ class CollapsibleFrame(ttk.Frame):
     def close(self):
         self.interior.pack_forget()
         self._containerFrame.configure(height=self._height)
-        self._collapseButton.configure(image=self._iconOpen)
+        self._collapseButton.configure(image=CTkImage(self._iconOpen))
 
         self._is_opened = False
     
@@ -108,7 +112,7 @@ class ChildDialogConnect:
         Returns:
             ImageTk PhotoImage"""
         if self.__class__.cvalid_icon is None:
-            self.__class__.cvalid_icon = ImageTk.PhotoImage(
+            self.__class__.cvalid_icon = CTkImage(
                 Image.open(getValidMarkIconPath()))
         return self.__class__.cvalid_icon
 
@@ -117,7 +121,7 @@ class ChildDialogConnect:
         Returns:
             ImageTk PhotoImage"""
         if self.__class__.cbad_icon is None:
-            self.__class__.cbad_icon = ImageTk.PhotoImage(
+            self.__class__.cbad_icon = CTkImage(
                 Image.open(getBadMarkIconPath()))
         return self.__class__.cbad_icon
 
@@ -126,7 +130,7 @@ class ChildDialogConnect:
         Returns:
             ImageTk PhotoImage"""
         if self.__class__.cwaiting_icon is None:
-            self.__class__.cwaiting_icon = ImageTk.PhotoImage(
+            self.__class__.cwaiting_icon = CTkImage(
                 Image.open(getWaitingMarkIconPath()))
         return self.__class__.cwaiting_icon
 
@@ -139,58 +143,58 @@ class ChildDialogConnect:
             displayMsg: The message that will explain to the user what the form is.
         """
         self.parent = parent
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent)
+        self.app.title("Connect to server")
         self.app.resizable(False, False)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
         self.clientCfg = loadClientConfig()
-        lbl = ttk.Label(self.app, text=displayMsg)
+        lbl = CTkLabel(self.app, text=displayMsg)
         lbl.pack()
         
-        lbl_hostname = ttk.Label(appFrame, text="Host : ")
+        lbl_hostname = CTkLabel(appFrame, text="Host : ")
         lbl_hostname.grid(row=0, column=0)
-        self.ent_hostname = ttk.Entry(
-            appFrame, width="20", validate="focusout", validatecommand=self.validateHost)
+        self.ent_hostname = CTkEntry(
+            appFrame, placeholder_text="127.0.0.1", validate="focusout", validatecommand=self.validateHost)
         self.ent_hostname.insert(tk.END, self.clientCfg["host"])
         self.ent_hostname.bind('<Return>', self.validateHost)
         self.ent_hostname.bind('<KP_Enter>', self.validateHost)
         self.ent_hostname.grid(row=0, column=1)
-        lbl_port = ttk.Label(appFrame, text="Port : ")
+        lbl_port = CTkLabel(appFrame, text="Port : ")
         lbl_port.grid(row=1, column=0)
-        self.ent_port = ttk.Entry(
-            appFrame, width="5", validate="focusout", validatecommand=self.validateHost)
+        self.ent_port = CTkEntry(
+            appFrame, placeholder_text="5000", validate="focusout", validatecommand=self.validateHost)
         self.ent_port.insert(tk.END, self.clientCfg.get("port", 5000), )
         self.ent_port.bind('<Return>', self.validateHost)
         self.ent_port.bind('<KP_Enter>', self.validateHost)
         self.ent_port.grid(row=1, column=1)
-        self.img_indicator = ttk.Label(appFrame, image=self.waitingIcon())
+        self.img_indicator = CTkLabel(appFrame, text="", image=self.waitingIcon())
         self.img_indicator.grid(row=1, column=2)
         self.var_https = tk.IntVar()
-        lbl_https = ttk.Label(appFrame, text="https: ")
+        lbl_https = CTkLabel(appFrame, text="https: ")
         lbl_https.grid(row=2, column=0)
-        self.check_https = ttk.Checkbutton(appFrame, variable=self.var_https, onvalue=True, offvalue=False, command=self.validateHost)
+        self.check_https = CTkSwitch(appFrame, variable=self.var_https, text="", onvalue=True, offvalue=False, command=self.validateHost)
         self.check_https.grid(row=2, column=1)
         
-        lbl_login = ttk.Label(appFrame, text="Login: ")
+        lbl_login = CTkLabel(appFrame, text="Login: ")
         lbl_login.grid(row=4, column=0)
-        self.ent_login = ttk.Entry(
-            appFrame, width="20")
+        self.ent_login = CTkEntry(
+            appFrame, placeholder_text="login")
         self.ent_login.grid(row=4, column=1)
-        lbl_passwd = ttk.Label(appFrame, text="Password: ")
+        lbl_passwd = CTkLabel(appFrame, text="Password: ")
         lbl_passwd.grid(row=5, column=0)
         self.password = tk.StringVar() 
-        self.ent_passwd = ttk.Entry(
-            appFrame, width="20", show="*", textvariable = self.password)
+        self.ent_passwd = CTkEntry(
+            appFrame, placeholder_text="password", show="*", textvariable = self.password)
         self.ent_passwd.bind('<Return>', self.onOk)
         self.ent_passwd.grid(row=5, column=1)
         appFrame.pack(ipadx=10, ipady=10)
         self.ent_login.focus_set()
-        cf1 = CollapsibleFrame(appFrame, text = "Advanced options", interior_padx=5)
-        lbl_proxy = ttk.Label(cf1.interior, text="Proxy url : ")
+        cf1 = CollapsibleFrame(appFrame, text = "Advanced options", interior_padx=5, interior_pady=15)
+        lbl_proxy = CTkLabel(cf1.interior, text="Proxy url : ")
         lbl_proxy.grid(row=0, column=0)
-        self.ent_proxy = ttk.Entry(
-            cf1.interior)
+        self.ent_proxy = CTkEntry(cf1.interior, placeholder_text="http://127.0.0.1:8080")
         self.ent_proxy.insert(tk.END, self.clientCfg.get("proxies", ""), )
         self.ent_proxy.grid(row=0, column=1)
         self.validateHost()
@@ -199,7 +203,7 @@ class ChildDialogConnect:
 
         cf1.grid(row=6,column=1)
 
-        self.ok_button = ttk.Button(self.app, text="OK", command=self.onOk, style="Accent.TButton")
+        self.ok_button = CTkButton(self.app, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(pady=10)
         try:
@@ -236,12 +240,12 @@ class ChildDialogConnect:
         apiclient = APIClient.getInstance()
         apiclient.reinitConnection()
         config = self.getForm()
-        self.img_indicator.config(image=self.waitingIcon())
+        self.img_indicator.configure(image=self.waitingIcon())
         res = apiclient.tryConnection(config)
         if res:
-            self.img_indicator.config(image=self.validIcon())
+            self.img_indicator.configure(image=self.validIcon())
         else:
-            self.img_indicator.config(image=self.badIcon())
+            self.img_indicator.configure(image=self.badIcon())
         return res
 
     def valideLogin(self):

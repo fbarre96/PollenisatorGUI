@@ -1,6 +1,7 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import tkinterDnD
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import pollenisatorgui.core.components.utils as utils
@@ -25,7 +26,7 @@ class ChildDialogAskFile:
         self.app.title(info)
         self.rvalue = None
         self.default = default_path
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.form.addFormLabel(
             "Choose one file", info, side=tk.TOP)

@@ -2,6 +2,7 @@
 Ask the user to enter a command and select a worker and plugin to launch it."""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.components.apiclient import APIClient
 
 
@@ -21,35 +22,36 @@ class ChildDialogCustomCommand:
             workers: A list of workers registered.
             default_worker: a worker to be selected by default.
         """
-        self.app = tk.Toplevel(parent)
-        appFrame = ttk.Frame(self.app)
+        self.app = CTkToplevel(parent)
+        self.app.title("Custom command")
+        appFrame = CTkFrame(self.app)
         self.app.resizable(False, False)
         self.rvalue = None
         self.parent = parent
-        lbl = ttk.Label(appFrame, text="Enter the custom command Name")
+        lbl = CTkLabel(appFrame, text="Enter the custom command Name")
         lbl.pack()
-        self.ent_customCommandName = ttk.Entry(appFrame, width="50")
+        self.ent_customCommandName = CTkEntry(appFrame, width=50)
         self.ent_customCommandName.pack()
-        lbl = ttk.Label(
+        lbl = CTkLabel(
             appFrame, text="Enter the custom command to launch")
         lbl.pack()
-        self.ent_customCommand = ttk.Entry(appFrame, width="50")
+        self.ent_customCommand = CTkEntry(appFrame, width=50)
         self.ent_customCommand.pack()
-        lbl2 = ttk.Label(appFrame, text="Select the parser:")
+        lbl2 = CTkLabel(appFrame, text="Select the parser:")
         lbl2.pack()
         apiclient = APIClient.getInstance()
         parsers = apiclient.getPlugins()
-        self.box_template = ttk.Combobox(
+        self.box_template = CTkComboBox(
             appFrame, values=tuple(parsers), state="readonly")
         self.box_template.set("Default")
         self.box_template.pack()
-        lbl3 = ttk.Label(appFrame, text="Select the worker:")
+        lbl3 = CTkLabel(appFrame, text="Select the worker:")
         lbl3.pack()
-        self.box_workers = ttk.Combobox(
+        self.box_workers = CTkComboBox(
             appFrame, values=tuple(workers), state="readonly")
         self.box_workers.set(default_worker)
         self.box_workers.pack()
-        self.ok_button = ttk.Button(appFrame, text="OK", command=self.onOk)
+        self.ok_button = CTkButton(appFrame, text="OK", command=self.onOk)
         self.ok_button.pack(side=tk.BOTTOM, pady=5)
         appFrame.pack(ipady=10, ipadx=10)
         try:

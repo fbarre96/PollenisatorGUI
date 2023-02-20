@@ -20,12 +20,12 @@ class MultipleScopeView(ViewElement):
         top_panel = self.form.addFormPanel()
         top_panel.addFormText("Scopes", r"^(?!https?://).+$", "", None, side="top")
         top_panel = self.form.addFormPanel()
-        top_panel.addFormCheckbox(
+        top_panel.addFormSwitch(
             "Split", "Make ip range split into /24 at most", False, side="left")
         top_panel.addFormHelper(
             "This will split big ranges in smaller one. May slow pollenisator opening.\nBut you will have scan results quicker", side="left")
         top_panel = self.form.addFormPanel()
-        top_panel.addFormCheckbox(
+        top_panel.addFormSwitch(
             "Settings", "Check domain scope", True, side="left")
         top_panel.addFormHelper(
             "If you want to insert a brand new scope in the scope, you will have to disable this security", side="left")

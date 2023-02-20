@@ -1,6 +1,7 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.components.apiclient import APIClient
 import threading
 
@@ -17,17 +18,17 @@ class ChildDialogRemoteInteraction:
         Args:
             default_path: a default path to be added
         """
-        self.app = tk.Toplevel(None, bg="white")
+        self.app = CTkToplevel(None, bg="white")
         self.app.protocol("WM_DELETE_WINDOW", self.onError)
         self.app.title("Remote interaction with "+str(toolController.getDetailedString()))
         self.toolController = toolController
         self.rvalue = None
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.text_area = tk.Text(self.app, font=("Consolas", 14), bg="#000000", fg="#00ff00")
         self.text_area.insert(tk.END, toolController.getDetailedString()+"\n"+str(toolController.getData().get("infos",{}).get("cmdline", ""))+"\n")
         self.text_area.pack(fill="both", expand=True)     
         self.text_area.focus_force()
-        btn = ttk.Button(self.app, text="Quit", command=self.onError)
+        btn = CTkButton(self.app, text="Quit", command=self.onError)
         btn.pack(side="bottom", anchor=tk.E)
         self.app.bind("<Escape>", self.onError)
         appFrame.pack(ipadx=10, ipady=10)

@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
@@ -21,11 +22,11 @@ class ChildDialogEditCommandSettings:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = tk.Toplevel(parent)
-        self.app.title("Upload result file")
+        self.app = CTkToplevel(parent)
+        self.app.title("Edit command settings")
         self.rvalue = None
         self.parent = parent
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.form.addFormLabel(displayMsg, side=tk.TOP)
         optionsFrame = self.form.addFormPanel(grid=True)

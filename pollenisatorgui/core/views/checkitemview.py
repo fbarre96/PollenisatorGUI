@@ -9,6 +9,7 @@ from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemContro
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 import pollenisatorgui.core.components.utils as utils
+from customtkinter import *
 from bson import ObjectId
 import tkinter as tk
 

@@ -1,6 +1,7 @@
 """ActiveDirectory module"""
 import tkinter as tk
 import tkinter.ttk as ttk
+from customtkinter import *
 import os
 import re
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -138,20 +139,20 @@ class ActiveDirectory(Module):
         self.parent = parent
         self.tkApp = tkApp
         self.treevwApp = treevw
-        settings_btn = ttk.Button(parent, text="Configure this module", command=self.openConfig)
+        settings_btn = CTkButton(parent, text="Configure this module", command=self.openConfig)
         settings_btn.pack(side="bottom")
-        self.moduleFrame = ttk.Frame(parent)
-        frameUsers = ttk.Frame(self.moduleFrame)
+        self.moduleFrame = CTkFrame(parent)
+        frameUsers = CTkFrame(self.moduleFrame)
         self.tvUsers = ScrollableTreeview(
             frameUsers, ("Username", "Password", "Domain", "N° groups","Desc"), binds={"<Delete>":self.deleteUser, "<Double-Button-1>":self.userDoubleClick})
         self.tvUsers.pack(fill=tk.BOTH)
-        addUserButton = ttk.Button(frameUsers, text="Add user manually", command=self.addUsersDialog)
+        addUserButton = CTkButton(frameUsers, text="Add user manually", command=self.addUsersDialog)
         addUserButton.pack(side="bottom")
-        frameComputers = ttk.Frame(self.moduleFrame)
+        frameComputers = CTkFrame(self.moduleFrame)
         self.tvComputers = ScrollableTreeview(
             frameComputers, ("IP", "Name", "Domain", "DC", "Admin count", "User count", "OS", "Signing", "SMBv1"), binds={"<Double-Button-1>":self.computerDoubleClick})
         self.tvComputers.pack(fill=tk.BOTH)
-        frameShares = ttk.Frame(self.moduleFrame)
+        frameShares = CTkFrame(self.moduleFrame)
         self.tvShares = ScrollableTreeview(
             frameShares, ("IP", "Share", "Flagged", "Size"))
         self.tvShares.pack(fill=tk.BOTH)
@@ -484,9 +485,9 @@ class ChildDialogAddUsers:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
         self.app.resizable(False, False)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
         self.rvalue = None
         self.parent = parent
@@ -531,9 +532,9 @@ class ChildDialogUser:
             parent: the tkinter parent view to use for this window construction.
             user_data: user from database
         """
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
         self.app.resizable(True, True)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.app.title("View user info")
         self.rvalue = None
         self.parent = parent
@@ -586,9 +587,9 @@ class ChildDialogComputer:
             parent: the tkinter parent view to use for this window construction.
             computer_data: computer from database
         """
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
         self.app.resizable(True, True)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.app.title("View user info")
         self.rvalue = None
         self.parent = parent
@@ -651,9 +652,9 @@ class ChildDialogConfigureADModule:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = tk.Toplevel(parent, bg="white")
+        self.app = CTkToplevel(parent, fg_color="white")
         self.app.resizable(True , True)
-        appFrame = ttk.Frame(self.app)
+        appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
         self.rvalue = None
         self.parent = parent
