@@ -7,6 +7,7 @@ from customtkinter import *
 import multiprocessing
 import threading
 import time
+from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.models.wave import Wave
 from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.application.dialogs.ChildDialogFileParser import ChildDialogFileParser
@@ -23,6 +24,7 @@ import re
 import socketio
 from bson import ObjectId
 from pollenisatorgui.core.components.logger_config import logger
+import tkinterDnD as dnd
 
 try:
     import git
@@ -102,10 +104,14 @@ class ScanManager:
     def startAutoscan(self):
         """Start an automatic scan. Will try to launch all undone tools."""
         apiclient = APIClient.getInstance()
+        
+        if len(self.workerTv.get_children()) == 0:
+            tk.messagebox.showwarning("No  worker found", "At least one worker is required to use the auto scan. \nAdd one with one of the button above.")
+            return
         workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()})
         workers = [w for w in workers]
         if len(workers) == 0:
-            tk.messagebox.showwarning("No selected worker found", "Check worker treeview to see if there are workers registered and double click on the disabled one to enable them")
+            tk.messagebox.showwarning("No selected worker found", "A worker exist but is not registered for this pentest. You might want to register it by double clicking on it or using the Use button.")
             return
         if self.settings.db_settings.get("include_all_domains", False):
             answer = tk.messagebox.askyesno(
@@ -195,27 +201,35 @@ class ScanManager:
             return
         apiclient = APIClient.getInstance()
         self.parent = parent
-        #self.parent.configure(onfiledrop=self.dropFile) # TODO reenable when customtkinter implements DnD
+        parentFrame = ttk.Frame(self.parent)
+        parentFrame.configure(onfiledrop=self.dropFile) 
         ### WORKER TREEVIEW : Which worker knows which commands
-        self.workerTv = ttk.Treeview(self.parent)
+        workerFrame = CTkFrame(parentFrame)
+        workerFrame.columnconfigure(0, weight=1)
+        self.workerTv = ttk.Treeview(workerFrame)
         self.workerTv['columns'] = ('workers')
         self.workerTv.heading("#0", text='Workers', anchor=tk.W)
         self.workerTv.column("#0", anchor=tk.W)
-        self.workerTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
+        self.workerTv.grid(row=0, column=0, sticky=tk.NSEW, padx=10, pady=10)
         self.workerTv.bind("<Double-Button-1>", self.OnWorkerDoubleClick)
         self.workerTv.bind("<Delete>", self.OnWorkerDelete)
-        btn_pane = CTkFrame(self.parent)
-        self.btn_setInclusion = CTkButton(btn_pane, text="Include/exclude selected worker", command=self.setWorkerInclusion)
-        self.btn_setInclusion.pack(padx=5, side=tk.RIGHT)
-        self.btn_ServerWorker = CTkButton(btn_pane, command=self.runWorkerOnServer, text="Start remote worker")
-        self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
+        btn_pane = FormPanel(row=0, column=1, sticky=tk.W+tk.E, grid=True)
+        pane = btn_pane.addFormPanel(row=0,column=0)
+        pane.addFormButton("Use/Stop using selected worker", callback=self.setWorkerInclusion, side=tk.LEFT)
+        pane.addFormHelper("Give / Remove the right for a worker to work for the current pentest", side=tk.LEFT)
+        pane = btn_pane.addFormPanel(row=1,column=0)
+        pane.addFormButton("Start remote worker",  callback=self.runWorkerOnServer, side=tk.LEFT)
+        pane.addFormHelper("Start a docker worker on the remote server", side=tk.LEFT)
         
         if git_available:
-            self.btn_docker_worker = CTkButton(btn_pane, command=self.launchDockerWorker, text="Start worker locally")
-            self.btn_docker_worker.pack(padx=5, side=tk.RIGHT)
-        self.btn_ServerWorker = CTkButton(btn_pane, command=self.registerAsWorker, text="Register as worker")
-        self.btn_ServerWorker.pack(padx=5, side=tk.RIGHT)
-        btn_pane.pack(side=tk.TOP, padx=10, pady=5)
+            pane = btn_pane.addFormPanel(row=2,column=0)
+            pane.addFormButton("Start worker locally", callback=self.launchDockerWorker, side=tk.LEFT)
+            pane.addFormHelper("Require git client and Docker, build the worker docker locally", side=tk.LEFT)
+        pane = btn_pane.addFormPanel(row=3,column=0)
+        pane.addFormButton("Use this computer", callback=self.registerAsWorker, side=tk.LEFT)
+        pane.addFormHelper("Use this computer as a worker", side=tk.LEFT)
+        btn_pane.constructView(workerFrame)
+        workerFrame.pack(side=tk.TOP, padx=10, pady=5)
         workers = apiclient.getWorkers()
         # for worker in workers:
         #     workername = worker["name"]
@@ -229,7 +243,7 @@ class ScanManager:
         #     except tk.TclError:
         #         pass
         #### TREEVIEW SCANS : overview of ongoing auto scan####
-        self.scanTv = ttk.Treeview(self.parent)
+        self.scanTv = ttk.Treeview(parentFrame)
         self.scanTv['columns'] = ('Tool', 'Started at')
         self.scanTv.heading("#0", text='Scans', anchor=tk.W)
         self.scanTv.column("#0", anchor=tk.W)
@@ -239,19 +253,22 @@ class ScanManager:
         # for running_scan in running_scans:
         #     self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
         #### BUTTONS FOR AUTO SCANNING ####
+        self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
+        self.image_import = CTkImage(Image.open(utils.getIcon("import.png")))
         if apiclient.getAutoScanStatus():
             self.btn_autoscan = CTkButton(
-                self.parent, text="Stop Scanning", command=self.stopAutoscan)
+                parentFrame, text="Stop Scanning", command=self.stopAutoscan)
             self.btn_autoscan.pack()
         else:
             self.btn_autoscan = CTkButton(
-                self.parent, text="Start Scanning", command=self.startAutoscan)
+                parentFrame, text="Start Scanning", image=self.image_auto, command=self.startAutoscan)
             self.btn_autoscan.pack()
         btn_parse_scans = CTkButton(
-            self.parent, text="Parse existing files", command=self.parseFiles)
+            parentFrame, text="Parse existing files", image=self.image_import, command=self.parseFiles)
         btn_parse_scans.pack(side="top",pady=10)
-        info = CTkLabel(self.parent, text="You can also drop your files / folder here")
+        info = CTkLabel(parentFrame, text="You can also drop your files / folder here")
         info.pack()
+        parentFrame.pack(expand=1, fill=tk.BOTH)
 
     def dropFile(self, event):
         # This function is called, when stuff is dropped into a widget
@@ -313,7 +330,7 @@ class ScanManager:
             parent = self.workerTv.parent(item)
             self.setUseForPentest(item)
     
-    def setWorkerInclusion(self):
+    def setWorkerInclusion(self, _event=None):
         items = self.workerTv.selection()
         for item in items:
             if "|" not in self.workerTv.item(item)["text"]: # exclude tools and keep worker nodes
@@ -405,7 +422,7 @@ class ScanManager:
         return x
 
 
-    def runWorkerOnServer(self):
+    def runWorkerOnServer(self, _event=None):
         apiclient = APIClient.getInstance()
         docker_name = apiclient.getDockerForPentest(apiclient.getCurrentPentest())
         dialog = ChildDialogProgress(self.parent, "Start docker", "Waiting for docker to boot 0/4", progress_mode="indeterminate")
@@ -440,7 +457,7 @@ class ScanManager:
     def is_local_launched(self, toolId):
         return self.local_scans.get(str(toolId), None) is not None
 
-    def registerAsWorker(self):
+    def registerAsWorker(self, _event=None):
         self.settings._reloadLocalSettings()
         self.sio = socketio.Client()
         apiclient = APIClient.getInstance()

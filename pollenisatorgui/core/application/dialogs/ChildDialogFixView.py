@@ -3,6 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+import pollenisatorgui.core.components.utils as utils
 
 class ChildDialogFixView:
     """

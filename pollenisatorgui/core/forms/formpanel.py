@@ -66,8 +66,12 @@ class FormPanel(Form):
                 self.panel.pack(fill=self.getKw("fill", "both"), side=self.getKw(
                     "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), expand=True, **self.kwargs)
         else:  # Master panel, packing
-            self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
-
+            is_grid = "row" in self.kwargs or "column" in self.kwargs
+            if not is_grid:
+                self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
+            else:
+                self.panel.grid(sticky=self.getKw("sticky", "NSEW"), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
+    
     def checkForm(self):
         """
         Check if this form is correctly filled. A panel is correctly filled if all subforms composing it are correctly filled.

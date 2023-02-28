@@ -1,16 +1,21 @@
 """Hold functions to interact with the settings"""
+import json
 import os
-import tkinter.ttk as ttk
-from customtkinter import *
 import tkinter as tk
 import tkinter.messagebox
-import json
-from pollenisatorgui.core.components.apiclient import APIClient, ErrorHTTP
+import tkinter.ttk as ttk
 from shutil import which
-from pollenisatorgui.core.views.viewelement import ViewElement
-from pollenisatorgui.core.forms.formpanel import FormPanel
+
+from customtkinter import *
+from PIL import Image
+
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
+from pollenisatorgui.core.components.apiclient import APIClient, ErrorHTTP
+from pollenisatorgui.core.forms.formpanel import FormPanel
+from pollenisatorgui.core.views.viewelement import ViewElement
+
+
 class Settings:
     """
     Represents the settings of pollenisator.
@@ -341,6 +346,8 @@ class Settings:
             self.reloadUI()
             return
         self.parent = parent
+        self.image_save = CTkImage(Image.open(utils.getIcon("save.png")))
+
         self.settingsFrame = ScrollableFrameXPlateform(parent)
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
@@ -453,7 +460,7 @@ class Settings:
         self.text_db_tags.grid(row=2, column=1, sticky=tk.W+tk.E, pady=10)
         lblframe_global_params.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
-        btn_save = CTkButton(parent, text="Save", command=self.on_ok)
+        btn_save = CTkButton(parent, text="Save", command=self.on_ok, image=self.image_save)
         btn_save.grid(row=3, column=0, padx=10, pady=10, sticky="s")
         self.settingsFrame.grid(column=0, row=0, sticky="nsew")
         #self.settingsFrame.pack(fill=tk.BOTH, expand=1)

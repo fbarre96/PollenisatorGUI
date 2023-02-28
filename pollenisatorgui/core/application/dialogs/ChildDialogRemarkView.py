@@ -6,7 +6,7 @@ from customtkinter import *
 from pollenisatorgui.core.views.remarkview import RemarkView
 from pollenisatorgui.core.controllers.remarkcontroller import RemarkController
 from pollenisatorgui.core.models.remark import Remark
-
+import pollenisatorgui.core.components.utils as utils
 
 class ChildDialogRemarkView:
     """

@@ -17,6 +17,7 @@ import tempfile
 from bson import ObjectId
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
+from PIL import Image
 
 class ActiveDirectory(Module):
     """
@@ -495,7 +496,8 @@ class ChildDialogAddUsers:
         panel = FormPanel()
         self.formtext = panel.addFormText("Users", r"^\S+\\\S+:\S+$", default="domain\\username:password", side="top")
         button_panel = panel.addFormPanel(side="bottom")
-        button_panel.addFormButton("Submit", self.onOk, side="right")
+        self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
+        button_panel.addFormButton("Submit", self.onOk, side="right", image=self.save_image)
         b = button_panel.addFormButton("Cancel", self.onError, side="right", 
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
@@ -684,7 +686,7 @@ class ChildDialogConfigureADModule:
                             ad_settings.get("commands", []), doubleClickBinds=[["Computer", "Share"], "", ""],
                             side="top", width=800,height=10, fill=tk.BOTH)
         button_panel = panel.addFormPanel(side="bottom")
-        button_panel.addFormButton("Submit", self.onOk, side="right")
+        button_panel.addFormButton("Submit", self.onOk, side="right",  image=self.save_image)
         button_panel.addFormButton("Cancel", self.onError, side="right", 
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")

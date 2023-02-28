@@ -71,7 +71,7 @@ class FormChecklist(Form):
             self.val.append(v1)
             chk = CTkCheckBox(container_frame, text=choice,
                                  variable=self.val[-1])
-            if chk.winfo_reqwidth() + accx >= 400:
+            if chk.winfo_reqwidth() + accx >= 400 and choice != self.choicesList[-1]:
                 container_frame.pack()
                 container_frame = CTkFrame(frame)
                 accx = 0

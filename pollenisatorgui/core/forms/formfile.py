@@ -47,6 +47,8 @@ class FormFile(Form):
         self.val = tk.StringVar()
         frame = CTkFrame(parent.panel)
         listboxframe = CTkFrame(frame)
+        listboxframe.grid_columnconfigure(0, weight=1)
+        listboxframe.grid_rowconfigure(0, weight=1)
         self.listbox = tk.Listbox(listboxframe, 
                               width=self.getKw("width", 20), height=self.getKw("height", 10), selectmode=tk.SINGLE, bg=utils.getBackgroundColor(), fg=utils.getTextColor())
         self.listbox.register_drop_target("*")
@@ -72,23 +74,23 @@ class FormFile(Form):
         self.scrolbarH.configure(command=self.listbox.xview)
         for d in self.default:
             self.listbox.insert("end", d)
-        listboxframe.pack(side="top", fill=tk.X, expand=1)
+        listboxframe.pack(side="top", fill=tk.X, expand=1, anchor=tk.CENTER)
         self.modes = self.getKw("mode", "file").split("|")
         btn_frame = CTkFrame(frame)
         info = CTkLabel(btn_frame, text="Or Drag and Drop")
-        info.pack(side="right", pady=5)
+        info.pack(side="right", pady=5,padx=5)
         if "file" in self.modes:
-            text = self.getKw("text", "add file")
+            text = self.getKw("text", "Add file")
             search_btn = CTkButton(
                 btn_frame, text=text, command=lambda :self.on_click(None, parent))
             search_btn.pack(side="right", pady=5)
         if "directory" in self.modes:
-            text = self.getKw("text", "add directory")
+            text = self.getKw("text", "Add directory")
             search_btn = CTkButton(
                 btn_frame, text=text, command=lambda :self.on_click_dir(None, parent))
             search_btn.pack(side="right", pady=5)
         
-        btn_frame.pack(side=tk.BOTTOM)
+        btn_frame.pack(side=tk.TOP, anchor=tk.CENTER)
         if parent.gridLayout:
             frame.grid(row=self.getKw("row", 0),
                        column=self.getKw("column", 0), **self.kwargs)

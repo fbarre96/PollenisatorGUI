@@ -213,6 +213,7 @@ class DefectView(ViewElement):
         settings = self.mainApp.settings
         settings.reloadSettings()
         self.delete_image = CTkImage(Image.open(utils.getIconDir()+'delete.png'))
+        self.edit_image = CTkImage(Image.open(utils.getIconDir()+'stylo.png'))
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         topPanel = globalPanel.addFormPanel(grid=True)
         row = 0
@@ -270,7 +271,7 @@ class DefectView(ViewElement):
             topPanel = globalPanel.addFormPanel()
             topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
             topPanel.addFormText("Description", r"", modelData.get("description", "Description"), side="top")
-            topPanel.addFormButton("Edit fixes", self.openFixesWindow)
+            topPanel.addFormButton("Edit fixes", self.openFixesWindo,  image=self.edit_image)
         else:
             topPanel.addFormHidden("Title", modelData.get("title", ""))
             topPanel.addFormHidden("Ease", modelData.get("ease", ""))

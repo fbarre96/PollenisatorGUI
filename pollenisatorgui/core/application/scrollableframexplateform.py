@@ -24,7 +24,7 @@ class ScrollableFrameXPlateform(CTkScrollableFrame):
         self.event_generate("<MouseWheel>", delta=count)
         
 
-    def boundToMousewheel(self, _event):
+    def boundToMousewheel(self, _event=None):
         """Called when the main view canvas is focused.
         Bind the command scrollbar button on linux to the main view canvas
         Args:
@@ -32,7 +32,7 @@ class ScrollableFrameXPlateform(CTkScrollableFrame):
         self.bind_all("<Button-5>", self._onMousewheel)
         self.bind_all("<Button-4>", self._onMousewheel)
 
-    def unboundToMousewheel(self, _event):
+    def unboundToMousewheel(self, _event=None):
         """Called when the main view canvas is unfocused.
         Unbind the command scrollbar button on linux to the main view canvas
         Args:

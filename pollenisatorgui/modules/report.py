@@ -11,7 +11,7 @@ from PIL import ImageTk, Image
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.models.defect import Defect
-from pollenisatorgui.core.components.utils import getIconDir, execute, openPathForUser
+import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
@@ -92,7 +92,12 @@ class Report(Module):
         self.parent = parent
         ### MAIN PAGE FRAME ###
         self.reportFrame = CTkScrollableFrame(parent)
-
+        self.image_add = CTkImage(Image.open(utils.getIcon("plus.png")))
+        self.image_del = CTkImage(Image.open(utils.getIcon("delete.png")))
+        self.image_edit = CTkImage(Image.open(utils.getIcon("stylo.png")))
+        self.image_docs = CTkImage(Image.open(utils.getIcon("documents.png")))
+        self.image_word = CTkImage(Image.open(utils.getIcon("word.png")))
+        self.image_ppt = CTkImage(Image.open(utils.getIcon("ppt.png")))
         ### DEFECT TABLE ###
         self.rowHeight = 20
         self.style = ttk.Style()
@@ -101,6 +106,7 @@ class Report(Module):
         self.remarksFrame = ttk.LabelFrame(self.reportFrame, text="Remarks table")	
         self.paned_remarks = tk.PanedWindow(self.remarksFrame, orient=tk.VERTICAL, height=900)	
         self.remarkframeTw = CTkFrame(self.paned_remarks)	
+        frameButtonsRemark = CTkFrame(self.remarkframeTw)
         self.remarks_treevw = ttk.Treeview(self.remarkframeTw, style='Report.Treeview', height=0)	
         self.remarks_treevw["columns"] = ["Title", "Type"]	
         self.remarks_treevw.heading("#0", text='Title', anchor=tk.W)	
@@ -116,15 +122,16 @@ class Report(Module):
         self.remarkframeTw.columnconfigure(0, weight=1)	
         self.remarkframeTw.rowconfigure(0, weight=1)	
         self.remarkframeTw.pack(side=tk.TOP, fill=tk.BOTH, pady=5, expand=1, padx=5)	
-        frameAllBelow = CTkFrame(self.paned_remarks)	
-        frameBtnRemarks = CTkFrame(frameAllBelow)	
         btn_addRemark = CTkButton(	
-            frameBtnRemarks, text="Add remark", command=self.addRemarkCallback)	
-        btn_addRemark.pack(side=tk.LEFT, pady=5)	
+            frameButtonsRemark, text="Add remark", image=self.image_add, command=self.addRemarkCallback)	
+        btn_addRemark.pack(side=tk.TOP, anchor=tk.CENTER, pady=5)	
         btn_delRemark = CTkButton(	
-            frameBtnRemarks, text="Remove selected", command=self.deleteSelectedRemarkItem)	
-        btn_delRemark.pack(side=tk.LEFT, pady=5)	
-        frameBtnRemarks.pack(side=tk.TOP)	
+            frameButtonsRemark, text="Remove selection", image=self.image_del, command=self.deleteSelectedRemarkItem,
+                                    fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")	
+        btn_delRemark.pack(side=tk.TOP, anchor=tk.CENTER, pady=5)	
+        frameButtonsRemark.grid(row=0, column=2, sticky=tk.W + tk.E)	
+        frameAllBelow = CTkFrame(self.paned_remarks)	
             
         # DEFECT TREEVW	
         defectLabelFrame = ttk.LabelFrame(frameAllBelow, text="Defects table")	
@@ -171,40 +178,43 @@ class Report(Module):
         self.frameTw.rowconfigure(0, weight=1)
         ### OFFICE EXPORT FRAME ###
         belowFrame = CTkFrame(self.paned)
-        frameBtn = CTkFrame(belowFrame)
+        frameBtn = CTkFrame(self.frameTw)
         #lbl_help = FormHelper("DefectHelper", "Use del to delete a defect, use Alt+Arrows to order them")
         #lbl_help.constructView(frameBtn)
-        self.buttonUpImage = CTkImage(Image.open(getIconDir()+'up-arrow.png'))
-        self.buttonDownImage = CTkImage(Image.open(getIconDir()+'down-arrow.png'))
+        self.buttonUpImage = CTkImage(Image.open(utils.getIcon("up-arrow.png")))
+        self.buttonDownImage = CTkImage(Image.open(utils.getIcon('down-arrow.png')))
         # use self.buttonPhoto
-        btn_down = CTkButton(frameBtn,  text = "", width=20, image=self.buttonDownImage, command=self.bDown)
+        frame_up_down = CTkFrame(frameBtn)
+        btn_down = CTkButton(frame_up_down,  text = "", width=20, image=self.buttonDownImage, command=self.bDown)
         btn_down.pack(side="left", anchor="center")
-        btn_up = CTkButton(frameBtn, text = "",  width=20, image=self.buttonUpImage, command=self.bUp)
+        btn_up = CTkButton(frame_up_down, text = "",  width=20, image=self.buttonUpImage, command=self.bUp)
         btn_up.pack(side="left", anchor="center")
+        frame_up_down.pack(side=tk.TOP, anchor=tk.CENTER)
         btn_delDefect = CTkButton(
-            frameBtn, text="Remove selection", command=self.deleteSelectedItem)
-        btn_delDefect.pack(side=tk.RIGHT, padx=5)
+            frameBtn, text="Remove selection", command=self.deleteSelectedItem, image=self.image_del, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
+        btn_delDefect.pack(side=tk.TOP, pady=5)
         btn_addDefect = CTkButton(
-            frameBtn, text="Add a security defect", command=self.addDefectCallback)
-        btn_addDefect.pack(side=tk.RIGHT, padx=5)
+            frameBtn, text="Add defect", image=self.image_add, command=self.addDefectCallback)
+        btn_addDefect.pack(side=tk.TOP, pady=5)
         
         btn_setMainRedactor = CTkButton(
-            frameBtn, text="Set main redactor", command=self.setMainRedactor)
-        btn_setMainRedactor.pack(side=tk.RIGHT, padx=5)
+            frameBtn, text="Set main redactor", command=self.setMainRedactor, image=self.image_edit)
+        btn_setMainRedactor.pack(side=tk.TOP, pady=5)
         btn_browseDefects = CTkButton(	
-	            frameBtn, text="Browse defects templates", command=self.browseDefectsCallback)	
-        btn_browseDefects.pack(side=tk.RIGHT, padx=5)
-        frameBtn.pack(side=tk.TOP, pady=5)
+	            frameBtn, text="Browse defects templates", image=self.image_docs, command=self.browseDefectsCallback)	
+        btn_browseDefects.pack(side=tk.TOP, pady=5)
+        frameBtn.grid(row=0, column=2, sticky=tk.W + tk.E)
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###
         informations_frame = CTkFrame(officeFrame)
         lbl_client = CTkLabel(informations_frame, text="Client's name :")
         lbl_client.grid(row=0, column=0, sticky=tk.E)
-        self.ent_client = CTkEntry(informations_frame)
+        self.ent_client = CTkEntry(informations_frame, width=200)
         self.ent_client.grid(row=0, column=1, sticky=tk.W)
         lbl_contract = CTkLabel(informations_frame, text="Contract's name :")
         lbl_contract.grid(row=1, column=0, sticky=tk.E)
-        self.ent_contract = CTkEntry(informations_frame)
+        self.ent_contract = CTkEntry(informations_frame, width=200)
         self.ent_contract.grid(row=1, column=1, sticky=tk.W)
 
         lbl_lang = CTkLabel(informations_frame, text="Lang :")
@@ -220,12 +230,12 @@ class Report(Module):
         lbl.grid(row=0, column=0, sticky=tk.E)
         self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models)
         self.combo_word.grid(row=0, column=1)
-        self.btn_template_photo = CTkImage(Image.open(os.path.join(getIconDir(), "download.png")))
+        self.btn_template_photo = CTkImage(Image.open(utils.getIcon("download.png")))
         btn_word_template_dl = CTkButton(templatesFrame, text="", width=40, image=self.btn_template_photo, command=self.downloadWordTemplate)
         btn_word_template_dl.grid(row=0, column=2, sticky=tk.W)
         btn_word = CTkButton(
-            templatesFrame, text="Generate Word report", command=self.generateReportWord)
-        btn_word.grid(row=0, column=3, sticky=tk.E)
+            templatesFrame, text="Generate", image=self.image_word, command=self.generateReportWord)
+        btn_word.grid(row=0, column=3, sticky=tk.E, padx=5)
         ### POWERPOINT EXPORT FRAME ###
         lbl = CTkLabel(templatesFrame,
                         text="Powerpoint template")
@@ -236,8 +246,8 @@ class Report(Module):
         btn_pptx_template_dl = CTkButton(templatesFrame,image=self.btn_template_photo,width=40, text="", command=self.downloadPptxTemplate)
         btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
         btn_ppt = CTkButton(
-            templatesFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint)
-        btn_ppt.grid(row=1, column=3, sticky=tk.E)
+            templatesFrame, text="Generate", image=self.image_ppt, command=self.generateReportPowerpoint)
+        btn_ppt.grid(row=1, column=3, sticky=tk.E, padx=5)
         templatesFrame.pack(side=tk.TOP,padx=10, pady=10, expand=1, anchor=tk.CENTER)
         officeFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)
         belowFrame.pack(side=tk.TOP, fill=tk.BOTH)
@@ -440,7 +450,8 @@ class Report(Module):
         """Sets a main redactor for a pentest. Each not assigned defect will be assigned to him/her"""
         self.settings.reloadSettings()
         dialog = ChildDialogCombo(self.parent, self.settings.getPentesters()+["N/A"], "Set main redactor", "N/A")
-        newVal = self.parent.wait_window(dialog.app)
+        self.parent.wait_window(dialog.app)
+        newVal = dialog.rvalue
         if newVal is None:
             return
         if not newVal or newVal.strip() == "":
@@ -651,7 +662,7 @@ class Report(Module):
         self.parent.wait_window(dialog.app)
         if dialog.rvalue != "Open":
             return
-        openPathForUser(path, folder_only=True)
+        utils.openPathForUser(path, folder_only=True)
 
     def update(self, dataManager, notif, obj, old_obj):
         if obj is None:
@@ -682,5 +693,5 @@ def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):
     else:
         tkinter.messagebox.showinfo(
             "Success", "The document was generated in "+str(msg))
-        openPathForUser(msg, folder_only=True)
+        utils.openPathForUser(msg, folder_only=True)
         

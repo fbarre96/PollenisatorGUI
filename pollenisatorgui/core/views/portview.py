@@ -1,6 +1,5 @@
 """View for port object. Handle node in treeview and present forms to user when interacted with."""
 
-import webbrowser
 from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
 from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.models.command import Command
@@ -8,8 +7,7 @@ from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
-from pollenisatorgui.core.components.apiclient import APIClient
-from tkinter import TclError
+import tkinter as tk
 import json
 import pollenisatorgui.core.components.utils as utils
 
@@ -54,6 +52,7 @@ class PortView(ViewElement):
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Port
         """
         modelData = self.controller.getData()
+        self.image_nav = tk.PhotoImage(file=utils.getIcon("internet.png"))
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormLabel("IP", row=0, column=0)
         top_panel.addFormStr(
@@ -69,7 +68,7 @@ class PortView(ViewElement):
             "Service", r"", modelData["service"], column=1, row=3)
         if "http" in modelData["service"]:
             top_panel.addFormButton(
-                "Open in browser", self.openInBrowser, column=2, row=3)
+                "Open in browser", self.openInBrowser, column=2, row=3, image=self.image_nav, style="icon.TButton")
         top_panel.addFormLabel("Product", row=4)
         top_panel.addFormStr("Product", r"", modelData["product"],  row=4, column=1)
         top_panel = self.form.addFormPanel()
@@ -147,7 +146,7 @@ class PortView(ViewElement):
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=nodeText, tags=self.controller.getTags(), image=self.getClassIcon())
-        except TclError:
+        except tk.TclError:
             pass
         if addChildren:
             defects = self.controller.getDefects()

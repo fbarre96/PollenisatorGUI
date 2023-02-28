@@ -172,8 +172,9 @@ class ViewElement(object):
         """
         pan = self.form.addFormPanel()
         self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
+        self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
         if editable:
-            pan.addFormButton("Submit", self.update)
+            pan.addFormButton("Submit", self.update, image=self.save_image)
             pan.addFormButton("Delete", self.delete, image=self.delete_image,
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
@@ -188,6 +189,8 @@ class ViewElement(object):
                         panTags = self.form.addFormPanel(pady=0)
                     s = ttk.Style(self.mainApp)
                     try: # CHECK IF COLOR IS VALID
+                        if color == "transparent":
+                            color = "white"
                         CTkLabel(self.mainApp, fg_color=color)
                     except tkinter.TclError as e:
                         #color incorrect
