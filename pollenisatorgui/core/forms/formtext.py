@@ -4,6 +4,7 @@ import tkinter as tk
 from customtkinter import *
 import pyperclip
 from pollenisatorgui.core.forms.form import Form
+import pollenisatorgui.core.components.utils as utils
 
 class FormText(Form):
     """
@@ -40,9 +41,7 @@ class FormText(Form):
             parent: the tkinter parent widget for the contextual menu
         """
         # FIXME Add to given menu instead of Overriding given contextual menu
-        self.contextualMenu = tk.Menu(parent, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D',
-                                      activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(parent)
         parent.bind("<Button-3>", self.popup)
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Cut", command=self.cut)
@@ -89,9 +88,8 @@ class FormText(Form):
             parent: parent FormPanel.
         """
         state = self.getKw("state", "normal")
-        background = "white" if state == "normal" else "light grey"
         self.text = CTkTextbox(
-            parent.panel, height=self.getKw("height", 200), width=self.getKw("width", 500), fg_color=background, border_width=1)
+            parent.panel, height=self.getKw("height", 200), width=self.getKw("width", 500),border_width=1, wrap="word")
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
         try:
@@ -132,7 +130,7 @@ class FormText(Form):
         Args:
             newval: the new value to be set inside the text
         """
-        state = self.text.cget("state")
+        state = self.text._textbox.cget("state")
         self.text.configure(state="normal")
         self.text.delete("1.0", "end")
         self.text.insert("1.0", self.sanitize(newval))
@@ -170,7 +168,7 @@ class FormText(Form):
         self.widgetMenuOpen = event.widget
         self.contextualMenu.tk_popup(event.x_root, event.y_root)
         self.contextualMenu.focus_set()
-        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Callback for focus out event. Destroy contextual menu

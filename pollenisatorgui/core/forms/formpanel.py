@@ -18,6 +18,7 @@ from pollenisatorgui.core.forms.formcheckbox import FormCheckbox
 from pollenisatorgui.core.forms.formswitch import FormSwitch
 from pollenisatorgui.core.forms.formhelper import FormHelper
 from pollenisatorgui.core.forms.formsearchbar import FormSearchBar
+from pollenisatorgui.core.forms.formseparator import FormSeparator
 
 from pollenisatorgui.core.forms.form import Form
 
@@ -50,9 +51,9 @@ class FormPanel(Form):
             parent: parent view or parent FormPanel.
         """
         if isinstance(parent, FormPanel):  # Panel is a subpanel
-            self.panel = CTkFrame(parent.panel)
+            self.panel = CTkFrame(parent.panel, fg_color=self.getKw("fg_color", None))
         else:
-            self.panel = CTkFrame(parent)
+            self.panel = CTkFrame(parent,  fg_color=self.getKw("fg_color", None))
         for form in self.subforms:
             form.constructView(self)
         if isinstance(parent, FormPanel):  # Panel is a subpanel
@@ -299,6 +300,18 @@ class FormPanel(Form):
             kwargs: keywords for FormButton
         """
         f = FormButton(name, callback, **kwargs)
+        self.subforms.append(f)
+        return f
+
+    def addFormSeparator(self,  **kwargs):
+        """
+        Add a form Button to this panel.
+
+        Args:
+            callback: a function that will be called when the button is pressed.
+            kwargs: keywords for FormButton
+        """
+        f = FormSeparator(**kwargs)
         self.subforms.append(f)
         return f
 

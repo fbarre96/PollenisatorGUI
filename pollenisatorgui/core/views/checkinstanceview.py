@@ -120,14 +120,13 @@ class CheckInstanceView(ViewElement):
             default_status = "todo"
         panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, row=0, column=1, pady=5)
         panel_top.addFormLabel("Description", row=1, column=0)
-        panel_top.addFormText("Description", r"", default=check_m.description, width=60, height=5, state="disabled", row=1, column=1, pady=5)
+        panel_top.addFormText("Description", r"", default=check_m.description, height=100, state="disabled", row=1, column=1, pady=5)
         panel_top.addFormLabel("Notes", row=2, column=0)
-        panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), width=60, height=5, row=2, column=1, pady=5)
+        panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
         panel_top.addFormLabel("Target", row=3, column=0)
-        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1)
+        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1, style="link.TButton", pady=5)
         
         if "commands" in check_m.check_type:
-            formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             from PIL import ImageTk, Image
 
             self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
@@ -140,49 +139,55 @@ class CheckInstanceView(ViewElement):
             lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
             lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
             lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
-            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
-            row=0
-            for tool_iid, tool_string in dict_of_tools_not_done.items():
-                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, infos={"iid":tool_iid})
-                formCommands.addFormButton("Execute", lambdas_not_done[row], row=row, column=1, image=self.buttonExecuteImage)
-                row+=1
-            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
-            row=0
-            for tool_iid, tool_string in dict_of_tools_running.items():
-                formCommands.addFormButton(tool_string, self.openToolDialog, row=row, column=0, infos={"iid":tool_iid})
-                formCommands.addFormButton("Peek", lambdas_running[row], row=row, column=1, image=self.buttonRunImage)
-                row+=1
-            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-            row=0
-            for tool_iid, tool_data in dict_of_tools_done.items():
-                tool_m = Tool(tool_data)
-                tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
-                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W, infos={"iid":tool_iid})
-                if tool_m.tags:
-                    for tag in tool_m.tags:
-                        registeredTags = Settings.getTags()
-                        keys = list(registeredTags.keys())
-                        column = 0
-                        item_no = 0
-                        
-                        s = ttk.Style(self.mainApp)
-                        color = registeredTags.get(tag, "white")
-                        try: # CHECK IF COLOR IS VALID
-                            CTkLabel(self.mainApp, fg_color=color)
-                        except tk.TclError as e:
-                            #color incorrect
-                            color = "white"
-                        s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
-                        tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0)
-                        column += 1
-                        item_no += 1
-                        if column == 4:
+            if dict_of_tools_not_done:
+                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+                row=0
+                for tool_iid, tool_string in dict_of_tools_not_done.items():
+                    formCommands.addFormSeparator(row=row, column=0, columnspan=3)
+                    formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0, style="link.TButton", infos={"iid":tool_iid})
+                    formCommands.addFormButton("Execute", lambdas_not_done[row], row=row*2+1, column=1, image=self.buttonExecuteImage)
+                    row+=1
+            if dict_of_tools_running:
+                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+                row=0
+                for tool_iid, tool_string in dict_of_tools_running.items():
+                    formCommands.addFormSeparator(row=row, column=0, columnspan=3)
+                    formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
+                    formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=1, image=self.buttonRunImage)
+                    row+=1
+            if dict_of_tools_done:
+                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
+                row=0
+                for tool_iid, tool_data in dict_of_tools_done.items():
+                    tool_m = Tool(tool_data)
+                    tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
+                    tool_panel.addFormSeparator(fill=tk.X)
+                    tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W,style="link.TButton", infos={"iid":tool_iid})
+                    if tool_m.tags:
+                        for tag in tool_m.tags:
+                            registeredTags = Settings.getTags()
+                            keys = list(registeredTags.keys())
                             column = 0
-                        if column == 0:
-                            tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
-                tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes, width=60, height=5, side=tk.LEFT)
-                tool_panel.addFormButton("Download", lambdas_done[row], image=self.buttonDownloadImage, side=tk.LEFT, anchor=tk.E)
-                row+=1
+                            item_no = 0
+                            
+                            s = ttk.Style(self.mainApp)
+                            color = registeredTags.get(tag, "gray97")
+                            try: # CHECK IF COLOR IS VALID
+                                CTkLabel(self.mainApp, fg_color=color)
+                            except tk.TclError as e:
+                                #color incorrect
+                                color = "gray97"
+                            s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
+                            tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0)
+                            column += 1
+                            item_no += 1
+                            if column == 4:
+                                column = 0
+                            if column == 0:
+                                tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
+                    tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT)
+                    tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, side=tk.LEFT, anchor=tk.E)
+                    row+=1
 
             #for command, status in infos.get("tools_status", {}).items():
         elif "script" in check_m.check_type:
@@ -228,7 +233,7 @@ class CheckInstanceView(ViewElement):
 
     def peekToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
-        dialog = ChildDialogRemoteInteraction(ToolController(tool_m))
+        dialog = ChildDialogRemoteInteraction(self.mainApp, ToolController(tool_m), self.mainApp.scanManager)
         dialog.app.wait_window(dialog.app)
         
 
@@ -301,8 +306,7 @@ class CheckInstanceView(ViewElement):
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = tk.Menu(self.appliViewFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+        self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
 
     def popup(self, event):
         """
@@ -314,7 +318,7 @@ class CheckInstanceView(ViewElement):
         self.widgetMenuOpen = event.widget
         self.menuContextuel.tk_popup(event.x_root, event.y_root)
         self.menuContextuel.focus_set()
-        #self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
+        self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """

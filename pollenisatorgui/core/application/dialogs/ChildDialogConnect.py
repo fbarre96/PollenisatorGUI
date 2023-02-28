@@ -169,7 +169,7 @@ class ChildDialogConnect:
         self.ent_port.bind('<Return>', self.validateHost)
         self.ent_port.bind('<KP_Enter>', self.validateHost)
         self.ent_port.grid(row=1, column=1)
-        self.img_indicator = CTkLabel(appFrame, text="", image=self.waitingIcon())
+        self.img_indicator = CTkLabel(appFrame, text="",image=self.waitingIcon())
         self.img_indicator.grid(row=1, column=2)
         self.var_https = tk.IntVar()
         lbl_https = CTkLabel(appFrame, text="https: ")

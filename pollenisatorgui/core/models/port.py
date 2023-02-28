@@ -6,7 +6,7 @@ from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.components.apiclient import APIClient
 from bson.objectid import ObjectId
-
+import webbrowser
 
 class Port(Element):
     """
@@ -166,3 +166,15 @@ class Port(Element):
         """
         return {"ip": self.ip, "port": self.port, "proto": self.proto,
                 "service": self.service, "product": self.product, "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+
+    def openInBrowser(self, _event=None):
+        """Callback for action open in browser
+        Args:
+            _event: nut used but mandatory
+        """
+        if self.service == "http":
+            webbrowser.open_new_tab(
+                "http://"+self.ip+":"+self.port)
+        else:
+            webbrowser.open_new_tab(
+                "https://"+self.ip+":"+self.port)

@@ -7,6 +7,7 @@ from pollenisatorgui.core.forms.form import Form
 import pyperclip
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
+import pollenisatorgui.core.components.utils as utils
 
 class FormTreevw(Form):
     """
@@ -49,9 +50,7 @@ class FormTreevw(Form):
         Args:
             parent: the tkinter parent widget for the contextual menu
         """
-        self.contextualMenu = tk.Menu(parent, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D',
-                                      activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(parent)
         parent.bind("<Button-3>", self.popup)
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Close", command=self.close)
@@ -84,7 +83,7 @@ class FormTreevw(Form):
         self.widgetMenuOpen = event.widget
         self.contextualMenu.tk_popup(event.x_root, event.y_root)
         self.contextualMenu.focus_set()
-        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Callback for focus out event. Destroy contextual menu
@@ -184,12 +183,18 @@ class FormTreevw(Form):
         Args:
             parent: parent FormPanel.
         """
+        from pollenisatorgui.core.components.settings import Settings
+
         self.tvFrame = CTkFrame(
             parent.panel, width=self.getKw("width", 600))
         self.treevw = ttk.Treeview(
             self.tvFrame, height=min(self.getKw("height", len(
                 self.default_values)+1), self.getKw("max_height", 10)))
-        self.treevw.tag_configure("odd", background='light gray')
+        settings = Settings()
+        if settings.is_dark_mode():
+            self.treevw.tag_configure("odd", background='dim gray')
+        else:
+            self.treevw.tag_configure("odd", background='light gray')
         self.scbVSel = CTkScrollbar(self.tvFrame,
                                      orientation=tk.VERTICAL,
                                      command=self.treevw.yview)
@@ -314,7 +319,7 @@ class FormTreevw(Form):
             except IndexError:
                 oldVal = ""
         if self.doubleClickBinds is None:
-            dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=False, width=100)
+            dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=True, width=100)
             self.tvFrame.wait_window(dialog.app)
             if dialog.rvalue is None:
                 return
@@ -324,7 +329,7 @@ class FormTreevw(Form):
             if binding is None:
                 return
             elif isinstance(binding, str):
-                dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=False, width=100)
+                dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=True, width=100)
                 self.tvFrame.wait_window(dialog.app)
                 if dialog.rvalue is None:
                     return

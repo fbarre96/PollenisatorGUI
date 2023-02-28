@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pyperclip
+import pollenisatorgui.core.components.utils as utils
 
 
 class FormStr(Form):
@@ -42,8 +43,7 @@ class FormStr(Form):
             parent: the tkinter parent widget for the contextual menu
         """
         # FIXME Add to given menu instead of Overriding given contextual menu
-        self.contextualMenu = tk.Menu(parent, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(parent)
         self.contextualMenu.add_command(
             label="Copy", command=self.copy)
         self.contextualMenu.add_command(
@@ -89,7 +89,7 @@ class FormStr(Form):
         self.widgetMenuOpen = event.widget
         self.contextualMenu.tk_popup(event.x_root, event.y_root)
         self.contextualMenu.focus_set()
-        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Callback for focus out event. Destroy contextual menu

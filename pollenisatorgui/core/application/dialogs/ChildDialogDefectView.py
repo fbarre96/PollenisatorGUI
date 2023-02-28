@@ -42,7 +42,6 @@ class ChildDialogDefectView(ChildDialogView):
         else:
             self.defect_vw.openModifyWindow(addButtons=True)
             self.completeDialogView(False)
-
     
     def okCallback(self, _event=None):
         """called when pressing the validating button

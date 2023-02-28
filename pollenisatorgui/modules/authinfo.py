@@ -4,6 +4,7 @@ import tkinter.messagebox
 import tkinter.ttk as ttk
 from customtkinter import *
 from bson.objectid import ObjectId
+import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.modules.module import Module
@@ -110,7 +111,7 @@ class AuthInfo(Module):
         frameTwUsers.grid(row=0, column=0, sticky=tk.NSEW, padx=5, pady=10)
         frameActions = CTkFrame(self.moduleFrame)
         self.text_add_users = CTkTextbox(
-            frameActions, font = ("Sans", 10))
+            frameActions, wrap="word")
         self.text_add_users.pack(side=tk.TOP, padx=10,pady=10,fill=tk.X)
         self.typeCombo = CTkComboBox(frameActions, values=("Cookie", "Password", "Hash"), state="readonly")
         self.typeCombo.set("Cookie")
@@ -169,8 +170,7 @@ class AuthInfo(Module):
         """
         Create a contextual menu
         """
-        self.contextualMenu = tk.Menu(parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(parentFrame)
         self.contextualMenu.add_command(
             label="Add Credentials", command=self.addCredentials)
         return self.contextualMenu
@@ -202,8 +202,8 @@ class ChildDialogAuthInfo:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = CTkToplevel(parent, fg_color="white")
-        self.app.title = "auth information"
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app.title("Auth information")
         self.app.resizable(False, False)
         appFrame = CTkFrame(self.app)
         self.rvalue = None
@@ -228,7 +228,9 @@ class ChildDialogAuthInfo:
         self.ok_button = CTkButton(appFrame, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
         self.ok_button.pack(padx=10, pady=5, side="right")
-        self.cancel_button = CTkButton(appFrame, text="Cancel", command=self.onError)
+        self.cancel_button = CTkButton(appFrame, text="Cancel", command=self.onError, 
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         self.cancel_button.pack(padx=10, pady=5, side="right")
         appFrame.pack(ipadx=10, ipady=5)
         try:

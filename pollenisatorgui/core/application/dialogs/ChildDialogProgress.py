@@ -18,7 +18,6 @@ class ChildDialogProgress:
             parent: the tkinter parent view to use for this window construction.
             title: Title for the new window
             msg: Message to display on the window to inform about a progession.
-            length: Length of the progress bar, default to 200
             progress_mode: mode of progression. Either "determinate" or "inderterminate". Default to the second.
                            indeterminate: bouncing progress bar.
                            determinate: Show progression of a value against a max value.
@@ -36,10 +35,11 @@ class ChildDialogProgress:
         self.show_logs = show_logs
         if self.show_logs:
             self.text_log = CTkTextbox(
-                appFrame, height=20, font = ("Sans", 10))
+                appFrame, height=20, wrap="word")
             self.text_log.pack(side=tk.BOTTOM, padx=10,pady=10,fill=tk.X)
         self.progressbar = CTkProgressBar(appFrame, orientation="horizontal",
                                            indeterminate_speed=speed, determinate_speed=speed, mode=progress_mode)
+        self.progressbar.set(0)
         self.progressbar.pack(side=tk.BOTTOM, padx=10, pady=10, fill=tk.X)
         appFrame.pack(fill=tk.BOTH)
         try:
@@ -60,6 +60,7 @@ class ChildDialogProgress:
         self.progressbar.start()
         self.app.update()
 
+
     def update(self, value=None, msg=None, log=None):
         """Update the progressbar and show progression value.
         Call this regularly if on inderminate mode.
@@ -74,10 +75,7 @@ class ChildDialogProgress:
                     print("Shutdown while loading...")
                     return
             elif self.mode == "determinate":
-                if value is None:
-                    self.progressbar.step()
-                else:
-                    self.progressbar.step()
+                self.progressbar.step()
             if msg is not None:
                 self.lbl.configure(text=str(msg))
             if self.show_logs and log is not None:

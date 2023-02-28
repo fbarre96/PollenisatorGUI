@@ -23,6 +23,8 @@ class ChildDialogToast(CTkToplevel):
                 - if x is defined, x position of the toast top left corner, else default to parent x +25 .
                 - if y is defined, y position of the toast top left corner, else default to parent botoom - 100.
         """
+        super().__init__()
+
         self.text = text
         self.parent = parent
         self.kwargs = kwargs
@@ -35,7 +37,6 @@ class ChildDialogToast(CTkToplevel):
         x += self.kwargs.get("x", self.parent.winfo_rootx() + 25)
         y += self.kwargs.get("y", (self.parent.winfo_rooty() + self.parent.winfo_reqheight() - 100))
         # creates a toplevel window
-        super().__init__()
         # Leaves only the label and removes the app window
         self.wm_overrideredirect(True)
         self.wm_geometry("+%d+%d" % (x, y))
@@ -52,9 +53,6 @@ class ChildDialogToast(CTkToplevel):
             self.timer_fade.start()
         try:
             self.wait_visibility()
-            self.transient(self.parent)
-            self.focus_force()
-            self.grab_set()
             self.lift()
         except tk.TclError:
             pass

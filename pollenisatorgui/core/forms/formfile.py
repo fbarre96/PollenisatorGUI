@@ -48,7 +48,7 @@ class FormFile(Form):
         frame = CTkFrame(parent.panel)
         listboxframe = CTkFrame(frame)
         self.listbox = tk.Listbox(listboxframe, 
-                              width=self.getKw("width", 20), height=self.getKw("height", 10), selectmode=tk.SINGLE)
+                              width=self.getKw("width", 20), height=self.getKw("height", 10), selectmode=tk.SINGLE, bg=utils.getBackgroundColor(), fg=utils.getTextColor())
         self.listbox.register_drop_target("*")
         self.listbox.bind('<<Drop:File>>', self.add_path_listbox)
         self.listbox.bind('<Delete>', self.delete_path_listbox)

@@ -8,7 +8,6 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import tkinter.ttk as ttk
 from customtkinter import *
-# TODO reenable with customtkinter import tkinterDnD
 import sys
 import os
 from tkinter import TclError
@@ -19,6 +18,7 @@ from PIL import ImageTk, Image
 import importlib
 import pkgutil
 import socketio
+from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.components.datamanager import DataManager
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.treeviews.PentestTreeview import PentestTreeview
@@ -41,8 +41,10 @@ from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.checkitemview import CheckItemView
+from pollenisatorgui.core.views.ipview import IpView
 import pollenisatorgui.modules
 import customtkinter
+import tkinterDnD
 
 class FloatingHelpWindow(CTkToplevel):
     """floating basic window with helping text inside
@@ -141,7 +143,7 @@ class AutocompleteEntry(CTkEntry):
         words = self.comparison()
         if words:
             if not self.lb_up:
-                self.lb = tk.Listbox(width=self.width)
+                self.lb = tk.Listbox(width=self.width, fg=utils.getTextColor(), bg=utils.getBackgroundColor())
                 self.lb.bind("<Double-Button-1>", self.selection)
                 self.lb.bind("<Right>", self.selection)
                 self.lb.bind("<Leave>", self.quit)
@@ -243,7 +245,7 @@ class ButtonNotebook(CTkFrame):
     def __init__(self, parent, callbackSwitch):
         super().__init__(parent)
         style = ttk.Style()
-        self.frameButtons = CTkFrame(self, fg_color=('#73D723','#73D723'))
+        self.frameButtons = CTkFrame(self, fg_color=('#113759'))
         self.callbackSwitch = callbackSwitch
         self.tabs = {}
         self.current = None
@@ -254,7 +256,7 @@ class ButtonNotebook(CTkFrame):
         if name not in self.tabs:
             self.tabs[name] = {"widget":widget, "image":image}
             widget.pack_forget()
-            btn = CTkButton(self.frameButtons, text=name, image=image, compound=tk.TOP)
+            btn = CTkButton(self.frameButtons, text=name, image=image,  fg_color='#113759' , hover_color=('#061b4e'), compound=tk.TOP)
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
             btn.pack(side="top", fill=tk.X, anchor="nw")
@@ -280,11 +282,29 @@ class ButtonNotebook(CTkFrame):
         self.callbackSwitch(name)
 
 
-class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkinterDnD
+class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdnd with CTk
     """
     Main tkinter graphical application object.
     """
     version_compatible = "1.5.*"
+
+    
+    def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
+        """Add the tkdnd package to the auto_path, and import it"""
+        #HACK Copied from directory with a package_dir updated
+        platform = master.tk.call("tk", "windowingsystem")
+
+        if platform == "win32":
+            folder = "windows"
+        elif platform == "x11":
+            folder = "linux"
+        elif platform == "aqua":
+            folder = "mac"
+        package_dir = os.path.join(os.path.dirname(os.path.abspath(tkinterDnD.tk.__file__)), folder)
+        master.tk.call('lappend', 'auto_path', package_dir)
+        TkDnDVersion = master.tk.call('package', 'require', 'tkdnd')
+        return TkDnDVersion
+
     def __init__(self):
         """
         Initialise the application
@@ -294,10 +314,10 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         # view frame : the frame in the tab that will hold forms.
         # Tree view : the tree on the left of the window.
         # frame tree view : a frame around the tree view (useful to attach a scrollbar to a treeview)
-        # canvas : a canvas object (useful to attach a scrollbar to a frame)
         # paned : a Paned widget is used to separate two other widgets and display a one over the other if desired
         #           Used to separate the treeview frame and view frame.
         super().__init__()
+        self.TkDnDVersion = self._init_tkdnd()  #HACK to make work tkdnd with CTk
         self.quitting = False
         self.settingViewFrame = None
         self.scanManager = None  #  Loaded when clicking on it if linux only
@@ -306,17 +326,19 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.nbk = None
         self.sio = None #socketio client
         self.initialized = False
-        utils.setStyle(self)
+        self.settings = Settings()
+
+        utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
         self.main_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_main.png"))
+            Image.open(utils.getIconDir()+"tab_main.png"), size=(30, 30))
         self.commands_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_commands.png"))
+            Image.open(utils.getIconDir()+"tab_commands.png"), size=(30, 30))
         self.scan_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_scan.png"))
+            Image.open(utils.getIconDir()+"tab_scan.png"), size=(30, 30))
         self.settings_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_settings.png"))
+            Image.open(utils.getIconDir()+"tab_settings.png"), size=(30, 30))
         self.admin_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_admin.png"))
+            Image.open(utils.getIconDir()+"tab_admin.png"), size=(30, 30))
         # HISTORY : Main view and command where historically in the same view;
         # This results in lots of widget here with a confusing naming style
         #### core components (Tab menu on the left objects)####
@@ -324,7 +346,7 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.openedViewFrameId = None
         self.mainPageFrame = None
         self.paned = None
-        self.canvasMain = None
+        self.proxyFrameMain = None
         self.viewframe = None
         self.frameTw = None
         self.treevw = None
@@ -334,7 +356,6 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.commandsPageFrame = None
         self.commandPaned = None
         self.commandsFrameTw = None
-        self.canvas = None
         self.commandsViewFrame = None
         self.myscrollbarCommand = None
         self.commandsTreevw = None
@@ -353,13 +374,12 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.minsize(width=400, height=400)
         self.resizable(True, True)
         self.title("Pollenisator")
-        self.geometry("1320x830")
+        self.geometry("1400x830")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
-        self.settings = Settings()
         self.datamanager = DataManager.getInstance()
         self.initModules()
         apiclient = APIClient.getInstance()
-        self.scanManager = ScanManager(self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
+        self.scanManager = ScanManager(self, self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
 
         apiclient.appli = self
         opened = self.openConnectionDialog()
@@ -450,7 +470,7 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         for name, module_class in REGISTRY.items():
             if name != "Module":
                 module_obj = module_class(self, self.settings)
-                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIconDir()+module_obj.iconName))})
+                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIconDir()+module_obj.iconName), size=(30, 30))})
         
     def loadModulesInfos(self):
         for module in self.modules:
@@ -545,12 +565,12 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         """
         Create the bar menu on top of the screen.
         """
-        menubar = tk.Menu(self, tearoff=0, bd=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        menubar = utils.craftMenuWithStyle(self)
         self.configure(menu=menubar)
 
         self.bind('<F5>', self.refreshView)
         self.bind('<Control-o>', self.promptPentestName)
-        fileMenu = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        fileMenu =  utils.craftMenuWithStyle(menubar)
         fileMenu.add_command(label="New", command=self.selectNewPentest)
         fileMenu.add_command(label="Open (Ctrl+o)",
                              command=self.promptPentestName)
@@ -574,7 +594,7 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
                              command=self.importDefectTemplates)                     
 
         fileMenu.add_command(label="Exit", command=self.onExit)
-        fileMenu2 = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        fileMenu2 = utils.craftMenuWithStyle(menubar)
         fileMenu2.add_command(label="Import existing tools results ...",
                               command=self.importExistingTools)
         fileMenu2.add_command(label="Reset unfinished tools",
@@ -583,11 +603,11 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
                               command=self.testLocalTools)
         fileMenu2.add_command(label="Refresh (F5)",
                               command=self.refreshView)
-        fileMenuUser = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        fileMenuUser = utils.craftMenuWithStyle(menubar)
         fileMenuUser.add_command(label="Change your password",
                               command=self.changeMyPassword)
         fileMenuUser.add_command(label="Disconnect", command=self.disconnect)
-        fileMenu3 = tk.Menu(menubar, tearoff=0, background='#73B723', foreground='white', activebackground='#73B723', activeforeground='white')
+        fileMenu3 = utils.craftMenuWithStyle(menubar)
         fileMenu3.add_command(label="Submit a bug or feature",
                               command=self.submitIssue)
         menubar.add_cascade(label="Database", menu=fileMenu)
@@ -629,8 +649,8 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         #PANED PART
         self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal", height=800)
         #RIGHT PANE : Canvas + frame
-        self.canvasMain = tk.Canvas(self.paned, bg="white")
-        self.viewframe = CTkFrame(self.canvasMain)
+        self.proxyFrameMain = CTkFrame(self.paned)
+        self.viewframe = ScrollableFrameXPlateform(self.proxyFrameMain)
         #LEFT PANE : Treeview
         self.frameTw = CTkFrame(self.paned)
         self.treevw = PentestTreeview(self, self.frameTw)
@@ -647,16 +667,9 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.paned.add(self.filtersFrame)
         # END PANE PREP
         self.paned.add(self.frameTw)
-        self.myscrollbarMain = CTkScrollbar(self.paned, orientation="vertical", command=self.canvasMain.yview)
-        self.myscrollbarMain.pack(side="right", fill=tk.BOTH)
-        self.canvasMain.bind('<Enter>', self.boundToMousewheelMain)
-        self.canvasMain.bind('<Leave>', self.unboundToMousewheelMain)
-        self.canvasMain.pack(side="left")
-        self.canvasMain.bind('<Configure>', self.resizeCanvasMainFrame)
-        self.canvas_main_frame = self.canvasMain.create_window((0, 0), window=self.viewframe, anchor='nw')
-        self.viewframe.bind("<Configure>", self.scrollFrameMainFunc)
-        self.canvasMain.configure(yscrollcommand=self.myscrollbarMain.set)
-        self.paned.add(self.canvasMain)
+        self.proxyFrameMain.pack(side="left")
+        self.viewframe.pack(side="left", expand=1, fill=tk.BOTH)
+        self.paned.add(self.proxyFrameMain)
         self.paned.pack(fill=tk.BOTH, expand=1)
         
         self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
@@ -673,82 +686,13 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.searchBar.icursor('end')
         return "break"
 
-    def boundToMousewheel(self, _event):
-        """Called when the **command canvas** is on focus.
-        Bind the command scrollbar button on linux to the command canvas
-        Args:
-            _event: not used but mandatory
-        """
-        if self.canvas is None:
-            return
-        self.canvas.bind_all("<Button-4>", self._onMousewheelCommand)
-        self.canvas.bind_all("<Button-5>", self._onMousewheelCommand)
-
-    def unboundToMousewheel(self, _event):
-        """Called when the **command canvas** is unfocused.
-        Unbind the command scrollbar button on linux to the command canvas
-        Args:
-            _event: not used but mandatory"""
-        if self.canvas is None:
-            return
-        self.canvas.unbind_all("<Button-4>")
-        self.canvas.unbind_all("<Button-5>")
-
-    def boundToMousewheelMain(self, _event):
-        """Called when the **main view canvas** is focused.
-        Bind the main view scrollbar button on linux to the main view canvas
-        Args:
-            _event: not used but mandatory"""
-        if self.canvas is None:
-            return
-        self.canvas.bind_all("<Button-4>", self._onMousewheelMain)
-        self.canvas.bind_all("<Button-5>", self._onMousewheelMain)
-
-    def unboundToMousewheelMain(self, _event):
-        """Called when the **main view canvas** is unfocused.
-        Unbind the main view scrollbar button on linux to the main view canvas
-        Args:
-            _event: not used but mandatory"""
-        self.canvasMain.unbind_all("<Button-4>")
-        self.canvasMain.unbind_all("<Button-5>")
-
-    def _onMousewheelMain(self, event):
-        """Called when a scroll occurs. boundToMousewheelMain must be called first.
-        Performs the scroll on the main canvas.
-        Args:
-            event: Holds info on scroll within event.delta and event.num"""
-        if event.num == 5 or event.delta == -120:
-            count = 1
-        if event.num == 4 or event.delta == 120:
-            count = -1
-        self.canvasMain.yview_scroll(count, "units")
-
-    def _onMousewheelCommand(self, event):
-        """Called when a scroll occurs. boundToMousewheel must be called first.
-        Performs the scroll on the command canvas.
-        Args:
-            event: Holds info on scroll within event.delta and event.num"""
-        if event.num == 5 or event.delta == -120:
-            count = 1
-        if event.num == 4 or event.delta == 120:
-            count = -1
-        if self.canvas is None:
-            return
-        self.canvas.yview_scroll(count, "units")
-
-    def scrollFrameMainFunc(self, _event):
-        """make the main canvas scrollable"""
-        self.canvasMain.configure(scrollregion=self.canvasMain.bbox("all"), width=20, height=200)
-
-    def scrollFrameFunc(self, _event):
-        """make the command canvas scrollable"""
-        if self.canvas is None:
-            return
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"), width=20, height=200)
+   
 
     def initFiltersFrame(self, frame):
         """Populate the filter frame with cool widgets"""
         form = FormPanel( pady=0, padx=0, fill="y")
+        hide_oos = self.settings.is_hide_oos()
+        self.check_hide_oos = form.addFormSwitch("OOS", "Hide Out Of Scope hosts", hide_oos, command=self.hideOOSSwap, pady=0, padx=0, side="top", anchor="w")
         checklistview = self.settings.is_checklist_view()
         self.check_checklistView = form.addFormSwitch("Checklist", "Checklist view", checklistview, command=self.checklistViewSwap, pady=0, padx=0, side="top", anchor="w")
         show_only_todo = self.settings.is_show_only_todo()
@@ -758,20 +702,43 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         
         form.constructView(frame)
 
+    def hideOOSSwap(self, event=None):
+        val = self.check_hide_oos.getValue()
+        self.settings.local_settings["hide_oos"] = val
+        self.settings.saveLocalSettings()
+        if val == 0:
+            self.unfilter("filter_oos")
+        else:
+            self.filter_oos()
+
     def checklistViewSwap(self, event=None):
         val = self.check_checklistView.getValue()
         self.settings.local_settings["checklist_view"] = val
         self.settings.saveLocalSettings()
         self.treevw.refresh()
+        self.filter_empty_nodes()
 
     def showTodoSwap(self, event=None):
         val = self.check_show_only_todo.getValue() 
         self.settings.local_settings["show_only_todo"] = val
         self.settings.saveLocalSettings()
         if val == 0:
+            self.unfilter("filter_empty")
             self.unfilter("filter_todo")
         else:
             self.filter_todo()
+
+    def filter_empty_nodes(self):
+        for key, values in self.treevw.views.items():
+            view = values["view"]
+            if not isinstance(view, CheckItemView):
+                continue
+            iid = view.controller.getDbId()
+            try:
+                if len(self.treevw.get_children(str(iid))) == 0:
+                    view.hide("filter_empty")
+            except tk.TclError:
+                pass
 
     def filter_todo(self):
         for values in self.treevw.views.values():
@@ -786,16 +753,27 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
                 status = "todo"
             if status != "todo":
                 view.hide("filter_todo")
+        self.filter_empty_nodes()
+    
+    def filter_oos(self):
+        for key, values in self.treevw.views.items():
+            view = values["view"]
+            if not isinstance(view, IpView):
+                continue
+            tags = self.treevw.item(key)["tags"]
+            if "OOS" in tags:
+                view.hide("filter_oos")
     
     def showManualSwap(self, event=None):
         val = self.check_show_only_manual.getValue() 
         self.settings.local_settings["show_only_manual"] = val
         self.settings.saveLocalSettings()
         if val == 0:
+            self.unfilter("filter_empty")
             self.unfilter("filter_manual")
         else:
             self.filter_manual()
-
+        
     def filter_manual(self):
         for values in self.treevw.views.values():
             view = values["view"]
@@ -803,6 +781,7 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
                 continue
             if view.controller.isAuto():
                 view.hide("filter_manual")
+        self.filter_empty_nodes()
     
     def unfilter(self, reason):
         self.treevw.unhide(reason)
@@ -812,18 +791,9 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.commandsPageFrame = CTkFrame(self.nbk)
         self.commandPaned = tk.PanedWindow(self.commandsPageFrame, height=800)
         self.commandsFrameTw = CTkFrame(self.commandPaned)
-        self.canvas = tk.Canvas(self.commandPaned, bg="white")
+        self.proxyFrameCommand = CTkFrame(self.commandPaned)
         self.commandsFrameTw.pack(expand=True)
-        self.commandsViewFrame = CTkFrame(self.canvas)
-        self.myscrollbarCommand = CTkScrollbar(self.commandPaned, orientation="vertical", command=self.canvas.yview)
-        self.myscrollbarCommand.pack(side="right", fill=tk.BOTH)
-        self.canvas.bind('<Enter>', self.boundToMousewheel)
-        self.canvas.bind('<Leave>', self.unboundToMousewheel)
-        self.canvas.bind('<Configure>', self.resizeCanvasFrame)
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.canvas_frame = self.canvas.create_window((0, 0), window=self.commandsViewFrame, anchor='nw')
-        self.commandsViewFrame.bind("<Configure>", self.scrollFrameFunc)
-        self.canvas.configure(yscrollcommand=self.myscrollbarCommand.set)
+        self.commandsViewFrame = ScrollableFrameXPlateform(self.proxyFrameCommand)
         self.commandsTreevw = CommandsTreeview(self, self.commandsFrameTw)
         scbVSel = CTkScrollbar(self.commandsFrameTw,
                                 orientation=tk.VERTICAL,
@@ -832,21 +802,12 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.commandsTreevw.grid(row=0, column=0, sticky=tk.NSEW)
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
         self.commandPaned.add(self.commandsFrameTw)
-        self.commandPaned.add(self.canvas)
+        self.commandsViewFrame.pack(fill=tk.BOTH, expand=1)
+        self.commandPaned.add(self.proxyFrameCommand)
         self.commandPaned.pack(fill=tk.BOTH, expand=1)
         self.commandsFrameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.commandsFrameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.nbk.add(self.commandsPageFrame, "Commands", image=self.commands_tab_img)
-
-    def resizeCanvasFrame(self, event):
-        if self.canvas is None:
-            return
-        canvas_width = event.width
-        self.canvas.itemconfig(self.canvas_frame, width=canvas_width)
-
-    def resizeCanvasMainFrame(self, event):
-        canvas_width = event.width
-        self.canvasMain.itemconfig(self.canvas_main_frame, width=canvas_width)
 
 
     def showSearchHelp(self, _event=None):
@@ -944,6 +905,7 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         self.after(50, lambda: self.paned.paneconfigure(self.filtersFrame, width=self.filtersFrame.winfo_reqwidth()))
 
         self.treevw.refresh()
+        self.filter_empty_nodes()
         # self.nbk.select("Main View")
 
     def quickSearchChanged(self, event=None):
@@ -983,9 +945,12 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
             name: not used but mandatory"""
         # get the index of the mouse click
         self.nbk.select("Main View")
+        self.search("\""+name+"\" in tags")
+
+    def search(self, filter_str):
         self.searchMode = True
         self.searchBar.delete(0, tk.END)
-        self.searchBar.insert(tk.END, "\""+name+"\" in tags")
+        self.searchBar.insert(tk.END, filter_str)
         self.newSearch(histo=False)
 
     def resetButtonClicked(self):
@@ -1384,7 +1349,7 @@ class Appli(customtkinter.CTk): # # TODO reenable with customtkinter import tkin
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser()
+        dialog = ChildDialogFileParser(self)
         self.wait_window(dialog.app)
 
     def detectFirstUse(self):

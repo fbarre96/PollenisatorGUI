@@ -51,7 +51,7 @@ class FormSearchBar(Form):
         values = []
         if self.default != "":
             values.append(self.default)
-        self.combo_search = CTkComboBox(frame, values=values, width=200, state="readonly")
+        self.combo_search = CTkComboBox(frame, values=values, width=200, command= self.postSelect, state="readonly")
         self.combo_search.bind('<<ComboboxSelected>>', self.postSelect)
         if self.default != "":
             self.combo_search.set(self.default)
@@ -85,7 +85,7 @@ class FormSearchBar(Form):
         list_choice = []
         for result in self._results:
             list_choice.append(result["TITLE"])
-        self.combo_search['values'] = list_choice
+        self.combo_search.configure(values=list_choice)
         if len(list_choice) > 0:
             self.combo_search.set(list_choice[0])
         if len(list_choice) == 1:

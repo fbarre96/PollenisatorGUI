@@ -33,8 +33,8 @@ class Terminal(Module):
             settings_text = "Setting trap command is OFF\ntype 'pollex <YOUR COMMAND with --args>' to execute it through pollenisator\n(plugins will autocomplete the output file and import it once done).\n You can enable the trap setting in the Settings to auto-import each commands without prepending pollex."
         frame = CTkFrame(parent)
         s = ttk.Style()
-        s.configure('big.TLabel', font=('Helvetica', 12), background="white")
-        lbl = CTkLabel(frame, image=self.img)
+        s.configure('big.TLabel', font=('Helvetica', 12), background="gray97")
+        lbl = CTkLabel(frame,text="", image=self.img)
         lbl.pack(anchor=tk.CENTER, side=tk.LEFT)
         lbl = CTkLabel(frame, text=settings_text)
         lbl.pack(anchor=tk.CENTER, side=tk.RIGHT)
@@ -66,8 +66,7 @@ class Terminal(Module):
         """
         Create a contextual menu
         """
-        self.contextualMenu = tk.Menu(parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(parentFrame)
         # self.contextualMenu.add_command(
         #     label="Attack from terminal", command=self.attackFromTerminal)
         return self.contextualMenu

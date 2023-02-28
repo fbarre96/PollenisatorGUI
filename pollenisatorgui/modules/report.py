@@ -51,7 +51,7 @@ class Report(Module):
         self.style = None
         self.treevw = None
         self.ent_client = None
-        
+        self.drag_toast = None
         self.ent_contract = None
         self.combo_word = None
         self.combo_pptx = None
@@ -91,7 +91,7 @@ class Report(Module):
         self.tkApp = tkApp
         self.parent = parent
         ### MAIN PAGE FRAME ###
-        self.reportFrame = CTkFrame(parent)
+        self.reportFrame = CTkScrollableFrame(parent)
 
         ### DEFECT TABLE ###
         self.rowHeight = 20
@@ -146,11 +146,11 @@ class Report(Module):
         self.treevw.heading('redactor', text='Redactor')
         self.treevw.column('redactor', anchor='center', width=20)
         self.treevw.tag_configure(
-            "Critical", background="black", foreground="white")
+            "Critical", background="black", foreground="gray97")
         self.treevw.tag_configure(
-            "Major", background="red", foreground="white")
+            "Major", background="red", foreground="gray97")
         self.treevw.tag_configure(
-            "Important", background="orange", foreground="white")
+            "Important", background="orange", foreground="gray97")
         self.treevw.tag_configure(
             "Minor", background="yellow", foreground="black")
         self.treevw.bind("<Double-Button-1>", self.OnDoubleClick)
@@ -177,9 +177,9 @@ class Report(Module):
         self.buttonUpImage = CTkImage(Image.open(getIconDir()+'up-arrow.png'))
         self.buttonDownImage = CTkImage(Image.open(getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
-        btn_down = CTkButton(frameBtn, image=self.buttonDownImage, command=self.bDown)
+        btn_down = CTkButton(frameBtn,  text = "", width=20, image=self.buttonDownImage, command=self.bDown)
         btn_down.pack(side="left", anchor="center")
-        btn_up = CTkButton(frameBtn, image=self.buttonUpImage, command=self.bUp)
+        btn_up = CTkButton(frameBtn, text = "",  width=20, image=self.buttonUpImage, command=self.bUp)
         btn_up.pack(side="left", anchor="center")
         btn_delDefect = CTkButton(
             frameBtn, text="Remove selection", command=self.deleteSelectedItem)
@@ -200,49 +200,45 @@ class Report(Module):
         informations_frame = CTkFrame(officeFrame)
         lbl_client = CTkLabel(informations_frame, text="Client's name :")
         lbl_client.grid(row=0, column=0, sticky=tk.E)
-        self.ent_client = CTkEntry(informations_frame, width=50)
+        self.ent_client = CTkEntry(informations_frame)
         self.ent_client.grid(row=0, column=1, sticky=tk.W)
         lbl_contract = CTkLabel(informations_frame, text="Contract's name :")
         lbl_contract.grid(row=1, column=0, sticky=tk.E)
-        self.ent_contract = CTkEntry(informations_frame, width=50)
+        self.ent_contract = CTkEntry(informations_frame)
         self.ent_contract.grid(row=1, column=1, sticky=tk.W)
 
         lbl_lang = CTkLabel(informations_frame, text="Lang :")
         lbl_lang.grid(row=2, column=0, sticky=tk.E)
-        self.combo_lang = CTkComboBox(informations_frame, values=self.langs, width=10)
+        self.combo_lang = CTkComboBox(informations_frame, values=self.langs)
         self.combo_lang.grid(row=2, column=1, sticky=tk.W)
         self.combo_lang.bind("<<ComboboxSelected>>", self.langChange)
         informations_frame.pack(side=tk.TOP, pady=10)
         ### WORD EXPORT FRAME ###
         templatesFrame = CTkFrame(officeFrame)
-        templatesFrame.grid_columnconfigure(2, minsize=70)
-        templatesFrame.grid_columnconfigure(3, minsize=300)
         lbl = CTkLabel(
             templatesFrame, text="Word template")
         lbl.grid(row=0, column=0, sticky=tk.E)
-        self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models, width=50)
+        self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models)
         self.combo_word.grid(row=0, column=1)
-        btn_word_template_dl = CTkButton(templatesFrame)
         self.btn_template_photo = CTkImage(Image.open(os.path.join(getIconDir(), "download.png")))
-        btn_word_template_dl.configure(image=self.btn_template_photo, command=self.downloadWordTemplate)
+        btn_word_template_dl = CTkButton(templatesFrame, text="", width=40, image=self.btn_template_photo, command=self.downloadWordTemplate)
         btn_word_template_dl.grid(row=0, column=2, sticky=tk.W)
         btn_word = CTkButton(
-            templatesFrame, text="Generate Word report", command=self.generateReportWord, width=30)
+            templatesFrame, text="Generate Word report", command=self.generateReportWord)
         btn_word.grid(row=0, column=3, sticky=tk.E)
         ### POWERPOINT EXPORT FRAME ###
         lbl = CTkLabel(templatesFrame,
                         text="Powerpoint template")
         lbl.grid(row=1, column=0, sticky=tk.E, pady=20)
         self.combo_pptx = CTkComboBox(
-            templatesFrame, values=self.pptx_models, width=50)
+            templatesFrame, values=self.pptx_models)
         self.combo_pptx.grid(row=1, column=1)
-        btn_pptx_template_dl = CTkButton(templatesFrame)
-        btn_pptx_template_dl.configure(image=self.btn_template_photo, command=self.downloadPptxTemplate)
+        btn_pptx_template_dl = CTkButton(templatesFrame,image=self.btn_template_photo,width=40, text="", command=self.downloadPptxTemplate)
         btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
         btn_ppt = CTkButton(
-            templatesFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint, width=30)
+            templatesFrame, text="Generate Powerpoint report", command=self.generateReportPowerpoint)
         btn_ppt.grid(row=1, column=3, sticky=tk.E)
-        templatesFrame.pack(side=tk.TOP, fill=tk.X, pady=10)
+        templatesFrame.pack(side=tk.TOP,padx=10, pady=10, expand=1, anchor=tk.CENTER)
         officeFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)
         belowFrame.pack(side=tk.TOP, fill=tk.BOTH)
         self.paned.add(self.frameTw)
@@ -311,7 +307,10 @@ class Report(Module):
         tv = event.widget
         if tv.identify_row(event.y) not in tv.selection():
             tv.selection_set(tv.identify_row(event.y))    
-            moving_item = tv.selection()[0]
+            try:
+                moving_item = tv.selection()[0]
+            except IndexError:
+                return # nothing selected
             moving_item = tv.item(moving_item)
             self.movingSelection = tv.identify_row(event.y)
             self.drag_toast = CTkLabel(self.parent, text=moving_item["text"])

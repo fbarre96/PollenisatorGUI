@@ -1,23 +1,23 @@
 {
   "CTk": {
-    "fg_color": ["white", "white"]
+    "fg_color": ["gray97", "gray17"]
   },
   "CTkToplevel": {
-    "fg_color": ["white", "white"]
+    "fg_color": ["gray97", "gray17"]
   },
   "CTkFrame": {
-    "corner_radius": 6,
+    "corner_radius": 0,
     "border_width": 0,
-    "fg_color": ["white", "gray17"],
-    "top_fg_color": ["white", "gray20"],
+    "fg_color": ["gray97", "gray17"],
+    "top_fg_color": ["gray97", "gray17"],
     "border_color": ["gray65", "gray28"]
   },
   "CTkButton": {
-    "corner_radius": 6,
+    "corner_radius": 9,
     "border_width": 0,
-    "fg_color": ["#73D723", "#2FA572"],
-    "hover_color": ["#73B723", "#106A43"],
-    "border_color": ["#3E454A", "#949A9F"],
+    "fg_color": ["#419f1e", "#2FA572"],
+    "hover_color": ["#63c93e", "#2FC572"],
+    "border_color": ["#419f1e", "#949A9F"],
     "text_color": ["gray98", "#DCE4EE"],
     "text_color_disabled": ["gray78", "gray68"]
   },
@@ -27,7 +27,7 @@
     "text_color": ["gray10", "#DCE4EE"]
   },
   "CTkEntry": {
-    "corner_radius": 6,
+    "corner_radius": 9,
     "border_width": 2,
     "fg_color": ["#F9F9FA", "#343638"],
     "border_color": ["#979DA2", "#565B5E"],
@@ -35,10 +35,10 @@
     "placeholder_text_color": ["gray52", "gray62"]
   },
   "CTkCheckbox": {
-    "corner_radius": 6,
+    "corner_radius": 9,
     "border_width": 3,
     "fg_color": ["#2CC985", "#2FA572"],
-    "border_color": ["#3E454A", "#949A9F"],
+    "border_color": ["#3E454A", "#2FC572"],
     "hover_color": ["#0C955A", "#106A43"],
     "checkmark_color": ["#DCE4EE", "gray90"],
     "text_color": ["gray10", "#DCE4EE"],
@@ -61,7 +61,7 @@
     "border_width_unchecked": 3,
     "fg_color": ["#2CC985", "#2FA572"],
     "border_color": ["#3E454A", "#949A9F"],
-    "hover_color":["#0C955A", "#106A43"],
+    "hover_color":["#0C955A", "#2FC572"],
     "text_color": ["gray10", "#DCE4EE"],
     "text_color_disabled": ["gray60", "gray45"]
   },
@@ -83,7 +83,7 @@
     "button_hover_color": ["#0C955A", "#106A43"]
   },
   "CTkOptionMenu": {
-    "corner_radius": 6,
+    "corner_radius": 9,
     "fg_color": ["#2cbe79", "#2FA572"],
     "button_color": ["#0C955A", "#106A43"],
     "button_hover_color": ["#0b6e3d", "#17472e"],
@@ -91,12 +91,12 @@
     "text_color_disabled": ["gray78", "gray68"]
   },
   "CTkComboBox": {
-    "corner_radius": 6,
+    "corner_radius": 9,
     "border_width": 2,
-    "fg_color": ["white", "#343638"],
-    "border_color": ["#979DA2", "#565B5E"],
-    "button_color": ["#979DA2", "#565B5E"],
-    "button_hover_color": ["#6E7174", "#7A848D"],
+    "fg_color": ["gray97", "#343638"],
+    "border_color": ["#419f1e", "#565B5E"],
+    "button_color": ["#419f1e", "#565B5E"],
+    "button_hover_color": ["#63c93e", "#7A848D"],
     "text_color": ["gray10", "#DCE4EE"],
     "text_color_disabled": ["gray50", "gray45"]
   },
@@ -108,20 +108,21 @@
     "button_hover_color": ["gray40", "gray53"]
   },
   "CTkSegmentedButton": {
-    "corner_radius": 6,
+    "corner_radius": 9,
     "border_width": 2,
     "fg_color": ["#979DA2", "gray29"],
     "selected_color": ["#2CC985", "#2FA572"],
     "selected_hover_color": ["#0C955A", "#106A43"],
     "unselected_color": ["#979DA2", "gray29"],
-    "unselected_hover_color": ["gray70", "gray41"],
+    "unselected_hover_color": ["gray70", "2FC572"],
     "text_color": ["gray98", "#DCE4EE"],
     "text_color_disabled": ["gray78", "gray68"]
   },
   "CTkTextbox": {
-    "corner_radius": 6,
-    "border_width": 0,
-    "fg_color": ["gray78", "gray23"],
+    "corner_radius": 9,
+    "border_width": 1,
+    "fg_color": ["gray92", "gray23"],
+    "text_color_disabled": ["gray78", "gray68"],
     "border_color": ["#979DA2", "#565B5E"],
     "text_color":["gray10", "#DCE4EE"],
     "scrollbar_button_color": ["gray55", "gray41"],
@@ -130,8 +131,9 @@
   "CTkScrollableFrame": {
     "label_fg_color": ["gray78", "gray23"]
   },
+  
   "DropdownMenu": {
-    "fg_color": ["gray90", "gray20"],
+    "fg_color": ["gray97", "gray20"],
     "hover_color": ["gray75", "gray28"],
     "text_color": ["gray10", "gray90"]
   },
@@ -152,4 +154,6 @@
       "weight": "normal"
     }
   }
+ 
+  
 }

@@ -10,7 +10,7 @@ from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.views.checkitemview import CheckItemView
 from pollenisatorgui.core.views.multicheckitemView import MultiCheckItemView
 from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemController
-
+import pollenisatorgui.core.components.utils as utils
 
 
 class CheatsheetTreeview(PollenisatorTreeview):
@@ -126,7 +126,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
         for checkitem in checkitems:
             checkitem_vw = CheckItemView(
                 self, self.viewFrame, self.appli, CheckItemController(checkitem))
-            checkitem_vw.addInTreeview()
+            checkitem_vw.addInTreeview(with_category=True)
 
             
     def deleteSelected(self, _event):
@@ -167,8 +167,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
         """
         Create the contextual menu
         """
-        self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.add_command(
             label="Sort children", command=self.sort)
         self.contextualMenu.add_command(

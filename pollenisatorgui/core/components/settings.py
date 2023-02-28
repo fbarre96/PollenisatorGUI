@@ -6,11 +6,11 @@ import tkinter as tk
 import tkinter.messagebox
 import json
 from pollenisatorgui.core.components.apiclient import APIClient, ErrorHTTP
-from shutil import Error, which
+from shutil import which
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.forms.formpanel import FormPanel
-
-
+import pollenisatorgui.core.components.utils as utils
+from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 class Settings:
     """
     Represents the settings of pollenisator.
@@ -47,6 +47,7 @@ class Settings:
         self.visual_search_show_hidden = None
         self.visual_search_exact_match = None
         self.visual_include_all_domains = None
+        self.visual_dark_mode = None
         #self.text_pentesters = None
         self.box_favorite_term = None
         self.text_terms = None
@@ -70,7 +71,7 @@ class Settings:
         """
         Returns tags defined in settings.
         Returns:
-            If none are defined returns {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"white"}
+            If none are defined returns {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"gray97"}
             otherwise returns a dict with defined key values
         """
         apiclient = APIClient.getInstance()
@@ -78,7 +79,7 @@ class Settings:
             cls.tags_cache = None
         if cls.tags_cache is not None and not onlyGlobal:
             return cls.tags_cache
-        cls.tags_cache = {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"white"}
+        cls.tags_cache = {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"gray97"}
         try:
             global_tags = apiclient.getSettings({"key": "tags"})
         except ErrorHTTP:
@@ -155,7 +156,9 @@ class Settings:
                 if which(term_name):
                     fav = term_name
         return fav
-
+    def is_hide_oos(self):
+        return self.local_settings.get("hide_oos", False)
+    
     def is_checklist_view(self):
         return self.local_settings.get("checklist_view", False)
 
@@ -167,6 +170,9 @@ class Settings:
 
     def isTrapCommand(self):
         return self.local_settings.get("trap_commands", False)
+
+    def is_dark_mode(self):
+        return self.local_settings.get("dark_mode", False)
 
     def setTrapCommand(self):
         self.local_settings["trap_commands"] = self.visual_trap_commands.get()
@@ -240,6 +246,8 @@ class Settings:
             self.local_settings.get("search_show_hidden", True))
         self.visual_search_exact_match.set(
             self.local_settings.get("search_exact_match", False))
+        self.visual_dark_mode.set(
+            self.local_settings.get("dark_mode", False))
         self.visual_trap_commands.set(self.local_settings.get("trap_commands", False))
         self.text_terms.delete('1.0', tk.END)
         terms_cmd = self.getTerms()
@@ -281,13 +289,7 @@ class Settings:
             buffer += tagName +" : "+ tagColor+"\n"
         self.text_db_tags.insert(
             tk.INSERT, buffer)
-        self.canvas.bind('<Enter>', self.boundToMousewheel)
-        self.canvas.bind('<Leave>', self.unboundToMousewheel)
-        self.canvas.update()
-        self.canvas.create_window((0, 0), window=self.settingsFrame, anchor='nw')
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.canvas.configure(yscrollcommand=self.myscrollbar.set)
-
+        
     def saveLocalSettings(self):
         """
         Save local settings to conf file
@@ -331,32 +333,6 @@ class Settings:
         self.saveLocalSettings()
         self.reloadUI()
 
-    def _onMousewheel(self, event):
-        """Scroll the settings canvas
-        Args:
-            event: scroll info filled when scroll event is triggered"""
-        if event.num == 5 or event.delta == -120:
-            count = 1
-        if event.num == 4 or event.delta == 120:
-            count = -1
-        self.canvas.yview_scroll(count, "units")
-
-    def boundToMousewheel(self, _event):
-        """Called when the main view canvas is focused.
-        Bind the command scrollbar button on linux to the main view canvas
-        Args:
-            _event: not used but mandatory"""
-        self.canvas.bind_all("<Button-4>", self._onMousewheel)
-        self.canvas.bind_all("<Button-5>", self._onMousewheel)
-
-    def unboundToMousewheel(self, _event):
-        """Called when the main view canvas is unfocused.
-        Unbind the command scrollbar button on linux to the main view canvas
-        Args:
-            _event: not used but mandatory"""
-        self.canvas.unbind_all("<Button-4>")
-        self.canvas.unbind_all("<Button-5>")
-
     def initUI(self, parent):
         """Create settings widgets and initialize them
         Args:
@@ -364,26 +340,25 @@ class Settings:
         if self.visual_include_all_domains is not None:  # Already built
             self.reloadUI()
             return
-        self.canvas = tk.Canvas(parent, bg="white")
-        self.settingsFrame = CTkFrame(self.canvas)
-        self.myscrollbar = CTkScrollbar(parent, orientation="vertical", command=self.canvas.yview)
-        self.myscrollbar.grid(column=1, row=0, sticky="ns")
-        
-        self.canvas.grid(column=0, row=0, sticky="nsew")
+        self.parent = parent
+        self.settingsFrame = ScrollableFrameXPlateform(parent)
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
 
         self.visual_include_all_domains = tk.BooleanVar()
+        self.visual_dark_mode = tk.BooleanVar()
         self.visual_include_domains_with_ip_in_scope = tk.BooleanVar()
         self.visual_include_domains_with_topdomain_in_scope = tk.BooleanVar()
         self.visual_search_show_hidden = tk.BooleanVar()
         self.visual_search_exact_match = tk.BooleanVar()
         self.visual_trap_commands = tk.BooleanVar()
-
+        chkbox_dark_mode = CTkSwitch(self.settingsFrame, text="Dark mode",
+                                                     variable=self.visual_dark_mode)
+        chkbox_dark_mode.pack(
+            padx=10, pady=10, side=tk.TOP, anchor=tk.W)
         lbl_domains = ttk.LabelFrame(
             self.settingsFrame, text="Discovered domains options:")
-        lbl_domains.pack(padx=10, pady=10, side=tk.TOP,
-                         anchor=tk.W, fill=tk.X, expand=tk.YES)
+        
         chkbox_include_domains_with_ip_in_scope = CTkSwitch(lbl_domains, text="Check if discovered subdomains ips are in scope",
                                                                   variable=self.visual_include_domains_with_ip_in_scope)
         chkbox_include_domains_with_ip_in_scope.pack(
@@ -397,27 +372,27 @@ class Settings:
                                                      variable=self.visual_include_all_domains)
         chkbox_include_all_domains.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
-        
+        lbl_domains.pack(padx=10, pady=10, side=tk.TOP,
+                         anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminals:")
         self.text_terms = CTkTextbox(
-            frame_term, height=4, width=130, font = ("Sans", 10))
+            frame_term,  wrap="word")
         self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
         chkbox_trap_commands = CTkSwitch(frame_term, text="Trap every command (instead of using pollex)", variable=self.visual_trap_commands)
         chkbox_trap_commands.pack(side=tk.TOP, pady=5)
         frame_fav_term = CTkFrame(frame_term)
         lbl_fav_term = CTkLabel(frame_fav_term, text="Favorite term:")
         lbl_fav_term.grid(row=0, column=0, sticky=tk.E, pady=5)
-        self.box_favorite_term = CTkComboBox(frame_fav_term, values=(self.getTerms()), state="readonly")
+        self.box_favorite_term = CTkComboBox(frame_fav_term, values=(self.getTerms()))
         self.box_favorite_term.grid(row=0, column=1, sticky=tk.W, pady=5)
         
       
         frame_fav_term.pack(padx=10, pady=10, side=tk.TOP,
                            anchor=tk.W, fill=tk.X, expand=tk.YES)
         frame_term.pack(padx=10, pady=10, side=tk.TOP,
-                           anchor=tk.W, fill=tk.X, expand=tk.YES)
+                           anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lbl_SearchBar = ttk.LabelFrame(self.settingsFrame, text="Search settings:")
-        lbl_SearchBar.pack(padx=10, pady=10, side=tk.TOP,
-                           anchor=tk.W, fill=tk.X, expand=tk.YES)
+        
         chkbox_search_show_hidden = CTkSwitch(lbl_SearchBar, text="Show hidden objects",
                                                     variable=self.visual_search_show_hidden)
         chkbox_search_show_hidden.pack(
@@ -426,16 +401,16 @@ class Settings:
                                                     variable=self.visual_search_exact_match)
         chkbox_search_exact_match.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
-
+        lbl_SearchBar.pack(padx=10, pady=10, side=tk.TOP,
+                           anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lblframe_pentest_params = ttk.LabelFrame(
             self.settingsFrame, text="Pentest parameters:")
-        lblframe_pentest_params.pack(
-            padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
+        
         lbl_pentest_type = CTkLabel(
             lblframe_pentest_params, text="Pentest type:")
         lbl_pentest_type.grid(row=0, column=0, sticky=tk.E)
         self.box_pentest_type = CTkComboBox(
-            lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()), state="readonly")
+            lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()))
         self.box_pentest_type.grid(row=1, column=1, sticky=tk.W)
         # self.text_pentesters = CTkTextbox(
         #     lblframe_pentest_params, height=3, font = ("Sans", 10))
@@ -443,42 +418,45 @@ class Settings:
         #     lblframe_pentest_params, text="Pentester names:")
         # lbl_pentesters.grid(row=2, column=0, sticky=tk.E)
         # self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
+        lblframe_pentest_params.pack(
+            padx=10, pady=10, side=tk.TOP, anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         form_pentesters_panel = CTkFrame(self.settingsFrame)
         self.form_pentesters = FormPanel(side=tk.TOP, fill=tk.X, pady=5)
         self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, self.form_pentesters, side=tk.TOP)
-        self.form_pentesters.addFormLabel("Pentesters added", side=tk.LEFT)
         self.pentesters_treevw = self.form_pentesters.addFormTreevw(
-            "Additional pentesters names", ["Additional pentesters names"], (""), height=30, width=200, pady=5, fill=tk.X, side=tk.RIGHT)
+            "Additional pentesters names", ["Additional pentesters names"], (""), height=20, width=100, pady=5, side=tk.LEFT)
         
         self.form_pentesters.constructView(form_pentesters_panel)
         form_pentesters_panel.pack(
-            padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
+            padx=10, pady=10, side=tk.TOP, anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lblframe_global_params = ttk.LabelFrame(
             self.settingsFrame, text="Other parameters:")
-        lblframe_global_params.pack(
-            padx=10, pady=10, side=tk.TOP, anchor=tk.W, fill=tk.X, expand=tk.YES)
+        lblframe_global_params.columnconfigure(1, weight=2)
         lbl_pentest_types = CTkLabel(
             lblframe_global_params, text="Pentests possible types:")
-        lbl_pentest_types.grid(row=0, column=0, sticky=tk.E)
+        lbl_pentest_types.grid(row=0, column=0, sticky=tk.E, pady=10, padx=5)
         self.text_pentest_types = CTkTextbox(
-            lblframe_global_params, height=6, font = ("Sans", 10))
-        self.text_pentest_types.grid(row=0, column=1, sticky=tk.W)
+            lblframe_global_params,  wrap="word")
+        self.text_pentest_types.grid(row=0, column=1, sticky=tk.W+tk.E, pady=10, padx=5)
         lbl_tags = CTkLabel(
             lblframe_global_params, text="Registered tags:")
-        lbl_tags.grid(row=1, column=0, sticky=tk.E)
+        lbl_tags.grid(row=1, column=0, sticky=tk.E, pady=10, padx=5)
         self.text_tags = CTkTextbox(
-            lblframe_global_params, height=6, font = ("Sans", 10))
-        self.text_tags.grid(row=1, column=1, sticky=tk.W)
+            lblframe_global_params,wrap="word")
+        self.text_tags.grid(row=1, column=1, sticky=tk.W+tk.E)
         lbl_db_tags = CTkLabel(
             lblframe_global_params, text="Pentest only tags:")
-        lbl_db_tags.grid(row=2, column=0, sticky=tk.E)
+        lbl_db_tags.grid(row=2, column=0, sticky=tk.E, pady=10, padx=5)
         self.text_db_tags = CTkTextbox(
-            lblframe_global_params, height=6, font = ("Sans", 10))
-        self.text_db_tags.grid(row=2, column=1, sticky=tk.W)
+            lblframe_global_params, wrap="word")
+        
+        self.text_db_tags.grid(row=2, column=1, sticky=tk.W+tk.E, pady=10)
+        lblframe_global_params.pack(
+            padx=10, pady=10, side=tk.TOP, anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         btn_save = CTkButton(parent, text="Save", command=self.on_ok)
         btn_save.grid(row=3, column=0, padx=10, pady=10, sticky="s")
-        self.settingsFrame.pack(fill=tk.BOTH, expand=1)
-
+        self.settingsFrame.grid(column=0, row=0, sticky="nsew")
+        #self.settingsFrame.pack(fill=tk.BOTH, expand=1)
         #self.reloadUI()
     def searchCallback(self, searchreq):
         apiclient = APIClient.getInstance()
@@ -492,6 +470,7 @@ class Settings:
         """Callback on click save button. loads some data and calls save.
         Args:
             parent: parent tkinter container widget"""
+        info = "Settings saved"
         self.db_settings["include_all_domains"] = self.visual_include_all_domains.get(
         ) == 1
         self.db_settings["include_domains_with_ip_in_scope"] = self.visual_include_domains_with_ip_in_scope.get(
@@ -515,6 +494,11 @@ class Settings:
         ) == 1
         self.local_settings["search_exact_match"] = self.visual_search_exact_match.get(
         ) == 1
+        old = self.local_settings.get("dark_mode", False)
+        self.local_settings["dark_mode"] = self.visual_dark_mode.get(
+        ) == 1
+        if old != self.local_settings["dark_mode"]:
+            info = "Dark mode changed. You need to restart the application to see the changes."
         self.local_settings["terms"] = [x.strip() for x in self.text_terms.get('1.0', tk.END).split("\n") if x.strip() != ""]
         self.local_settings["fav_term"] = self.box_favorite_term.get().strip()
         self.local_settings["trap_commands"] = self.visual_trap_commands.get() == 1
@@ -535,7 +519,7 @@ class Settings:
                     self.global_settings["tags"][line_splitted[0].strip()] = line_splitted[1].strip()
         self.save()
         tkinter.messagebox.showinfo(
-            "Settings", "Settings saved.")
+            "Settings", info)
 
     def getPentestType(self):
         """Return selected database pentest type.
@@ -557,4 +541,7 @@ class Settings:
         else:
             self._reloadDbSettings()
 
-            
+    
+        
+
+        

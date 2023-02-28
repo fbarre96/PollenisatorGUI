@@ -62,22 +62,24 @@ class FormChecklist(Form):
             frame.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), **self.kwargs)
         else:
             frame.pack(fill=self.getKw("fill", "x"), side=self.getKw("side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), **self.kwargs)
-        #frame = CTkFrame(parent.panel)
+        container_frame = CTkFrame(frame)
         accx = 0
         for choice in self.choicesList:
             v1 = tk.IntVar()
             if choice in self.default:
                 v1.set(1)
             self.val.append(v1)
-            chk = CTkCheckBox(frame, text=choice,
+            chk = CTkCheckBox(container_frame, text=choice,
                                  variable=self.val[-1])
             if chk.winfo_reqwidth() + accx >= 400:
-                frame = CTkFrame(parent.panel)
+                container_frame.pack()
+                container_frame = CTkFrame(frame)
                 accx = 0
             else:
                 accx += chk.winfo_reqwidth()
             self.checks.append(chk)
             chk.pack(side="left", anchor="w", padx=3)
+            container_frame.pack()
             if parent.gridLayout:
                 frame.grid(row=self.getKw("row", 0), column=self.getKw("column", 0))
             else:

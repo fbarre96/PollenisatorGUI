@@ -9,6 +9,7 @@ import tkinter.messagebox
 from tkinter import ttk
 from tkinter import TclError
 from customtkinter import *
+from PIL import Image
 import pollenisatorgui.core.components.utils as utils
 
 
@@ -104,7 +105,7 @@ class ViewElement(object):
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
             self.controller.doUpdate(form_values_as_dicts)
             if event is not None:
-                caller = event.widget
+                caller = event.widget.master
                 toast = ChildDialogToast(self.appliViewFrame, "Done" , x=caller.winfo_rootx(), y=caller.winfo_rooty()+caller.winfo_reqheight(), width=caller.winfo_reqwidth())
                 toast.show()
             return True, ""
@@ -170,9 +171,12 @@ class ViewElement(object):
             -Delete button that asks the user to delete the object with the delete function.
         """
         pan = self.form.addFormPanel()
+        self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
         if editable:
             pan.addFormButton("Submit", self.update)
-            pan.addFormButton("Delete", self.delete)
+            pan.addFormButton("Delete", self.delete, image=self.delete_image,
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
             if addTags:
                 registeredTags = settings.Settings.getTags()
                 keys = list(registeredTags.keys())
@@ -187,7 +191,7 @@ class ViewElement(object):
                         CTkLabel(self.mainApp, fg_color=color)
                     except tkinter.TclError as e:
                         #color incorrect
-                        color = "white"
+                        color = "gray97"
                     btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no],  side="left", padx=1, pady=0)
                     btn_tag.configure(fg_color=color, border_width=1, text_color="black")
                     column += 1

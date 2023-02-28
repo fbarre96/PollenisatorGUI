@@ -6,7 +6,6 @@ import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from PIL import Image, ImageTk
 from ttkwidgets import CheckboxTreeview
-from ttkwidgets import tooltips
 import re
 import importlib
 
@@ -38,14 +37,14 @@ class ScriptManager:
         self.file_tree.pack(fill=tk.BOTH, expand=True)
         btn_pane = CTkFrame(self.viewframe)
         if "execute" in whatfor:
-            self.execute_icone = CTkImage(file = utils.getIcon("execute.png"))
-            btn_execute = CTkButton(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts, tooltip="Execute all selected scripts")        
+            self.execute_icone = CTkImage(Image.open(utils.getIcon("execute.png")))
+            btn_execute = CTkButton(btn_pane, text="Execute", image=self.execute_icone, command=self.executedSelectedScripts)        
             btn_execute.pack(side=tk.RIGHT, padx=3, pady=5)
         elif "select" in whatfor:
-            btn_select = CTkButton(btn_pane, text="Select", command=self.returnSelection, tooltip="Choose selected script")        
+            btn_select = CTkButton(btn_pane, text="Select", command=self.returnSelection)        
             btn_select.pack(side=tk.RIGHT, padx=3, pady=5)
-        self.open_folder_icone = CTkImage(file = utils.getIcon("folder.png"))
-        btn_openPathForUser = CTkButton(btn_pane, text="Execute", image=self.open_folder_icone, command=self.openPathForUser, tooltip="Open scripts folder")        
+        self.open_folder_icone = CTkImage(Image.open(utils.getIcon("folder.png")))
+        btn_openPathForUser = CTkButton(btn_pane, text="Open folder", image=self.open_folder_icone, command=self.openPathForUser)        
         btn_openPathForUser.pack(side=tk.RIGHT, padx=3, pady=5)
         
         btn_pane.pack(fill=tk.X, side=tk.BOTTOM, anchor=tk.E)
@@ -84,7 +83,7 @@ class ScriptManager:
             widget.destroy()
         script_dir = ScriptManager.getScriptsDir()
         if self.__class__.folder_icon is None:
-            self.__class__.folder_icon = CTkImage(Image.open(utils.getIcon("folder.png")))
+            self.__class__.folder_icon = ImageTk.PhotoImage(file=utils.getIcon("folder.png"))
         parent = self.treevw.insert("", "end", " ", text="Scripts", image=self.__class__.folder_icon, open=True)
         self.treevw.focus(parent)
         self.treevw.selection_set(parent)

@@ -64,7 +64,8 @@ class RemarkView(ViewElement):
         topPanel = self.form.addFormPanel(grid=True)
         self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
-        topPanel.addFormStr("Title", r".+", "", column=2, width=50)
+        self.comboTypeForm.configure(command=self.updateImage)
+        topPanel.addFormStr("Title", r".+", "", column=2)
         topPanel.addFormText("Description", r".+", "description", row=2,column=2)
         if addButtons:
             self.completeInsertWindow()
@@ -89,9 +90,9 @@ class RemarkView(ViewElement):
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormSearchBar("Search Remark", APIClient.getInstance().searchRemark, topPanel, row=0, column=1, autofocus=False)
         self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]), row=1)
-        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, row=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage})
+        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, row=1, default=modelData["type"],command=self.updateImage, binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         topPanel.addFormStr(
-            "Title", r".+", modelData["title"], width=50, row=1, column=2)
+            "Title", r".+", modelData["title"],row=1, column=2)
         topPanel.addFormText("Description", r".+", "description", row=2,column=2)
         if addButtons:
             self.completeModifyWindow()

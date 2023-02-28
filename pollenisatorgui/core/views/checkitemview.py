@@ -88,34 +88,33 @@ class CheckItemView(ViewElement):
         lvls = apiclient.getTriggerLevels()
         panel_bottom.addFormLabel("Level", row=0, column=0)
         panel_bottom.addFormCombo(
-            "Level", lvls, default.get("lvl", "network"), row=0, column=1)
+            "Level", lvls, default.get("lvl", "network"), width=200, row=0, column=1)
         panel_bottom.addFormHelper(
             "lvl wave: will run on each wave once\nlvl network: will run on each NetworkIP once\nlvl domain: will run on each scope domain once\nlvl ip: will run on each ip/hostname once\nlvl port: will run on each port once", row=0, column=2)
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Ports/Services (if level is port only)")
         panel_bottom.addFormStr(
-            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", default.get("ports", ""), width=50, column=1)
+            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", default.get("ports", ""), column=1)
         panel_bottom.addFormHelper(
             "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
 
-        if default.get("parent") is None:
-            panel_bottom.addFormLabel("Category", row=1, column=0)
-            panel_bottom.addFormStr("Category", r"", default.get("category", ""), width=50, row=1, column=1)
+        panel_bottom.addFormLabel("Category", row=1, column=0)
+        panel_bottom.addFormStr("Category", r"", default.get("category", ""), row=1, column=1)
         panel = self.form.addFormPanel(grid=True)
         panel.addFormLabel("Priority")
         panel.addFormStr(
-            "Priority", r"\d+", default["priority"], width=5, column=1)
+            "Priority", r"\d+", default["priority"], width=40, column=1)
         panel.addFormHelper(
             "Defines the priority of this group of command when an auto scan is running.\nAutoscan will try to launch the highest priority (0 is max) and the highest+1.", column=2)
         
         panel_bottom = self.form.addFormPanel()
         panel_bottom.addFormLabel("Description")
-        panel_bottom.addFormText("Description", r"", default.get("description", ""), height=10, side="right")
+        panel_bottom.addFormText("Description", r"", default.get("description", ""), side="right")
         if "commands" in default.get("check_type", "manual"):
             formCommands = self.form.addFormPanel(grid=True)
             formCommands.addFormLabel("Shared threads")
             formCommands.addFormStr("Shared threads", r"\d+",
-                            default["max_thread"], width=2, column=1)
+                            default["max_thread"], width=40, column=1)
             panel.addFormHelper(
                 "Number of parallel execution allowed for every command in this group at any given moment.", column=2)
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
@@ -165,9 +164,9 @@ class CheckItemView(ViewElement):
         panel_top.addFormStr("Title", r".+", default=modelData.get("title", ""), column=1)
 
         self._commonWindowForms(modelData, action="modify")
-        if modelData.get("parent") is None:
-            self.form.addFormButton("Add a step", self.addStep)
-        self.completeModifyWindow()
+        #if modelData.get("parent") is None:
+            #self.form.addFormButton("Add a step", self.addStep)
+        self.completeModifyWindow(editable=True, addTags=False)
 
     def clearWindow(self):
         for widget in self.appliViewFrame.winfo_children():
@@ -192,7 +191,7 @@ class CheckItemView(ViewElement):
         self._commonWindowForms(data, action="insert")
         self.completeInsertWindow()
 
-    def addInTreeview(self, parentNode=None):
+    def addInTreeview(self, parentNode=None, with_category=False):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
@@ -200,7 +199,7 @@ class CheckItemView(ViewElement):
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
 
         if parentNode is None:
-            parentNode = self.getParentNode()
+            parentNode = self.getParentNode(with_category)
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
@@ -215,30 +214,31 @@ class CheckItemView(ViewElement):
                 self.hide("filter_manual")
             
 
-    def getParentNode(self):
+    def getParentNode(self, with_category=False):
         """
         Return the id of the parent node in treeview.
 
         Returns:
             return the saved command_node node inside the Appli class.
         """
-        category = self.controller.getCategory()
-        try:
-            self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.__class__.getClassIcon())
-        except tk.TclError:
-            pass
-        if hasattr(self.appliTw, "hide") and not self.mainApp.settings.is_checklist_view():
-            self.appliTw.hide(category, "checklist_view")
+        if with_category:
+            category = self.controller.getCategory()
+            try:
+                self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.__class__.getClassIcon())
+            except tk.TclError:
+                pass
+            if hasattr(self.appliTw, "hide") and not self.mainApp.settings.is_checklist_view():
+                self.appliTw.hide(category, "checklist_view")
+            return category
         parent = self.controller.getParent()
         if parent is not None and parent != "":
             return parent
         
-        return category
+        return "" # category
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = tk.Menu(self.appliViewFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+        self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
 
     def popup(self, event):
         """
@@ -250,7 +250,7 @@ class CheckItemView(ViewElement):
         self.widgetMenuOpen = event.widget
         self.menuContextuel.tk_popup(event.x_root, event.y_root)
         self.menuContextuel.focus_set()
-        #self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
+        self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """

@@ -15,6 +15,7 @@ from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.filter import Filter, ParseError
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
+import pollenisatorgui.core.components.utils as utils
 
 
 class PollenisatorTreeview(ttk.Treeview):
@@ -45,10 +46,14 @@ class PollenisatorTreeview(ttk.Treeview):
         datamanager = DataManager.getInstance().attach(self)
 
     def configureTags(self):
-        self.tag_configure('OOS', background="grey")
+        s = Settings()
+        oos_color = "gray30" if s.is_dark_mode() else "grey"
+        self.tag_configure('OOS', background=oos_color)
         self.tag_configure('known_command', background="spring green")
         tags = Settings.getTags()
         for tag, color in tags.items():
+            if color == "transparent":
+                continue
             try:
                 self.tag_configure(tag, background=color)
             except tk.TclError:
@@ -71,8 +76,7 @@ class PollenisatorTreeview(ttk.Treeview):
         """
         Create the contextual menu of variables
         """
-        self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.selection = None
         self.contextualMenu.add_command(
             label="Sort children", command=self.sort)
@@ -261,14 +265,13 @@ class PollenisatorTreeview(ttk.Treeview):
             # make sure to release the grab (Tk 8.0a1 only)
             self.contextualMenu.grab_release()
         self.contextualMenu.focus_set()
-        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Called when the contextual menu loses focus. Closes it.
         Args:
             _event: default to None
         """
-        print("popup closing :)")
         self.contextualMenu.unpost()
 
     def deleteSelected(self, _event):
@@ -407,12 +410,12 @@ class PollenisatorTreeview(ttk.Treeview):
             
             if reason in hidden[2]:
                 hidden[2].remove(reason)
+            
             elif reason == "*":
                 hidden[2] = []
             if len(hidden[2]) == 0:
                 try:
                     self.reattach(itemId, parentId, 0)
-                    
                     toDel.append(i)
                 except tk.TclError:
                     pass

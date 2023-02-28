@@ -4,13 +4,14 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.components.apiclient import APIClient
 import threading
+import pollenisatorgui.core.components.utils as utils
 
 class ChildDialogRemoteInteraction:
     """
     Open a child dialog of a tkinter application to show a text area.
     """
 
-    def __init__(self, toolController):
+    def __init__(self, parent, toolController, scanManager):
         """
         Open a child dialog of a tkinter application to ask details about
         existing files parsing.
@@ -18,20 +19,21 @@ class ChildDialogRemoteInteraction:
         Args:
             default_path: a default path to be added
         """
-        self.app = CTkToplevel(None, bg="white")
+        self.app = CTkToplevel(parent)
         self.app.protocol("WM_DELETE_WINDOW", self.onError)
         self.app.title("Remote interaction with "+str(toolController.getDetailedString()))
         self.toolController = toolController
         self.rvalue = None
         appFrame = CTkFrame(self.app)
-        self.text_area = tk.Text(self.app, font=("Consolas", 14), bg="#000000", fg="#00ff00")
+        self.text_area = CTkTextbox(appFrame, font=("Consolas", 14), width=800, height=600, fg_color="#000000", text_color="#00ff00")
         self.text_area.insert(tk.END, toolController.getDetailedString()+"\n"+str(toolController.getData().get("infos",{}).get("cmdline", ""))+"\n")
-        self.text_area.pack(fill="both", expand=True)     
+        self.text_area.pack(expand=True)     
         self.text_area.focus_force()
-        btn = CTkButton(self.app, text="Quit", command=self.onError)
-        btn.pack(side="bottom", anchor=tk.E)
+        btn = CTkButton(appFrame, text="Quit", command=self.onError)
+        btn.pack()
         self.app.bind("<Escape>", self.onError)
-        appFrame.pack(ipadx=10, ipady=10)
+        appFrame.pack(expand=True)
+        self.sm = scanManager
         self.timer = threading.Timer(0.5, self.getProgress)
         self.timer.start()
         try:
@@ -45,18 +47,25 @@ class ChildDialogRemoteInteraction:
     
     def getProgress(self):
         # Print the key that was pressed
-        apiclient = APIClient.getInstance()
-        result = apiclient.getToolProgress(str(self.toolController.getDbId()))
+        if self.sm.is_local_launched(str(self.toolController.getDbId())):
+            result = self.sm.getToolProgress(str(self.toolController.getDbId()))
+        else:
+            apiclient = APIClient.getInstance()
+            result = apiclient.getToolProgress(str(self.toolController.getDbId()))
         try:
             if isinstance(result, str):
-                self.text_area.insert(tk.END, result)
+                self.text_area.insert(tk.END, result.replace("\r","\n"))
             elif isinstance(result, bool) and result:
                 self.text_area.insert(tk.END, "Scan ended. You can quit and download result file.")
                 return True
+            elif isinstance(result, bytes):
+                self.text_area.insert(tk.END, result.decode("utf-8").replace("\r","\n"))
             else:
-                tk.messagebox.showerror("Could not get progress", result[1])
+                tk.messagebox.showerror("Could not get progress", result[1], parent=self.app)
+                self.onError()
                 return False
         except:
+            self.onError()
             return False
         self.timer = threading.Timer(2, self.getProgress)
         self.timer.start()

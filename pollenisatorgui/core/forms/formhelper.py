@@ -71,7 +71,7 @@ class FormHelper(Form):
         self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry("+%d+%d" % (x, y))
         label = CTkLabel(self.tw, text=self.text, justify='left',
-                         fg_color='light yellow')
+                         fg_color=('light yellow', 'saddle brown'))
         label.pack(ipadx=1)
 
     def close(self, _event=None):

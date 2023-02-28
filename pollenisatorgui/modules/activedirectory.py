@@ -485,7 +485,7 @@ class ChildDialogAddUsers:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = CTkToplevel(parent, fg_color="white")
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.resizable(False, False)
         appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
@@ -496,7 +496,9 @@ class ChildDialogAddUsers:
         self.formtext = panel.addFormText("Users", r"^\S+\\\S+:\S+$", default="domain\\username:password", side="top")
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Submit", self.onOk, side="right")
-        b = button_panel.addFormButton("Cancel", self.onError, side="right")
+        b = button_panel.addFormButton("Cancel", self.onError, side="right", 
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         b.configure(style="Close.Titlebar.TButton")
         panel.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=5)
@@ -532,7 +534,7 @@ class ChildDialogUser:
             parent: the tkinter parent view to use for this window construction.
             user_data: user from database
         """
-        self.app = CTkToplevel(parent, fg_color="white")
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.resizable(True, True)
         appFrame = CTkFrame(self.app)
         self.app.title("View user info")
@@ -587,7 +589,7 @@ class ChildDialogComputer:
             parent: the tkinter parent view to use for this window construction.
             computer_data: computer from database
         """
-        self.app = CTkToplevel(parent, fg_color="white")
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.resizable(True, True)
         appFrame = CTkFrame(self.app)
         self.app.title("View user info")
@@ -652,7 +654,7 @@ class ChildDialogConfigureADModule:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = CTkToplevel(parent, fg_color="white")
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.resizable(True , True)
         appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
@@ -683,7 +685,9 @@ class ChildDialogConfigureADModule:
                             side="top", width=800,height=10, fill=tk.BOTH)
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Submit", self.onOk, side="right")
-        button_panel.addFormButton("Cancel", self.onError, side="right")
+        button_panel.addFormButton("Cancel", self.onError, side="right", 
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         panel.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=5, fill=tk.BOTH, expand=tk.TRUE)
         try:

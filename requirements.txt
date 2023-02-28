@@ -12,5 +12,5 @@ docker
 GitPython
 python-socketio
 ttkwidgets
-python-tkdnd
 watchdog
+customtkinter

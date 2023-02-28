@@ -1,6 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+import pollenisatorgui.core.components.utils as utils
+from pollenisatorgui.core.components.settings import Settings
 import pyperclip
 
 
@@ -16,8 +18,11 @@ class ScrollableTreeview(CTkFrame):
         self.pagePanel = None
         self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=kwargs.get("height", 10))
         self.treevw['columns'] = columns
-        self.treevw.tag_configure("odd", background='light gray')
-        self.treevw.tag_configure("known_command", background='spring green')
+        settings = Settings()
+        if settings.is_dark_mode():
+            self.treevw.tag_configure("odd", background='dim gray')
+        else:
+            self.treevw.tag_configure("odd", background='light gray')
         lbl = CTkLabel(self)
         self.f = tk.font.Font(lbl, "Sans", bold=True, size=10)
         self.columnsLen = [self.f.measure(column) for column in self.columns]
@@ -53,10 +58,10 @@ class ScrollableTreeview(CTkFrame):
                 widget.grid_forget()
             self.pagePanel.forget()
         self.pagePanel = CTkFrame(self)
-        btn = CTkLabel(self.pagePanel, text="<<")
+        btn = ttk.Label(self.pagePanel, text="<<", style="Pagination.TLabel")
         btn.bind('<Button-1>', lambda event:self.goToPage("first"))
         btn.grid(padx=3)
-        btn = CTkLabel(self.pagePanel, text="<")
+        btn = ttk.Label(self.pagePanel, text="<", style="Pagination.TLabel")
         btn.bind('<Button-1>', lambda event:self.goToPage("previous"))
         btn.grid(row=0, column=1, padx=3)
         col = 2
@@ -64,18 +69,18 @@ class ScrollableTreeview(CTkFrame):
         i = start 
         while i <= self.lastPage and i <= start + 5:
             if i == self.currentPage:
-                btn = CTkLabel(self.pagePanel, text=str(i))
+                btn = ttk.Label(self.pagePanel, text=str(i), style="CurrentPagination.TLabel")
                 btn.grid(column=col,row=0, padx=3)
             else:
-                btn = CTkLabel(self.pagePanel, text=str(i))
+                btn = ttk.Label(self.pagePanel, text=str(i), style="Pagination.TLabel")
                 btn.bind('<Button-1>', lambda event:self.goToPage(event))
                 btn.grid(column=col,row=0, padx=3)
             col +=1
             i += 1
-        btn = CTkLabel(self.pagePanel, text=">")
+        btn = ttk.Label(self.pagePanel, text=">", style="Pagination.TLabel")
         btn.bind('<Button-1>', lambda event:self.goToPage("next"))
         btn.grid(row=0, column=col, padx=3)
-        btn = CTkLabel(self.pagePanel, text=">>")
+        btn = ttk.Label(self.pagePanel, text=">>", style="Pagination.TLabel")
         btn.bind('<Button-1>', lambda event:self.goToPage("last"))
         btn.grid(row=0, column=col+1, padx=3)
         self.pagePanel.grid(row=2, column=0)
@@ -134,9 +139,7 @@ class ScrollableTreeview(CTkFrame):
         Args:
             parent: the tkinter parent widget for the contextual menu
         """
-        self.contextualMenu = tk.Menu(parent, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D',
-                                      activeforeground='white')
+        self.contextualMenu = utils.craftMenuWithStyle(parent)
         parent.bind("<Button-3>", self.popup)
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Close", command=self.close)
@@ -179,7 +182,7 @@ class ScrollableTreeview(CTkFrame):
         self.widgetMenuOpen = event.widget
         self.contextualMenu.tk_popup(event.x_root, event.y_root)
         self.contextualMenu.focus_set()
-        #self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """Callback for focus out event. Destroy contextual menu

@@ -8,6 +8,8 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.modules.module import Module
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.application.treeviews.CheatsheetTreeview import CheatsheetTreeview
+import pollenisatorgui.core.components.utils as utils
+from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 
 class Cheatsheet(Module):
     iconName = "tab_cheatsheet.png"
@@ -52,14 +54,6 @@ class Cheatsheet(Module):
         Display loaded data in treeviews
         """
         self.treevw.load()
-    
-    def resizeCanvasMainFrame(self, event):
-        canvas_width = event.width
-        self.canvasMain.itemconfig(self.canvas_main_frame, width=canvas_width)
-
-    def scrollFrameMainFunc(self, _event):
-        """make the main canvas scrollable"""
-        self.canvasMain.configure(scrollregion=self.canvasMain.bbox("all"), width=20, height=200)
 
     def initUI(self, parent, nbk, treevw, tkApp):
         """
@@ -76,8 +70,9 @@ class Cheatsheet(Module):
         #PANED PART
         self.paned = tk.PanedWindow(self.moduleFrame, height=800)
         #RIGHT PANE : Canvas + frame
-        self.canvasMain = tk.Canvas(self.paned, bg="white")
-        self.viewframe = CTkFrame(self.canvasMain)
+        
+        self.container = CTkFrame(self.paned) # proxy for ScrollableFrame which can't be added to panedWindow
+        self.viewframe = ScrollableFrameXPlateform(self.container)
         #LEFT PANE : Treeview
         self.frameTw = CTkFrame(self.paned)
         self.treevw = CheatsheetTreeview(
@@ -93,51 +88,13 @@ class Cheatsheet(Module):
         scbVSel.grid(row=0, column=1, sticky=tk.NS)
         btn_add_check.grid(row=1, column=0, sticky=tk.S)
         self.paned.add(self.frameTw)
-        self.myscrollbarMain = CTkScrollbar(self.paned, orientation="vertical", command=self.canvasMain.yview)
-        self.myscrollbarMain.pack(side="right", fill=tk.BOTH)
-        self.canvasMain.bind('<Enter>', self.boundToMousewheelMain)
-        self.canvasMain.bind('<Leave>', self.unboundToMousewheelMain)
-        self.canvasMain.pack(side="left")
-        self.canvasMain.bind('<Configure>', self.resizeCanvasMainFrame)
-        self.canvas_main_frame = self.canvasMain.create_window((0, 0), window=self.viewframe, anchor='nw')
-        self.viewframe.bind("<Configure>", self.scrollFrameMainFunc)
-        self.canvasMain.configure(yscrollcommand=self.myscrollbarMain.set)
-        self.paned.add(self.canvasMain)
+        self.viewframe.pack(fill=tk.BOTH, expand=1)
+        self.paned.add(self.container)
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        
         self.moduleFrame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
-    def boundToMousewheelMain(self, _event):
-        """Called when the **main view canvas** is focused.
-        Bind the main view scrollbar button on linux to the main view canvas
-        Args:
-            _event: not used but mandatory"""
-        if self.canvasMain is None:
-            return
-        self.canvasMain.bind_all("<Button-4>", self._onMousewheelMain)
-        self.canvasMain.bind_all("<Button-5>", self._onMousewheelMain)
-        
-    def _onMousewheelMain(self, event):
-        """Called when a scroll occurs. boundToMousewheelMain must be called first.
-        Performs the scroll on the main canvas.
-        Args:
-            event: Holds info on scroll within event.delta and event.num"""
-        if event.num == 5 or event.delta == -120:
-            count = 1
-        if event.num == 4 or event.delta == 120:
-            count = -1
-        self.canvasMain.yview_scroll(count, "units")
-
-    def unboundToMousewheelMain(self, _event):
-        """Called when the **main view canvas** is unfocused.
-        Unbind the main view scrollbar button on linux to the main view canvas
-        Args:
-            _event: not used but mandatory"""
-        self.canvasMain.unbind_all("<Button-4>")
-        self.canvasMain.unbind_all("<Button-5>")
-     
     def onCheatsheetDelete(self, event):
         """Callback for a delete key press on a worker.
         Force deletion of worker
@@ -149,7 +106,6 @@ class Cheatsheet(Module):
         apiclient.bulkDelete({"cheatsheet":selected}) 
 
     def createCheck(self, event=None):
-
         self.treevw.openInsertWindow(CheckItem())
 
     def update(self, dataManager, notif, obj, old_obj):

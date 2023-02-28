@@ -3,47 +3,12 @@ import tkinter.ttk as ttk
 from customtkinter import *
 import tkinter as tk
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
+from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.models.ip import Ip
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.modules.module import Module
-
-
-class ScrollFrame(tk.Frame):
-    """A scrollable frame using canvas"""
-
-    def __init__(self, parent):
-        """Constructor"""
-        super().__init__(parent)  # create a frame (self)
-        # place canvas on self
-        self.canvas = tk.Canvas(self, borderwidth=0, background="#ffffff")
-        # place a frame on the canvas, this frame will hold the child widgets
-        self.viewPort = tk.Frame(self.canvas, background="#ffffff")
-        # place a scrollbar on self
-        self.vsb = CTkScrollbar(self, orientation="vertical",
-                                command=self.canvas.yview)
-        # attach scrollbar action to scroll of canvas
-        self.canvas.configure(yscrollcommand=self.vsb.set)
-        self.canvas.bind("<MouseWheel>", self._on_mousewheel)
-        # pack scrollbar to right of self
-        self.vsb.pack(side="right", fill="y")
-        # pack canvas to left of self and expand to fil
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.canvas.create_window((4, 4), window=self.viewPort, anchor="nw",  # add view port frame to canvas
-                                  tags="self.viewPort")
-
-        # bind an event whenever the size of the viewPort frame changes.
-        self.viewPort.bind("<Configure>", self.onFrameConfigure)
-
-    def _on_mousewheel(self, event):
-        self.canvas.yview_scroll((event.delta/120), "units")
-
-    def onFrameConfigure(self, _event):
-        '''Reset the scroll region to encompass the inner frame'''
-        self.canvas.configure(scrollregion=self.canvas.bbox(
-            "all"))  # whenever the size of the frame changes, alter the scroll region respectively.
-
 
 def smart_grid(parent, root, *args, **kwargs):  # *args are the widgets!
     """Grid adapted to each treeview size.
@@ -138,12 +103,9 @@ class Summary(Module):
             self.refreshUI()
             return
         self.linkTw = linkTw
-        self.scroller = ScrollFrame(self.parent)
-        self.summaryFrame = CTkFrame(self.scroller.viewPort)
-        self.summaryFrame.pack(side=tk.TOP, anchor=tk.W,
+        self.summaryFrame = ScrollableFrameXPlateform(self.parent)
+        self.summaryFrame.pack(side=tk.TOP, anchor=tk.W, expand=True,
                                fill=tk.BOTH, padx=10, pady=10)
-        self.scroller.pack(side=tk.TOP, anchor=tk.W,
-                           fill=tk.BOTH, expand=tk.TRUE, padx=10, pady=10)
 
     def loadSummary(self):
         """Reload information about IP and Port and reload the view.
@@ -229,6 +191,8 @@ class Summary(Module):
         treevw.column("#0", anchor='w')
         tags = Settings.getTags()
         for tag, color in tags.items():
+            if color == "transparent": 
+                continue
             treevw.tag_configure(tag, background=color)
         treevw.bind("<Double-Button-1>", self.OnDoubleClick)
         count = 0

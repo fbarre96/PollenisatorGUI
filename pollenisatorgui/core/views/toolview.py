@@ -132,9 +132,9 @@ class ToolView(ViewElement):
         notes = modelData.get("notes", "")
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
-        top_panel.addFormText("Notes", r"", notes, None, side="top", height=15)
+        top_panel.addFormText("Notes", r"", notes, None, side="top")
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100,  side="left", fill="both")
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         datamanager = DataManager.getInstance()
@@ -314,7 +314,7 @@ class ToolView(ViewElement):
             self.openModifyWindow()
 
     def remoteInteraction(self, _event=None):
-        dialog = ChildDialogRemoteInteraction(self.controller)
+        dialog = ChildDialogRemoteInteraction(self.mainApp, self.controller, self.mainApp.scanManager)
         dialog.app.wait_window(dialog.app)
         
     def stopCallback(self, _event=None):

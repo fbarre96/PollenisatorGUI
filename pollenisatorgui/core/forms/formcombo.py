@@ -32,6 +32,7 @@ class FormCombo(Form):
         self.default = default
         self.kwargs = kwargs
         self.box = None
+        self.wid_kwargs = None
 
     def constructView(self, parent):
         """
@@ -58,6 +59,8 @@ class FormCombo(Form):
         else:
             self.box.pack(side=self.getKw("side", "right"), padx=self.getKw(
                 "padx", 10), pady=self.getKw("pady", 5))
+        if self.wid_kwargs is not None:
+            self.box.configure(**self.wid_kwargs)
 
     def getValue(self):
         """
@@ -94,6 +97,9 @@ class FormCombo(Form):
         """Set the focus to the ttk combobox.
         """
         self.box.focus_set()
+
+    def configure(self, **kwargs):
+        self.wid_kwargs = kwargs
 
     def check_input(self, event):
         value = event.widget.get()

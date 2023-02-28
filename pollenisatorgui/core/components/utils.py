@@ -81,55 +81,102 @@ def loadPlugin(pluginName):
         __import__("Default")
         return REGISTRY["Default"]
 
+def getBackgroundColor():
+    """
+    Return the background color of the current style.
+    Returns:
+        the background color.
+    """
+    from pollenisatorgui.core.components.settings import Settings
+    settings = Settings()
+    dark_mode = settings.is_dark_mode()
+    _,_,b,_ = get_color_scheme(dark_mode)
+    return b
 
-def setStyle(tkApp, _event=None):
+def getTextColor():
+    """
+    Return the background color of the current style.
+    Returns:
+        the background color.
+    """
+    from pollenisatorgui.core.components.settings import Settings
+    settings = Settings()
+    dark_mode = settings.is_dark_mode()
+    _,_,_,text_color = get_color_scheme(dark_mode)
+    return text_color
+
+def get_color_scheme(dark_mode=False):
+    main_color = ("#419f1e", "#2FA572")[dark_mode]
+    hover_color = ("#63c93e", "#2FC572")[dark_mode]
+    background_color = ("gray97", "gray17")[dark_mode]
+    text_color = ("gray10", "#DCE4EE")[dark_mode]
+    return main_color, hover_color, background_color, text_color
+
+def craftMenuWithStyle(menu_parent):
+    """
+    Craft a menu with the current style.
+    Args:
+        menu_parent: the parent menu to craft.
+
+    Returns:
+        the crafted menu.
+    """
+    #from pollenisatorgui.core.components.settings import Settings
+    #settings = Settings()
+    #dark_mode = settings.is_dark_mode()
+    #main_color, hover_color, background_color, text_color = get_color_scheme(dark_mode)
+    menu = tk.Menu(menu_parent, tearoff=0, background='#113759', foreground="white", activebackground="#061b4e", activeforeground="white")
+
+    return menu
+def setStyle(tkApp, dark_mode=False, _event=None):
     """
     Set the tk app style window widget style using ttk.Style
     Args:
         _event: not used but mandatory
     """
-    
+    if dark_mode:
+        customtkinter.set_appearance_mode("dark")
+    else:
+        customtkinter.set_appearance_mode("light")
     style = ttk.Style(tkApp)
-    
     style.theme_use("clam")
+    main_color, hover_color, background_color, text_color = get_color_scheme(dark_mode)
+    style.configure("Treeview.Heading", background=main_color,
+                foreground="gray97", borderwidth=0)
+    style.map('Treeview.Heading', background=[('active', hover_color)])
+    style.configure("Treeview", background=background_color, fieldbackground=background_color, foreground=text_color)
+    #style.configure("Treeview.Item")
 
-    style.layout("Default.TButton", [('Button.border', {'sticky': 'nswe', 'border': '1', 'children': [('Button.focus', {'sticky': 'nswe', 'children': [('Button.padding', {'sticky': 'nswe', 'children': [('Button.label', {'sticky': 'nswe'})]})]})]})])
-    style.configure("Default.TButton", 
-                     foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
-    style.map('Default.TButton', background=[('active', '#73D723')])
-    
-    style.configure("Treeview.Heading", background="#73B723",
-                  foreground="white", borderwidth=1)
-    style.map('Treeview.Heading', background=[('active', '#73B723')])
-    style.configure("TLabelframe", background="white",
-                    labeloutside=False, bordercolor="#73B723")
-    style.configure('TLabelframe.Label', background="#73B723",
-                    foreground="white", font=('Sans', '10', 'bold'))
+    style.configure("TLabelframe", background=background_color,
+                    labeloutside=False, bordercolor=main_color,relief=tk.SUNKEN)
+    style.configure('TLabelframe.Label', background=main_color,
+                    foreground=text_color, font=('Sans', '10', 'bold'))
     style.configure("TProgressbar",
-                   background="#73D723", foreground="#73D723", troughcolor="white", darkcolor="#73D723", lightcolor="#73D723")
-    style.configure("Important.TFrame", background="#73B723")
-    style.configure("TFrame", background="white")
+                background=hover_color, foreground=hover_color, troughcolor=background_color, darkcolor=hover_color, lightcolor=hover_color)
+    style.configure("Important.TFrame", background=main_color)
+    style.configure("TFrame", background=background_color)
     style.configure("Debug.TFrame", background="red")
-    style.configure("Important.TLabel", background="#73B723", foreground="white")
-    style.configure("Pagination.TLabel", background="white", foreground="#73B723", font=('Sans', '10', 'underline') )
-    style.configure("CurrentPagination.TLabel", background="white", foreground="#73B723", font=('Sans', '10', 'bold') )
-
-    style.configure("TLabel", background="white")
-    style.configure("TCombobox", background="white")
+    style.configure("Important.TLabel", background=main_color, foreground=background_color)
+    style.configure("Pagination.TLabel", background=background_color, foreground=main_color, font=('Sans', '10', 'underline') )
+    style.configure("CurrentPagination.TLabel", background=background_color, foreground=main_color, font=('Sans', '10', 'bold') )
+    style.map("Pagination.TLabel", foreground=[("active", hover_color)])
+    style.map("CurrentPagination.TLabel", foreground=[("active", hover_color)] )
+    style.configure("TLabel", background=background_color, foreground=text_color)
+    style.configure("TCombobox", background=background_color)
     
-    style.configure("TCheckbutton", background="white")
+    style.configure("TCheckbutton", background=background_color)
 
-    style.configure("TButton", background="#73B723",
-                   foreground="white",font=('Sans', '10', 'bold'), borderwidth=1)
-    style.configure("icon.TButton", background="white", borderwidth=0)
-    style.configure("icon_white.TButton", background="#73B723", borderwidth=0)
+    style.configure("TButton", background=main_color,
+                foreground=text_color, font=('Sans', '10', 'bold'), borderwidth=1)
+    style.configure("icon.TButton", background=background_color, borderwidth=0)
+    style.configure("icon_white.TButton", background=main_color, borderwidth=0)
 
-    style.configure("link.TButton", background="white", foreground="#73B723", font=('Sans', '10', 'underline'), borderwidth=0)
-    style.configure("Notebook.TButton", background="#73B723",
-                   foreground="white", font=('Sans', '10', 'bold'), borderwidth=0)
-    style.configure("Notebook.TFrame", background="#73B723")
-    style.map('TButton', background=[('active', '#73D723')])
-    style.map('link.TButton', foreground=[('active', '#73D723')], background=[('active', 'white')])
+    style.configure("link.TButton", background=background_color, foreground=main_color, font=('Sans', '10', 'underline'), borderwidth=0)
+    style.map('link.TButton', foreground=[('active', hover_color)], background=[('active', background_color)])
+    style.configure("Notebook.TButton", background=main_color,
+                foreground=text_color, font=('Sans', '10', 'bold'), borderwidth=0)
+    style.configure("Notebook.TFrame", background=main_color)
+    style.map('TButton', background=[('active', hover_color)])
     #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
     style.map('Treeview', foreground=fixedMap('foreground', style),
                 background=fixedMap('background', style))
@@ -267,9 +314,6 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
     """
     
     try:
-        proxychains = True
-        if proxychains:
-            command = "proxychains " + command
         proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid, cwd=cwd)
         proc._killed = False
@@ -302,7 +346,7 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
                     proc.stdin.write(key.encode())
                     data = proc.stdout.read()
                     queueResponse.put(data)
-                    time.sleep(0.5)
+                    time.sleep(3)
             stdout, stderr = proc.communicate(None, timeout)
             if queueResponse is not None:
                 queueResponse.put(stdout)
@@ -464,6 +508,11 @@ def getMainDir():
 
 def getColorTheme():
     return getMainDir()+"theme/pollenisator_theme.json"
+
+def loadTheme():
+    with open(getColorTheme(), "r") as f:
+        return json.load(f)
+
 
 def drop_file_event_parser(event):
     """Parse event Callback of python-tkdnd on file drop event

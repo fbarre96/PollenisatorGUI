@@ -8,6 +8,7 @@ import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from PIL import ImageTk, Image
 from shutil import which
+from customtkinter import *
 import os
 import subprocess
 from pollenisatorgui.core.application.dialogs.ChildDialogFixes import ChildDialogFixes
@@ -50,19 +51,19 @@ class DefectView(ViewElement):
         s.addOptionForm(lang)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Title")
-        topPanel.addFormStr("Title", r".+", "", column=1, width=50)
+        topPanel.addFormStr("Title", r".+", "", column=1, width=400)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Ease")
         self.easeForm = topPanel.addFormCombo(
-            "Ease", Defect.getEases(), width=10, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Ease", Defect.getEases(), column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", column=2)
         topPanel.addFormLabel("Impact", column=3)
         self.impactForm = topPanel.addFormCombo(
-            "Impact", Defect.getImpacts(), width=10, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Impact", Defect.getImpacts(),column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", column=5)
         topPanel.addFormLabel("Risk", column=6)
         self.riskForm = topPanel.addFormCombo(
-            "Risk", Defect.getRisks(), modelData["risk"], width=10, column=7)
+            "Risk", Defect.getRisks(), modelData["risk"],  column=7)
         topPanel.addFormHelper(
             "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", column=8)
         topPanel = self.form.addFormPanel(grid=True)
@@ -81,10 +82,9 @@ class DefectView(ViewElement):
         else:
             defectTypes = ["N/A"]
         chklistPanel.addFormChecklist("Type", defectTypes, ["N/A"])
-        proofsPanel = self.form.addFormPanel(grid=True)
-        proofsPanel.addFormFile("Proof", r"", text="Add proof", width=90, height=4)
+        
         topPanel = self.form.addFormPanel()
-        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", height=2, side="top")
+        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", height=50, side="top")
         if not self.controller.isAssigned():
             topPanel.addFormText("Description", r"", "Description", side="top")
         else:
@@ -92,6 +92,8 @@ class DefectView(ViewElement):
             notesPanel = self.form.addFormPanel()
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText("Notes", r"", notes, None, side="top")
+        proofsPanel = self.form.addFormPanel()
+        proofsPanel.addFormFile("Proof", r"", text="Add proof",height=3)
         self.form.addFormHidden("ip", modelData["ip"])
         self.form.addFormHidden("proto", modelData["proto"])
         self.form.addFormHidden("port", modelData["port"])
@@ -123,8 +125,8 @@ class DefectView(ViewElement):
         self.buttonDownImage = CTkImage(Image.open(utils.getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
         buttonPan = self.form.addFormPanel(side="top", anchor="center", fill="none")
-        btn_down = buttonPan.addFormButton("V", self.moveDownMultiTreeview, side="left", anchor="center", image=self.buttonDownImage)
-        btn_down = buttonPan.addFormButton("Î", self.moveUpMultiTreeview, side="right", anchor="center", image=self.buttonUpImage)
+        btn_down = buttonPan.addFormButton("Add to report", self.moveDownMultiTreeview, side="left", anchor="center", image=self.buttonDownImage)
+        btn_down = buttonPan.addFormButton("Remove from report", self.moveUpMultiTreeview, side="right", anchor="center", image=self.buttonUpImage)
         default_values = {}
         self.browse_down_treevw = self.form.addFormTreevw("Defects", ("Title", "Risk"),
                             default_values, side="bottom", fill="both", width=400, height=8, status="readonly")
@@ -210,6 +212,7 @@ class DefectView(ViewElement):
         modelData = self.controller.getData()
         settings = self.mainApp.settings
         settings.reloadSettings()
+        self.delete_image = CTkImage(Image.open(utils.getIconDir()+'delete.png'))
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         topPanel = globalPanel.addFormPanel(grid=True)
         row = 0
@@ -232,21 +235,21 @@ class DefectView(ViewElement):
                 row += 1
             topPanel.addFormLabel("Title", row=row, column=0)
             topPanel.addFormStr(
-                "Title", ".+", modelData["title"], width=50, row=row, column=1)
+                "Title", ".+", modelData["title"],  width=400, row=row, column=1)
             row += 1
             topPanel = globalPanel.addFormPanel(grid=True)
             row = 0
             topPanel.addFormLabel("Ease", row=row)
             self.easeForm = topPanel.addFormCombo(
-                "Ease", Defect.getEases(), modelData["ease"], width=10, row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+                "Ease", Defect.getEases(), modelData["ease"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
             topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", row=row, column=2)
             topPanel.addFormLabel("Impact", row=row, column=3)
             self.impactForm = topPanel.addFormCombo(
-                "Impact", Defect.getImpacts(), modelData["impact"], width=10, row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+                "Impact", Defect.getImpacts(), modelData["impact"], row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
             topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=row, column=5)
             topPanel.addFormLabel("Risk", row=row, column=6)
             self.riskForm = topPanel.addFormCombo(
-                "Risk", Defect.getRisks(), modelData["risk"], width=10, row=row, column=7)
+                "Risk", Defect.getRisks(), modelData["risk"],  row=row, column=7)
             topPanel.addFormHelper(
                 "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=row, column=8)
             row += 1
@@ -265,7 +268,7 @@ class DefectView(ViewElement):
             topPanel.addFormStr("Language", "", modelData["language"], row=row, column=3)
             row += 1
             topPanel = globalPanel.addFormPanel()
-            topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=2, side="top")
+            topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
             topPanel.addFormText("Description", r"", modelData.get("description", "Description"), side="top")
             topPanel.addFormButton("Edit fixes", self.openFixesWindow)
         else:
@@ -284,19 +287,23 @@ class DefectView(ViewElement):
             notesPanel = globalPanel.addFormPanel()
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText(
-                "Notes", r"", modelData["notes"], None, side="top", height=10)
+                "Notes", r"", modelData["notes"], None, side="top", height=40)
         if not self.controller.model.isTemplate:
-            proofPanel = globalPanel.addFormPanel(grid=True)
-            i = 0
-            for proof in modelData["proofs"]:
-                proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
-                proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
-                    event, obj), row=i, column=1)
-                proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
-                    event, obj), row=i, column=2)
-                i += 1
+            if modelData["proofs"]:
+                if proof in modelData["proofs"]:
+                    proofPanel = globalPanel.addFormPanel(grid=True)
+                    i = 0
+                    for proof in modelData["proofs"]:
+                        proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
+                        proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
+                            event, obj), row=i, column=1)
+                        proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
+                            event, obj), row=i, column=2, image=self.delete_image,
+                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                                border_width=1, border_color="firebrick1", hover_color="tomato")
+                        i += 1
             proofPanel = globalPanel.addFormPanel()
-            self.formFile = proofPanel.addFormFile("Add proofs", r"", "", width=100, height=3)
+            self.formFile = proofPanel.addFormFile("Add proofs", r"", "",  height=3)
         self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if not self.controller.model.isTemplate:
             actionsPan = globalPanel.addFormPanel()

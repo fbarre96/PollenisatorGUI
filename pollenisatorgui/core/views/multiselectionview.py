@@ -3,6 +3,7 @@
 from tkinter import ttk
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
+import pollenisatorgui.core.components.utils as utils
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
@@ -28,7 +29,9 @@ class MultiSelectionView(ViewElement):
         top_panel.addFormButton("Export", self.appliTw.exportSelection)
         top_panel.addFormButton("Hide", self.appliTw.hideSelection)
         top_panel.addFormButton("Custom Command", self.appliTw.customCommand)
-        top_panel.addFormButton("Delete", self.appliTw.deleteSelected)
+        top_panel.addFormButton("Delete", self.appliTw.deleteSelected, image=self.delete_image,
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         panTags = self.form.addFormPanel(grid=True)
         registeredTags = Settings.getTags()
         keys = list(registeredTags.keys())

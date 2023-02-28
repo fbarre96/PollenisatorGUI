@@ -2,6 +2,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+import pollenisatorgui.core.components.utils as utils
 
 
 class ChildDialogAskText:
@@ -18,7 +19,7 @@ class ChildDialogAskText:
             default_path: a default path to be added
         """
         from pollenisatorgui.core.forms.formpanel import FormPanel
-        self.app = CTkToplevel(parent, fg_color="white")
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.title(info)
         self.rvalue = None
         appFrame = CTkFrame(self.app)
@@ -31,7 +32,9 @@ class ChildDialogAskText:
         else:
             self.formText = self.form.addFormStr(info, "", default, side=tk.TOP, **kwargs)
         btn = self.form.addFormButton("OK", self.onOk, side=tk.RIGHT)
-        self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT)
+        self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT, 
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
 
         self.form.constructView(appFrame)
         

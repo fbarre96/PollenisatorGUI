@@ -32,7 +32,9 @@ class ChildDialogAskFile:
             "Choose one file", info, side=tk.TOP)
         self.fileForm = self.form.addFormFile("File", ".+", '', width=50,
                               side=tk.TOP, mode="file")
-        self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT)
+        self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT, 
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         self.form.addFormButton("OK", self.onOk, side=tk.RIGHT)
 
         self.form.constructView(appFrame)

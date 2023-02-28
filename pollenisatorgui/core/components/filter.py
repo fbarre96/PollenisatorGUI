@@ -185,6 +185,8 @@ type == "ip" and infos.key == "ABC"
             return re.search(str(parsedcopy[2])[1:-1], str(val)) is not None
         for children in parsedcopy:
             if isinstance(children, Term):
+                if children.val == "id":
+                    children.val = "_id"
                 if children.val in data.keys():
                     val = data[children.val]
                     if isinstance(val, str):

@@ -80,8 +80,9 @@ def start_docker(dialog, force_reinstall):
 class ScanManager:
     """Scan model class"""
 
-    def __init__(self, nbk, linkedTreeview, pentestToScan, settings):
+    def __init__(self, mainApp, nbk, linkedTreeview, pentestToScan, settings):
         self.pentestToScan = pentestToScan
+        self.mainApp = mainApp
         self.nbk = nbk
         self.settings = settings
         self.btn_autoscan = None
@@ -92,10 +93,10 @@ class ScanManager:
         self.linkTw = linkedTreeview
         self.local_scans = dict()
         path = utils.getIconDir()
-        self.tool_icon = CTkImage(Image.open(path+"tool.png"))
-        self.nok_icon = CTkImage(Image.open(path+"cross.png"))
-        self.ok_icon = CTkImage(Image.open(path+"done_tool.png"))
-        self.running_icon = CTkImage(Image.open(path+"running.png"))
+        self.tool_icon = tk.PhotoImage(file=path+"tool.png")
+        self.nok_icon = tk.PhotoImage(file=path+"cross.png")
+        self.ok_icon = tk.PhotoImage(file=path+"done_tool.png")
+        self.running_icon = tk.PhotoImage(file=path+"running.png")
         DataManager.getInstance().attach(self)
 
     def startAutoscan(self):
@@ -155,11 +156,12 @@ class ScanManager:
                 else:
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.nok_icon)
-            except tk.TclError:
+            except tk.TclError as err:
                 try:
                     worker_node = self.workerTv.item(workername)["text"]
-                except:
-                    pass
+                except Exception as e:
+                    print(str(err)+" occured")
+                    print("Then:"+str(e))
         if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = CTkButton(
@@ -168,18 +170,19 @@ class ScanManager:
                 self.btn_autoscan = CTkButton(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
         if len(workers) == 0:
-            options = ["Register this computer as worker", "Run a worker on server"]
+            options = ["Use this computer", "Run a preconfigured Docker on server"]
             if git_available:
-                options.append("Run worker locally")
+                options.append("Run a preconfigured Docker locally")
             options.append("Cancel")
-            dialog = ChildDialogQuestion(self.parent, "Register worker ?", "There is no running worker. What do you want to do ?", options)
+            dialog = ChildDialogQuestion(self.parent, "Register worker ?", "There is no running scanning clients. What do you want to do ?", options)
             self.parent.wait_window(dialog.app)
             if dialog.rvalue is not None:
-                if dialog.rvalue.endswith("server"):
+                rep = options.index(dialog.rvalue)
+                if rep == 1:
                     self.runWorkerOnServer()
-                elif dialog.rvalue.endswith("worker"):
+                elif rep == 0:
                     self.registerAsWorker()
-                elif dialog.rvalue.endswith("locally"):
+                elif rep == 2:
                     self.launchDockerWorker()
         logger.debug('Refresh scan manager UI')
 
@@ -261,15 +264,10 @@ class ScanManager:
             event: Automatically filled when event is triggered. Holds info about which line was double clicked
         """
         if self.scanTv is not None:
-            self.nbk.select("Main View")
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
-            item = self.linkTw.parent(item)
-            self.linkTw.unfilterAll()
-            self.linkTw.see(item)
-            self.linkTw.selection_set(item)
-            self.linkTw.focus(item)
-
+            self.nbk.select("Main View")
+            self.mainApp.search("id == \""+str(item)+"\"")
 
     def stopAutoscan(self):
         """
@@ -290,7 +288,7 @@ class ScanManager:
         """
         Ask user to import existing files to import.
         """
-        dialog = ChildDialogFileParser(default_path)
+        dialog = ChildDialogFileParser(self.mainApp, default_path)
         self.parent.wait_window(dialog.app)
 
     def update(self, dataManager, notif, obj, old_obj):
@@ -439,6 +437,9 @@ class ScanManager:
         except socketio.exceptions.BadNamespaceError:
             pass
 
+    def is_local_launched(self, toolId):
+        return self.local_scans.get(str(toolId), None) is not None
+
     def registerAsWorker(self):
         self.settings._reloadLocalSettings()
         self.sio = socketio.Client()
@@ -465,7 +466,7 @@ class ScanManager:
         @self.sio.event
         def stopCommand(data):
             logger.debug("Got stop "+str(data))
-            toolId = data.get("toolId")
+            toolId = data.get("tool_iid")
             self.stopTask(toolId)
 
         @self.sio.event

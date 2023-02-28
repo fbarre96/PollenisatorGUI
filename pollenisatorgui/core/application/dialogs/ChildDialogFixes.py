@@ -34,7 +34,9 @@ class ChildDialogFixes:
         ok_button = CTkButton(appFrame, text="OK")
         ok_button.pack(side="right", padx=5, pady=10)
         ok_button.bind('<Button-1>', self.okCallback)
-        cancel_button = CTkButton(appFrame, text="Cancel")
+        cancel_button = CTkButton(appFrame, text="Cancel", 
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         cancel_button.pack(side="right", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)
         appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
@@ -84,7 +86,7 @@ class ChildDialogFixes:
        
         # FIXES TREEVW	
         fixesLabelFrame = ttk.LabelFrame(parent, text="Fixes table")	
-        self.paned = tk.PanedWindow(fixesLabelFrame, orientation=tk.VERTICAL, height=400)
+        self.paned = tk.PanedWindow(fixesLabelFrame, orient=tk.VERTICAL, height=400)
         self.frameTw = CTkFrame(self.paned)
         self.treevw = ttk.Treeview(self.frameTw, style='Report.Treeview', height=0)
         self.treevw['columns'] = ('execution', 'gain')
@@ -117,9 +119,9 @@ class ChildDialogFixes:
         self.buttonUpImage = CTkImage(Image.open(utils.getIconDir()+'up-arrow.png'))
         self.buttonDownImage = CTkImage(Image.open(utils.getIconDir()+'down-arrow.png'))
         # use self.buttonPhoto
-        btn_down = CTkButton(frameBtn, image=self.buttonDownImage, command=self.bDown)
+        btn_down = CTkButton(frameBtn, image=self.buttonDownImage, text="",command=self.bDown)
         btn_down.pack(side="left", anchor="center")
-        btn_up = CTkButton(frameBtn, image=self.buttonUpImage, command=self.bUp)
+        btn_up = CTkButton(frameBtn, image=self.buttonUpImage, text="", command=self.bUp)
         btn_up.pack(side="left", anchor="center")
         btn_delFix = CTkButton(
             frameBtn, text="Remove selection", command=self.deleteSelectedItem)

@@ -2,7 +2,7 @@
 
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
-
+import pollenisatorgui.core.components.utils as utils
 
 class MultiCommandView(ViewElement):
     """View for command list object. Present an multi editing form to user when interacted with."""
@@ -18,7 +18,9 @@ class MultiCommandView(ViewElement):
         top_panel.addFormButton("Add to my commands", self.addSelectedToMyCommands)
         top_panel.addFormButton("Add to Worker commands", self.addSelectedToWorkerCommands)
         top_panel.addFormButton("Remove selection from my commands", self.removeSelectedFromMyCommands)
-        top_panel.addFormButton("Delete", self.appliTw.deleteSelected)
+        top_panel.addFormButton("Delete", self.appliTw.deleteSelected, image=self.delete_image,
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         self.showForm()
 
     def addSelectedToMyCommands(self, event=None):

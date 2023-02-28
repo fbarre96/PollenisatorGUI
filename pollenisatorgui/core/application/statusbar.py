@@ -1,7 +1,7 @@
 """StatusBar class. Show tagged elements numbers to user.
 """
 import tkinter as tk
-import tkinter.ttk as ttk
+from tkinter import ttk
 from customtkinter import *
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
@@ -27,7 +27,6 @@ class StatusBar(CTkFrame):
                                 It has to delcare a statusbarClicked function taking 1 arg : a tag name
         """
         # Cannot be imported at module level as tkinter will not have loaded.
-        import tkinter.font
         super().__init__(master)
         # label = CTkLabel(self, text="Tagged:")
         # label.pack(side="left")
@@ -39,25 +38,22 @@ class StatusBar(CTkFrame):
 
     def refreshUI(self):
         for widget in self.winfo_children():
-            try:
-                widget.destroy()
-            except:
-                pass
+            widget.destroy()
         #self.pack_forget()
         self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())
-        listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
+        self.listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
         for registeredTag, color in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
             try:
-                self.labelsTags[registeredTag] = CTkLabel(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), height=10, padx=3,anchor=tk.W, fg_color=color, text_color="black")
+                self.labelsTags[registeredTag] = ttk.Label(self,  text=registeredTag+" : "+str(self.tagsCount[registeredTag]), background=color, foreground="black", borderwidth=1, relief=tk.SOLID)
             except tk.TclError:
                 #color does not exist
-                color = "white"
-                self.labelsTags[registeredTag] = CTkLabel(self, text=registeredTag+" : "+str(self.tagsCount[registeredTag]), height=10, padx=3, anchor=tk.W, fg_color=color, text_color="black", border_width=1)
+                color = "gray97"
+                self.labelsTags[registeredTag] = ttk.Label(self,text=registeredTag+" : "+str(self.tagsCount[registeredTag]),  background=color, foreground="black", borderwidth=1, relief=tk.SOLID)
             self.labelsTags[registeredTag].pack(side="left", padx=1)
-            self.labelsTags[registeredTag].bind('<Button-1>', listOfLambdas[column-1])
+            self.labelsTags[registeredTag].bind('<Button-1>', self.listOfLambdas[column-1])
             column += 1
 
     def notify(self, addedTags, removedTags=[]):
@@ -109,11 +105,11 @@ class StatusBar(CTkFrame):
             obj: the object that has been added or removed
         """
         if notification["collection"] == "settings":
-            self.refreshUI()
+            self.after(2000, self.refreshUI)
         if old_obj is not None and obj is not None:
             if old_obj.tags != obj.tags:
                 self.notify(obj.tags, old_obj.tags)
-        
+    
 
     def refreshTags(self, tags):
         self.registeredTags = tags

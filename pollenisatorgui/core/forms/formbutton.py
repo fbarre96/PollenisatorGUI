@@ -40,7 +40,17 @@ class FormButton(Form):
         Args:
             parent: parent form panel.
         """
-        self.btn = CTkButton(parent.panel, text=self.name, image=self.getKw("image", None))
+        s = self.getKw("style", None)
+        if s is None:
+            self.btn = CTkButton(parent.panel, text=self.name, image=self.getKw("image", None),
+                                  border_color=self.getKw("border_color", None),
+                                  border_width=self.getKw("border_width", None),
+                                  text_color=self.getKw("text_color", None),
+                                  hover_color=self.getKw("hover_color", None),
+                                  fg_color=self.getKw("fg_color", None))
+        else:
+            
+            self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None), style=s)
         self.infos = self.getKw("infos", {})
         if len(self.infos) > 0:
             self.btn.bind('<Button-1>', self.callback_infos)

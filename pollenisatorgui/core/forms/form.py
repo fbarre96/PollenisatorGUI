@@ -7,7 +7,7 @@ class Form(object):
     Form field empty, should be inherited to create a new Form.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, style=None, **kwargs):
         """
         Constructor for an empty form.
 
@@ -17,6 +17,7 @@ class Form(object):
         self.name = name
         self.val = tk.StringVar()
         self.kwargs = dict()
+        self.style = None
 
     def constructView(self, parent):
         """

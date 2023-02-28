@@ -4,6 +4,8 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
 import tkinter as tk
+import pollenisatorgui.core.components.utils as utils
+
 
 class CommandView(ViewElement):
     """
@@ -112,8 +114,8 @@ class CommandView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         tags = self.controller.getTags()
-        if self.controller.isMine():
-            tags.append("known_command")
+        #if self.controller.isMine():
+        #    tags.append("known_command")
         try:
             self.appliTw.insert(parentNode, "end", str(
             self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getClassIcon())
@@ -135,8 +137,7 @@ class CommandView(ViewElement):
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = tk.Menu(self.appliViewFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='white', activebackground='#A8CF4D', activeforeground='white')
+        self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
         self.menuContextuel.add_command(
             label="Wave id", command=self.addWaveVariable)
         self.menuContextuel.add_command(
@@ -161,7 +162,7 @@ class CommandView(ViewElement):
         self.widgetMenuOpen = event.widget
         self.menuContextuel.tk_popup(event.x_root, event.y_root)
         self.menuContextuel.focus_set()
-        #self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
+        self.menuContextuel.bind('<FocusOut>', self.popupFocusOut)
 
     def popupFocusOut(self, _event=None):
         """

@@ -10,7 +10,7 @@ from pollenisatorgui.core.controllers.commandcontroller import CommandController
 from pollenisatorgui.core.application.treeviews.PollenisatorTreeview import PollenisatorTreeview
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
-
+import pollenisatorgui.core.components.utils as utils
 
 class CommandsTreeview(PollenisatorTreeview):
     """CommandsTreeview class
@@ -46,6 +46,7 @@ class CommandsTreeview(PollenisatorTreeview):
         #self.bind("<Button-1>", self.onTreeviewSelect)
         self.bind('<Delete>', self.deleteSelected)
         self.load()
+        self.switchExpandCollapse(True, self.commands_node)
 
     def onTreeviewSelect(self, event=None):
         """Called when a line is selected on the treeview
@@ -167,8 +168,8 @@ class CommandsTreeview(PollenisatorTreeview):
         """
         Create the contextual menu
         """
-        self.contextualMenu = tk.Menu(self.parentFrame, tearoff=0, background='#A8CF4D',
-                                      foreground='black', activebackground='#A8CF4D', activeforeground='white')
+        
+        self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.add_command(
             label="Duplicate command", command=self.duplicateCommand)
         self.contextualMenu.add_separator()

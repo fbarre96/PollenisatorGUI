@@ -2,7 +2,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import tkinterDnD
 import os
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.forms.formpanel import FormPanel
@@ -17,7 +16,7 @@ class ChildDialogFileParser:
     existing files parsing.
     """
 
-    def __init__(self, default_path=""):
+    def __init__(self, parent, default_path=""):
         """
         Open a child dialog of a tkinter application to ask details about
         existing files parsing.
@@ -25,8 +24,7 @@ class ChildDialogFileParser:
         Args:
             default_path: a default path to be added
         """
-        self.app = tkinterDnD.Tk()
-        utils.setStyle(self.app)
+        self.app = CTkToplevel(parent)
         self.app.title("Upload result file")
         self.rvalue = None
         self.default = default_path
@@ -47,13 +45,12 @@ class ChildDialogFileParser:
 
         try:
             self.app.wait_visibility()
+            self.app.transient(parent)
             self.app.focus_force()
             self.app.grab_set()
             self.app.lift()
         except tk.TclError:
             pass
-        self.app.mainloop()
-        self.app.destroy()
 
     def onOk(self, _event=None):
         """

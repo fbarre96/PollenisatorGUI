@@ -71,13 +71,13 @@ class PortView(ViewElement):
             top_panel.addFormButton(
                 "Open in browser", self.openInBrowser, column=2, row=3)
         top_panel.addFormLabel("Product", row=4)
-        top_panel.addFormStr("Product", r"", modelData["product"], width=40, row=4, column=1)
+        top_panel.addFormStr("Product", r"", modelData["product"],  row=4, column=1)
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText(
-            "Notes", r"", modelData["notes"], None, side="top", height=10)
+            "Notes", r"", modelData["notes"], None, side="top")
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), side="left", fill="both", height=5)
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100, side="left", fill="both")
         # command_list = Command.fetchObjects({"lvl": "port"}, APIClient.getInstance().getCurrentPentest()) #TODO lvl change
         # command_names = ["None"]
         # self.command_names_to_iid = {}
@@ -95,18 +95,12 @@ class PortView(ViewElement):
         self.form.addFormHidden("ip", modelData["ip"])
         self.completeModifyWindow()
 
-    def openInBrowser(self, _event):
+    def openInBrowser(self, _event=None):
         """Callback for action open in browser
         Args:
             _event: nut used but mandatory
         """
-        modelData = self.controller.getData()
-        if modelData["service"] == "http":
-            webbrowser.open_new_tab(
-                "http://"+modelData["ip"]+":"+modelData["port"])
-        else:
-            webbrowser.open_new_tab(
-                "https://"+modelData["ip"]+":"+modelData["port"])
+        self.controller.model.openInBrowser()
 
     def addDefectCallback(self, _event):
         """
