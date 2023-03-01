@@ -2,8 +2,8 @@ from customtkinter import *
 import tkinter as tk 
 
 class ScrollableFrameXPlateform(CTkScrollableFrame):
-    def __init__(self, parent, orientation=tk.VERTICAL):
-        super().__init__(parent, orientation=orientation)
+    def __init__(self, parent, orientation=tk.VERTICAL, **kwargs):
+        super().__init__(parent, orientation=orientation, **kwargs)
         self.parent = parent
         self.activate()
 

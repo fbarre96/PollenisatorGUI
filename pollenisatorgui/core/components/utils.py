@@ -17,6 +17,7 @@ import tkinter  as tk
 import tkinter.ttk as ttk
 from customtkinter import *
 from PIL import Image, ImageTk
+from ttkwidgets import tooltips
 from pollenisatorgui.core.components.logger_config import logger
 import customtkinter
 
@@ -138,6 +139,7 @@ def setStyle(tkApp, dark_mode=False, _event=None):
         customtkinter.set_appearance_mode("dark")
     else:
         customtkinter.set_appearance_mode("light")
+
     style = ttk.Style(tkApp)
     style.theme_use("clam")
     main_color, hover_color, background_color, text_color = get_color_scheme(dark_mode)
@@ -180,6 +182,7 @@ def setStyle(tkApp, dark_mode=False, _event=None):
     #  FIX tkinter tag_configure not showing colors   https://bugs.python.org/issue36468
     style.map('Treeview', foreground=fixedMap('foreground', style),
                 background=fixedMap('background', style))
+    tooltips.update_defaults({"background": getBackgroundColor()})
 
 def fixedMap(option, style):
     """
@@ -276,6 +279,14 @@ def stringToDate(datestring):
                 datestring, '%d/%m/%Y %H:%M:%S')
     return ret
 
+def dateToString(date):
+    """Converts a date to a string with format '%d/%m/%Y %H:%M:%S'
+    Args:
+        datestring: Returns the str if the given datetime is successfully converted, None otherwise"""
+    ret = None
+    if isinstance(date, datetime):
+        ret = date.strftime('%d/%m/%Y %H:%M:%S')
+    return ret
 
 def fitNowTime(dated, datef):
     """Check the current time on the machine is between the given start and end date.
@@ -488,6 +499,13 @@ def getIconDir():
     """
     p = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), "../../theme/icon/")
+    return p
+
+def getLocalDir():
+    """Returns:
+        the pollenisator local folder
+    """
+    p = getMainDir()+"local/"
     return p
 
 def getExportDir():

@@ -26,7 +26,7 @@ from pollenisatorgui.core.application.treeviews.CommandsTreeview import Commands
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogConnect import ChildDialogConnect
-from pollenisatorgui.core.application.dialogs.ChildDialogNewPentest import ChildDialogNewPentest
+from pollenisatorgui.core.application.dialogs.ChildDialogPentests import ChildDialogPentests
 from pollenisatorgui.core.application.dialogs.ChildDialogException import ChildDialogException
 from pollenisatorgui.core.application.dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.application.dialogs.ChildDialogEditPassword import ChildDialogEditPassword
@@ -390,7 +390,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             except tk.TclError: #closed dialog
                 return
             self.openConnectionDialog(force=True)
-            self.promptPentestName()
+            self.openPentestsWindow()
         self.loadModulesInfos() 
         self.scanManager.nbk = self.nbk #FIXME ORDER, INITIALISATION of SCAN MANAGERis too early
         self.scanManager.linkTw = self.treevw
@@ -449,7 +449,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
                 self.openPentest(apiclient.getCurrentPentest())
             else:
-                self.promptPentestName()
+                self.openPentestsWindow()
             self.initialized = True
         else:
             self.onClosing()
@@ -569,19 +569,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.configure(menu=menubar)
 
         self.bind('<F5>', self.refreshView)
-        self.bind('<Control-o>', self.promptPentestName)
+        self.bind('<Control-o>', self.openPentestsWindow)
         fileMenu =  utils.craftMenuWithStyle(menubar)
-        fileMenu.add_command(label="New", command=self.selectNewPentest)
-        fileMenu.add_command(label="Open (Ctrl+o)",
-                             command=self.promptPentestName)
+        fileMenu.add_command(label="Pentests management (Ctrl+o)",
+                             command=self.openPentestsWindow)
         fileMenu.add_command(label="Connect to server", command=self.promptForConnection)
-        fileMenu.add_command(label="Copy", command=self.wrapCopyDb)
-        fileMenu.add_command(label="Delete a database",
-                             command=self.deleteAPentest)
-        fileMenu.add_command(label="Export database",
-                             command=self.exportPentest)
-        fileMenu.add_command(label="Import database",
-                             command=self.importPentest)
+        
         fileMenu.add_command(label="Export commands",
                              command=self.exportCommands)
         fileMenu.add_command(label="Import commands",
@@ -834,7 +827,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         if tabName == "Commands":
             self.commandsTreevw.initUI()
         if apiclient.getCurrentPentest() is None or apiclient.getCurrentPentest() == "":
-            opened = self.promptPentestName()
+            opened = self.openPentestsWindow()
             if opened is None:
                 return
         if tabName == "Scan":
@@ -1022,24 +1015,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 tk.messagebox.showerror("Invalid binary path", f"The local settings for {command['name']} is not recognized. ({bin_path}).")
         tk.messagebox.showinfo("Test local tools success", "All binary path exists")
         return True
-    def exportPentest(self):
-        """
-        Dump a pentest database to an archive file gunzip.
-        """
-        apiclient = APIClient.getInstance()
-        pentests = apiclient.getPentestList()
-        if pentests is None:
-            pentests = []
-        else:
-            pentests = [x["nom"] for x in pentests][::-1]
-        dialog = ChildDialogCombo(self, pentests, "Choose a pentest to dump:")
-        self.wait_window(dialog.app)
-        if isinstance(dialog.rvalue, str):
-            success, msg = apiclient.dumpDb(dialog.rvalue)
-            if not success:
-                tkinter.messagebox.showerror("Database export error", msg)
-            else:
-                tkinter.messagebox.showinfo("Database export completed", msg)
+    
 
     def exportCommands(self):
         """
@@ -1067,26 +1043,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         else:
             tkinter.messagebox.showinfo(msg)
 
-    def importPentest(self, name=None):
-        """
-        Import a pentest archive file gunzip to database.
-        Args:
-            name: The filename of the gunzip database exported previously
-        """
-        apiclient = APIClient.getInstance()
-        filename = ""
-        if name is None:
-            f = tkinter.filedialog.askopenfilename(defaultextension=".gz")
-            if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
-                return
-            filename = str(f)
-        else:
-            filename = name
-        success = apiclient.importDb(filename)
-        if success:
-            tkinter.messagebox.showinfo("Database import ", "Database import suceeded")
-        else:
-            tkinter.messagebox.showerror("Database import ", "Database import failed")
+   
 
     def findUnscannedPorts(self):
         ports = Port.fetchObjects({})
@@ -1199,53 +1156,24 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         self.onClosing()
 
-    def promptPentestName(self, _event=None):
+    def openPentestsWindow(self, _event=None):
         """
-        Ask a user to select an pentest database including a New database option.
+        Open Pentest dialog window
         Args:
             _event: Not used but mandatory
         Returns:
             None if no database were selected
             datababase name otherwise
         """
-        apiclient = APIClient.getInstance()
-        pentests = apiclient.getPentestList()
-        if pentests is None:
-            pentests = []
-        else:
-            pentests = [x["nom"] for x in pentests][::-1]
-        dialog = ChildDialogCombo(self, ["New database"]+pentests, "Select a database")
-        self.wait_window(dialog.app)
-        if dialog.rvalue is None:
-            return None
-        if isinstance(dialog.rvalue, str):
-            if dialog.rvalue == "New database":
-                self.selectNewPentest()
-            else:
-                self.openPentest(dialog.rvalue)
-            return dialog.rvalue
+        dialog = ChildDialogPentests(self)
+        self.wait_window(dialog)
+        if dialog.rvalue is not None:
+            self.openPentest(dialog.rvalue)
+        return dialog.rvalue
 
-    def deleteAPentest(self):
-        """
-        Ask a user a pentest name then delete it.
-        """
-        apiclient = APIClient.getInstance()
-        pentests = apiclient.getPentestList()
-        if pentests is None:
-            pentests = []
-        else:
-            pentests = [x["nom"] for x in pentests][::-1]
-        dialog = ChildDialogCombo(
-            self, pentests, "Choose a database to delete:")
-        self.wait_window(dialog.app)
-        if isinstance(dialog.rvalue, str):
-            pentestName = dialog.rvalue
-            dialog = ChildDialogQuestion(
-                self, "Pentest deletion confirmation", "You are going to delete permanently the database \""+pentestName+"\". Are you sure ?")
-            self.wait_window(dialog.app)
-            if dialog.rvalue == "Yes":
-                apiclient.doDeletePentest(pentestName)
-                self.treevw.deleteState(pentestName)
+       
+
+    
 
     def newPentest(self, pentestName, pentest_type, start_date, end_date, scope, settings, pentesters):
         """
@@ -1262,30 +1190,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 tkinter.messagebox.showinfo("Forbidden", msg)
         return succeed
 
-    def selectNewPentest(self):
-        """
-        Ask a user for a new pentest name. Then creates it.
-        """
-        validPentest = False
-        default = {}
-        while not validPentest:
-            dialog = ChildDialogNewPentest(self, default)
-            self.wait_window(dialog.app)
-            if isinstance(dialog.rvalue, dict):
-                default = dialog.rvalue
-                dbName = dialog.rvalue["name"]
-                pentest_type = dialog.rvalue["type"]
-                start_date = dialog.rvalue["start"]
-                end_date = dialog.rvalue["end"]
-                scope = dialog.rvalue["scope"]
-                settings = dialog.rvalue["settings"]
-                pentesters = dialog.rvalue["pentesters"]
-                validPentest = self.newPentest(dbName, pentest_type, start_date, end_date, scope, settings, pentesters)
-                if validPentest:
-                    self.lastNotifReadTime = datetime.datetime.now()
-                    self.openPentest(dbName)
-            else:
-                return
     
     def openPentest(self, filename=""):
         """
@@ -1333,18 +1237,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             else:    
                 self.nbk.delete(module["name"])
 
-    def wrapCopyDb(self, _event=None):
-        """
-        Call default copy database from a callback event.
-
-        Args:
-            _event: not used but mandatory
-        """
-        apiclient = APIClient.getInstance()
-        toCopyName = tkinter.simpledialog.askstring(
-                "Copy name", "New copy of "+apiclient.getCurrentPentest()+" database name :")
-        apiclient.copyDb(apiclient.getCurrentPentest(), toCopyName)
-
+   
     def importExistingTools(self, _event=None):
         """
         Ask user to import existing files to import.

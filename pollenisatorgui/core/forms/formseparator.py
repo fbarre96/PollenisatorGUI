@@ -16,8 +16,9 @@ class FormSeparator(Form):
             name: the form name.
             default: a default value to store in it.
         """
-        self.kwargs = kwargs
         super().__init__("Separator")
+        self.kwargs = kwargs
+
 
     def constructView(self, parent):
         """

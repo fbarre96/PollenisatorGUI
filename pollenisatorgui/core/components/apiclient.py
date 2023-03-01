@@ -1093,12 +1093,12 @@ class APIClient():
         return False, response.text  
 
     @handle_api_errors
-    def importDb(self, filename):
+    def importDb(self, filename, original_db_name):
         api_url = '{0}importDb'.format(self.api_url_base)
         with io.open(filename, mode='rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/gzip')}, proxies=self.proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f,'application/gzip')}, params={"orig_name":original_db_name}, proxies=self.proxies, verify=False)
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200

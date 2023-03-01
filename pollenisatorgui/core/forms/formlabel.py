@@ -39,12 +39,16 @@ class FormLabel(Form):
         kwargs = {}
         if width is not None:
             kwargs["width"] = int(width)
-        lbl = CTkLabel(parent.panel, text=self.text, justify=tk.LEFT, **kwargs)
+        bold = self.getKw("bold", False)
+        self.lbl = CTkLabel(parent.panel, text=self.text, justify=tk.LEFT, fg_color=self.getKw("fg_color", None), **kwargs)
+        if bold:
+            self.lbl.cget("font").configure(weight="bold")
         if parent.gridLayout:
     
-            lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)
+            self.lbl.grid(column=self.getKw("column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.E) , padx=self.getKw("padx", 5), pady=self.getKw("pady", 5), **self.kwargs)
         else:
-            lbl.pack(side=self.getKw("side", "left"), padx=self.getKw("padx", 10), pady=self.getKw("pady", 5), **self.kwargs)
+            self.lbl.pack(side=self.getKw("side", "left"), anchor=self.getKw("anchor", tk.CENTER), padx=self.getKw("padx", 10), pady=self.getKw("pady", 5), **self.kwargs)
+
 
     def getValue(self):
         """

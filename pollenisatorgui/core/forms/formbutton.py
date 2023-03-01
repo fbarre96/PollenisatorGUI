@@ -2,7 +2,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-
 from pollenisatorgui.core.forms.form import Form
 
 
@@ -49,8 +48,10 @@ class FormButton(Form):
                                   hover_color=self.getKw("hover_color", None),
                                   fg_color=self.getKw("fg_color", None))
         else:
-            
             self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None), style=s)
+            tooltip = self.getKw("tooltip", None)
+            if tooltip is not None:
+                self.btn.configure(tooltip=tooltip)
         self.infos = self.getKw("infos", {})
         if len(self.infos) > 0:
             self.btn.bind('<Button-1>', self.callback_infos)

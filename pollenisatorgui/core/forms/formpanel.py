@@ -42,6 +42,8 @@ class FormPanel(Form):
         self.subforms = []
         self.kwargs = kwargs
         self.gridLayout = self.getKw("grid", False)
+        self.make_uniform_column = self.getKw("make_uniform_column", None)
+        
         self.panel = None
 
     def constructView(self, parent):
@@ -50,18 +52,23 @@ class FormPanel(Form):
         Args:
             parent: parent view or parent FormPanel.
         """
+        
         if isinstance(parent, FormPanel):  # Panel is a subpanel
             self.panel = CTkFrame(parent.panel, fg_color=self.getKw("fg_color", None))
         else:
             self.panel = CTkFrame(parent,  fg_color=self.getKw("fg_color", None))
+      
+        if self.make_uniform_column is not None:
+            self.makeUniformColumn(self.make_uniform_column)
+        
         for form in self.subforms:
             form.constructView(self)
         if isinstance(parent, FormPanel):  # Panel is a subpanel
             if parent.gridLayout:
-                self.panel.grid_rowconfigure(0, weight=1)
-                self.panel.grid_columnconfigure(0, weight=1)
+                # self.panel.grid_rowconfigure(0, weight=1)
+                # self.panel.grid_columnconfigure(0, weight=1)
                 self.panel.grid(column=self.getKw(
-                    "column", 0), row=self.getKw("row", 0), sticky=tk.NSEW, **self.kwargs)
+                    "column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.NSEW), **self.kwargs)
             else:
                 self.panel.pack(fill=self.getKw("fill", "both"), side=self.getKw(
                     "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), expand=True, **self.kwargs)
@@ -70,7 +77,7 @@ class FormPanel(Form):
             if not is_grid:
                 self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
             else:
-                self.panel.grid(sticky=self.getKw("sticky", "NSEW"), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
+                self.panel.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
     
     def checkForm(self):
         """
@@ -96,6 +103,10 @@ class FormPanel(Form):
         for form in self.subforms:
             if name == form.name:
                 form.setFocus()
+
+    def makeUniformColumn(self, n):
+        for i in range(n):
+            self.panel.grid_columnconfigure(i, weight=1, uniform="uniform")
 
     def getValue(self):
         """

@@ -210,20 +210,7 @@ class PollenisatorTreeview(ttk.Treeview):
         if state is not None:
             self.restoreTreeItemState(state)
 
-    def deleteState(self, name):
-        """
-        Delete the given name state file
-        file name is given in arguments and it must be stored as an hidden file in Pollenisator/local/states/ folder.
-        Args:
-            name: the name of this treeview to delete.
-                  The full path to local/states folder and a Dot (".") will be prepended to the name.
-        """
-        try:
-            path = os.path.join(PollenisatorTreeview.dir_path,
-                                "../../../local/states/."+name)
-            os.remove(path)
-        except FileNotFoundError:
-            pass
+   
 
     def restoreTreeItemState(self, state):
         """
