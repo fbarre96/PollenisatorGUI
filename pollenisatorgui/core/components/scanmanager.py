@@ -1,4 +1,6 @@
 """Hold functions to interact form the scan tab in the notebook"""
+from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
+from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 import tkinter as tk
@@ -128,25 +130,9 @@ class ScanManager:
         apiclient.sendStopAutoScan()
         logger.debug('Ask stop autoscan')
 
-    def refreshUI(self):
-        """Reload informations and renew widgets"""
+    def refreshWorkers(self):
         apiclient = APIClient.getInstance()
         workers = apiclient.getWorkers()
-        running_scans = Tool.fetchObjects({"status":"running"})
-        try:
-            for children in self.scanTv.get_children():
-                self.scanTv.delete(children)
-        except tk.TclError:
-            pass
-        except RuntimeError:
-            return
-        for running_scan in running_scans:
-            check = CheckInstance.fetchObject({"_id":ObjectId(running_scan.check_iid)})
-            group_name = "" if check is None else check.check_m.title
-            try:
-                self.scanTv.insert('','end', running_scan.getId(), text=group_name, values=(running_scan.name, running_scan.dated), image=self.running_icon)
-            except tk.TclError:
-                pass
         for children in self.workerTv.get_children():
             try:
                 self.workerTv.delete(children)
@@ -168,6 +154,44 @@ class ScanManager:
                 except Exception as e:
                     print(str(err)+" occured")
                     print("Then:"+str(e))
+        return len(workers)
+
+    def refreshUI(self):
+        """Reload informations and renew widgets"""
+        apiclient = APIClient.getInstance()
+        running_scans = Tool.fetchObjects({"status":"running"})
+        try:
+            for children in self.scanTv.get_children():
+                self.scanTv.delete(children)
+        except tk.TclError:
+            pass
+        except RuntimeError:
+            return
+        for running_scan in running_scans:
+            check = CheckInstance.fetchObject({"_id":ObjectId(running_scan.check_iid)})
+            group_name = "" if check is None else check.check_m.title
+            try:
+                self.scanTv.insert('','end', running_scan.getId(), text=group_name, values=(running_scan.name, running_scan.dated), image=self.running_icon)
+            except tk.TclError:
+                pass
+        done_scans = Tool.fetchObjects({"status":"done"})
+        try:
+            for children in self.histoScanTv.get_children():
+                self.histoScanTv.delete(children)
+        except tk.TclError:
+            pass
+        except RuntimeError:
+            return
+        for done_scan in done_scans:
+            check = CheckInstance.fetchObject({"_id":ObjectId(done_scan.check_iid)})
+            group_name = "" if check is None else check.check_m.title
+            try:
+                self.histoScanTv.insert('',0, done_scan.getId(), text=group_name, values=(done_scan.name, done_scan.datef), image=self.ok_icon)
+            except tk.TclError as e:
+                print(e)
+        self.histoScanTv.treevw.configure(height=10)
+        nb_workers = self.refreshWorkers()
+        
         if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = CTkButton(
@@ -175,7 +199,7 @@ class ScanManager:
             else:
                 self.btn_autoscan = CTkButton(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
-        if len(workers) == 0:
+        if nb_workers == 0:
             options = ["Use this computer", "Run a preconfigured Docker on server"]
             if git_available:
                 options.append("Run a preconfigured Docker locally")
@@ -201,7 +225,8 @@ class ScanManager:
             return
         apiclient = APIClient.getInstance()
         self.parent = parent
-        parentFrame = ttk.Frame(self.parent)
+        parentScrollableFrame = ScrollableFrameXPlateform(self.parent)
+        parentFrame = ttk.Frame(parentScrollableFrame)
         parentFrame.configure(onfiledrop=self.dropFile) 
         ### WORKER TREEVIEW : Which worker knows which commands
         workerFrame = CTkFrame(parentFrame)
@@ -230,29 +255,6 @@ class ScanManager:
         pane.addFormHelper("Use this computer as a worker", side=tk.LEFT)
         btn_pane.constructView(workerFrame)
         workerFrame.pack(side=tk.TOP, padx=10, pady=5)
-        workers = apiclient.getWorkers()
-        # for worker in workers:
-        #     workername = worker["name"]
-        #     try:
-        #         if apiclient.getCurrentPentest() == worker.get("pentest", ""):
-        #             worker_node = self.workerTv.insert(
-        #                 '', 'end', workername, text=workername, image=self.ok_icon)
-        #         else:
-        #             worker_node = self.workerTv.insert(
-        #                 '', 'end', workername, text=workername, image=self.nok_icon)
-        #     except tk.TclError:
-        #         pass
-        #### TREEVIEW SCANS : overview of ongoing auto scan####
-        self.scanTv = ttk.Treeview(parentFrame)
-        self.scanTv['columns'] = ('Tool', 'Started at')
-        self.scanTv.heading("#0", text='Scans', anchor=tk.W)
-        self.scanTv.column("#0", anchor=tk.W)
-        self.scanTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
-        self.scanTv.bind("<Double-Button-1>", self.OnDoubleClick)
-        # running_scans = Tool.fetchObjects({"status":"running"})
-        # for running_scan in running_scans:
-        #     self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
-        #### BUTTONS FOR AUTO SCANNING ####
         self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
         self.image_import = CTkImage(Image.open(utils.getIcon("import.png")))
         if apiclient.getAutoScanStatus():
@@ -268,7 +270,35 @@ class ScanManager:
         btn_parse_scans.pack(side="top",pady=10)
         info = CTkLabel(parentFrame, text="You can also drop your files / folder here")
         info.pack()
+        # for worker in workers:
+        #     workername = worker["name"]
+        #     try:
+        #         if apiclient.getCurrentPentest() == worker.get("pentest", ""):
+        #             worker_node = self.workerTv.insert(
+        #                 '', 'end', workername, text=workername, image=self.ok_icon)
+        #         else:
+        #             worker_node = self.workerTv.insert(
+        #                 '', 'end', workername, text=workername, image=self.nok_icon)
+        #     except tk.TclError:
+        #         pass
+        #### TREEVIEW SCANS : overview of ongoing auto scan####
+        self.scanTv = ttk.Treeview(parentFrame)
+        self.scanTv['columns'] = ('Tool', 'Started at')
+        self.scanTv.heading("#0", text='Running scans', anchor=tk.W)
+        self.scanTv.column("#0", anchor=tk.W)
+        self.scanTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
+        self.scanTv.bind("<Double-Button-1>", self.OnDoubleClick)
+
+        self.histoScanTv = ScrollableTreeview(parentFrame, ('History category', 'Name', 'Ended at'), keys=(None, None, utils.stringToDate))
+        self.histoScanTv.pack(side=tk.TOP,  padx=10, pady=10, fill=tk.X)
+        self.histoScanTv.bind("<Double-Button-1>", self.OnHistoDoubleClick)
+        # running_scans = Tool.fetchObjects({"status":"running"})
+        # for running_scan in running_scans:
+        #     self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
+        #### BUTTONS FOR AUTO SCANNING ####
+        
         parentFrame.pack(expand=1, fill=tk.BOTH)
+        parentScrollableFrame.pack(expand=1, fill=tk.BOTH)
 
     def dropFile(self, event):
         # This function is called, when stuff is dropped into a widget
@@ -281,6 +311,17 @@ class ScanManager:
             event: Automatically filled when event is triggered. Holds info about which line was double clicked
         """
         if self.scanTv is not None:
+            tv = event.widget
+            item = tv.identify("item", event.x, event.y)
+            self.nbk.select("Main View")
+            self.mainApp.search("id == \""+str(item)+"\"")
+    
+    def OnHistoDoubleClick(self, event):
+        """Callback for a double click on ongoing scan tool treeview. Open the clicked tool in main view and focus on it.
+        Args:
+            event: Automatically filled when event is triggered. Holds info about which line was double clicked
+        """
+        if self.histoScanTv is not None:
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             self.nbk.select("Main View")
@@ -315,7 +356,7 @@ class ScanManager:
         if notif["db"] == "pollenisator":
             if notif["collection"] == "workers":
                 if self.workerTv is not None:
-                    self.refreshUI() # TODO : refresh only the worker treeview
+                    self.refreshWorkers() 
 
     def OnWorkerDoubleClick(self, event):
         """Callback for treeview double click.
