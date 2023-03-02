@@ -122,6 +122,21 @@ def promptForPentest():
             i = 0
     apiclient.setCurrentPentest(pentests[i-1])
 
+def parseDefaultTarget(stringToParse):
+    if "|" in stringToParse:
+        parts = stringToParse.split("|")
+        ret = {}
+        ret["lvl"] = parts[0]
+        ret["wave"] = parts[1]
+        ret["scope"] = parts[2]
+        ret["ip"] = parts[3]
+        ret["port"] = parts[4]
+        ret["proto"] = parts[5]
+        return ret
+
+    else:
+        return {"check_iid":str(stringToParse), "lvl":"import"}
+
 def pollex():
     """Send a command to execute for pollenisator-gui running instance
     """
@@ -185,7 +200,7 @@ def pollex():
                 print(f"ERROR : Expected file was not generated {outputFilePath}")
                 return
         print(f"INFO : Uploading results {outputFilePath}")
-        msg = apiclient.importExistingResultFile(outputFilePath, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), comm)
+        msg = apiclient.importExistingResultFile(outputFilePath, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), comm)
         print(msg)
 
 def pollup():
@@ -209,7 +224,7 @@ def uploadFile(filename, plugin='auto-detect'):
     if not res:
         consoleConnect()
     print(f"INFO : Uploading results {filename}")
-    msg = apiclient.importExistingResultFile(filename, plugin, os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""), "")
+    msg = apiclient.importExistingResultFile(filename, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), "")
     print(msg)
 
 def pollwatch():

@@ -21,6 +21,7 @@ class CheckInstanceController(ControllerElement):
             "Status", self.model.status)
         self.model.notes = values.get(
             "Notes", self.model.notes)
+        
         # Update in database
         self.model.update()
 

@@ -140,9 +140,10 @@ class ToolView(ViewElement):
         datamanager = DataManager.getInstance()
         try:
             command_d = datamanager.get("commands", modelData["command_iid"])
-            workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d.bin_path})
-            workers = [x["name"] for x in workers]
-            hasWorkers = len(workers)
+            if command_d is not None: # command not registered, I.E import
+                workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest(), "known_commands":command_d.bin_path})
+                workers = [x["name"] for x in workers]
+                hasWorkers = len(workers)
             #Ready is legacy, OOS and/or OOT should be used
             if ("ready" in self.controller.getStatus() or "error" in self.controller.getStatus() or "timedout" in self.controller.getStatus()) or len(self.controller.getStatus()) == 0:
                 if apiclient.getUser() in command_d.owners:
@@ -182,8 +183,9 @@ class ToolView(ViewElement):
                     for pluginAction in pluginActions:
                         actions_panel.addFormButton(
                             pluginAction, pluginActions[pluginAction], side="right")
-                    actions_panel.addFormButton(
-                        "Reset", self.resetCallback, side="right")
+                    if command_d is not None:
+                        actions_panel.addFormButton(
+                            "Reset", self.resetCallback, side="right")
         except errors.InvalidId:
             pass
 

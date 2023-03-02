@@ -91,7 +91,7 @@ class ChildDialogFileParser:
             additional_results = apiclient.importExistingResultFile(file_path, plugin)
             for key, val in additional_results.items():
                 results[key] = results.get(key, 0) + val
-            dialog.step()
+            dialog.update()
         dialog.destroy()
         # DISPLAY RESULTS
         presResults = ""

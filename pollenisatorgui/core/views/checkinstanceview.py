@@ -2,6 +2,8 @@
 
 import tkinter.ttk as ttk
 from customtkinter import *
+from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
+from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
@@ -126,71 +128,75 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormLabel("Target", row=3, column=0)
         panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1, style="link.TButton", pady=5)
         
-        if "commands" in check_m.check_type:
-            from PIL import ImageTk, Image
+        #if "commands" in check_m.check_type:
+        from PIL import ImageTk, Image
 
-            self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
-            self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
-            self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
-            
-            dict_of_tools_not_done = infos.get("tools_not_done")
-            dict_of_tools_running = infos.get("tools_running")
-            dict_of_tools_done = infos.get("tools_done")
-            lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
-            lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
-            lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
-            if dict_of_tools_not_done:
-                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
-                row=0
-                for tool_iid, tool_string in dict_of_tools_not_done.items():
-                    formCommands.addFormSeparator(row=row, column=0, columnspan=3)
-                    formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0, style="link.TButton", infos={"iid":tool_iid})
-                    formCommands.addFormButton("Execute", lambdas_not_done[row], row=row*2+1, column=1, image=self.buttonExecuteImage)
-                    row+=1
-            if dict_of_tools_running:
-                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
-                row=0
-                for tool_iid, tool_string in dict_of_tools_running.items():
-                    formCommands.addFormSeparator(row=row, column=0, columnspan=3)
-                    formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
-                    formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=1, image=self.buttonRunImage)
-                    row+=1
-            if dict_of_tools_done:
-                formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-                row=0
-                for tool_iid, tool_data in dict_of_tools_done.items():
-                    tool_m = Tool(tool_data)
-                    tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
-                    tool_panel.addFormSeparator(fill=tk.X)
-                    tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W,style="link.TButton", infos={"iid":tool_iid})
-                    if tool_m.tags:
-                        for tag in tool_m.tags:
-                            registeredTags = Settings.getTags()
-                            keys = list(registeredTags.keys())
+        self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
+        self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
+        self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
+        
+        dict_of_tools_not_done = infos.get("tools_not_done")
+        dict_of_tools_running = infos.get("tools_running")
+        dict_of_tools_done = infos.get("tools_done")
+        lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
+        lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
+        lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
+        if dict_of_tools_not_done:
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+            row=0
+            for tool_iid, tool_string in dict_of_tools_not_done.items():
+                formCommands.addFormSeparator(row=row, column=0, columnspan=3)
+                formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0, style="link.TButton", infos={"iid":tool_iid})
+                formCommands.addFormButton("Execute", lambdas_not_done[row], row=row*2+1, column=1, image=self.buttonExecuteImage)
+                row+=1
+        if dict_of_tools_running:
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+            row=0
+            for tool_iid, tool_string in dict_of_tools_running.items():
+                formCommands.addFormSeparator(row=row, column=0, columnspan=3)
+                formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
+                formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=1, image=self.buttonRunImage)
+                row+=1
+        if dict_of_tools_done:
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
+            row=0
+            for tool_iid, tool_data in dict_of_tools_done.items():
+                tool_m = Tool(tool_data)
+                tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
+                tool_panel.addFormSeparator(fill=tk.X)
+                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W,style="link.TButton", infos={"iid":tool_iid})
+                if tool_m.tags:
+                    for tag in tool_m.tags:
+                        registeredTags = Settings.getTags()
+                        keys = list(registeredTags.keys())
+                        column = 0
+                        item_no = 0
+                        
+                        s = ttk.Style(self.mainApp)
+                        color = registeredTags.get(tag, "gray97")
+                        try: # CHECK IF COLOR IS VALID
+                            CTkLabel(self.mainApp, fg_color=color)
+                        except tk.TclError as e:
+                            #color incorrect
+                            color = "gray97"
+                        s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
+                        tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0)
+                        column += 1
+                        item_no += 1
+                        if column == 4:
                             column = 0
-                            item_no = 0
-                            
-                            s = ttk.Style(self.mainApp)
-                            color = registeredTags.get(tag, "gray97")
-                            try: # CHECK IF COLOR IS VALID
-                                CTkLabel(self.mainApp, fg_color=color)
-                            except tk.TclError as e:
-                                #color incorrect
-                                color = "gray97"
-                            s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
-                            tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0)
-                            column += 1
-                            item_no += 1
-                            if column == 4:
-                                column = 0
-                            if column == 0:
-                                tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
-                    tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT)
-                    tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, side=tk.LEFT, anchor=tk.E)
-                    row+=1
+                        if column == 0:
+                            tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
+                tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT)
+                tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, side=tk.LEFT, anchor=tk.E)
+                row+=1
+        upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
+        upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, pady=5)
+        self.form_file = upload_panel.addFormFile("upload_tools", height=2, side=tk.LEFT, pady=5)
+        upload_panel.addFormButton("Upload", callback=self.upload_scan_files, side=tk.LEFT, pady=5)
 
             #for command, status in infos.get("tools_status", {}).items():
-        elif "script" in check_m.check_type:
+        if "script" in check_m.check_type:
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
             self.textForm = formTv.addFormStr("Script", ".+", check_m.script)
@@ -201,6 +207,44 @@ class CheckInstanceView(ViewElement):
         
         self.completeModifyWindow(addTags=False)
 
+    def upload_scan_files(self, event):
+        files_paths = self.form_file.getValue()
+        files = set()
+        for filepath in files_paths:
+            if os.path.isdir(filepath):
+                # r=root, d=directories, f = files
+                for r, _d, f in os.walk(filepath):
+                    for fil in f:
+                        files.add(os.path.join(r, fil))
+            else:
+                files.add(filepath)
+        dialog = ChildDialogProgress(self.mainApp, "Importing files", "Importing "+str(
+            len(files)) + " files. Please wait for a few seconds.", 1/len(files)*50, "determinate")
+        dialog.show(len(files))
+        # LOOP ON FOLDER FILES
+        results = {}
+        apiclient = APIClient.getInstance()
+        for f_i, file_path in enumerate(files):
+            additional_results = apiclient.importExistingResultFile(file_path, "auto-detect", {"check_iid":str(self.controller.getDbId()), "lvl":"import"}, "")
+            for key, val in additional_results.items():
+                results[key] = results.get(key, 0) + val
+            dialog.update()
+        dialog.destroy()
+        # DISPLAY RESULTS
+        presResults = ""
+        filesIgnored = 0
+        for key, value in results.items():
+            presResults += str(value) + " " + str(key)+".\n"
+            if key == "Ignored":
+                filesIgnored += 1
+        if filesIgnored > 0:
+            tk.messagebox.showwarning(
+                "Auto-detect ended", presResults, parent=self.mainApp)
+        else:
+            tk.messagebox.showinfo("Auto-detect ended", presResults, parent=self.mainApp)
+        self.openModifyWindow()
+
+       
     
     def launchToolCallbackLambda(self, tool_iid):
         return lambda event: self.launchToolCallback(tool_iid)

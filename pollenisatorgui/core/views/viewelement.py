@@ -82,9 +82,9 @@ class ViewElement(object):
         """
         ret = True
         if showWarning:
-            dialog = ChildDialogQuestion(self.parentFrame,
+            dialog = ChildDialogQuestion(self.mainApp,
                                      "DELETE WARNING", "Becareful for you are about to delete this entry and there is no turning back.", ["Delete", "Cancel"])
-            self.wait_window(dialog.app)
+            self.mainApp.wait_window(dialog.app)
             if dialog.rvalue != "Delete":
                 return
         self.controller.doDelete()

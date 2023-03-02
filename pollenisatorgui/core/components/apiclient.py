@@ -958,12 +958,12 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def importExistingResultFile(self, filepath, plugin, default_target="", command_used=""):
+    def importExistingResultFile(self, filepath, plugin, default_target={}, command_used=""):
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, mode='rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)
-            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":default_target, "cmdline":command_used}, proxies=self.proxies, verify=False)
+            response = requests.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":json.dumps(default_target), "cmdline":command_used}, proxies=self.proxies, verify=False)
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             elif response.status_code >= 400:

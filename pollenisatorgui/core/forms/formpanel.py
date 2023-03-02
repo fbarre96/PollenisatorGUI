@@ -54,9 +54,9 @@ class FormPanel(Form):
         """
         
         if isinstance(parent, FormPanel):  # Panel is a subpanel
-            self.panel = CTkFrame(parent.panel, fg_color=self.getKw("fg_color", None))
+            self.panel = CTkFrame(parent.panel, fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
         else:
-            self.panel = CTkFrame(parent,  fg_color=self.getKw("fg_color", None))
+            self.panel = CTkFrame(parent,  fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
       
         if self.make_uniform_column is not None:
             self.makeUniformColumn(self.make_uniform_column)
