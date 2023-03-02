@@ -130,6 +130,26 @@ class ScanManager:
         apiclient.sendStopAutoScan()
         logger.debug('Ask stop autoscan')
 
+    def refreshRunningScans(self):
+        running_scans = Tool.fetchObjects({"status":"running"})
+        try:
+            for children in self.scanTv.get_children():
+                self.scanTv.delete(children)
+        except tk.TclError:
+            pass
+        except RuntimeError:
+            return
+        for running_scan in running_scans:
+            try:
+                check = CheckInstance.fetchObject({"_id":ObjectId(running_scan.check_iid)})
+            except:
+                check = None
+            group_name = "" if check is None else check.check_m.title
+            try:
+                self.scanTv.insert('','end', running_scan.getId(), text=group_name, values=(running_scan.name, running_scan.dated), image=self.running_icon)
+            except tk.TclError:
+                pass
+
     def refreshWorkers(self):
         apiclient = APIClient.getInstance()
         workers = apiclient.getWorkers()
@@ -159,31 +179,14 @@ class ScanManager:
     def refreshUI(self):
         """Reload informations and renew widgets"""
         apiclient = APIClient.getInstance()
-        running_scans = Tool.fetchObjects({"status":"running"})
-        try:
-            for children in self.scanTv.get_children():
-                self.scanTv.delete(children)
-        except tk.TclError:
-            pass
-        except RuntimeError:
-            return
-        for running_scan in running_scans:
-            check = CheckInstance.fetchObject({"_id":ObjectId(running_scan.check_iid)})
-            group_name = "" if check is None else check.check_m.title
-            try:
-                self.scanTv.insert('','end', running_scan.getId(), text=group_name, values=(running_scan.name, running_scan.dated), image=self.running_icon)
-            except tk.TclError:
-                pass
+        self.refreshRunningScans()
         done_scans = Tool.fetchObjects({"status":"done"})
-        try:
-            for children in self.histoScanTv.get_children():
-                self.histoScanTv.delete(children)
-        except tk.TclError:
-            pass
-        except RuntimeError:
-            return
+        self.histoScanTv.reset()
         for done_scan in done_scans:
-            check = CheckInstance.fetchObject({"_id":ObjectId(done_scan.check_iid)})
+            try:
+                check = CheckInstance.fetchObject({"_id":ObjectId(done_scan.check_iid)})
+            except:
+                check = None
             group_name = "" if check is None else check.check_m.title
             try:
                 self.histoScanTv.insert('',0, done_scan.getId(), text=group_name, values=(done_scan.name, done_scan.datef), image=self.ok_icon)
@@ -195,7 +198,7 @@ class ScanManager:
         if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = CTkButton(
-                    self.parent, text="Stop Scanning", command=self.stopAutoscan)
+                    self.parent, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan)
             else:
                 self.btn_autoscan = CTkButton(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
@@ -259,7 +262,7 @@ class ScanManager:
         self.image_import = CTkImage(Image.open(utils.getIcon("import.png")))
         if apiclient.getAutoScanStatus():
             self.btn_autoscan = CTkButton(
-                parentFrame, text="Stop Scanning", command=self.stopAutoscan)
+                parentFrame, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan)
             self.btn_autoscan.pack()
         else:
             self.btn_autoscan = CTkButton(
@@ -357,6 +360,10 @@ class ScanManager:
             if notif["collection"] == "workers":
                 if self.workerTv is not None:
                     self.refreshWorkers() 
+        elif notif["collection"] == "tools" and notif["action"] == "update":
+            if dataManager.currentPentest == notif["db"]:
+                self.refreshRunningScans()
+        
 
     def OnWorkerDoubleClick(self, event):
         """Callback for treeview double click.

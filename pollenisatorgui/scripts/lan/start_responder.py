@@ -13,5 +13,5 @@ def main(apiclient, **kwargs):
     dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
     dialog.app.wait_window(dialog.app)
     if dialog.rvalue is not None:
-       utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -A")
+       utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -A", default_target=kwargs.get("default_target", None))
     return True, f"Listening responder open"

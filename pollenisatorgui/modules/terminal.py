@@ -47,15 +47,13 @@ class Terminal(Module):
         return True
 
     @classmethod
-    def openTerminal(cls, default_target=""):
+    def openTerminal(cls, default_target=None):
         if cls.settings.isTrapCommand():
             comm = "bash --rcfile "+os.path.join(utils.getMainDir(), "setupTerminalForPentest.sh")
         else:
             comm = "bash"
-        env = {
-            "POLLENISATOR_DEFAULT_TARGET": default_target,
-        }
-        res = utils.executeInExternalTerm(comm, with_bash=False, env=env)
+        
+        res = utils.executeInExternalTerm(comm, with_bash=False,  default_target=default_target)
         
 
     def onClosing(self, _signum=None, _frame=None):

@@ -596,7 +596,7 @@ def openPathForUser(path, folder_only=False):
             return False
     return True
 
-def executeInExternalTerm(command, with_bash=True, env={}):
+def executeInExternalTerm(command, with_bash=True, default_target=None):
     from pollenisatorgui.core.components.settings import Settings
     settings = Settings()
     favorite = settings.getFavoriteTerm()
@@ -605,6 +605,9 @@ def executeInExternalTerm(command, with_bash=True, env={}):
             "Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
         return False
     if which(favorite) is not None:
+        env = {}
+        if default_target is not None:
+            env["POLLENISATOR_DEFAULT_TARGET"] = default_target
         env = {**os.environ, **env}
         terms = settings.getTerms()
         terms_dict = {}

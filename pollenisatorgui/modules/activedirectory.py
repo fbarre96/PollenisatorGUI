@@ -662,7 +662,7 @@ class ChildDialogConfigureADModule:
         self.app.title(displayMsg)
         self.rvalue = None
         self.parent = parent
-        
+        self.save_image = CTkImage(Image.open("save.png"))
         panel = FormPanel()
         ad_settings = ActiveDirectory.getSettings()
         self.explanationLbl = panel.addFormText("Explanation","","""

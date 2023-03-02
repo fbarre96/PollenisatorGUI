@@ -204,8 +204,8 @@ class CheckInstanceView(ViewElement):
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
             self.textForm = formTv.addFormStr("Script", ".+", check_m.script)
-            self.execute_icon = CTkImage(file = utils.getIcon("execute.png"))
-            self.edit_icon = CTkImage(file = utils.getIcon("view_doc.png"))
+            self.execute_icon = CTkImage(Image.open(utils.getIcon("execute.png")))
+            self.edit_icon = CTkImage(Image.open(utils.getIcon("view_doc.png")))
             formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon)
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
         
@@ -310,6 +310,7 @@ class CheckInstanceView(ViewElement):
 
     def execScript(self, script):
         data = self.controller.getData()
+        data["default_target"] = str(self.controller.getDbId())
         ScriptManager.executeScript(script, data)
     
 

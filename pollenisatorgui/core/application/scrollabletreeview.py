@@ -117,9 +117,12 @@ class ScrollableTreeview(CTkFrame):
         return res
     
     def _insert(self, parent, index, iid, text="",values=(), tags=(), image=None):
+        kwargs = {}
+        if image is not None:
+            kwargs["image"] =image
         try:
-            res = self.treevw.insert(parent, index, iid, text=text, values=values, tags=tags, image=image)
-        except tk.TclError:
+            res = self.treevw.insert(parent, index, iid, text=text, values=values, tags=tags, **kwargs)
+        except tk.TclError as e:
             return None
         self.columnsLen[0] = max(self.columnsLen[0], self.f.measure(text))
         self.treevw.column("#0", anchor='w',
@@ -219,6 +222,8 @@ class ScrollableTreeview(CTkFrame):
         for item in self.treevw.get_children():
             self.treevw.delete(item)
         self.infos = []
+        self.currentPage = 0
+        self.lastPage = 0
         self.setPaginationPanel()
 
 

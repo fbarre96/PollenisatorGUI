@@ -34,12 +34,14 @@ class DataManager(Subject):
         super().__init__()
         self._observers
         self.data = {}
+        self.currentDatabase = None
         pid = os.getpid()
         DataManager.__instances[pid] = self
 
     def load(self, forceReload=False):
         if len(self.data) > 0 and not forceReload:
             return
+        self.currentPentest = APIClient.getInstance().getCurrentPentest()
         for coll, model in REGISTRY.items():
             self.data[coll.lower()] = {}
             datas = model.fetchPentestObjects()

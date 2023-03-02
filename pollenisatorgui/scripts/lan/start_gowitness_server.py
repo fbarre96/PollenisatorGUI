@@ -19,5 +19,5 @@ def main(apiclient, **kwargs):
 		merge_str += " -i "+path.replace(".zip", ".sqlite3")
 	if merge_str == "":
 		return False, "No done gotwitness found."
-	utils.executeInExternalTerm(f"gowitness merge{merge_str} -o {output_dir}/gowitness.sqlite3 & gowitness server -D {output_dir}/gowitness.sqlite3 -P {output_dir}/ & firefox localhost:7171")
+	utils.executeInExternalTerm(f"gowitness merge{merge_str} -o {output_dir}/gowitness.sqlite3 & gowitness server -D {output_dir}/gowitness.sqlite3 -P {output_dir}/ & firefox localhost:7171", default_target=kwargs.get("default_target", None))
 	return True, f"Opened in firefox"
