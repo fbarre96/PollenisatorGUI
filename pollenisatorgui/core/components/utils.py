@@ -149,10 +149,10 @@ def setStyle(tkApp, dark_mode=False, _event=None):
     style.configure("Treeview", background=background_color, fieldbackground=background_color, foreground=text_color)
     #style.configure("Treeview.Item")
 
-    style.configure("TLabelframe", background=background_color,
+    style.configure("TLabelframe", background=background_color,foreground="gray97",
                     labeloutside=False, bordercolor=main_color,relief=tk.SUNKEN)
     style.configure('TLabelframe.Label', background=main_color,
-                    foreground=text_color, font=('Sans', '10', 'bold'))
+                    foreground="gray97", font=('Sans', '10', 'bold'))
     style.configure("TProgressbar",
                 background=hover_color, foreground=hover_color, troughcolor=background_color, darkcolor=hover_color, lightcolor=hover_color)
     style.configure("Important.TFrame", background=main_color)

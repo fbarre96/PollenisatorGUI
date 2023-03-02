@@ -3,6 +3,7 @@
 import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
+from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialogToast
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
@@ -13,6 +14,7 @@ from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.tool import Tool
 import pollenisatorgui.core.components.utils as utils
+from PIL import ImageTk, Image
 
 
 from bson import ObjectId
@@ -120,21 +122,23 @@ class CheckInstanceView(ViewElement):
             default_status = modelData.get("status", "")
         if default_status == "":
             default_status = "todo"
-        panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, row=0, column=1, pady=5)
+        self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
+
+        self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=1, pady=5)
         panel_top.addFormLabel("Description", row=1, column=0)
         panel_top.addFormText("Description", r"", default=check_m.description, height=100, state="disabled", row=1, column=1, pady=5)
         panel_top.addFormLabel("Notes", row=2, column=0)
         panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
-        panel_top.addFormLabel("Target", row=3, column=0)
-        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=3, column=1, style="link.TButton", pady=5)
+        panet_top_sub = panel_top.addFormPanel(grid=True, row=3, column=0, columnspan=2)
+        panet_top_sub.addFormLabel("Target", row=0, column=0)
+        panet_top_sub.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
+        panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
         
         #if "commands" in check_m.check_type:
-        from PIL import ImageTk, Image
 
         self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
         self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
         self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
-        
         dict_of_tools_not_done = infos.get("tools_not_done")
         dict_of_tools_running = infos.get("tools_running")
         dict_of_tools_done = infos.get("tools_done")
@@ -206,6 +210,20 @@ class CheckInstanceView(ViewElement):
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
         
         self.completeModifyWindow(addTags=False)
+
+    def attackOnTerminal(self, event):
+        import pollenisatorgui.modules.terminal as terminal
+        terminal.Terminal.openTerminal(str(self.controller.getDbId()))
+
+    def status_change(self, event):
+        status = self.form_status.getValue()
+        self.controller.doUpdate({"Status": status})
+        caller = self.form_status.box
+        #caller = widget.master
+        #caller.update_idletasks()
+        toast = ChildDialogToast(self.appliViewFrame, "Done" , x=caller.winfo_rootx(), y=caller.winfo_rooty()+caller.winfo_reqheight(), width=caller.winfo_reqwidth())
+        toast.show()
+
 
     def upload_scan_files(self, event):
         files_paths = self.form_file.getValue()

@@ -46,7 +46,7 @@ class FormCombo(Form):
         if width is not None:
             kw["width"] = int(width)
         self.box = CTkComboBox(parent.panel, values=tuple(
-            self.choicesList), state=self.getKw("state", "normal"), **kw)
+            self.choicesList), state=self.getKw("state", "normal"), command=self.getKw("command",None), **kw)
         if self.default is not None:
             self.box.set(self.default)
         binds = self.getKw("binds", {})

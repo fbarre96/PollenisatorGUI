@@ -18,7 +18,7 @@ from bson import ObjectId, errors
 from customtkinter import *
 import os
 import json
-
+from PIL import Image
 
 class ToolView(ViewElement):
     """View for tool object. Handle node in treeview and present forms to user when interacted with.
@@ -138,6 +138,7 @@ class ToolView(ViewElement):
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         datamanager = DataManager.getInstance()
+        self.image_download = CTkImage(Image.open(utils.getIcon("download.png")))
         try:
             command_d = datamanager.get("commands", modelData["command_iid"])
             if command_d is not None: # command not registered, I.E import
@@ -171,7 +172,7 @@ class ToolView(ViewElement):
                     "Remote Interaction", self.remoteInteraction, side="right")
             elif "done" in self.controller.getStatus():
                 actions_panel.addFormButton(
-                    "Download result file", self.downloadResultFile, side="right")
+                    "Download result file", self.downloadResultFile, image=self.image_download, side="right")
                 try:
                     mod = utils.loadPlugin(self.controller.model.getCommand()["plugin"])
                     pluginActions = mod.getActions(self.controller.model)
