@@ -45,6 +45,7 @@ from pollenisatorgui.core.views.ipview import IpView
 import pollenisatorgui.modules
 import customtkinter
 import tkinterDnD
+from ttkwidgets import tooltips
 
 class FloatingHelpWindow(CTkToplevel):
     """floating basic window with helping text inside
@@ -627,11 +628,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.quickSearchVal = tk.BooleanVar()
         checkbox_quick_search = CTkSwitch(searchFrame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
         checkbox_quick_search.pack(side="left", padx=5)
-        self.search_icon = CTkImage(Image.open(utils.getIcon("search.png")))
-        btnSearchBar = CTkButton(searchFrame, text="", image=self.search_icon, fg_color="transparent", width=10, command=self.newSearch)
+        self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
+        btnSearchBar = ttk.Button(searchFrame, text="", image=self.search_icon, style="icon.TButton", tooltip="Filter elements based of complex query or only text if quicksearch is selected", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
-        self.reset_icon = CTkImage(Image.open(utils.getIcon("delete.png")))
-        btnReset = CTkButton(searchFrame, image=self.reset_icon, text="",  fg_color="transparent", width=10,command=self.resetButtonClicked)
+        image=Image.open(utils.getIcon("reset.png"))
+        img=image.resize((16, 16))
+        self.reset_icon = ImageTk.PhotoImage(img)
+        btnReset = ttk.Button(searchFrame, image=self.reset_icon, text="",  style="icon.TButton", tooltip="Reset search bar filter", width=10, command=self.resetButtonClicked)
         btnReset.pack(side="left", fill="x")
         self.photo = CTkImage(Image.open(utils.getHelpIconPath()))
         self.helpFrame = None
@@ -909,14 +912,17 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.settings.local_settings["quicksearch"] = int(self.quickSearchVal.get())
         self.settings.saveLocalSettings()
     
-    def newSearch(self, _event=None, histo=True):
+    def newSearch(self, _event=None, histo=True, quick_search_allowed=True):
         """Called when the searchbar is validated (click on search button or enter key pressed).
         Perform a filter on the main treeview.
         Args:
             _event: not used but mandatory"""
         filterStr = self.searchBar.get()
+        if filterStr.strip() == "":
+            self.resetButtonClicked()
+            return
         self.settings.reloadSettings()
-        success = self.treevw.filterTreeview(filterStr, self.settings)
+        success = self.treevw.filterTreeview(filterStr, self.settings, quick_search_allowed)
         self.searchMode = (success and filterStr.strip() != "")
         if success:
             if histo:
@@ -944,7 +950,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.searchMode = True
         self.searchBar.delete(0, tk.END)
         self.searchBar.insert(tk.END, filter_str)
-        self.newSearch(histo=False)
+        self.newSearch(histo=False, quick_search_allowed=False)
 
     def resetButtonClicked(self):
         """

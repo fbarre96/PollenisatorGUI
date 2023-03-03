@@ -139,6 +139,7 @@ class ToolView(ViewElement):
         apiclient = APIClient.getInstance()
         datamanager = DataManager.getInstance()
         self.image_download = CTkImage(Image.open(utils.getIcon("download.png")))
+        self.image_reset = CTkImage(Image.open(utils.getIcon("reset.png")))
         try:
             command_d = datamanager.get("commands", modelData["command_iid"])
             if command_d is not None: # command not registered, I.E import
@@ -186,12 +187,13 @@ class ToolView(ViewElement):
                             pluginAction, pluginActions[pluginAction], side="right")
                     if command_d is not None:
                         actions_panel.addFormButton(
-                            "Reset", self.resetCallback, side="right")
+                            "Reset", self.resetCallback, side="right", image=self.image_reset, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
         except errors.InvalidId:
             pass
 
         defect_panel = self.form.addFormPanel(grid=True)
-        defect_panel.addFormButton("Create defect", self.createDefectCallback)
+        defect_panel.addFormButton("Create defect", self.createDefectCallback, padx=5)
         defect_panel.addFormButton("Show associated command", self.showAssociatedCommand, column=1)
 
         self.completeModifyWindow()

@@ -37,8 +37,8 @@ class ChildDialogAskText:
                                border_width=1, border_color="firebrick1", hover_color="tomato")
 
         self.form.constructView(appFrame)
-        
-        self.app.bind("<Return>", self.onOk)
+        if not multiline:
+            self.app.bind("<Return>", self.onOk)
         self.app.bind("<Escape>", self.onError)
         appFrame.pack(ipadx=10, ipady=10)
 

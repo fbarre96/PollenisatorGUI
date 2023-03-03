@@ -329,7 +329,7 @@ class PollenisatorTreeview(ttk.Treeview):
                 widget.destroy()
         return ret
 
-    def filterTreeview(self, query, settings=None):
+    def filterTreeview(self, query, settings=None, quick_search_allowed=True):
         """
         Deattach objects in the treeview that does not match the query and search settings.
         Args:
@@ -346,7 +346,7 @@ class PollenisatorTreeview(ttk.Treeview):
         searcher = None
         if query.strip() != "":
             try:
-                if settings.local_settings.get("quicksearch", False):
+                if settings.local_settings.get("quicksearch", False) and quick_search_allowed:
                     self.doFilterTreeview(query, False)
                 else:
                     searcher = Filter(query, )
