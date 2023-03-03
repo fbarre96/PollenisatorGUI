@@ -84,7 +84,8 @@ class FormSearchBar(Form):
             return
         list_choice = []
         for result in self._results:
-            list_choice.append(result["TITLE"])
+            if isinstance(result["TITLE"], str):
+                list_choice.append(result["TITLE"])
         self.combo_search.configure(values=list_choice)
         if len(list_choice) > 0:
             self.combo_search.set(list_choice[0])

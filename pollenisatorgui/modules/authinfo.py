@@ -153,6 +153,8 @@ class AuthInfo(Module):
 
     def update(self, dataManager, notif, obj, old_obj):
         apiclient = APIClient.getInstance()
+        if apiclient.getCurrentPentest() != notif["db"]:
+            return
         iid =  notif["iid"]
         if notif["action"] == "insert":	
             res = apiclient.find("auth", {"_id": ObjectId(iid)}, False)	

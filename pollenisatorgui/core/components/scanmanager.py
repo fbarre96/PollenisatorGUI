@@ -153,11 +153,11 @@ class ScanManager:
     def refreshWorkers(self):
         apiclient = APIClient.getInstance()
         workers = apiclient.getWorkers()
-        for children in self.workerTv.get_children():
-            try:
-                self.workerTv.delete(children)
-            except:
-                pass
+        try:
+            for children in self.workerTv.get_children():
+                    self.workerTv.delete(children)
+        except:
+            pass
         registeredCommands = set()
         for worker in workers:
             workername = worker["name"]
@@ -174,6 +174,8 @@ class ScanManager:
                 except Exception as e:
                     print(str(err)+" occured")
                     print("Then:"+str(e))
+            except RuntimeError:
+                pass
         return len(workers)
 
     def refreshUI(self):
@@ -463,7 +465,7 @@ class ScanManager:
     
 
     def launchDockerWorker(self, event=None):
-        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...", length=200, progress_mode="indeterminate", show_logs=True)
+        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...",  progress_mode="indeterminate", show_logs=True)
         dialog.show(4)
         x = threading.Thread(target=start_docker, args=(dialog, True))
         x.start()
@@ -487,7 +489,21 @@ class ScanManager:
         return True, ""
 
     def onClosing(self):
-        logger.debug("Scan manager on closing state")
+        logger.debug("Scan manager on closing state.")
+        try:
+            client = docker.from_env()
+            containers = client.containers.list()
+            for container in containers:
+                if container.image.tags[0].startswith("algosecure/pollenisator-worker"):
+                    dialog = ChildDialogProgress(self.parent, "Stopping docker", "Waiting for docker to stop", progress_mode="indeterminate")
+                    dialog.show()
+                    logger.debug("Stopping running worker....")
+                    container.stop()
+                    container.remove()
+                    logger.debug("done.")
+                    dialog.destroy()
+        except Exception as e:
+            pass
         apiclient = APIClient.getInstance()
         apiclient.deleteWorker(apiclient.getUser()) 
         if self.sio is not None:

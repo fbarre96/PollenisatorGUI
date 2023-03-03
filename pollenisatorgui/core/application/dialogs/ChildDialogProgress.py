@@ -35,7 +35,7 @@ class ChildDialogProgress:
         self.show_logs = show_logs
         if self.show_logs:
             self.text_log = CTkTextbox(
-                appFrame, height=20, wrap="word")
+                appFrame, wrap="word")
             self.text_log.pack(side=tk.BOTTOM, padx=10,pady=10,fill=tk.X)
         self.progressbar = CTkProgressBar(appFrame, orientation="horizontal",
                                            indeterminate_speed=speed, determinate_speed=speed, mode=progress_mode)

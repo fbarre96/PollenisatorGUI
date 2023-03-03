@@ -185,7 +185,7 @@ class CheckItemView(ViewElement):
         self._initContextualMenu()
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Title", column=0)
-        panel_top.addFormStr("Title", r".+", default=data.get("title", ""), column=1, width=50)
+        panel_top.addFormStr("Title", r".+", default=data.get("title", ""), column=1)
         
        
         self._commonWindowForms(data, action="insert")

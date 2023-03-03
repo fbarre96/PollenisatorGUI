@@ -984,7 +984,7 @@ class APIClient():
     @handle_api_errors
     def deleteWorker(self, worker_name):
         api_url = '{0}workers/{1}'.format(self.api_url_base, worker_name)
-        response = requests.delete(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        response = requests.delete(api_url, headers=self.headers, proxies=self.proxies, verify=False, timeout=2)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return data

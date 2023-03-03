@@ -987,6 +987,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if len(activeTw.selection()) == 1:
                 setViewOn = activeTw.selection()[0]
             activeTw.refresh(force=True)
+            self.filter_empty_nodes()
         if setViewOn is not None:
             try:
                 activeTw.see(setViewOn)
@@ -1171,8 +1172,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             None if no database were selected
             datababase name otherwise
         """
-        dialog = ChildDialogPentests(self)
-        self.wait_window(dialog)
+        dialog = ChildDialogPentests(None)
+        dialog.wait_window()
         if dialog.rvalue is not None:
             self.openPentest(dialog.rvalue)
         return dialog.rvalue
