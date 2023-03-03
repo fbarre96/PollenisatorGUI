@@ -630,15 +630,17 @@ def executeInExternalTerm(command, with_bash=True, default_target=None):
 
 def which_expand_alias(executable):
     res = which(executable)
-    if res is not None:
-        return res
-    result_code, stdout = execute("which "+str(executable), printStdout=False)
-    if result_code == 0:
-        if "aliased to " in stdout:
-            return stdout.split("aliased to ")[1].strip()
-        else:
-            return stdout.strip()
-    return None
+    return res
+    # TODO : which is a built in shell command so this does not work
+    # if res is not None:
+    #     return res
+    # result_code, stdout = execute("which "+str(executable), printStdout=False)
+    # if result_code == 0:
+    #     if "aliased to " in stdout:
+    #         return stdout.split("aliased to ")[1].strip()
+    #     else:
+    #         return stdout.strip()
+    # return None
 
 def is_json(myjson):
   try:
