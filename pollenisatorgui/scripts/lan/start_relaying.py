@@ -32,7 +32,7 @@ def main(apiclient, **kwargs):
             cmd = "sudo "+cmd
         utils.executeInExternalTerm(f"'{cmd}'")
     responder_conf = ""
-    if shutil.which("locate"):
+    if utils.which_expand_alias("locate"):
         res_code, stdout = utils.execute("locate Responder.conf", None)
         if stdout is None or stdout.strip() == "":
             file = tk.filedialog.askopenfilename(" Locate responder conf file please",filetypes=[('Config Files', '*.conf')])

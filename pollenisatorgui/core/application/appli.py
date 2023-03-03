@@ -1008,7 +1008,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def testLocalTools(self):
         """ test local binary path with which"""
-        import shutil
         datamanager = DataManager.getInstance()
         apiclient = APIClient.getInstance()
         self.settings._reloadLocalSettings()
@@ -1018,7 +1017,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if bin_path is None:
                 tk.messagebox.showerror("Missing a binary path", f"The local settings for {command['name']} is not set. Missing local binary path.")
                 return False
-            if not shutil.which(bin_path):
+            if not utils.which_expand_alias(bin_path):
                 tk.messagebox.showerror("Invalid binary path", f"The local settings for {command['name']} is not recognized. ({bin_path}).")
         tk.messagebox.showinfo("Test local tools success", "All binary path exists")
         return True

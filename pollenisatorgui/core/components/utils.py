@@ -628,6 +628,18 @@ def executeInExternalTerm(command, with_bash=True, default_target=None):
             "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
     return True
 
+def which_expand_alias(executable):
+    res = which(executable)
+    if res is not None:
+        return res
+    result_code, stdout = execute("which "+str(executable), printStdout=False)
+    if result_code == 0:
+        if "aliased to " in stdout:
+            return stdout.split("aliased to ")[1].strip()
+        else:
+            return stdout.strip()
+    return None
+
 def is_json(myjson):
   try:
     json.loads(myjson)

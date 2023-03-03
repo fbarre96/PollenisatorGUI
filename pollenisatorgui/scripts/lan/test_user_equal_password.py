@@ -5,7 +5,7 @@ import os
 import shutil
 
 def main(apiclient, **kwargs):
-    if not shutil.which("cme"):
+    if not utils.which_expand_alias("cme"):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)
     unk_users = apiclient.find("ActiveDirectory", {"type":"user", "password":""})

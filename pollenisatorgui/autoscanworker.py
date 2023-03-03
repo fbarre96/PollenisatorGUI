@@ -93,7 +93,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
     my_commands = settings.local_settings.get("my_commands", {})
     bin_path = my_commands.get(toolModel.name)
     if bin_path is None:
-        if shutil.which(command_dict["bin_path"]):
+        if utils.which_expand_alias(command_dict["bin_path"]):
             bin_path = command_dict["bin_path"]
         else:
             toolModel.setStatus(["error"])

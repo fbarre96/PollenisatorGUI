@@ -1,11 +1,10 @@
 import pollenisatorgui.core.components.utils as utils
-import shutil
 import os
 from pollenisatorgui.core.components.apiclient import APIClient
 
 def main(apiclient, **kwargs):
 	APIClient.setInstance(apiclient)
-	if not shutil.which("gowitness"):
+	if not utils.which_expand_alias("gowitness"):
 		return False, "binary 'gowitness' is not in the PATH."
 	gowitness_tools = apiclient.find("tools", {"status":"done",  "name":{"$regex": "Gowitness"}})
 	export_dir = utils.getExportDir()
