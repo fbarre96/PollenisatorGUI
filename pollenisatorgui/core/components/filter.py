@@ -1,6 +1,7 @@
 """Module using Lark parser to parse filter query and return according results"""
 from lark import Lark, Transformer, exceptions
 import re
+from bson import ObjectId
 
 class Term:
     """A search term, meaning "key.name" == (value) """
@@ -191,6 +192,8 @@ type == "ip" and infos.key == "ABC"
                     val = data[children.val]
                     if isinstance(val, str):
                         val = "\"\"\""+val.lower()+"\"\"\""
+                    elif isinstance(val, ObjectId):
+                        val = "\""+str(val)+"\""
                     else:
                         val = str(val).lower().replace("\"","\\\"")
                     phrase += val+" "

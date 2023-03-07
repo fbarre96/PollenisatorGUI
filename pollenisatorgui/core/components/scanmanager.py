@@ -412,8 +412,10 @@ class ScanManager:
             thread.terminate()
         except:
             pass
-        del self.local_scans[str(toolId)]
-        toolModel.markAsNotDone()
+        try:
+            del self.local_scans[str(toolId)]
+        except KeyError:
+            toolModel.markAsNotDone()
         return True
 
     def launchTask(self, toolModel, checks=True, worker="", infos={}):

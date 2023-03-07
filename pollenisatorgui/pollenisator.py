@@ -54,6 +54,8 @@ class GracefulKiller:
             frame: not used
         """
         print('You pressed Ctrl+C!')
+        import traceback
+        traceback.print_stack(_frame)
         self.app.onClosing()
         event_obj.set()
 

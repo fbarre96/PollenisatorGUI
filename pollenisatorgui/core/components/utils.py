@@ -308,6 +308,7 @@ def handleProcKill(proc):
     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     proc._killed = True
 
+
 def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=None, cwd=None):
     """
     Execute a bash command and print output
@@ -325,6 +326,7 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
     """
     
     try:
+        os.setpgrp()
         proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid, cwd=cwd)
         proc._killed = False

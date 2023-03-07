@@ -441,6 +441,10 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             @self.sio.event
             def notif(data):
                 self.handleNotif(json.loads(data, cls=utils.JSONDecoder))
+            
+            @self.sio.event
+            def test(data):
+                tk.messagebox.showinfo("test", "test socket working received data : "+str(data))
            
             self.sio.connect(apiclient.api_url)
             pentests = apiclient.getPentestList()
@@ -605,13 +609,17 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         fileMenu3 = utils.craftMenuWithStyle(menubar)
         fileMenu3.add_command(label="Submit a bug or feature",
                               command=self.submitIssue)
+        fileMenuDebug = utils.craftMenuWithStyle(menubar)
+        fileMenuDebug.add_command(label="Socket test", command=self.socketTest)
         menubar.add_cascade(label="Database", menu=fileMenu)
         menubar.add_cascade(label="Scans", menu=fileMenu2)
         menubar.add_command(label="Scripts...", command=self.openScriptModule)
         menubar.add_cascade(label="User", menu=fileMenuUser)
         menubar.add_cascade(label="Help", menu=fileMenu3)
-
-
+        menubar.add_cascade(label="Debug", menu=fileMenuDebug)
+        
+    def socketTest(self):
+        self.sio.emit("test", {"data": "test"})
 
     def initMainView(self):
         """

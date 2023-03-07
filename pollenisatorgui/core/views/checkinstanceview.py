@@ -124,10 +124,7 @@ class CheckInstanceView(ViewElement):
             default_status = "todo"
         self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
         self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=1, pady=5)
-        panel_top.addFormLabel("Description", row=1, column=0)
-        panel_top.addFormText("Description", r"", default=check_m.description, height=100, state="disabled", row=1, column=1, pady=5)
-        panel_top.addFormLabel("Notes", row=2, column=0)
-        panel_top.addFormText("Notes", r"", default=modelData.get("notes", ""), height=500, row=2, column=1, pady=5)
+        
         panet_top_sub = panel_top.addFormPanel(grid=True, row=3, column=0, columnspan=2)
         panet_top_sub.addFormLabel("Target", row=0, column=0)
         panet_top_sub.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
@@ -207,7 +204,11 @@ class CheckInstanceView(ViewElement):
             self.edit_icon = CTkImage(Image.open(utils.getIcon("view_doc.png")))
             formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon)
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
-        
+        panel_detail = self.form.addFormPanel(grid=True)
+        panel_detail.addFormLabel("Description", row=1, column=0)
+        panel_detail.addFormText("Description", r"", default=check_m.description, height=100, state="disabled", row=1, column=1, pady=5)
+        panel_detail.addFormLabel("Notes", row=2, column=0)
+        panel_detail.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
         self.completeModifyWindow(addTags=False)
 
     def attackOnTerminal(self, event):

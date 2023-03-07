@@ -64,7 +64,8 @@ class ChildDialogRemoteInteraction:
                 tk.messagebox.showerror("Could not get progress", result[1], parent=self.app)
                 self.onError()
                 return False
-        except:
+        except Exception as e:
+            tk.messagebox.showerror("Could not get progress", str(e), parent=self.app)
             self.onError()
             return False
         self.timer = threading.Timer(2, self.getProgress)
