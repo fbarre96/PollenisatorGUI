@@ -104,10 +104,9 @@ class ViewElement(object):
             form_values = self.form.getValue()
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
             self.controller.doUpdate(form_values_as_dicts)
-            if event is not None:
-                caller = event.widget.master
-                toast = ChildDialogToast(self.appliViewFrame, "Done" , x=caller.winfo_rootx(), y=caller.winfo_rooty()+caller.winfo_reqheight(), width=caller.winfo_reqwidth())
-                toast.show()
+            caller = self.update_btn.btn
+            toast = ChildDialogToast(self.appliViewFrame, "Done" , x=caller.winfo_rootx(), y=caller.winfo_rooty()+caller.winfo_reqheight(), width=caller.winfo_reqwidth())
+            toast.show()
             return True, ""
         else:
             tkinter.messagebox.showwarning(
@@ -174,34 +173,41 @@ class ViewElement(object):
         self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
         self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
         if editable:
-            pan.addFormButton("Submit", self.update, image=self.save_image)
+            self.update_btn = pan.addFormButton("Submit", self.update, image=self.save_image)
             pan.addFormButton("Delete", self.delete, image=self.delete_image,
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
-            if addTags:
-                registeredTags = settings.Settings.getTags()
-                keys = list(registeredTags.keys())
-                column = 0
-                item_no = 0
-                listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
-                for registeredTag, color in registeredTags.items():
-                    if column == 0:
-                        panTags = self.form.addFormPanel(pady=0)
-                    s = ttk.Style(self.mainApp)
-                    try: # CHECK IF COLOR IS VALID
-                        if color == "transparent":
-                            color = "white"
-                        CTkLabel(self.mainApp, fg_color=color)
-                    except tkinter.TclError as e:
-                        #color incorrect
-                        color = "gray97"
-                    btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no],  side="left", padx=1, pady=0)
-                    btn_tag.configure(fg_color=color, border_width=1, text_color="black")
-                    column += 1
-                    item_no += 1
-                    if column == 4:
-                        column = 0
+            # if addTags:
+            #     registeredTags = settings.Settings.getTags()
+            #     keys = list(registeredTags.keys())
+            #     column = 0
+            #     item_no = 0
+            #     listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
+            #     for registeredTag, color in registeredTags.items():
+            #         if column == 0:
+            #             panTags = self.form.addFormPanel(pady=0)
+            #         s = ttk.Style(self.mainApp)
+            #         try: # CHECK IF COLOR IS VALID
+            #             if color == "transparent":
+            #                 color = "white"
+            #             CTkLabel(self.mainApp, fg_color=color)
+            #         except tkinter.TclError as e:
+            #             #color incorrect
+            #             color = "gray97"
+            #         btn_tag = panTags.addFormButton(registeredTag, listOfLambdas[item_no],  side="left", padx=1, pady=0)
+            #         btn_tag.configure(fg_color=color, border_width=1, text_color="black")
+            #         column += 1
+            #         item_no += 1
+            #         if column == 4:
+            #             column = 0
         self.showForm()
+
+
+
+    def reopenView(self):
+        self.clearWindow()
+        self.form.clear()
+        self.openModifyWindow()
 
     def showForm(self):
         """Resets the application view frame and start displaying the form in it

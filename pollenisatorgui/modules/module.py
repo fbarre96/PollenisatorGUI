@@ -23,6 +23,6 @@ class Module(metaclass=MetaModule):
     def __init__(self):
         datamanager = DataManager.getInstance().attach(self)
         
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         pass
     

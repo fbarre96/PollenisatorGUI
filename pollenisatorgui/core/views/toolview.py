@@ -1,7 +1,8 @@
 """View for tool object. Handle node in treeview and present forms to user when interacted with."""
 
-from pollenisatorgui.core.application.dialogs.ChildDialogGenericView import ChildDialogGenericView
+from pollenisatorgui.core.application.CollapsibleFrame import CollapsibleFrame
 from pollenisatorgui.core.components.datamanager import DataManager
+from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.apiclient import APIClient
 import tkinter.messagebox
@@ -115,26 +116,15 @@ class ToolView(ViewElement):
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Tool
         """
         modelData = self.controller.getData()
-        top_panel = self.form.addFormPanel(grid=True)
-        top_panel.addFormLabel("Name", modelData["name"])
-        dates_panel = self.form.addFormPanel(grid=True)
-        dates_panel.addFormLabel("Start date")
-        dates_panel.addFormDate(
-            "Start date", self.mainApp, modelData["dated"], column=1)
-        dates_panel.addFormLabel("End date", row=1)
-        dates_panel.addFormDate(
-            "End date", self.mainApp, modelData["datef"], row=1, column=1)
-        dates_panel.addFormLabel("Scanner", row=2)
-        dates_panel.addFormStr(
-            "Scanner", r"", modelData["scanner_ip"], row=2, column=1)
-        dates_panel.addFormLabel("Command executed", row=3)
-        dates_panel.addFormStr("Command executed", "", modelData.get("infos", {}).get("cmdline",""), row=3, column=1)
+        
+        top_panel = self.form.addFormPanel()
+        top_panel.addFormLabel("Command executed")
+        top_panel.addFormStr("Command executed", "", modelData.get("infos", {}).get("cmdline",""), width=200)
         notes = modelData.get("notes", "")
         top_panel = self.form.addFormPanel()
         top_panel.addFormLabel("Notes", side="top")
-        top_panel.addFormText("Notes", r"", notes, None, side="top")
-        top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100,  side="left", fill="both")
+        top_panel.addFormText("Notes", r"", notes, None, height=500, side="top")
+        
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         datamanager = DataManager.getInstance()
@@ -191,7 +181,19 @@ class ToolView(ViewElement):
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         except errors.InvalidId:
             pass
-
+        dates_panel = self.form.addFormCollapsiblePanel(text="Show more details", interior_padx=4, interior_pady=15 , grid=True, fill="both")
+        dates_panel.addFormLabel("Name", modelData["name"],row=0)
+        dates_panel.addFormLabel("Start date", row=1, column=0)
+        dates_panel.addFormDate(
+            "Start date", self.mainApp, modelData["dated"], row=1, column=1)
+        dates_panel.addFormLabel("End date", row=2)
+        dates_panel.addFormDate(
+            "End date", self.mainApp, modelData["datef"], row=2, column=1)
+        dates_panel.addFormLabel("Scanner", row=3)
+        dates_panel.addFormStr(
+            "Scanner", r"", modelData["scanner_ip"], row=3, column=1)
+        dates_panel.addFormLabel("Infos",  row=4)
+        dates_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100, row=4, column=1)
         defect_panel = self.form.addFormPanel(grid=True)
         defect_panel.addFormButton("Create defect", self.createDefectCallback, padx=5)
         defect_panel.addFormButton("Show associated command", self.showAssociatedCommand, column=1)

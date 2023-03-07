@@ -191,6 +191,7 @@ class CheckItemView(ViewElement):
         self._commonWindowForms(data, action="insert")
         self.completeInsertWindow()
 
+
     def addInTreeview(self, parentNode=None, with_category=False):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:

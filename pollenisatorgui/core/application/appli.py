@@ -270,6 +270,7 @@ class ButtonNotebook(CTkFrame):
     def getOpenTabName(self):
         return self.current
 
+
     def delete(self, name):
         if name in self.tabs:
             del self.tabs[name]
@@ -279,7 +280,7 @@ class ButtonNotebook(CTkFrame):
         if self.current:
             self.tabs[self.current]["widget"].pack_forget()
         self.current = name
-        self.tabs[name]["widget"].pack(side="right", expand=1, anchor="center", fill=tk.BOTH)
+        self.tabs[name]["widget"].pack(side="right", expand=True, anchor="center", fill=tk.BOTH)
         self.callbackSwitch(name)
 
 
@@ -610,6 +611,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         menubar.add_cascade(label="User", menu=fileMenuUser)
         menubar.add_cascade(label="Help", menu=fileMenu3)
 
+
+
     def initMainView(self):
         """
         Fill the main view tab menu
@@ -643,33 +646,38 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.btnHelp.pack(side="left")
         searchFrame.pack(side="top", fill="x")
         #PANED PART
-        self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal", height=800)
+        self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal")
         #RIGHT PANE : Canvas + frame
         self.proxyFrameMain = CTkFrame(self.paned)
         self.viewframe = ScrollableFrameXPlateform(self.proxyFrameMain)
         #LEFT PANE : Treeview
-        self.frameTw = CTkFrame(self.paned)
+        self.left_pane = CTkFrame(self.paned)
+        self.frameTw = CTkFrame(self.left_pane)
+        self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
+        self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
+        
         self.treevw = PentestTreeview(self, self.frameTw)
         self.treevw.initUI()
-        scbVSel = CTkScrollbar(self.frameTw,
+        self.scbVSel = CTkScrollbar(self.frameTw,
                                 orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
-        self.treevw.configure(yscrollcommand=scbVSel.set)
+        self.treevw.configure(yscrollcommand=self.scbVSel.set)
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
-        scbVSel.grid(row=0, column=1, sticky=tk.NS)
+        self.scbVSel.grid(row=0, column=1, sticky=tk.NS)
         # FILTER PANE:
-        self.filtersFrame = CTkFrame(self.paned)
-        self.initFiltersFrame(self.filtersFrame)
-        self.paned.add(self.filtersFrame)
+        # self.filtersFrame = CTkFrame(self.left_pane)
+        # self.initFiltersFrame(self.filtersFrame)
+        # self.filtersFrame.pack(side="bottom", fill="x")
         # END PANE PREP
-        self.paned.add(self.frameTw)
+        self.frameTw.pack(side="top", fill=tk.BOTH, expand=True)
+        
+        self.left_pane.pack(side="left", fill=tk.BOTH, expand=True)
+        self.paned.add(self.left_pane)
         self.proxyFrameMain.pack(side="left")
         self.viewframe.pack(side="left", expand=1, fill=tk.BOTH)
         self.paned.add(self.proxyFrameMain)
         self.paned.pack(fill=tk.BOTH, expand=1)
-        
-        self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
+        self.mainPageFrame.pack(fill="both", expand=True)
         self.nbk.add(self.mainPageFrame, "Main View", image=self.main_tab_img)
 
     def searchbarSelectAll(self, _event):
@@ -684,103 +692,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
    
 
-    def initFiltersFrame(self, frame):
-        """Populate the filter frame with cool widgets"""
-        form = FormPanel( pady=0, padx=0, fill="y")
-        hide_oos = self.settings.is_hide_oos()
-        self.check_hide_oos = form.addFormSwitch("OOS", "Hide Out Of Scope hosts", hide_oos, command=self.hideOOSSwap, pady=0, padx=0, side="top", anchor="w")
-        checklistview = self.settings.is_checklist_view()
-        self.check_checklistView = form.addFormSwitch("Checklist", "Checklist view", checklistview, command=self.checklistViewSwap, pady=0, padx=0, side="top", anchor="w")
-        show_only_todo = self.settings.is_show_only_todo()
-        self.check_show_only_todo = form.addFormSwitch("Todos", "Show only todos", show_only_todo, command=self.showTodoSwap, pady=0, padx=0, side="top", anchor="w")
-        show_only_manual = self.settings.is_show_only_manual()
-        self.check_show_only_manual = form.addFormSwitch("Manuals", "Show only manual checks", show_only_manual, command=self.showManualSwap, pady=0, padx=0, side="top", anchor="w")
-        
-        form.constructView(frame)
+   
 
-    def hideOOSSwap(self, event=None):
-        val = self.check_hide_oos.getValue()
-        self.settings.local_settings["hide_oos"] = val
-        self.settings.saveLocalSettings()
-        if val == 0:
-            self.unfilter("filter_oos")
-        else:
-            self.filter_oos()
-
-    def checklistViewSwap(self, event=None):
-        val = self.check_checklistView.getValue()
-        self.settings.local_settings["checklist_view"] = val
-        self.settings.saveLocalSettings()
-        self.treevw.refresh()
-        self.filter_empty_nodes()
-
-    def showTodoSwap(self, event=None):
-        val = self.check_show_only_todo.getValue() 
-        self.settings.local_settings["show_only_todo"] = val
-        self.settings.saveLocalSettings()
-        if val == 0:
-            self.unfilter("filter_empty")
-            self.unfilter("filter_todo")
-        else:
-            self.filter_todo()
-
-    def filter_empty_nodes(self):
-        for key, values in self.treevw.views.items():
-            view = values["view"]
-            if not isinstance(view, CheckItemView):
-                continue
-            iid = view.controller.getDbId()
-            try:
-                if len(self.treevw.get_children(str(iid))) == 0:
-                    view.hide("filter_empty")
-            except tk.TclError:
-                pass
-
-    def filter_todo(self):
-        for values in self.treevw.views.values():
-            view = values["view"]
-            if not isinstance(view, CheckInstanceView):
-                continue
-            check_infos = view.controller.getCheckInstanceStatus()
-            status = check_infos.get("status", "")
-            if status == "":
-                status = view.controller.model.status
-            if status == "":
-                status = "todo"
-            if status != "todo":
-                view.hide("filter_todo")
-        self.filter_empty_nodes()
-    
-    def filter_oos(self):
-        for key, values in self.treevw.views.items():
-            view = values["view"]
-            if not isinstance(view, IpView):
-                continue
-            tags = self.treevw.item(key)["tags"]
-            if "OOS" in tags:
-                view.hide("filter_oos")
-    
-    def showManualSwap(self, event=None):
-        val = self.check_show_only_manual.getValue() 
-        self.settings.local_settings["show_only_manual"] = val
-        self.settings.saveLocalSettings()
-        if val == 0:
-            self.unfilter("filter_empty")
-            self.unfilter("filter_manual")
-        else:
-            self.filter_manual()
-        
-    def filter_manual(self):
-        for values in self.treevw.views.values():
-            view = values["view"]
-            if not isinstance(view, CheckInstanceView) and not isinstance(view, CheckItemView):
-                continue
-            if view.controller.isAuto():
-                view.hide("filter_manual")
-        self.filter_empty_nodes()
-    
-    def unfilter(self, reason):
-        self.treevw.unhide(reason)
 
     def initCommandsView(self):
         """Populate the command tab menu view frame with cool widgets"""
@@ -898,10 +811,10 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def refreshUI(self):
         for widget in self.viewframe.winfo_children():
             widget.destroy()
-        self.after(50, lambda: self.paned.paneconfigure(self.filtersFrame, width=self.filtersFrame.winfo_reqwidth()))
-
+        self.left_pane.update()
+        self.after(50, lambda: self.paned.paneconfigure(self.left_pane, height=self.left_pane.winfo_reqheight()))
         self.treevw.refresh()
-        self.filter_empty_nodes()
+        self.treevw.filter_empty_nodes()
         # self.nbk.select("Main View")
 
     def quickSearchChanged(self, event=None):
@@ -987,7 +900,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if len(activeTw.selection()) == 1:
                 setViewOn = activeTw.selection()[0]
             activeTw.refresh(force=True)
-            self.filter_empty_nodes()
+            activeTw.filter_empty_nodes()
         if setViewOn is not None:
             try:
                 activeTw.see(setViewOn)

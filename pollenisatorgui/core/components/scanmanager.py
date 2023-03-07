@@ -354,7 +354,7 @@ class ScanManager:
         dialog = ChildDialogFileParser(self.mainApp, default_path)
         self.parent.wait_window(dialog.app)
 
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         """
         Reload UI when notified
         """

@@ -664,7 +664,7 @@ class Report(Module):
             return
         utils.openPathForUser(path, folder_only=True)
 
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         if obj is None:
             return
         

@@ -13,7 +13,7 @@ class Subject:
     def notify(self, notif, obj, old_obj):
         """Alert the observers"""
         for observer in self._observers:
-            observer.update(self, notif, obj, old_obj)
+            observer.update_received(self, notif, obj, old_obj)
  
     def attach(self, observer):
         """If the observer is not in the list,

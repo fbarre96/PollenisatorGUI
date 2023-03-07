@@ -433,7 +433,7 @@ class APIClient():
     @handle_api_errors
     def findCheckItem(self, pipeline=None, many=True):
         pipeline = {} if pipeline is None else pipeline
-        api_url = '{0}find/pollenisator/cheatsheet'.format(self.api_url_base)
+        api_url = '{0}cheatsheet/find'.format(self.api_url_base)
         data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
         data["many"] = many
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=self.proxies, verify=False)

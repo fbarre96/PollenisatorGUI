@@ -180,7 +180,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
         super()._initContextualsMenus
         return self.contextualMenu
 
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
       
         collection = notif["collection"]
         action = notif["action"]
@@ -221,8 +221,8 @@ class CheatsheetTreeview(PollenisatorTreeview):
                 if view is not None:
                     view.addInTreeview()
             if str(self.openedViewFrameId) == str(iid):
-                view.clearWindow()
-                view.openModifyWindow()
+                self.after(105, view.reopenView)
+                
             if view is not None:
                 view.controller.actualize()
                 view.updateReceived()

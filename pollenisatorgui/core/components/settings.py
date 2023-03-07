@@ -540,7 +540,7 @@ class Settings:
             List of pentesters names"""
         return self.db_settings.get("pentesters", [])
 
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         if notif["collection"] != "settings":
             return
         if notif["db"] == "pollenisator":

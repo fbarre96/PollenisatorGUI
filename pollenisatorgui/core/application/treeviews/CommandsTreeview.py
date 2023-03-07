@@ -198,7 +198,7 @@ class CommandsTreeview(PollenisatorTreeview):
                     objView.openInsertWindow()
                     
     
-    def update(self, dataManager, notification, obj, oldObj):
+    def update_received(self, dataManager, notification, obj, oldObj):
         """
         Callback for the observer pattern implemented in mongo.py.
 

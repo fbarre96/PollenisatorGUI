@@ -108,8 +108,8 @@ class Cheatsheet(Module):
     def createCheck(self, event=None):
         self.treevw.openInsertWindow(CheckItem())
 
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         if notif["db"] == "pollenisator":
             if self.treevw is not None:
-                self.treevw.update(dataManager, notif, obj, old_obj)
+                self.treevw.update_received(dataManager, notif, obj, old_obj)
 

@@ -43,7 +43,6 @@ class FormPanel(Form):
         self.kwargs = kwargs
         self.gridLayout = self.getKw("grid", False)
         self.make_uniform_column = self.getKw("make_uniform_column", None)
-        
         self.panel = None
 
     def constructView(self, parent):
@@ -52,12 +51,13 @@ class FormPanel(Form):
         Args:
             parent: parent view or parent FormPanel.
         """
-        
         if isinstance(parent, FormPanel):  # Panel is a subpanel
             self.panel = CTkFrame(parent.panel, fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
         else:
             self.panel = CTkFrame(parent,  fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
-      
+        self.populateView(parent)
+
+    def populateView(self, parent):
         if self.make_uniform_column is not None:
             self.makeUniformColumn(self.make_uniform_column)
         
@@ -352,6 +352,20 @@ class FormPanel(Form):
             Return the new panel to add other forms in.
         """
         pan = FormPanel(**kwargs)
+        self.subforms.append(pan)
+        return pan
+    
+    def addFormCollapsiblePanel(self, text, **kwargs):
+        """
+        Add a form Pannel to this panel.
+
+        Args:
+            kwargs: can indicate grid=True if a grid layout must be set for subelements.
+        Returns:
+            Return the new panel to add other forms in.
+        """
+        from .formcollapsiblepanel import FormCollapsbilePanel
+        pan = FormCollapsbilePanel(text, **kwargs)
         self.subforms.append(pan)
         return pan
 

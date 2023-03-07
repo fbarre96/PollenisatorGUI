@@ -256,7 +256,7 @@ class ActiveDirectory(Module):
         res = apiclient.insert( ActiveDirectory.collName+"/users", {"username": username, "domain": domain, "password": password})
         
      
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         if notif["collection"] != ActiveDirectory.collName:
             return
         apiclient = APIClient.getInstance()
@@ -662,7 +662,7 @@ class ChildDialogConfigureADModule:
         self.app.title(displayMsg)
         self.rvalue = None
         self.parent = parent
-        self.save_image = CTkImage(Image.open("save.png"))
+        self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
         panel = FormPanel()
         ad_settings = ActiveDirectory.getSettings()
         self.explanationLbl = panel.addFormText("Explanation","","""

@@ -151,7 +151,7 @@ class AuthInfo(Module):
         for t in toInsert:
             apiclient.insert("auth", {"name": t[0], "value":t[1], "type":self.typeCombo.get().lower()})
 
-    def update(self, dataManager, notif, obj, old_obj):
+    def update_received(self, dataManager, notif, obj, old_obj):
         apiclient = APIClient.getInstance()
         if apiclient.getCurrentPentest() != notif["db"]:
             return

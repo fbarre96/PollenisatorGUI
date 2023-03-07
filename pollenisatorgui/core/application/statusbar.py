@@ -96,7 +96,7 @@ class StatusBar(CTkFrame):
         except Exception:
             pass
 
-    def update(self, dataManager, notification, obj, old_obj):
+    def update_received(self, dataManager, notification, obj, old_obj):
         """
         Update the status bar when a tag is added or removed
         Args:

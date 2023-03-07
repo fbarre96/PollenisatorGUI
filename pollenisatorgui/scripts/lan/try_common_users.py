@@ -31,7 +31,7 @@ users_to_test = [
 ]
 
 def main(apiclient, **kwargs):
-    if utils.which_expand_alias("cme"):
+    if not utils.which_expand_alias("cme"):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)
     domain = kwargs.get("domain", "")
