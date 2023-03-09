@@ -637,8 +637,14 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         # searchBar.bind("<Button-3>", self.do_popup)
         self.searchBar.pack(side="left", fill="x", expand=True)
         self.quickSearchVal = tk.BooleanVar()
+        self.quickSearchVal.set(self.settings.local_settings.get("quicksearch", False))
+        
         checkbox_quick_search = CTkSwitch(searchFrame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
         checkbox_quick_search.pack(side="left", padx=5)
+        self.keep_parents_val = tk.BooleanVar()
+        self.keep_parents_val.set(self.settings.local_settings.get("keep_parents", True))
+        checkbox_keep_parent = CTkSwitch(searchFrame, text="Keep parents", variable=self.keep_parents_val, command=self.keepParentsChanged)
+        checkbox_keep_parent.pack(side="left", padx=5)
         self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
         btnSearchBar = ttk.Button(searchFrame, text="", image=self.search_icon, style="icon.TButton", tooltip="Filter elements based of complex query or only text if quicksearch is selected", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
@@ -831,6 +837,14 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             event: not used but mandatory
         """
         self.settings.local_settings["quicksearch"] = int(self.quickSearchVal.get())
+        self.settings.saveLocalSettings()
+
+    def keepParentsChanged(self, event=None):
+        """Called when the keep parent switch is modified. Change settings
+        Args:
+            event: not used but mandatory
+        """
+        self.settings.local_settings["keep_parents"] = int(self.keep_parents_val.get())
         self.settings.saveLocalSettings()
     
     def newSearch(self, _event=None, histo=True, quick_search_allowed=True):

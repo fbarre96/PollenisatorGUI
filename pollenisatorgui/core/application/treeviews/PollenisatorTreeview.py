@@ -347,10 +347,10 @@ class PollenisatorTreeview(ttk.Treeview):
         if query.strip() != "":
             try:
                 if settings.local_settings.get("quicksearch", False) and quick_search_allowed:
-                    self.doFilterTreeview(query, False)
+                    self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
                 else:
                     searcher = Filter(query, )
-                    self.doFilterTreeview(searcher, True)
+                    self.doFilterTreeview(searcher, True, keep_parents=settings.local_settings.get("keep_parents", True))
             except ParseError as e:
                 tk.messagebox.showerror("Search error", str(e))
                 return False
@@ -442,7 +442,7 @@ class PollenisatorTreeview(ttk.Treeview):
             except tk.TclError:
                 pass
 
-    def doFilterTreeview(self, query, show_hidden=True):
+    def doFilterTreeview(self, query, show_hidden=True, keep_parents=True):
         """Apply the query on the treeview.
         Args:
             query: the core.Components.Search object that hold the informations
@@ -459,70 +459,39 @@ class PollenisatorTreeview(ttk.Treeview):
                 else:
                     tk.messagebox.showerror("No results", "No results found")
                     return
-                self._brutSearcher(results_iid)
+                self._brutSearcher(results_iid, "filter", keep_parents=keep_parents)
             else:
-                self._brutTextSearcher(query)
+                self._brutSearcher(query, "text", keep_parents=keep_parents)
 
-    # def insert(self, *args, **kwargs):
-    #     """Insert a new node in the treeview. Surcharge the ttk.Treeview insert method to check hidden nodes"""
-    #     iid = args[2]
-    #     return super().insert(*args, **kwargs)
-        
-    def _brutSearcher(self, results_iid, parentItem=''):
-        """
-        Check all children of the item given to see if their iid is in the resukts_iid.
-        Args:
-            results_iid: a list to complete with matching results iid
-            parentItem: an parent treeview node to start from recurisve search
-        """
-        # Get all the children of the parentItem
-        if parentItem in results_iid:
+    def _brutSearcher(self, query_item, search_type, parentItem='', **kwargs):
+        if search_type == "filter":
+            is_match = parentItem in query_item
+        else:
+            nodetext = self.item(parentItem)["text"]
+            is_match =  str(query_item).lower() in nodetext.lower()
+        keep_parents = kwargs.get("keep_parents", True)
+        has_child_match = False
+        # Nominal case = empty least
+        children = list(self.get_children(parentItem))
+        for item_id in children:
+            matched = self._brutSearcher(query_item, search_type, item_id, **kwargs)
+            if keep_parents and matched:
+                has_child_match = True
+        if is_match:
+            self.item(parentItem, open=True)
+            if not keep_parents:
+                self._moved.append([parentItem, self.parent(parentItem)])
+                self.move(parentItem, '', 'end')
+            return True
+        if keep_parents and has_child_match:
             self.item(parentItem, open=True)
             return True
-        children = list(self.get_children(parentItem))
-        # For each child, recursively call _brutSearcher
-        atLeastOneChildAdded = False
-        for item_id in children:
-            child_added = self._brutSearcher(results_iid, item_id)
-            # If the child is not in the results
-            if not child_added:
-                # Add the child to the list of detached items
-                self._detached.append([item_id, parentItem])
-                # Detach the child
-                self.detach(item_id)
-            else:
-                # Get the view of the child
-                self.item(parentItem, open=True)
-                atLeastOneChildAdded = True
-        return atLeastOneChildAdded
-
-    def _brutTextSearcher(self, textSearch, parentItem=''):
-        """
-        Check all children of the item given to see if their text matches the textSearch
-        Args:
-            textSearch: text to search
-            parentItem: an parent treeview node to start from recurisve search
-        """
-        # Get all the children of the parentItem
-        nodetext = self.item(parentItem)["text"]
-        if textSearch.lower() in nodetext.lower():
-            self.item(parentItem, open=True)
-            return True
-        children = list(self.get_children(parentItem))
-        # For each child, recursively call _brutSearcher
-        atLeastOneChildAdded = False
-        for item_id in children:
-            child_added = self._brutTextSearcher(textSearch, item_id)
-            # If the child is not in the results
-            if not child_added:
-                # Add the child to the list of detached items
-                self._detached.append([item_id, parentItem])
-                # Detach the child
-                self.detach(item_id)
-            else:
-                # Get the view of the child
-                self.item(parentItem, open=True)
-                atLeastOneChildAdded = True
-        return atLeastOneChildAdded
-
-        
+        try:
+            self._detached.append([parentItem, self.parent(parentItem)])
+            # Detach the child
+            self.detach(parentItem)
+        except tk.TclError:
+            pass
+        return False
+    
+   

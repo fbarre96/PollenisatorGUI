@@ -1,6 +1,7 @@
 """Ask the user to select a file or directory and then parse it with the selected parser"""
 import tkinter as tk
 import tkinter.ttk as ttk
+import traceback
 from customtkinter import *
 from pollenisatorgui.core.components.apiclient import APIClient
 import threading
@@ -60,12 +61,15 @@ class ChildDialogRemoteInteraction:
                 return True
             elif isinstance(result, bytes):
                 self.text_area.insert(tk.END, result.decode("utf-8").replace("\r","\n"))
+            elif result is None:
+                return True
             else:
                 tk.messagebox.showerror("Could not get progress", result[1], parent=self.app)
                 self.onError()
                 return False
         except Exception as e:
             tk.messagebox.showerror("Could not get progress", str(e), parent=self.app)
+            traceback.print_exc()
             self.onError()
             return False
         self.timer = threading.Timer(2, self.getProgress)

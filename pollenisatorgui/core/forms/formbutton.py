@@ -41,7 +41,7 @@ class FormButton(Form):
         """
         s = self.getKw("style", None)
         if s is None:
-            self.btn = CTkButton(parent.panel, text=self.name, image=self.getKw("image", None),
+            self.btn = CTkButton(parent.panel, text=self.name, width=self.getKw("width", 150), image=self.getKw("image", None),
                                   border_color=self.getKw("border_color", None),
                                   border_width=self.getKw("border_width", None),
                                   text_color=self.getKw("text_color", None),

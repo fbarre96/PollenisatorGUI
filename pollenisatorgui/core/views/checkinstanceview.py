@@ -188,7 +188,7 @@ class CheckInstanceView(ViewElement):
                         if column == 0:
                             tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
                 tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT)
-                tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, side=tk.LEFT, anchor=tk.E)
+                tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, width=20, side=tk.LEFT, anchor=tk.E)
                 row+=1
         upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
         upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, pady=5)
