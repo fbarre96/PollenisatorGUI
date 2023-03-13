@@ -1,3 +1,8 @@
+"""
+Extend the CTkScrollableFrame to bind also for linux
+<MouseWheel> event is not handled by some distributions that only handle <Button-4> and <Button-5> events.
+"""
+
 from customtkinter import *
 import tkinter as tk 
 
@@ -11,7 +16,6 @@ class ScrollableFrameXPlateform(CTkScrollableFrame):
     def activate(self):
         self.bind('<Enter>', self.boundToMousewheel)
         self.bind('<Leave>', self.unboundToMousewheel)
-
 
     def _onMousewheel(self, event):
         """Scroll the settings canvas

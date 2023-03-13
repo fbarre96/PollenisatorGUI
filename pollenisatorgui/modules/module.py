@@ -20,6 +20,12 @@ class MetaModule(type):
 class Module(metaclass=MetaModule):
     need_admin = False
     pentest_types = ["all"]
+    FIRST_PRIORITY = 0
+    HIGH_PRIORITY = 1
+    MEDIUM_PRIORITY = 2
+    LOW_PRIORITY = 3
+    LAST_PRIORITY = 99
+    order_priority = LOW_PRIORITY
     def __init__(self):
         datamanager = DataManager.getInstance().attach(self)
         

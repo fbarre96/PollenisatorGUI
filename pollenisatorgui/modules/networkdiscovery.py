@@ -17,7 +17,7 @@ class NetworkDiscovery(Module):
     iconName = "tab_NetDiscovery.png"
     tabName = "Network Discovery"
     collName = "NetworkDiscovery"
-    pentest_types = ["lan"]
+    pentest_types = []
     
     def __init__(self, parent, settings):
         """

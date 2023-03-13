@@ -23,10 +23,7 @@ class ScrollableTreeview(CTkFrame):
         self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=kwargs.get("height", 10))
         self.treevw['columns'] = columns
         settings = Settings()
-        if settings.is_dark_mode():
-            self.treevw.tag_configure("odd", background='dim gray')
-        else:
-            self.treevw.tag_configure("odd", background='light gray')
+        self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())
         lbl = CTkLabel(self)
         self.f = tk.font.Font(lbl, "Sans", bold=True, size=10)
         self.columnsLen = [self.f.measure(column) for column in self.columns]

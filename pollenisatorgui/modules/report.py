@@ -29,7 +29,8 @@ class Report(Module):
     iconName = "tab_report.png"
     tabName = "    Report    "
     collNames = ["defects", "remarks"]
-
+    order_priority = Module.HIGH_PRIORITY
+    
     def __init__(self, _parent, settings):
 
         """

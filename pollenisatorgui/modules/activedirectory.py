@@ -26,6 +26,7 @@ class ActiveDirectory(Module):
     iconName = "tab_AD.png"
     tabName = "Active Directory"
     collName = "ActiveDirectory"
+    order_priority = Module.HIGH_PRIORITY
     settings = Settings()
     pentest_types = ["lan"]
 

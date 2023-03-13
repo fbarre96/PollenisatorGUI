@@ -50,6 +50,7 @@ class Summary(Module):
     """
     iconName = "tab_summary.png"
     tabName = "  Summary  "
+    order_priority = Module.MEDIUM_PRIORITY
     def __init__(self, root, settings):
         """Constructor
         Args:

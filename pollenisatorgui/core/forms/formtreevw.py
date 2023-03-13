@@ -191,10 +191,7 @@ class FormTreevw(Form):
             self.tvFrame, height=min(self.getKw("height", len(
                 self.default_values)+1), self.getKw("max_height", 10)))
         settings = Settings()
-        if settings.is_dark_mode():
-            self.treevw.tag_configure("odd", background='dim gray')
-        else:
-            self.treevw.tag_configure("odd", background='light gray')
+        self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())
         self.scbVSel = CTkScrollbar(self.tvFrame,
                                      orientation=tk.VERTICAL,
                                      command=self.treevw.yview)

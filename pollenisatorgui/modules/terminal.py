@@ -15,6 +15,7 @@ from pollenisatorgui.modules.module import Module
 class Terminal(Module):
     iconName = "tab_terminal.png"
     tabName = "   Terminal  "
+    order_priority = Module.LOW_PRIORITY
     settings = None
 
     def __init__(self, parent, settings):

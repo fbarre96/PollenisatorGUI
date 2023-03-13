@@ -27,19 +27,23 @@ class StatusBar(CTkFrame):
                                 It has to delcare a statusbarClicked function taking 1 arg : a tag name
         """
         # Cannot be imported at module level as tkinter will not have loaded.
-        super().__init__(master)
+        super().__init__(master, fg_color="transparent")
         # label = CTkLabel(self, text="Tagged:")
         # label.pack(side="left")
         self.registeredTags = []
         self.statusbarController = statusbarController
         self.tagsCount = {}
         self.labelsTags = {}
+        self.font = CTkFont("roboto", 11)
         DataManager.getInstance().attach(self)
 
     def refreshUI(self):
         for widget in self.winfo_children():
             widget.destroy()
         #self.pack_forget()
+        lbl = CTkLabel(self, text="Shortcuts :")
+        lbl.pack(side="left", padx=1)
+
         self.registeredTags = Settings.getTags(ignoreCache=True)
         column = 1
         keys = list(self.registeredTags.keys())
@@ -47,11 +51,13 @@ class StatusBar(CTkFrame):
         for registeredTag, color in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
             try:
-                self.labelsTags[registeredTag] = ttk.Label(self,  text=registeredTag+" : "+str(self.tagsCount[registeredTag]), background=color, foreground="black", borderwidth=1, relief=tk.SOLID)
+                if color == "transparent":
+                    color = "white"
+                self.labelsTags[registeredTag] = CTkLabel(self,  text=registeredTag+" : "+str(self.tagsCount[registeredTag]), fg_color=color, text_color="black",height=10, width=0, corner_radius=20,font=self.font)
             except tk.TclError:
                 #color does not exist
                 color = "gray97"
-                self.labelsTags[registeredTag] = ttk.Label(self,text=registeredTag+" : "+str(self.tagsCount[registeredTag]),  background=color, foreground="black", borderwidth=1, relief=tk.SOLID)
+                self.labelsTags[registeredTag] = CTkLabel(self,text=registeredTag+" : "+str(self.tagsCount[registeredTag]),  fg_color=color, text_color="black",height=10, width=0,  corner_radius=20,font=self.font)
             self.labelsTags[registeredTag].pack(side="left", padx=1)
             self.labelsTags[registeredTag].bind('<Button-1>', self.listOfLambdas[column-1])
             column += 1

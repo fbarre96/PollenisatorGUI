@@ -108,27 +108,29 @@ class ScanManager:
         apiclient = APIClient.getInstance()
         
         if len(self.workerTv.get_children()) == 0:
-            tk.messagebox.showwarning("No  worker found", "At least one worker is required to use the auto scan. \nAdd one with one of the button above.")
-            return
+            if not self.ask_start_worker():
+                return
         workers = apiclient.getWorkers({"pentest":apiclient.getCurrentPentest()})
         workers = [w for w in workers]
         if len(workers) == 0:
             tk.messagebox.showwarning("No selected worker found", "A worker exist but is not registered for this pentest. You might want to register it by double clicking on it or using the Use button.")
-            return
+            return False
         if self.settings.db_settings.get("include_all_domains", False):
             answer = tk.messagebox.askyesno(
                 "Autoscan warning", "The current settings will add every domain found in attack's scope. Are you sure ?")
             if not answer:
-                return
+                return False
         self.btn_autoscan.configure(text="Stop Scanning", command=self.stopAutoscan)
         apiclient.sendStartAutoScan()
         logger.debug('Ask start autoscan')
+        return True
     
     def stop(self):
         """Stop an automatic scan. Will try to stop running tools."""
         apiclient = APIClient.getInstance()
         apiclient.sendStopAutoScan()
         logger.debug('Ask stop autoscan')
+        return True
 
     def refreshRunningScans(self):
         running_scans = Tool.fetchObjects({"status":"running"})
@@ -205,21 +207,26 @@ class ScanManager:
                 self.btn_autoscan = CTkButton(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
         if nb_workers == 0:
-            options = ["Use this computer", "Run a preconfigured Docker on server"]
-            if git_available:
-                options.append("Run a preconfigured Docker locally")
-            options.append("Cancel")
-            dialog = ChildDialogQuestion(self.parent, "Register worker ?", "There is no running scanning clients. What do you want to do ?", options)
-            self.parent.wait_window(dialog.app)
-            if dialog.rvalue is not None:
-                rep = options.index(dialog.rvalue)
-                if rep == 1:
-                    self.runWorkerOnServer()
-                elif rep == 0:
-                    self.registerAsWorker()
-                elif rep == 2:
-                    self.launchDockerWorker()
+            self.ask_start_worker()
         logger.debug('Refresh scan manager UI')
+
+    def ask_start_worker(self):
+        options = ["Use this computer", "Run a preconfigured Docker on server"]
+        if git_available:
+            options.append("Run a preconfigured Docker locally")
+        options.append("Cancel")
+        dialog = ChildDialogQuestion(self.parent, "Register worker ?", "There is no running scanning clients. What do you want to do ?", options)
+        self.parent.wait_window(dialog.app)
+        if dialog.rvalue is not None:
+            rep = options.index(dialog.rvalue)
+            if rep == 1:
+                self.runWorkerOnServer()
+            elif rep == 0:
+                self.registerAsWorker()
+            elif rep == 2:
+                self.launchDockerWorker()
+            return True
+        return False
 
     def initUI(self, parent):
         """Create widgets and initialize them

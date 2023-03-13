@@ -17,6 +17,7 @@ class AuthInfo(Module):
     iconName = "tab_auth.png"
     tabName = "Auth Infos"
     collName = "auth"
+    order_priority = Module.LOW_PRIORITY
     pentest_types = ["web"]
 
     def __init__(self, parent, settings):

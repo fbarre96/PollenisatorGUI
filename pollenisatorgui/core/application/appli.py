@@ -47,6 +47,8 @@ import customtkinter
 import tkinterDnD
 from ttkwidgets import tooltips
 
+from pollenisatorgui.modules.module import Module
+
 class FloatingHelpWindow(CTkToplevel):
     """floating basic window with helping text inside
     Inherit tkinter TopLevel
@@ -253,14 +255,22 @@ class ButtonNotebook(CTkFrame):
         self.frameButtons.pack(side="left", anchor="nw", fill=tk.Y)
         self.btns = {}
 
-    def add(self, widget, name, image):
+    def add(self, widget, name, order, image):
         if name not in self.tabs:
-            self.tabs[name] = {"widget":widget, "image":image}
+            self.tabs[name] = {"widget":widget, "image":image, "order": order, "name":name}
             widget.pack_forget()
             btn = CTkButton(self.frameButtons, text=name, image=image,  fg_color='#113759' , hover_color=('#061b4e'), compound=tk.TOP)
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
-            btn.pack(side="top", fill=tk.X, anchor="nw")
+            self.redraw()
+
+    def redraw(self):
+        for btn in self.btns.values():
+            btn.pack_forget()
+        btns = sorted(self.tabs.values(), key=lambda x:x["order"])
+        for btn in btns:
+            
+            self.btns[btn["name"]].pack(side="top", fill=tk.X, anchor="nw")
 
     def clicked(self, event):
         widget = event.widget.master
@@ -397,6 +407,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.scanManager.nbk = self.nbk #FIXME ORDER, INITIALISATION of SCAN MANAGERis too early
         self.scanManager.linkTw = self.treevw
 
+    def start_autoscan(self):
+        return self.scanManager.startAutoscan()
+
+    def stop_autoscan(self):
+        return self.scanManager.stop()
 
     # OVERRIDE tk.Tk.report_callback_exception
     def report_callback_exception(self, exc, val, tb):
@@ -626,11 +641,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         Fill the main view tab menu
         """
         self.mainPageFrame = CTkFrame(self.nbk)
-        searchFrame = CTkFrame(self.mainPageFrame)
-        lblSearch = CTkLabel(searchFrame, text="Filter bar:")
+        searchFrame = CTkFrame(self.mainPageFrame, fg_color=utils.getBackgroundSecondColor())
+        filterbar_frame = CTkFrame(searchFrame, fg_color="transparent")
+        self.image_filter = CTkImage(Image.open(utils.getIcon("filter.png")))
+        lblSearch = CTkLabel(filterbar_frame, text="Filter bar:", image=self.image_filter, compound = "left")
         lblSearch.pack(side="left", fill=tk.NONE)
-        self.searchBar = AutocompleteEntry(self.settings, searchFrame)
-        #self.searchBar = CTkEntry(searchFrame, width=108)
+        self.searchBar = AutocompleteEntry(self.settings, filterbar_frame)
+        #self.searchBar = CTkEntry(filterbar_frame, width=108)
         self.searchBar.bind('<Return>', self.newSearch)
         self.searchBar.bind('<KP_Enter>', self.newSearch)
         self.searchBar.bind('<Control-a>', self.searchbarSelectAll)
@@ -639,25 +656,28 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.quickSearchVal = tk.BooleanVar()
         self.quickSearchVal.set(self.settings.local_settings.get("quicksearch", False))
         
-        checkbox_quick_search = CTkSwitch(searchFrame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
+        checkbox_quick_search = CTkSwitch(filterbar_frame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
         checkbox_quick_search.pack(side="left", padx=5)
         self.keep_parents_val = tk.BooleanVar()
         self.keep_parents_val.set(self.settings.local_settings.get("keep_parents", True))
-        checkbox_keep_parent = CTkSwitch(searchFrame, text="Keep parents", variable=self.keep_parents_val, command=self.keepParentsChanged)
+        checkbox_keep_parent = CTkSwitch(filterbar_frame, text="Keep parents", variable=self.keep_parents_val, command=self.keepParentsChanged)
         checkbox_keep_parent.pack(side="left", padx=5)
         self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
-        btnSearchBar = ttk.Button(searchFrame, text="", image=self.search_icon, style="icon.TButton", tooltip="Filter elements based of complex query or only text if quicksearch is selected", width=10, command=self.newSearch)
+        btnSearchBar = ttk.Button(filterbar_frame, text="", image=self.search_icon, style="iconbis.TButton", tooltip="Filter elements based of complex query or only text if quicksearch is selected", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
         image=Image.open(utils.getIcon("reset.png"))
         img=image.resize((16, 16))
         self.reset_icon = ImageTk.PhotoImage(img)
-        btnReset = ttk.Button(searchFrame, image=self.reset_icon, text="",  style="icon.TButton", tooltip="Reset search bar filter", width=10, command=self.resetButtonClicked)
+        btnReset = ttk.Button(filterbar_frame, image=self.reset_icon, text="",  style="iconbis.TButton", tooltip="Reset search bar filter", width=10, command=self.resetButtonClicked)
         btnReset.pack(side="left", fill="x")
         self.photo = CTkImage(Image.open(utils.getHelpIconPath()))
         self.helpFrame = None
-        self.btnHelp = CTkButton(searchFrame, text="",image=self.photo,  fg_color="transparent", width=10, command=self.showSearchHelp)
+        self.btnHelp = CTkButton(filterbar_frame, text="",image=self.photo,  fg_color="transparent", width=10, command=self.showSearchHelp)
 
         self.btnHelp.pack(side="left")
+        filterbar_frame.pack(side=tk.TOP,fill=tk.X)
+        self.statusbar = StatusBar(searchFrame, self)
+        self.statusbar.pack(side=tk.BOTTOM, fill=tk.X)
         searchFrame.pack(side="top", fill="x")
         #PANED PART
         self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal")
@@ -692,7 +712,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.paned.add(self.proxyFrameMain)
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.mainPageFrame.pack(fill="both", expand=True)
-        self.nbk.add(self.mainPageFrame, "Main View", image=self.main_tab_img)
+        self.nbk.add(self.mainPageFrame, "Main View", order=Module.HIGH_PRIORITY, image=self.main_tab_img)
 
     def searchbarSelectAll(self, _event):
         """
@@ -730,7 +750,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.commandPaned.pack(fill=tk.BOTH, expand=1)
         self.commandsFrameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.commandsFrameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        self.nbk.add(self.commandsPageFrame, "Commands", image=self.commands_tab_img)
+        self.nbk.add(self.commandsPageFrame, "Commands", order=Module.LOW_PRIORITY, image=self.commands_tab_img)
 
 
     def showSearchHelp(self, _event=None):
@@ -776,20 +796,20 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """Add the settings view frame to the notebook widget and initialize its UI."""
         self.settingViewFrame = CTkFrame(self.nbk)
         self.settings.initUI(self.settingViewFrame)
-        self.nbk.add(self.settingViewFrame, "Settings", image=self.settings_tab_img)
+        self.nbk.add(self.settingViewFrame, "Settings", order=Module.LAST_PRIORITY, image=self.settings_tab_img)
 
     def initScanView(self):
         """Add the scan view frame to the notebook widget. This does not initialize it as it needs a database to be opened."""
         self.scanViewFrame = CTkFrame(self.nbk)
         self.scanManager.initUI(self.scanViewFrame)
-        self.nbk.add(self.scanViewFrame, "Scan", image=self.scan_tab_img)
+        self.nbk.add(self.scanViewFrame, "Scan", order=Module.HIGH_PRIORITY, image=self.scan_tab_img)
 
     def initAdminView(self):
         """Add the admin button to the notebook"""
         self.admin = AdminView(self.nbk)
         self.adminViewFrame = CTkFrame(self.nbk)
         self.admin.initUI(self.adminViewFrame)
-        self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
+        self.nbk.add(self.adminViewFrame, "Admin", order=Module.LOW_PRIORITY, image=self.admin_tab_img)
 
     def openScriptModule(self):
         """Open the script window"""
@@ -803,8 +823,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.refreshUI()
             return
         self.nbk = ButtonNotebook(self, self.tabSwitch)
-        self.statusbar = StatusBar(self, self)
-        self.statusbar.pack(fill=tk.X)
+        
 
         
         self.initMainView()
@@ -816,7 +835,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             module["view"] = CTkFrame(self.nbk)
             module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
         for module in self.modules:
-            self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
+            self.nbk.add(module["view"], module["name"].strip(), order=module["object"].__class__.order_priority, image=module["img"])
 
         
         self._initMenuBar()
@@ -1159,12 +1178,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.settings.reloadSettings()
             self.refresh_tabs()
             
-            self.nbk.select("Scan")
+            self.nbk.select("Dashboard")
 
     def refresh_tabs(self):
         apiclient = APIClient.getInstance()
         if apiclient.isAdmin():
-            self.nbk.add(self.adminViewFrame, "Admin", image=self.admin_tab_img)
+            self.nbk.add(self.adminViewFrame, "Admin", order=Module.LAST_PRIORITY, image=self.admin_tab_img)
         else:
             self.nbk.delete("Admin")
         pentest_type = self.settings.getPentestType()
@@ -1174,7 +1193,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             module_need_admin = module["object"].__class__.need_admin
             is_admin = apiclient.isAdmin()
             if (pentest_type_allowed or all_are_authorized) and (is_admin or not module_need_admin):
-                self.nbk.add(module["view"], module["name"].strip(), image=module["img"])
+                self.nbk.add(module["view"], module["name"].strip(), order=module["object"].__class__.order_priority, image=module["img"])
             else:    
                 self.nbk.delete(module["name"])
 

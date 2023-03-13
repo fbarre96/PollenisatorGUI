@@ -91,8 +91,15 @@ def getBackgroundColor():
     from pollenisatorgui.core.components.settings import Settings
     settings = Settings()
     dark_mode = settings.is_dark_mode()
-    _,_,b,_ = get_color_scheme(dark_mode)
-    return b
+    colors = get_color_scheme(dark_mode)
+    return colors.get("background")
+
+def getBackgroundSecondColor():
+    from pollenisatorgui.core.components.settings import Settings
+    settings = Settings()
+    dark_mode = settings.is_dark_mode()
+    colors = get_color_scheme(dark_mode)
+    return colors.get("background_bis")
 
 def getTextColor():
     """
@@ -103,15 +110,16 @@ def getTextColor():
     from pollenisatorgui.core.components.settings import Settings
     settings = Settings()
     dark_mode = settings.is_dark_mode()
-    _,_,_,text_color = get_color_scheme(dark_mode)
-    return text_color
+    colors = get_color_scheme(dark_mode)
+    return colors.get("text_color")
 
 def get_color_scheme(dark_mode=False):
     main_color = ("#419f1e", "#2FA572")[dark_mode]
     hover_color = ("#63c93e", "#2FC572")[dark_mode]
     background_color = ("gray97", "gray17")[dark_mode]
     text_color = ("gray10", "#DCE4EE")[dark_mode]
-    return main_color, hover_color, background_color, text_color
+    second_color = ("light gray", "dim gray")[dark_mode]
+    return {"main":main_color, "hover":hover_color, "background":background_color, "text":text_color, "background_bis":second_color}
 
 def craftMenuWithStyle(menu_parent):
     """
@@ -122,10 +130,7 @@ def craftMenuWithStyle(menu_parent):
     Returns:
         the crafted menu.
     """
-    #from pollenisatorgui.core.components.settings import Settings
-    #settings = Settings()
-    #dark_mode = settings.is_dark_mode()
-    #main_color, hover_color, background_color, text_color = get_color_scheme(dark_mode)
+
     menu = tk.Menu(menu_parent, tearoff=0, background='#113759', foreground="white", activebackground="#061b4e", activeforeground="white")
 
     return menu
@@ -142,7 +147,13 @@ def setStyle(tkApp, dark_mode=False, _event=None):
 
     style = ttk.Style(tkApp)
     style.theme_use("clam")
-    main_color, hover_color, background_color, text_color = get_color_scheme(dark_mode)
+    
+    colors = get_color_scheme(dark_mode)
+    main_color = colors.get("main")
+    hover_color = colors.get("hover") 
+    background_color = colors.get("background")
+    text_color = colors.get("text")
+    background_bis_color = colors.get("background_bis")
     style.configure("Treeview.Heading", background=main_color,
                 foreground="gray97", borderwidth=0)
     style.map('Treeview.Heading', background=[('active', hover_color)])
@@ -171,6 +182,7 @@ def setStyle(tkApp, dark_mode=False, _event=None):
     style.configure("TButton", background=main_color,
                 foreground=text_color, font=('Sans', '10', 'bold'), borderwidth=1)
     style.configure("icon.TButton", background=background_color, borderwidth=0)
+    style.configure("iconbis.TButton", background=background_bis_color, borderwidth=0)
     style.configure("icon_white.TButton", background=main_color, borderwidth=0)
 
     style.configure("link.TButton", background=background_color, foreground=main_color, font=('Sans', '10', 'underline'), borderwidth=0)
