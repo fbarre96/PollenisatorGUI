@@ -48,7 +48,7 @@ class CheckInstanceController(ControllerElement):
         return "checkinstance"
 
     def getStatus(self):
-        return self.model.status
+        return self.model.getStatus()
 
     @property
     def target_repr(self):

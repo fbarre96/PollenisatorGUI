@@ -149,12 +149,56 @@ class Dashboard(Module):
     def set_scan_progression(self):
         done = self.infos.get("tools_done_count", 0)
         total = self.infos.get("tools_count", 0)
-        self.scan_progressbar.set(float(done)/float(total))
+        if total != 0:
+            self.scan_progressbar.set(float(done)/float(total))
+        self.scan_progressbar.update_idletasks()
         self.label_scan_progress.configure(text=str(done)+"/"+str(total))
+        self.label_scan_progress.update_idletasks()
 
     def set_cheatsheet_progression(self):
         done = self.infos.get("checks_done", 0)
         total = self.infos.get("checks_total", 0)
-        self.cheatsheet_progressbar.set(float(done)/float(total))
+        if total != 0:
+            self.cheatsheet_progressbar.set(float(done)/float(total))
+        self.cheatsheet_progressbar.update_idletasks()
         self.label_cheatsheet_progress.configure(text=str(done)+"/"+str(total))
+        self.label_cheatsheet_progress.update_idletasks()
 
+    def update_received(self, dataManager, notif, obj, old_obj):
+        apiclient = APIClient.getInstance()
+        if not apiclient.getCurrentPentest() != "":
+            return
+        if apiclient.getCurrentPentest() != notif["db"]:
+            return
+        if notif["collection"] == "autoscan":
+            self.set_autoscan_status()
+        if notif["collection"] == "tools":
+            if notif["action"] == "insert":
+                self.infos["tools_count"] += 1
+                if obj.getStatus() == "done":
+                    self.infos["tools_done_count"] += 1
+            if notif["action"] == "delete":
+                self.infos["tools_count"] -= 1
+                if obj.getStatus() == "done":
+                    self.infos["tools_done_count"] -= 1
+            if notif["action"] == "update":
+                if obj.getStatus() == "done" and old_obj.getStatus() != "done":
+                    self.infos["tools_done_count"] += 1
+                if old_obj.getStatus() == "done" and obj.getStatus() != "done":
+                    self.infos["tools_done_count"] -= 1
+            self.set_scan_progression()
+        if notif["collection"] == "cheatsheet":
+            if notif["action"] == "insert":
+                self.infos["checks_total"] += 1
+                if obj.getStatus() == "done":
+                    self.infos["checks_done"] += 1
+            if notif["action"] == "delete":
+                self.infos["checks_total"] -= 1
+                if obj.getStatus() == "done":
+                    self.infos["checks_done"] -= 1
+            if notif["action"] == "update":
+                if obj.getStatus() == "done" and old_obj.getStatus() != "done":
+                    self.infos["checks_done"] += 1
+                if old_obj.getStatus() == "done" and obj.getStatus() != "done":
+                    self.infos["checks_done"] -= 1
+            self.set_cheatsheet_progression()

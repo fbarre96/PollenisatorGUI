@@ -64,6 +64,9 @@ class CheckInstance(Element):
     #     self._id = id
     #     return True, id
         
+    def getStatus(self):
+        return self.status
+    
 
     def update(self, pipeline_set=None):
         """Update this object in database.

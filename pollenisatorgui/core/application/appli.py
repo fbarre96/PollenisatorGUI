@@ -379,7 +379,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
         dir_path = utils.getIconDir() +"favicon.png"
-        DataManager.getInstance().load()
         img = tk.PhotoImage(file=dir_path)
         self.resizable(True, True)
         self.iconphoto(True, img)
@@ -1126,7 +1125,10 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             datababase name otherwise
         """
         dialog = ChildDialogPentests(None)
-        dialog.wait_window()
+        try:
+            dialog.wait_window()
+        except tk.TclError:
+            pass
         if dialog.rvalue is not None:
             self.openPentest(dialog.rvalue)
         return dialog.rvalue
@@ -1171,8 +1173,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(pentestName))
                 return
+            DataManager.getInstance().load()
             self.initUI()
-            
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":pentestName})
             self.settings.reloadSettings()
