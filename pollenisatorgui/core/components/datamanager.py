@@ -121,6 +121,8 @@ class DataManager(Subject):
                     updated_data = apiclient.findInDb(notification["db"], notification["collection"], {"_id": ObjectId(notification["iid"])}, False)
                     obj = self.getClass(class_name)(updated_data)
                     old_obj = self.get(class_name, notification["iid"])
+                    if old_obj is None:
+                        notification["action"] = "insert"
                     self.set(class_name, notification["iid"], obj)
                 elif notification["action"] == "delete":
                     self.remove(class_name, notification["iid"])

@@ -245,11 +245,12 @@ def iter_namespace(ns_pkg):
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
 class ButtonNotebook(CTkFrame):
-    def __init__(self, parent, callbackSwitch):
+    def __init__(self, parent, callbackSwitch, closeCallbackSwitch):
         super().__init__(parent)
         style = ttk.Style()
         self.frameButtons = CTkFrame(self, fg_color=('#113759'))
         self.callbackSwitch = callbackSwitch
+        self.closeCallbackSwitch = closeCallbackSwitch
         self.tabs = {}
         self.current = None
         self.frameButtons.pack(side="left", anchor="nw", fill=tk.Y)
@@ -289,6 +290,7 @@ class ButtonNotebook(CTkFrame):
     def select(self, name):
         if self.current:
             self.tabs[self.current]["widget"].pack_forget()
+        self.closeCallbackSwitch(self.current, name)
         self.current = name
         self.tabs[name]["widget"].pack(side="right", expand=True, anchor="center", fill=tk.BOTH)
         self.callbackSwitch(name)
@@ -764,6 +766,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.helpFrame.destroy()
             self.helpFrame = None
 
+    def beforeTabSwitch(self, current, new):
+        if current is None:
+            return
+        for module in self.modules:
+            if current.strip().lower() == module["name"].strip().lower():
+                module["object"].close()
+
     def tabSwitch(self, tabName):
         """Called when the user click on the tab menu to switch tab. Add a behaviour before the tab switches.
         Args:
@@ -821,7 +830,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         if self.nbk is not None:
             self.refreshUI()
             return
-        self.nbk = ButtonNotebook(self, self.tabSwitch)
+        self.nbk = ButtonNotebook(self, self.tabSwitch, self.beforeTabSwitch)
         
 
         

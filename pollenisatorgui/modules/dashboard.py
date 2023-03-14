@@ -5,7 +5,7 @@ from PIL import Image
 from pollenisatorgui.core.components import utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.modules.module import Module
-
+import threading
 
 class Dashboard(Module):
     """
@@ -20,15 +20,23 @@ class Dashboard(Module):
         Constructor
         """
         super().__init__()
+        self.timer = None
         self.parent = None
         self.settings = settings
         self.label_count_vuln = None
 
     def open(self):
         apiclient = APIClient.getInstance()
+        
         if apiclient.getCurrentPentest() is not None:
             self.refreshUI()
+            
         return True
+
+    def close(self):
+        if self.timer is not None:
+            self.timer.cancel()
+            self.timer = None
 
     def refreshUI(self):
         """
@@ -36,11 +44,15 @@ class Dashboard(Module):
         """
         self.loadData()
         self.displayData()
+        self.timer = threading.Timer(3.0, self.refreshUI)
+        self.timer.start()
+
 
     def loadData(self):
         """
         Fetch data from database
         """
+        
         self.infos = APIClient.getInstance().getGeneralInformation()
         
 
@@ -164,41 +176,4 @@ class Dashboard(Module):
         self.label_cheatsheet_progress.configure(text=str(done)+"/"+str(int(total)))
         self.label_cheatsheet_progress.update_idletasks()
 
-    def update_received(self, dataManager, notif, obj, old_obj):
-        apiclient = APIClient.getInstance()
-        if not apiclient.getCurrentPentest() != "":
-            return
-        if apiclient.getCurrentPentest() != notif["db"]:
-            return
-        if notif["collection"] == "autoscan":
-            self.set_autoscan_status()
-        if notif["collection"] == "tools":
-            if notif["action"] == "insert":
-                self.infos["tools_count"] += 1
-                if obj.getStatus() == "done":
-                    self.infos["tools_done_count"] += 1
-            if notif["action"] == "delete":
-                self.infos["tools_count"] -= 1
-                if obj.getStatus() == "done":
-                    self.infos["tools_done_count"] -= 1
-            if notif["action"] == "update":
-                if obj.getStatus() == "done" and old_obj.getStatus() != "done":
-                    self.infos["tools_done_count"] += 1
-                if old_obj.getStatus() == "done" and obj.getStatus() != "done":
-                    self.infos["tools_done_count"] -= 1
-            self.set_scan_progression()
-        if notif["collection"] == "cheatsheet":
-            if notif["action"] == "insert":
-                self.infos["checks_total"] += 1
-                if obj.getStatus() == "done":
-                    self.infos["checks_done"] += 1
-            if notif["action"] == "delete":
-                self.infos["checks_total"] -= 1
-                if obj.getStatus() == "done":
-                    self.infos["checks_done"] -= 1
-            if notif["action"] == "update":
-                if obj.getStatus() == "done" and old_obj.getStatus() != "done":
-                    self.infos["checks_done"] += 1
-                if old_obj.getStatus() == "done" and obj.getStatus() != "done":
-                    self.infos["checks_done"] -= 1
-            self.set_cheatsheet_progression()
+    
