@@ -152,7 +152,7 @@ class Dashboard(Module):
         if total > 0:
             self.scan_progressbar.set(float(done)/float(total))
         self.scan_progressbar.update_idletasks()
-        self.label_scan_progress.configure(text=str(done)+"/"+str(total))
+        self.label_scan_progress.configure(text=str(done)+"/"+str(int(total)))
         self.label_scan_progress.update_idletasks()
 
     def set_cheatsheet_progression(self):
@@ -161,7 +161,7 @@ class Dashboard(Module):
         if total > 0:
             self.cheatsheet_progressbar.set(float(done)/float(total))
         self.cheatsheet_progressbar.update_idletasks()
-        self.label_cheatsheet_progress.configure(text=str(done)+"/"+str(total))
+        self.label_cheatsheet_progress.configure(text=str(done)+"/"+str(int(total)))
         self.label_cheatsheet_progress.update_idletasks()
 
     def update_received(self, dataManager, notif, obj, old_obj):
