@@ -79,10 +79,10 @@ class Dashboard(Module):
         self.moduleFrame = CTkFrame(parent)
         vuln_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_vuln_frame(vuln_frame)
-        vuln_frame.pack(side=tk.TOP, anchor=tk.W, ipady=10)
+        vuln_frame.pack(side=tk.LEFT, anchor=tk.W, ipady=10)
         autoscan_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_autoscan_frame(autoscan_frame)
-        autoscan_frame.pack(side=tk.TOP, anchor=tk.W, ipady=10, pady=10)
+        autoscan_frame.pack(side=tk.RIGHT, anchor=tk.E, ipady=10, pady=10)
         self.moduleFrame.pack(padx=10, pady=10, side="top", fill=tk.BOTH, expand=True)
 
     def populate_vuln_frame(self, vuln_frame):
