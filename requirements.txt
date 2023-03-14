@@ -13,5 +13,5 @@ GitPython
 python-socketio
 ttkwidgets
 watchdog
-tkinterDnD
+python-tkdnd
 customtkinter

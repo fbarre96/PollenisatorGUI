@@ -148,8 +148,8 @@ class Dashboard(Module):
 
     def set_scan_progression(self):
         done = self.infos.get("tools_done_count", 0)
-        total = self.infos.get("tools_count", 0)
-        if total != 0:
+        total = float(self.infos.get("tools_count", 0))
+        if total > 0:
             self.scan_progressbar.set(float(done)/float(total))
         self.scan_progressbar.update_idletasks()
         self.label_scan_progress.configure(text=str(done)+"/"+str(total))
@@ -157,8 +157,8 @@ class Dashboard(Module):
 
     def set_cheatsheet_progression(self):
         done = self.infos.get("checks_done", 0)
-        total = self.infos.get("checks_total", 0)
-        if total != 0:
+        total = float(self.infos.get("checks_total", 0))
+        if total > 0:
             self.cheatsheet_progressbar.set(float(done)/float(total))
         self.cheatsheet_progressbar.update_idletasks()
         self.label_cheatsheet_progress.configure(text=str(done)+"/"+str(total))
