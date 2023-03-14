@@ -841,12 +841,17 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.nbk.pack(fill=tk.BOTH, expand=1)
 
     def refreshUI(self):
+        import cProfile
+        prof = cProfile.Profile()
+        prof.enable()
         for widget in self.viewframe.winfo_children():
             widget.destroy()
         self.left_pane.update()
         self.after(50, lambda: self.paned.paneconfigure(self.left_pane, height=self.left_pane.winfo_reqheight()))
         self.treevw.refresh()
         self.treevw.filter_empty_nodes()
+        prof.disable()
+        prof.dump_stats("refreshUI.prof")
         # self.nbk.select("Main View")
 
     def quickSearchChanged(self, event=None):
