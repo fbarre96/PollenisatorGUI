@@ -856,6 +856,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.after(50, lambda: self.paned.paneconfigure(self.left_pane, height=self.left_pane.winfo_reqheight()))
         self.treevw.refresh()
         self.treevw.filter_empty_nodes()
+        self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
         # self.nbk.select("Main View")
 
     def quickSearchChanged(self, event=None):
