@@ -85,10 +85,10 @@ class DefectView(ViewElement):
         
         topPanel = self.form.addFormPanel()
         settings = self.mainApp.settings
-        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", dark_mode=settings.is_dark_mode(), side="top", height=3)
+        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", side="top", height=3)
         if not self.controller.isAssigned():
             topPanel = self.form.addFormPanel()
-            topPanel.addFormText("Description", r"", "Description",dark_mode=settings.is_dark_mode(), side="top", height=50)
+            topPanel.addFormText("Description", r"", "Description", side="top", height=50)
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = self.form.addFormPanel()
