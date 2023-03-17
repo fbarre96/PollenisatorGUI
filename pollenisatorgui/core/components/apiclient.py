@@ -920,11 +920,11 @@ class APIClient():
             raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
         return False, response.content.decode('utf-8'), ""
     @handle_api_errors
-    def getCommandLine(self, toolId):
+    def getCommandLine(self, toolId, add_output_dir=True):
         """Get full command line from toolid and choosen parser, a marker for |outputDir| is to be replaced
         """
         api_url = '{0}tools/{1}/craftCommandLine/{2}'.format(self.api_url_base, self.getCurrentPentest(), toolId)
-        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        response = requests.get(api_url, headers=self.headers, params={"add_output_dir":add_output_dir}, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return True, data["comm"], data["ext"]

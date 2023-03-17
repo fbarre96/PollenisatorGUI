@@ -15,7 +15,7 @@ class Cheatsheet(Module):
     iconName = "tab_cheatsheet.png"
     tabName = "Cheatsheet"
     collName = "cheatsheet"
-    order_priority = Module.LAST_PRIORITY
+    order_priority = Module.LOW_PRIORITY
     pentest_types = ["all"]
 
     def __init__(self, parent, settings):

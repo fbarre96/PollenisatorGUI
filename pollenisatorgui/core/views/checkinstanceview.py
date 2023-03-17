@@ -141,13 +141,21 @@ class CheckInstanceView(ViewElement):
         lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
         lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
+        datamanager = DataManager.getInstance()
         if dict_of_tools_not_done:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
             for tool_iid, tool_string in dict_of_tools_not_done.items():
-                formCommands.addFormSeparator(row=row, column=0, columnspan=3)
-                formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0, style="link.TButton", infos={"iid":tool_iid})
-                formCommands.addFormButton("Execute", lambdas_not_done[row], row=row*2+1, column=1, image=self.buttonExecuteImage)
+                apiclient = APIClient.getInstance()
+                result, comm, ext = apiclient.getCommandLine(tool_iid, False)
+                toolModel = datamanager.get("tools", tool_iid)
+                formCommands.addFormButton(toolModel.name, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
+                if result:
+                    commandModel = datamanager.get("commands", toolModel.command_iid)
+                    
+                    formCommands.addFormStr("commandline", "", commandModel.bin_path+" "+comm, width=600, row=row, column=1)
+
+                formCommands.addFormButton("", lambdas_not_done[row], row=row, column=2, width=0, image=self.buttonExecuteImage)
                 row+=1
         if dict_of_tools_running:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)

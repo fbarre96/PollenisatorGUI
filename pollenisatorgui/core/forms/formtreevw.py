@@ -243,7 +243,7 @@ class FormTreevw(Form):
                 "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "none"), expand=self.getKw("expand", True))
 
         else:
-            self.tvFrame.pack(side=self.getKw("side", ""), padx=self.getKw(
+            self.tvFrame.pack(side=self.getKw("side", "top"), padx=self.getKw(
                 "padx", 10), pady=self.getKw("pady", 5), fill=self.getKw("fill", "none"), expand=self.getKw("expand", True))
         self.tvFrame.rowconfigure(0, weight=1)
         self.tvFrame.columnconfigure(0, weight=1)

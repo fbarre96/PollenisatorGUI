@@ -4,7 +4,9 @@ from customtkinter import *
 from PIL import Image
 from pollenisatorgui.core.components import utils
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.modules.module import Module
+from pollenisatorgui.core.forms.formpanel import FormPanel
 import threading
 
 class Dashboard(Module):
@@ -64,6 +66,7 @@ class Dashboard(Module):
         self.set_autoscan_status()
         self.set_scan_progression()
         self.set_cheatsheet_progression()
+        #self.set_results()
 
     def initUI(self, parent, nbk, treevw, tkApp):
         """
@@ -79,10 +82,13 @@ class Dashboard(Module):
         self.moduleFrame = CTkFrame(parent)
         vuln_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_vuln_frame(vuln_frame)
-        vuln_frame.pack(side=tk.LEFT, anchor=tk.W, ipady=10)
+        vuln_frame.pack(side=tk.TOP, anchor=tk.W, ipady=10)
         autoscan_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_autoscan_frame(autoscan_frame)
-        autoscan_frame.pack(side=tk.RIGHT, anchor=tk.E, ipady=10, pady=10)
+        autoscan_frame.pack(side=tk.TOP, ipady=10, pady=10)
+        #results_frame = CTkFrame(self.moduleFrame, height=0)
+        #self.populate_results_frame(results_frame)
+        #results_frame.pack(side=tk.TOP, ipady=10, pady=10, fill=tk.BOTH , expand=True)
         self.moduleFrame.pack(padx=10, pady=10, side="top", fill=tk.BOTH, expand=True)
 
     def populate_vuln_frame(self, vuln_frame):
@@ -177,3 +183,15 @@ class Dashboard(Module):
         self.label_cheatsheet_progress.update_idletasks()
 
     
+    # def populate_results_frame(self, frame):
+    #     self.form = FormPanel()
+    #     self.treeview = self.form.addFormTreevw("results", ("Result type", "Criticity", "Target"), status="readonly", fill="both", side="top",expand=True)
+    #     self.form.constructView(frame)
+
+    # def set_results(self):
+    #     self.datamanager = DataManager.getInstance()
+    #     defects = self.datamanager.get("defects", '*', {}).values()
+    #     self.treeview.reset()
+    #     for defect in defects:
+    #         self.treeview.addItem("", tk.END, defect.getId(), text="Security Defect", values=(defect.risk, defect.getDetailedString(onlyTarget=True)))
+

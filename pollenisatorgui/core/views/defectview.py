@@ -84,9 +84,11 @@ class DefectView(ViewElement):
         chklistPanel.addFormChecklist("Type", defectTypes, ["N/A"])
         
         topPanel = self.form.addFormPanel()
-        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", height=50, side="top")
+        settings = self.mainApp.settings
+        topPanel.addFormMarkdown("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", dark_mode=settings.is_dark_mode(), side="top", height=3, just_editor=True, enable_preview=False)
         if not self.controller.isAssigned():
-            topPanel.addFormText("Description", r"", "Description", side="top")
+            topPanel = self.form.addFormPanel()
+            topPanel.addFormMarkdown("Description", r"", "Description",dark_mode=settings.is_dark_mode(), side="top", just_editor=True, enable_preview=False, height=50)
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = self.form.addFormPanel()
@@ -271,7 +273,7 @@ class DefectView(ViewElement):
             topPanel = globalPanel.addFormPanel()
             topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
             topPanel.addFormText("Description", r"", modelData.get("description", "Description"), side="top")
-            topPanel.addFormButton("Edit fixes", self.openFixesWindo,  image=self.edit_image)
+            topPanel.addFormButton("Edit fixes", self.openFixesWindwo,  image=self.edit_image)
         else:
             topPanel.addFormHidden("Title", modelData.get("title", ""))
             topPanel.addFormHidden("Ease", modelData.get("ease", ""))

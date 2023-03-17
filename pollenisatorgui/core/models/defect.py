@@ -319,7 +319,7 @@ class Defect(Element):
         """
         return self.title
 
-    def getDetailedString(self):
+    def getDetailedString(self, onlyTarget=False):
         """Returns a detailed string describing for this defect.
         Returns:
             the defect title. If assigned, it will be prepended with ip and (udp/)port
@@ -332,6 +332,8 @@ class Defect(Element):
                 ret += ":"+self.proto+"/"+self.port
             else:
                 ret += ":"+self.port
+        if onlyTarget:
+            return ret
         ret += " "+self.__str__()
         return ret
 

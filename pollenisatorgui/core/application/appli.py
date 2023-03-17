@@ -771,7 +771,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             return
         for module in self.modules:
             if current.strip().lower() == module["name"].strip().lower():
-                module["object"].close()
+                if hasattr(module["object"], "close"):
+                    module["object"].close()
 
     def tabSwitch(self, tabName):
         """Called when the user click on the tab menu to switch tab. Add a behaviour before the tab switches.

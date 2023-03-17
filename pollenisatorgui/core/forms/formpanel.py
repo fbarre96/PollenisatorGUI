@@ -7,6 +7,7 @@ from pollenisatorgui.core.forms.formcombo import FormCombo
 from pollenisatorgui.core.forms.formchecklist import FormChecklist
 from pollenisatorgui.core.forms.formstr import FormStr
 from pollenisatorgui.core.forms.formtext import FormText
+from pollenisatorgui.core.forms.formmarkdown import FormMarkdown
 from pollenisatorgui.core.forms.formbutton import FormButton
 from pollenisatorgui.core.forms.formdate import FormDate
 from pollenisatorgui.core.forms.formlabel import FormLabel
@@ -251,6 +252,20 @@ class FormPanel(Form):
             kwargs: keywords for FormText
         """
         f = FormText(name, validation, default, contextualMenu, **kwargs)
+        self.subforms.append(f)
+        return f
+    
+    def addFormMarkdown(self, name, validation="", default="", contextualMenu=None, **kwargs):
+        """
+        Add a form Text to this panel.
+
+        Args:
+            name: the text var desired name
+            validation: a regex to validate this input or a callback function
+            default: a default value for this input
+            kwargs: keywords for FormText
+        """
+        f = FormMarkdown(name, validation, default, contextualMenu, **kwargs)
         self.subforms.append(f)
         return f
 
