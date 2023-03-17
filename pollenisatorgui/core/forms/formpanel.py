@@ -7,7 +7,7 @@ from pollenisatorgui.core.forms.formcombo import FormCombo
 from pollenisatorgui.core.forms.formchecklist import FormChecklist
 from pollenisatorgui.core.forms.formstr import FormStr
 from pollenisatorgui.core.forms.formtext import FormText
-from pollenisatorgui.core.forms.formmarkdown import FormMarkdown
+#from pollenisatorgui.core.forms.formmarkdown import FormMarkdown
 from pollenisatorgui.core.forms.formbutton import FormButton
 from pollenisatorgui.core.forms.formdate import FormDate
 from pollenisatorgui.core.forms.formlabel import FormLabel
