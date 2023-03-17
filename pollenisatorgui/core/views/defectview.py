@@ -55,11 +55,11 @@ class DefectView(ViewElement):
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Ease")
         self.easeForm = topPanel.addFormCombo(
-            "Ease", Defect.getEases(), column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Ease", Defect.getEases(), column=1, command=self.updateRiskBox, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", column=2)
         topPanel.addFormLabel("Impact", column=3)
         self.impactForm = topPanel.addFormCombo(
-            "Impact", Defect.getImpacts(),column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Impact", Defect.getImpacts(),command=self.updateRiskBox, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", column=5)
         topPanel.addFormLabel("Risk", column=6)
         self.riskForm = topPanel.addFormCombo(
@@ -244,11 +244,11 @@ class DefectView(ViewElement):
             row = 0
             topPanel.addFormLabel("Ease", row=row)
             self.easeForm = topPanel.addFormCombo(
-                "Ease", Defect.getEases(), modelData["ease"], row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+                "Ease", Defect.getEases(), modelData["ease"], command=self.updateRiskBox, row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
             topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", row=row, column=2)
             topPanel.addFormLabel("Impact", row=row, column=3)
             self.impactForm = topPanel.addFormCombo(
-                "Impact", Defect.getImpacts(), modelData["impact"], row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+                "Impact", Defect.getImpacts(), modelData["impact"], command=self.updateRiskBox, row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
             topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=row, column=5)
             topPanel.addFormLabel("Risk", row=row, column=6)
             self.riskForm = topPanel.addFormCombo(

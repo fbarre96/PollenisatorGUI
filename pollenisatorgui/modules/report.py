@@ -220,9 +220,8 @@ class Report(Module):
 
         lbl_lang = CTkLabel(informations_frame, text="Lang :")
         lbl_lang.grid(row=2, column=0, sticky=tk.E)
-        self.combo_lang = CTkComboBox(informations_frame, values=self.langs)
+        self.combo_lang = CTkComboBox(informations_frame, values=self.langs, command=self.langChange)
         self.combo_lang.grid(row=2, column=1, sticky=tk.W)
-        self.combo_lang.bind("<<ComboboxSelected>>", self.langChange)
         informations_frame.pack(side=tk.TOP, pady=10)
         ### WORD EXPORT FRAME ###
         templatesFrame = CTkFrame(officeFrame)

@@ -63,7 +63,7 @@ class RemarkView(ViewElement):
         self.form.addFormSearchBar("Search Remark", self.searchCallback, self.form)
         topPanel = self.form.addFormPanel(grid=True)
         self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
-        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
+        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], command=updateImage, column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         self.comboTypeForm.configure(command=self.updateImage)
         topPanel.addFormStr("Title", r".+", "", column=2)
         topPanel.addFormText("Description", r".+", "description", row=2,column=2)
