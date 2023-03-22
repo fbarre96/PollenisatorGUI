@@ -290,8 +290,11 @@ class ButtonNotebook(CTkFrame):
     def select(self, name):
         if self.current:
             self.tabs[self.current]["widget"].pack_forget()
-        self.closeCallbackSwitch(self.current, name)
+            self.btns[self.current].configure(fg_color="#113759")
+
+            self.closeCallbackSwitch(self.current, name)
         self.current = name
+        self.btns[name].configure(fg_color="#061b4e")
         self.tabs[name]["widget"].pack(side="right", expand=True, anchor="center", fill=tk.BOTH)
         self.callbackSwitch(name)
 

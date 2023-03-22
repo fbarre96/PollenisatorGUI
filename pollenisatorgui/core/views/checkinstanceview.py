@@ -140,6 +140,7 @@ class CheckInstanceView(ViewElement):
         dict_of_tools_done = infos.get("tools_done")
         lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
         lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
+        lambdas_running_stop = [self.stopToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         datamanager = DataManager.getInstance()
         if dict_of_tools_not_done:
@@ -147,15 +148,17 @@ class CheckInstanceView(ViewElement):
             row=0
             for tool_iid, tool_string in dict_of_tools_not_done.items():
                 apiclient = APIClient.getInstance()
-                result, comm, ext = apiclient.getCommandLine(tool_iid, False)
+                success, data = apiclient.getCommandLine(tool_iid)
+                comm, fileext = data["comm"], data["ext"]
                 toolModel = datamanager.get("tools", tool_iid)
                 formCommands.addFormButton(toolModel.name, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
-                if result:
+                form_str = None
+                if success:
                     commandModel = datamanager.get("commands", toolModel.command_iid)
-                    
-                    formCommands.addFormStr("commandline", "", commandModel.bin_path+" "+comm, width=600, row=row, column=1)
+                    form_str= formCommands.addFormStr("bin_path", "", commandModel.bin_path, status="disabled", width=80, row=row, column=1)
+                    form_str= formCommands.addFormStr("commandline", "", comm, width=550, row=row, column=2)
 
-                formCommands.addFormButton("", lambdas_not_done[row], row=row, column=2, width=0, image=self.buttonExecuteImage)
+                formCommands.addFormButton("", lambdas_not_done[row], row=row, column=3, width=0, infos= {'formstr': form_str}, image=self.buttonExecuteImage)
                 row+=1
         if dict_of_tools_running:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
@@ -163,7 +166,9 @@ class CheckInstanceView(ViewElement):
             for tool_iid, tool_string in dict_of_tools_running.items():
                 formCommands.addFormSeparator(row=row, column=0, columnspan=3)
                 formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
-                formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=1, image=self.buttonRunImage)
+                formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=1, width=0, image=self.buttonRunImage)
+                formCommands.addFormButton("Stop", lambdas_running_stop[row], row=row*2+1, column=2,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         if dict_of_tools_done:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
@@ -199,9 +204,9 @@ class CheckInstanceView(ViewElement):
                 tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, width=20, side=tk.LEFT, anchor=tk.E)
                 row+=1
         upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
-        upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, pady=5)
+        upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, anchor=tk.N, pady=5)
         self.form_file = upload_panel.addFormFile("upload_tools", height=2, side=tk.LEFT, pady=5)
-        upload_panel.addFormButton("Upload", callback=self.upload_scan_files, side=tk.LEFT, pady=5)
+        upload_panel.addFormButton("Upload", callback=self.upload_scan_files, anchor=tk.N, side=tk.LEFT, pady=5)
 
             #for command, status in infos.get("tools_status", {}).items():
         if "script" in check_m.check_type:
@@ -272,11 +277,14 @@ class CheckInstanceView(ViewElement):
 
        
     
-    def launchToolCallbackLambda(self, tool_iid):
-        return lambda event: self.launchToolCallback(tool_iid)
+    def launchToolCallbackLambda(self, tool_iid, **kwargs):
+        return lambda event, kwargs: self.launchToolCallback(tool_iid, **kwargs)
 
     def peekToolCallbackLambda(self, tool_iid):
         return lambda event: self.peekToolCallback(tool_iid)
+    
+    def stopToolCallbackLambda(self, tool_iid):
+        return lambda event: self.stopToolCallback(tool_iid)
 
     def downloadToolCallbackLambda(self, tool_iid):
         return lambda event: self.downloadToolCallback(tool_iid)
@@ -296,16 +304,27 @@ class CheckInstanceView(ViewElement):
         view.openInDialog()
         self.openModifyWindow()
 
-    def launchToolCallback(self, tool_iid):
+    def launchToolCallback(self, tool_iid, **kwargs):
+        form_commandline = kwargs.get("formstr", None)
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+
+        if form_commandline is not None:
+            command_line = form_commandline.getValue()
+            tool_m.text = command_line
+            tool_m.update({"text":command_line})
         self.mainApp.scanManager.launchTask(tool_m)
-        self.openModifyWindow()
+        
+        self.mainApp.after(600, self.openModifyWindow)
 
     def peekToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         dialog = ChildDialogRemoteInteraction(self.mainApp, ToolController(tool_m), self.mainApp.scanManager)
         dialog.app.wait_window(dialog.app)
         
+    def stopToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
+        tool_vw.stopCallback()
 
     def downloadToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})

@@ -111,7 +111,7 @@ def getTextColor():
     settings = Settings()
     dark_mode = settings.is_dark_mode()
     colors = get_color_scheme(dark_mode)
-    return colors.get("text_color")
+    return colors.get("text")
 
 def get_color_scheme(dark_mode=False):
     main_color = ("#419f1e", "#2FA572")[dark_mode]

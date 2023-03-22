@@ -45,18 +45,19 @@ class FormFile(Form):
             parent: parent FormPanel.
         """
         self.val = tk.StringVar()
-        frame = CTkFrame(parent.panel)
-        listboxframe = CTkFrame(frame)
+        frame = CTkFrame(parent.panel, height=0)
+        listboxframe = ttk.Frame(frame, height=0)
         listboxframe.grid_columnconfigure(0, weight=1)
         listboxframe.grid_rowconfigure(0, weight=1)
         self.listbox = tk.Listbox(listboxframe, 
-                              width=self.getKw("width", 20), height=self.getKw("height", 10), selectmode=tk.SINGLE, bg=utils.getBackgroundColor(), fg=utils.getTextColor())
+                              width=self.getKw("width", 50), height=self.getKw("height", 10), selectmode=tk.SINGLE, bg=utils.getBackgroundColor(), fg=utils.getTextColor())
         self.listbox.register_drop_target("*")
         self.listbox.bind('<<Drop:File>>', self.add_path_listbox)
         self.listbox.bind('<Delete>', self.delete_path_listbox)
         self.scrolbar = CTkScrollbar(
             listboxframe,
-            orientation=tk.VERTICAL
+            orientation=tk.VERTICAL,
+            height=0
         )
         self.scrolbarH = CTkScrollbar(
             listboxframe,
@@ -74,9 +75,9 @@ class FormFile(Form):
         self.scrolbarH.configure(command=self.listbox.xview)
         for d in self.default:
             self.listbox.insert("end", d)
-        listboxframe.pack(side="top", fill=tk.X, expand=1, anchor=tk.CENTER)
+        listboxframe.pack(expand=0, fill=tk.X, side=tk.TOP, anchor=tk.CENTER)
         self.modes = self.getKw("mode", "file").split("|")
-        btn_frame = CTkFrame(frame)
+        btn_frame = CTkFrame(frame,height=0)
         info = CTkLabel(btn_frame, text="Or Drag and Drop")
         info.pack(side="right", pady=5,padx=5)
         if "file" in self.modes:
@@ -90,7 +91,7 @@ class FormFile(Form):
                 btn_frame, text=text, command=lambda :self.on_click_dir(None, parent))
             search_btn.pack(side="right", pady=5)
         
-        btn_frame.pack(side=tk.TOP, anchor=tk.CENTER)
+        btn_frame.pack(side=tk.BOTTOM, anchor=tk.CENTER)
         if parent.gridLayout:
             frame.grid(row=self.getKw("row", 0),
                        column=self.getKw("column", 0), **self.kwargs)

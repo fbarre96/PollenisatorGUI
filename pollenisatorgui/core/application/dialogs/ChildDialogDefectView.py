@@ -59,6 +59,5 @@ class ChildDialogDefectView(ChildDialogView):
             res, _ = self.defect_vw.update()
         if res:
             self.rvalue = True
-            self.unboundToMousewheel()
             self.app.destroy()
 

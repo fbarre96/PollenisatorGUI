@@ -54,7 +54,6 @@ class ChildDialogView:
         Args:
             _event: Not used but mandatory"""
         self.rvalue = False
-        self.appFrame.unboundToMousewheel()
         self.app.destroy()
 
     def okCallback(self, _event=None):
