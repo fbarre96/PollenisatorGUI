@@ -321,7 +321,7 @@ class Settings:
                         if tag not in v:
                             apiclient.unregisterTag(apiclient.getCurrentPentest(), tag)
                 else:
-                    apiclient.updateInDb(apiclient.getCurrentPentest(), "settings", {"key":k}, {"$set":{"value": v}})
+                    apiclient.updatePentestSetting({"key":k, "value": str(v)})
 
     def save(self):
         """

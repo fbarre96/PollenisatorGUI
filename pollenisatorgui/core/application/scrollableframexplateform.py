@@ -25,7 +25,10 @@ class ScrollableFrameXPlateform(CTkScrollableFrame):
             count = -1
         if event.num == 4 or event.delta == 120:
             count = 1
-        self.event_generate("<MouseWheel>", delta=count)
+        try:
+            self.event_generate("<MouseWheel>", delta=count)
+        except tk.TclError:
+            pass
         
 
     def boundToMousewheel(self, _event=None):

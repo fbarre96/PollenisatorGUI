@@ -638,7 +638,9 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         menubar.add_cascade(label="Debug", menu=fileMenuDebug)
         
     def socketTest(self):
+        print("EMIT TEST")
         self.sio.emit("test", {"pentest": APIClient.getInstance().getCurrentPentest()})
+        print("TEST SENT, WAITING FOR RESPONSE")
 
     def initMainView(self):
         """

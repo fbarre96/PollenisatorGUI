@@ -129,6 +129,8 @@ class CheckInstance(Element):
         return {"check_iid": self.check_iid}
 
     def __str__(self):
+        if self.check_m is None:
+            return "ERROR"
         return self.check_m.title
 
     def getCheckInstanceStatus(self):
@@ -138,7 +140,10 @@ class CheckInstance(Element):
             string
         """
         data = self.getData()
-        check_item_data = self.check_m.getData()
+        if self.check_m is None:
+            check_item_data = {}
+        else:
+            check_item_data = self.check_m.getData()
         data["check_item"] = check_item_data
         data["tools_done"] = {}
         data["tools_running"] = {}
@@ -166,14 +171,16 @@ class CheckInstance(Element):
 
         if done != total:
             all_complete = False
-        if len(self.check_m.commands) > 0:
-            if at_least_one and all_complete:
-                data["status"] = "done"
-            elif at_least_one and not all_complete:
-                data["status"] = "running"
+        if self.check_m is not None:
+            if len(self.check_m.commands) > 0:
+                if at_least_one and all_complete:
+                    data["status"] = "done"
+                elif at_least_one and not all_complete:
+                    data["status"] = "running"
+                else:
+                    data["status"] = "todo"
             else:
-                data["status"] = "todo"
+                data["status"] = ""
         else:
-            data["status"] = ""
-        
+            data["status"] = "error"
         return data
