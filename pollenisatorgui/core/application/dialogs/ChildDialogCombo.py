@@ -22,6 +22,7 @@ class ChildDialogCombo:
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.title("Choose option")
         self.app.resizable(False, False)
+        self.app.bind("<Escape>", self.onError)
         appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
@@ -63,7 +64,7 @@ class ChildDialogCombo:
         self.rvalue = self.box_template.get()
         self.app.destroy()
 
-    def onError(self):
+    def onError(self, _event=None):
         """
         Close the dialog and set rvalue to None
         """

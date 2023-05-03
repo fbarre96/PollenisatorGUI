@@ -105,6 +105,8 @@ class CheckInstance(Element):
             Returns a cursor to iterate on cheatsheet objects
         """
         apiclient = APIClient.getInstance()
+        if isinstance(pipeline, list):
+            pipeline = {"_id": {"$in":list(map(ObjectId, pipeline))}}
         ds = apiclient.findCheckInstance(pipeline)
         if ds is None:
             return None

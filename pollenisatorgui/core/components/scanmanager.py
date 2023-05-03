@@ -133,7 +133,11 @@ class ScanManager:
         return True
 
     def refreshRunningScans(self):
-        running_scans = Tool.fetchObjects({"status":"running"})
+        running_scans = list(Tool.fetchObjects({"status":"running"}))
+        checks = CheckInstance.fetchObjects([str(ObjectId(running_scan.check_iid)) for running_scan in running_scans if running_scan.check_iid != ""])
+        mapping = {}
+        for check in checks:
+            mapping[str(check._id)] = check
         try:
             for children in self.scanTv.get_children():
                 self.scanTv.delete(children)
@@ -142,10 +146,7 @@ class ScanManager:
         except RuntimeError:
             return
         for running_scan in running_scans:
-            try:
-                check = CheckInstance.fetchObject({"_id":ObjectId(running_scan.check_iid)})
-            except:
-                check = None
+            check = mapping.get(str(running_scan.check_iid), None)
             group_name = "" if check is None else check.check_m.title
             try:
                 self.scanTv.insert('','end', running_scan.getId(), text=group_name, values=(running_scan.name, running_scan.dated), image=self.running_icon)
@@ -184,13 +185,14 @@ class ScanManager:
         """Reload informations and renew widgets"""
         apiclient = APIClient.getInstance()
         self.refreshRunningScans()
-        done_scans = Tool.fetchObjects({"status":"done"})
+        done_scans = list(Tool.fetchObjects({"status":"done"}))
+        checks = CheckInstance.fetchObjects([ObjectId(done_scan.check_iid) for done_scan in done_scans if done_scan.check_iid != ""])
+        mapping = {}
+        for check in checks:
+            mapping[str(check._id)] = check
         self.histoScanTv.reset()
         for done_scan in done_scans:
-            try:
-                check = CheckInstance.fetchObject({"_id":ObjectId(done_scan.check_iid)})
-            except:
-                check = None
+            check = mapping.get(str(done_scan.check_iid), None)
             group_name = "" if check is None else check.check_m.title
             try:
                 self.histoScanTv.insert('',0, done_scan.getId(), text=group_name, values=(done_scan.name, done_scan.datef), image=self.ok_icon)

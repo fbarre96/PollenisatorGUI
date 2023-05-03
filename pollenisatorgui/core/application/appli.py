@@ -288,6 +288,8 @@ class ButtonNotebook(CTkFrame):
             self.btns[name].pack_forget()
 
     def select(self, name):
+        if self.current == name:
+            return
         if self.current:
             self.tabs[self.current]["widget"].pack_forget()
             self.btns[self.current].configure(fg_color="#113759")
@@ -912,8 +914,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         Args:
             name: not used but mandatory"""
         # get the index of the mouse click
+        import cProfile
+        profiler = cProfile.Profile()
+        profiler.enable()
         self.nbk.select("Main View")
         self.search("\""+name+"\" in tags")
+        profiler.disable()
+        profiler.dump_stats("profiles.stats")
 
     def search(self, filter_str):
         self.searchMode = True
@@ -999,7 +1006,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         dialog = ChildDialogQuestion(self, "Ask question", "Do you want to export your commands or Worker's commands.", ["My commands", "Worker"])
         self.wait_window(dialog.app)
         apiclient = APIClient.getInstance()
-        res, msg = apiclient.exportCommands()
+        res, msg = apiclient.exportCommands(self)
         if res:
             tkinter.messagebox.showinfo(
                 "Export pollenisator database", "Export completed in "+str(msg))
@@ -1011,7 +1018,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         Dump pollenisator from database to an archive file gunzip.
         """
         apiclient = APIClient.getInstance()
-        res, msg = apiclient.exportCheatsheet()
+        res, msg = apiclient.exportCheatsheet(self)
         if res:
             tkinter.messagebox.showinfo(
                 "Export cheatsheet database", "Export completed in "+str(msg))
@@ -1041,7 +1048,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
+            f = tkinter.filedialog.askopenfilename(self, defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
@@ -1075,7 +1082,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
+            f = tkinter.filedialog.askopenfilename(self, defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
@@ -1106,7 +1113,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
+            f = tkinter.filedialog.askopenfilename(self, defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)

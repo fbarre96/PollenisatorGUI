@@ -28,6 +28,7 @@ class ChildDialogEditCommandSettings:
         self.rvalue = None
         self.parent = parent
         appFrame = CTkFrame(self.app)
+        self.app.bind("<Escape>", self.onError)
         self.form = FormPanel()
         self.form.addFormLabel(displayMsg, side=tk.TOP)
         optionsFrame = self.form.addFormPanel(grid=True)

@@ -72,10 +72,14 @@ class StatusBar(CTkFrame):
         updated = False
         if not "hidden" in addedTags:
             for tag in addedTags:
+                if isinstance(tag, list) or isinstance(tag, tuple):
+                    tag = tag[0] # when tag is colored, it can be tuple whith (tag,color)
                 if tag in self.tagsCount:
                     self.tagsCount[tag] += 1
                     updated = True
         for tag in removedTags:
+            if isinstance(tag, list) or isinstance(tag, tuple):
+                tag = tag[0] # when tag is colored, it can be tuple whith (tag,color)
             if tag in self.tagsCount:
                 self.tagsCount[tag] -= 1
                 updated = True

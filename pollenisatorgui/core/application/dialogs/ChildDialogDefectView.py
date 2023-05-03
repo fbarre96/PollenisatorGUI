@@ -25,6 +25,7 @@ class ChildDialogDefectView(ChildDialogView):
             defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
         """
         super().__init__(parent, title)
+        
         self.isInsert = defectModel is None
         self.multi = multi
         if self.isInsert:

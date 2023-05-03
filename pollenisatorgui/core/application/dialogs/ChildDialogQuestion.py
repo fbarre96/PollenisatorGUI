@@ -23,6 +23,7 @@ class ChildDialogQuestion:
         self.app = CTkToplevel(parent)
         self.app.title(title)
         self.app.resizable(True, True)
+        
         appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent

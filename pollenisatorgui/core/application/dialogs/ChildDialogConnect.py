@@ -58,6 +58,7 @@ class ChildDialogConnect:
         self.app.title("Connect to server")
         self.app.resizable(False, False)
         appFrame = CTkFrame(self.app)
+        self.app.bind("<Escape>", self.onError)
         self.rvalue = None
         self.parent = parent
         self.clientCfg = loadClientConfig()
@@ -162,6 +163,10 @@ class ChildDialogConnect:
     def valideLogin(self):
         pass
 
+    def onError(self, _event=None):
+        self.rvalue = None
+        self.app.quit()
+        
     def onOk(self, event=None):
         """
         Called when the user clicked the validation button.

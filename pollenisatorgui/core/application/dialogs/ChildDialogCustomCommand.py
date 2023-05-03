@@ -25,6 +25,7 @@ class ChildDialogCustomCommand:
         self.app = CTkToplevel(parent)
         self.app.title("Custom command")
         appFrame = CTkFrame(self.app)
+        self.app.bind("<Escape>", self.onError)
         self.app.resizable(False, False)
         self.rvalue = None
         self.parent = parent
@@ -63,6 +64,10 @@ class ChildDialogCustomCommand:
         except tk.TclError:
             pass
 
+    def onError(self, event=None):
+        self.app.destroy()
+        return
+    
     def onOk(self):
         """
         Called when the user clicked the validation button. Set the rvalue attributes to the value selected and close the window.

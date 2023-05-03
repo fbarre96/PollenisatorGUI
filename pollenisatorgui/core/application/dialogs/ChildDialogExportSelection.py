@@ -24,6 +24,7 @@ class ChildDialogExportSelection:
         self.rvalue = None
         self.parent = parent
         self.app = CTkToplevel(parent)
+        self.app.bind("<Escape>", self.onError)
         self.app.title("Export selection")
         appFrame = CTkFrame(self.app)
         self.form = FormPanel()
@@ -41,6 +42,11 @@ class ChildDialogExportSelection:
         except tk.TclError:
             pass
 
+    def onError(self, event=None):
+        self.app.destroy()
+        self.rvalue = None
+        return None
+    
     def onOk(self, _event=None):
         """Called the the Export button is pressed.
         return a list of strings corresponding to the selected fields.

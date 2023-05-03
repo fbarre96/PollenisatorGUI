@@ -23,6 +23,7 @@ class ChildDialogEditPassword:
         """
         self.parent = parent
         self.app = CTkToplevel(parent)
+        self.app.bind("<Escape>", self.onError)
         self.askOldPwd = askOldPwd
         self.app.title("Change "+str(username)+" password")
         appFrame = CTkFrame(self.app)
@@ -46,6 +47,9 @@ class ChildDialogEditPassword:
             self.app.lift()
         except tk.TclError:
             pass
+
+    def onError(self, _event=None):
+        self.app.destroy()
 
     def onOk(self, _event=None):
         """Called the ok button is pressed.

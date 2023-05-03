@@ -22,6 +22,7 @@ class ChildDialogFixes:
         self.app = CTkToplevel(parent)
         self.app.title("Edit defect fixes")
         self.app.resizable(True, True)
+        self.app.bind("<Escape>", self.cancel)
         self.rvalue = None
         self.lastMovedTo = None
         self.pane_base_height = 31

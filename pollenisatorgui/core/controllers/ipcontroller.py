@@ -2,7 +2,7 @@
 
 from pollenisatorgui.core.controllers.controllerelement import ControllerElement
 from pollenisatorgui.core.models.ip import Ip
-
+import json
 
 class IpController(ControllerElement):
     """Inherits ControllerElement
@@ -21,6 +21,8 @@ class IpController(ControllerElement):
         self.model.notes = values.get("Notes", self.model.notes)
         self.model.tags = values.get("Tags", self.model.tags)
         self.model.infos = values.get("Infos", self.model.infos)
+        if not isinstance(self.model.infos, dict):
+            self.model.infos = json.loads(self.model.infos)
         for info in self.model.infos:
             self.model.infos[info] = self.model.infos[info][0]
         self.model.update()

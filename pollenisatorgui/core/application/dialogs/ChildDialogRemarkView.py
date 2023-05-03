@@ -24,6 +24,7 @@ class ChildDialogRemarkView:
         self.app.resizable(False, False)
         self.rvalue = None
         appFrame = CTkFrame(self.app)
+        self.app.bind("<Escape>", self.cancel)
         self.isInsert = remarkModel is None
         if self.isInsert:
             remarkModel = Remark()

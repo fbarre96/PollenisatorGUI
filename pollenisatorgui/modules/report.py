@@ -656,7 +656,7 @@ class Report(Module):
 
     def _download_and_open_template(self, templateName):
         apiclient = APIClient.getInstance()
-        path = apiclient.downloadTemplate(self.curr_lang, templateName)
+        path = apiclient.downloadTemplate(self, self.curr_lang, templateName)
         dialog = ChildDialogQuestion(self.parent,
                                     "Template downloaded", "Template was downloaded here : "+str(path)+". Do you you want to open it ?", ["Open", "Cancel"])
         self.parent.wait_window(dialog.app)

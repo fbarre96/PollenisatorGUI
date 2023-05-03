@@ -24,6 +24,7 @@ class ChildDialogAskFile:
         self.app = tkinterDnD.Tk()
         utils.setStyle(self.app)
         self.app.title(info)
+        self.app.bind("<Escape>", self.onError)
         self.rvalue = None
         self.default = default_path
         appFrame = CTkFrame(self.app)

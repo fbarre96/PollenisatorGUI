@@ -1044,7 +1044,7 @@ class APIClient():
         return None        
 
     @handle_api_errors
-    def exportCommands(self):
+    def exportCommands(self, parent):
         api_url = '{0}exportCommands'.format(self.api_url_base)
         response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
@@ -1052,7 +1052,7 @@ class APIClient():
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
-            f = tk.filedialog.asksaveasfilename(defaultextension=".json", initialdir=out_path, initialfile=filename)
+            f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
@@ -1064,7 +1064,7 @@ class APIClient():
         return False, response.text  
 
     @handle_api_errors
-    def exportCheatsheet(self):
+    def exportCheatsheet(self, parent):
         api_url = '{0}exportCheatsheet'.format(self.api_url_base)
         response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
@@ -1072,7 +1072,7 @@ class APIClient():
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
-            f = tk.filedialog.asksaveasfilename(defaultextension=".json", initialdir=out_path, initialfile=filename)
+            f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
@@ -1084,16 +1084,16 @@ class APIClient():
         return False, response.text    
 
     @handle_api_errors
-    def dumpDb(self, pentest, collection=""):
+    def dumpDb(self, parent, pentest, collection=""):
         api_url = '{0}dumpDb/{1}'.format(self.api_url_base, pentest)
         response = requests.get(api_url, headers=self.headers, params={"collection":collection}, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.join(
                 dir_path, "../../exports/")
-            f = tk.filedialog.asksaveasfilename(defaultextension=".gz", initialdir=out_path, initialfile=(pentest if collection == "" else pentest+"_"+collection)+".gz")
+            f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".gz", initialdir=out_path, initialfile=(pentest if collection == "" else pentest+"_"+collection)+".gz")
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
-                return
+                return None, None
             filename = str(f)          
             with open(filename, mode='wb') as f:
                 f.write(response.content)
@@ -1241,12 +1241,12 @@ class APIClient():
         return ["en"]
     
     @handle_api_errors
-    def downloadTemplate(self, lang, templateName):
+    def downloadTemplate(self, parent, lang, templateName):
         api_url = '{0}report/{1}/templates/download'.format(self.api_url_base, lang)
         response = requests.get(api_url, headers=self.headers, params={"templateName":templateName},proxies=self.proxies, verify=False)
         if response.status_code == 200:
             out_path = os.path.join(dir_path, "../../exports/")
-            f = tk.filedialog.asksaveasfilename(initialdir=out_path, initialfile=templateName)
+            f = tk.filedialog.asksaveasfilename(parent=parent, initialdir=out_path, initialfile=templateName)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)

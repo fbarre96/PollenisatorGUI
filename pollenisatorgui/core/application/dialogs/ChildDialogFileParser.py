@@ -29,6 +29,7 @@ class ChildDialogFileParser:
         self.rvalue = None
         self.default = default_path
         appFrame = CTkFrame(self.app)
+        self.app.bind("<Escape>", self.onError)
         apiclient = APIClient.getInstance()
         self.form = FormPanel()
         self.form.addFormLabel(
@@ -51,6 +52,11 @@ class ChildDialogFileParser:
             self.app.lift()
         except tk.TclError:
             pass
+
+    def onError(self, event=None):
+        self.app.destroy()
+        self.rvalue = None
+        return None
 
     def onOk(self, _event=None):
         """

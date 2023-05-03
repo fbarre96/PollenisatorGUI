@@ -22,6 +22,7 @@ class ChildDialogInfo:
         self.app = CTkToplevel(parent)
         self.app.resizable(False, False)
         self.app.title(title)
+        self.app.bind("<Escape>", self.destroy)
         appFrame = CTkFrame(self.app)
         self.rvalue = None
         self.parent = parent
@@ -41,9 +42,10 @@ class ChildDialogInfo:
         """Start displaying this window."""
         self.app.update()
 
-    def destroy(self):
+    def destroy(self, _event=None):
         """
         Close the window.
         """
         # send the data to the parent
+        self.rvalue = None
         self.app.destroy()

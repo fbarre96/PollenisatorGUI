@@ -20,6 +20,7 @@ class ChildDialogFixView:
         self.app = CTkToplevel(parent)
         self.app.title("Fix edition")
         self.app.resizable(True, True)
+        self.app.bind("<Escape>", self.cancel)
         self.rvalue = None
         topFrame = CTkFrame(self.app)
         appFrame = CTkFrame(topFrame)
