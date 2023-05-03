@@ -105,15 +105,16 @@ class FormStr(Form):
         Args:
             parent: parent FormPanel.
         """
-        self.val = tk.StringVar()
-        self.entry = CTkEntry(parent.panel, textvariable=self.val, width=self.getKw(
+        self.entry = CTkEntry(parent.panel, placeholder_text=self.getKw("placeholder_text", None), width=self.getKw(
             "width", 200), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
 
         self.entry.bind("<Control-a>", self.selectAll)
         for bind, bind_call in self.getKw("binds", {}).items():
             self.entry.bind(bind, bind_call)
-        self.val.set(self.default)
+        if self.default != "" and self.default is not None:
+            self.entry.insert(0, self.default)
+        
         if parent.gridLayout:
             self.entry.grid(row=self.getKw("row", 0), column=self.getKw(
                 "column", 0), sticky=self.getKw("sticky", tk.W))
@@ -141,7 +142,16 @@ class FormStr(Form):
         Returns:
             Return the entry value as string.
         """
-        return self.val.get()
+        return self.entry.get()
+    
+    def setValue(self, newval):
+        """
+        Set the text value.
+        Args:
+            newval: the new value to be set inside the text
+        """
+        self.entry.delete("0", "end")
+        self.entry.insert("0", newval)
 
     def checkForm(self):
         """

@@ -72,15 +72,18 @@ class RemarkView(ViewElement):
         type_combo_search = search_panel.addFormPanel(grid=True, row=0, column=0)
         type_combo_search.addFormLabel("Type for search",  row=0, column=0)
         type_search = type_combo_search.addFormCombo("Search only", ["<Empty>", "Positive","Neutral","Negative"], row=0, column=1)
-        s = search_panel.addFormSearchBar("Search Remark", self.searchCallback, self.form, row=1)
+        s = search_panel.addFormSearchBar("Search Remark", self.searchCallback, None, row=1)
+        s.addOptionForm(type_search, "remark_type")
         
         topPanel = self.form.addFormPanel(grid=True, side="right")
-        self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
-        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], command=self.updateImage, column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
+        head = topPanel.addFormPanel(grid=True, row=0)
+        self.imgTypeForm = head.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
+        self.comboTypeForm = head.addFormCombo("Type", ["Positive","Neutral","Negative"], command=self.updateImage, column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         self.comboTypeForm.configure(command=self.updateImage)
-        s.addOptionForm(type_search, "remark_type")
-        topPanel.addFormStr("Title", r".+", "", column=1)
-        topPanel.addFormText("Description", r".+", "description", row=2,column=1)
+        head.addFormStr("Title", r".+", "", column=2, placeholder_text="Title")
+        bot = topPanel.addFormPanel(grid=True,row=1)
+        bot.addFormText("Description", r".+", "description")
+        s.panel_to_fill = topPanel
         if addButtons:
             self.completeInsertWindow()
         else:
