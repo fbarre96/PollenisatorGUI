@@ -47,8 +47,8 @@ class DefectView(ViewElement):
         topPanel = self.form.addFormPanel(grid=True)
         s = topPanel.addFormSearchBar("Search Defect", self.searchCallback, self.form, row=0, column= 0)
         topPanel.addFormLabel("Search Language",row=0, column=1)
-        lang = topPanel.addFormStr("lang", row=0, column=2)
-        s.addOptionForm(lang)
+        lang = topPanel.addFormStr("Lang", row=0, column=2)
+        s.addOptionForm(lang, "lang")
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Title")
         topPanel.addFormStr("Title", r".+", "", column=1, width=400)
@@ -88,7 +88,7 @@ class DefectView(ViewElement):
         topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", side="top", height=3)
         if not self.controller.isAssigned():
             topPanel = self.form.addFormPanel()
-            topPanel.addFormText("Description", r"", "Description", side="top", height=50)
+            topPanel.addFormText("Description", r"", "Description", side="top", height=300)
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = self.form.addFormPanel()
@@ -272,7 +272,7 @@ class DefectView(ViewElement):
             row += 1
             topPanel = globalPanel.addFormPanel()
             topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
-            topPanel.addFormText("Description", r"", modelData.get("description", "Description"), side="top")
+            topPanel.addFormText("Description", r"", modelData.get("description", "Description"), height=300, side="top")
             topPanel.addFormButton("Edit fixes", self.openFixesWindow,  image=self.edit_image)
         else:
             topPanel.addFormHidden("Title", modelData.get("title", ""))

@@ -53,6 +53,13 @@ class RemarkView(ViewElement):
         self.comboTypeForm = None
         self.imgTypeForm = None
 
+    def searchCallback(self, searchreq, **options):
+        remarks_obj, remarks_errors = APIClient.getInstance().searchRemark(searchreq, **options)
+        if remarks_obj:
+            for i, remark in enumerate(remarks_obj):
+                remarks_obj[i]["TITLE"] = remark["title"]
+        return remarks_obj, remarks_errors
+    
     def openInsertWindow(self,  addButtons=True):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new Remark
@@ -60,24 +67,24 @@ class RemarkView(ViewElement):
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
         modelData = self.controller.getData()
-        self.form.addFormSearchBar("Search Remark", self.searchCallback, self.form)
-        topPanel = self.form.addFormPanel(grid=True)
+        
+        search_panel = self.form.addFormPanel(grid=True, side="left", pady=0, padx=0)
+        type_combo_search = search_panel.addFormPanel(grid=True, row=0, column=0)
+        type_combo_search.addFormLabel("Type for search",  row=0, column=0)
+        type_search = type_combo_search.addFormCombo("Search only", ["<Empty>", "Positive","Neutral","Negative"], row=0, column=1)
+        s = search_panel.addFormSearchBar("Search Remark", self.searchCallback, self.form, row=1)
+        
+        topPanel = self.form.addFormPanel(grid=True, side="right")
         self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], command=self.updateImage, column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         self.comboTypeForm.configure(command=self.updateImage)
-        topPanel.addFormStr("Title", r".+", "", column=2)
-        topPanel.addFormText("Description", r".+", "description", row=2,column=2)
+        s.addOptionForm(type_search, "remark_type")
+        topPanel.addFormStr("Title", r".+", "", column=1)
+        topPanel.addFormText("Description", r".+", "description", row=2,column=1)
         if addButtons:
             self.completeInsertWindow()
         else:
             self.showForm()
-
-    def searchCallback(self, searchreq):
-        remarks_obj, remarks_errors = APIClient.getInstance().searchRemark(searchreq)
-        if remarks_obj:
-            for i, remark in enumerate(remarks_obj):
-                remarks_obj[i]["TITLE"] = remark["title"]
-        return remarks_obj, remarks_errors
 
     def openModifyWindow(self, addButtons=True):
         """
@@ -87,13 +94,20 @@ class RemarkView(ViewElement):
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
         modelData = self.controller.getData()
-        topPanel = self.form.addFormPanel(grid=True)
-        topPanel.addFormSearchBar("Search Remark", APIClient.getInstance().searchRemark, topPanel, row=0, column=1, autofocus=False)
-        self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]), row=1)
-        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, row=1, default=modelData["type"],command=self.updateImage, binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
+        search_panel = self.form.addFormPanel(grid=True, side="left", pady=0, padx=0)
+        type_combo_search = search_panel.addFormPanel(grid=True, row=0, column=0)
+        type_combo_search.addFormLabel("Type for search",  row=0, column=0)
+        type_search = type_combo_search.addFormCombo("Search only", ["<Empty>", "Positive","Neutral","Negative"], row=0, column=1)
+        s = search_panel.addFormSearchBar("Search Remark", self.searchCallback, self.form, row=1)
+
+        topPanel = self.form.addFormPanel(grid=True, side="right")
+        self.imgTypeForm = topPanel.addFormImage(utils.getIconDir()+RemarkView.getIconName(modelData["type"]))
+        self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"],command=self.updateImage, binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
+        self.comboTypeForm.configure(command=self.updateImage)
+        s.addOptionForm(type_search, "remark_type")
         topPanel.addFormStr(
-            "Title", r".+", modelData["title"],row=1, column=2)
-        topPanel.addFormText("Description", r".+", "description", row=2,column=2)
+            "Title", r".+", modelData["title"], column=2)
+        topPanel.addFormText("Description", r".+", modelData["description"], row=2,column=2)
         if addButtons:
             self.completeModifyWindow()
         else:

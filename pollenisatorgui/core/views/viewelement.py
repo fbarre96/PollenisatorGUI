@@ -104,9 +104,12 @@ class ViewElement(object):
             form_values = self.form.getValue()
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
             self.controller.doUpdate(form_values_as_dicts)
-            caller = self.update_btn.btn
-            toast = ChildDialogToast(self.appliViewFrame, "Done" , x=caller.winfo_rootx(), y=caller.winfo_rooty()+caller.winfo_reqheight(), width=caller.winfo_reqwidth())
-            toast.show()
+            try:
+                caller = self.update_btn.btn
+                toast = ChildDialogToast(self.appliViewFrame, "Done" , x=caller.winfo_rootx(), y=caller.winfo_rooty()+caller.winfo_reqheight(), width=caller.winfo_reqwidth())
+                toast.show()
+            except Exception:
+                pass
             return True, ""
         else:
             tkinter.messagebox.showwarning(

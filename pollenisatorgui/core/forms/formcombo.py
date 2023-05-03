@@ -58,7 +58,7 @@ class FormCombo(Form):
                 "column", 0), sticky=self.getKw("sticky", tk.W))
         else:
             self.box.pack(side=self.getKw("side", "right"), padx=self.getKw(
-                "padx", 10), pady=self.getKw("pady", 5))
+                "padx", 10), pady=self.getKw("pady", 5), anchor=self.getKw("anchor", None))
         if self.wid_kwargs is not None:
             self.box.configure(**self.wid_kwargs)
 
@@ -69,7 +69,10 @@ class FormCombo(Form):
         Returns:
             Return the selected text inside the comboxbox.
         """
-        return self.box.get()
+        v = self.box.get()
+        if v == "<Empty>":
+            return ""
+        return v
 
     def setValue(self, newval):
         """
@@ -78,6 +81,9 @@ class FormCombo(Form):
             newval: the new value to be set inside the combobox
         """
         self.box.set(newval)
+        command = self.box.cget("command")
+        if command is not None:
+            command()
 
     def checkForm(self):
         """
@@ -89,6 +95,8 @@ class FormCombo(Form):
                 "msg": A message indicating what is not correctly filled.
             }
         """
+        if "<Empty>" in self.choicesList and self.getValue() == "":
+            return True, ""
         if self.getValue() not in self.choicesList:
             return False, self.name+" values ("+str(self.getValue())+") not in the accepted list."
         return True, ""

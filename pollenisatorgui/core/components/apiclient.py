@@ -101,9 +101,9 @@ class APIClient():
         else:
             return None, "Unexpected server response "+str(response.status_code)+"\n"+response.text    
 
-    def searchRemark(self, searchTerms):
+    def searchRemark(self, searchTerms, **kwargs):
         api_url = '{0}report/search'.format(self.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"remark", "terms":searchTerms}), headers=self.headers, proxies=self.proxies, verify=False)
+        response = requests.post(api_url, data=json.dumps({"type":"remark", "terms":searchTerms, "remark_type":kwargs.get("remark_type", "")}), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res_obj["answers"], "\n".join(res_obj["errors"])

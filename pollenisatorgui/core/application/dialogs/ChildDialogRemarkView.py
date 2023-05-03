@@ -20,20 +20,21 @@ class ChildDialogRemarkView:
             remarkModel : A Remark Model object to load default values. None to have empty fields, default is None.
         """
         self.app = CTkToplevel(parent)
-        self.app.title("Add a remark")
+        self.isInsert = remarkModel is None
+        if self.isInsert:
+            remarkModel = Remark()
+        title = "Add a remark" if self.isInsert else "Edit remark"
+        self.app.title(title)
         self.app.resizable(False, False)
         self.rvalue = None
         appFrame = CTkFrame(self.app)
         self.app.bind("<Escape>", self.cancel)
-        self.isInsert = remarkModel is None
-        if self.isInsert:
-            remarkModel = Remark()
+        
         self.remark_vw = RemarkView(appFrame, RemarkController(remarkModel))
         if self.isInsert:
             self.remark_vw.openInsertWindow(addButtons=False)
         else:
             self.remark_vw.openModifyWindow(addButtons=False)
-
         ok_button = CTkButton(appFrame, text="OK")
         ok_button.pack(side="right", padx=5, pady=10)
         ok_button.bind('<Button-1>', self.okCallback)

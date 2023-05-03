@@ -113,7 +113,7 @@ class Report(Module):
         self.remarks_treevw.heading("#0", text='Title', anchor=tk.W)	
         self.remarks_treevw.column("#0", width=150, anchor=tk.W)	
         self.remarks_treevw.bind("<Delete>", self.deleteSelectedRemarkItem)	
-        
+        self.remarks_treevw.bind("<Double-Button-1>", self.OnRemarkDoubleClick)
         self.remarks_treevw.grid(row=0, column=0, sticky=tk.NSEW)	
         scbVSel = CTkScrollbar(self.remarkframeTw,	
                                 orientation=tk.VERTICAL,	
@@ -389,7 +389,7 @@ class Report(Module):
         """	
         selected = self.remarks_treevw.selection()[0]	
         self.remarks_treevw.delete(selected)	
-        remark = Remark.fetchObject({"title":selected})	
+        remark = Remark.fetchObject({"_id":ObjectId(selected)})	
         remark.delete()	
         self.resizeDefectTreeview()
 
@@ -497,6 +497,30 @@ class Report(Module):
         self.treevw.item(defect_m.getId(), text=defect_m.title, tags=(newRisk), values=newValues)
         #if self.movingSelection is None:
         self.treevw.move(defect_m.getId(), '', int(defect_m.index))
+
+    def updateRemarkInTreevw(self, remark_m):
+        """
+        Change values of a selected remark in the treeview
+        Args:
+            remark_m: a remark model with updated values
+        """
+        try:
+            exist = self.remarks_treevw.item(remark_m.getId())
+        except:
+            self.addRemark(remark_m)
+            return
+        self.remarks_treevw.item(remark_m.getId(), text=remark_m.title, values=[remark_m.type], image=RemarkView.getIcon(remark_m.type))
+
+    def OnRemarkDoubleClick(self, event):
+        """Callback for double click on remark treeview. Opens a window to update the double clicked remark view.
+        """
+        item = self.remarks_treevw.identify("item", event.x, event.y)
+        if item is None or item == '':
+            return
+        remark_m = Remark.fetchObject({"_id": ObjectId(item)})
+        dialog = ChildDialogRemarkView(self.tkApp,  remark_m)
+        self.parent.wait_window(dialog.app)
+        self.updateRemarkInTreevw(remark_m)
       
     def OnDoubleClick(self, event):
         """
@@ -540,10 +564,10 @@ class Report(Module):
                 break	
         if not already_inserted:	
             try:	
-                self.remarks_treevw.insert('', 'end', remark_o.title, values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))	
+                self.remarks_treevw.insert('', 'end', str(remark_o.getId()), values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))	
             except tk.TclError:	
                 # The defect already exists	
-                self.remarks_treevw.item(remark_o.title, values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))
+                self.remarks_treevw.item(str(remark_o.getId()), values = (remark_o.type), text=remark_o.title, image=RemarkView.getIcon(remark_o.type))
             
         self.resizeRemarkTreeview()	
                     

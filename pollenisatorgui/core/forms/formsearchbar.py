@@ -74,8 +74,8 @@ class FormSearchBar(Form):
     
     def updateValues(self, _event=None):
         options = {}
-        for x in self.options_forms:
-            options[x.name] = x.getValue()
+        for form, option_name in self.options_forms:
+            options[option_name] = form.getValue()
         self._results, err_msg = self.searchCallback(self.val.get(), **options)
         if self._results is None:
             tkinter.messagebox.showinfo("SearchBar is not responding", err_msg)
@@ -87,6 +87,8 @@ class FormSearchBar(Form):
             if isinstance(result["TITLE"], str):
                 list_choice.append(result["TITLE"])
         self.combo_search.configure(values=list_choice)
+        if len(list_choice) == 0:
+            self.combo_search.set("")
         if len(list_choice) > 0:
             self.combo_search.set(list_choice[0])
         if len(list_choice) == 1:
@@ -132,5 +134,5 @@ class FormSearchBar(Form):
     def setFocus(self):
         self.entry.focus_set()
 
-    def addOptionForm(self, optionForm):
-        self.options_forms.append(optionForm)
+    def addOptionForm(self, optionForm, optionName):
+        self.options_forms.append((optionForm, optionName))
