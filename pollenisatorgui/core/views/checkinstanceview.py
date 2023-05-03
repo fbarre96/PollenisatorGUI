@@ -313,7 +313,7 @@ class CheckInstanceView(ViewElement):
             tool_m.text = command_line
             tool_m.update({"text":command_line})
         self.mainApp.scanManager.launchTask(tool_m)
-        
+        self.peekToolCallback(tool_iid)
         self.mainApp.after(600, self.openModifyWindow)
 
     def peekToolCallback(self, tool_iid):

@@ -117,6 +117,7 @@ class APIClient():
         if APIClient.__instances.get(pid, None) is not None:
             raise Exception("This class is a singleton!")
         self.currentPentest = ""
+        self.currentPentestName = ""
         self._observers = []
         self.scope = []
         self.userConnected = None
@@ -202,7 +203,7 @@ class APIClient():
         except KeyError:
             pass
 
-    def setConnection(self, token):
+    def setConnection(self, token, name=""):
         try:
             jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
             self.scope = jwt_decoded["scope"]
@@ -210,9 +211,11 @@ class APIClient():
             self.token = token
             self.headers["Authorization"] = "Bearer "+token
             self.currentPentest = ""
+            self.currentPentestName = ""
             for scope in self.scope:
                 if scope not in ["pentester", "admin", "user", "owner", "worker"]:
                     self.currentPentest = scope
+                    self.currentPentestName = name
             client_config = utils.loadClientConfig()
             client_config["token"] = self.token
             utils.saveClientConfig(client_config)
@@ -248,13 +251,16 @@ class APIClient():
             self.headers["Authorization"] = ""
             self.scope = []
             self.currentPentest = ""
+            self.currentPentestName = ""
             return False
         api_url = '{0}login/{1}'.format(self.api_url_base, newCurrentPentest)
         data = {"addDefaultCommands": addDefaultCommands}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
-            token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            self.setConnection(token)
+            body = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            token = body["token"]
+            pentest_name = body["pentest_name"]
+            self.setConnection(token, pentest_name)
             return True
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False)
@@ -263,6 +269,9 @@ class APIClient():
 
     def getCurrentPentest(self):
         return self.currentPentest
+    
+    def getCurrentPentestName(self):
+        return self.currentPentestName
 
     @handle_api_errors
     def unregisterWorker(self, worker_name):

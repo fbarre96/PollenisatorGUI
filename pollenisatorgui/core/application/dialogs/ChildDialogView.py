@@ -57,7 +57,7 @@ class ChildDialogView:
         self.rvalue = False
         self.app.destroy()
 
-    def okCallback(self, _event=None):
+    def okCallback(self, _event=None):  
         """called when pressing the validating button
         Close the window if the form is valid.
         Set rvalue to True and perform the defect update/insert if validated.

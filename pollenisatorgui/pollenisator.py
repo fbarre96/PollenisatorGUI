@@ -108,13 +108,13 @@ def promptForPentest():
     apiclient = APIClient.getInstance()
     pentests = apiclient.getPentestList()
     if pentests is None:
-        pentests = []
+        pentests_names = []
     else:
-        pentests = [x["nom"] for x in pentests][::-1]
+        pentests_names = [x["nom"] for x in pentests][::-1]
     i = 0
     while i<=0:
-        for i_p, pentest in enumerate(pentests):
-            print(f"{i_p+1} : {pentest}")
+        for i_p, pentests_name in enumerate(pentests_names):
+            print(f"{i_p+1} : {pentests_name}")
         try:
             i = int(input("Selection (1-"+str(len(pentests))+"): "))
             if i <= 0 or i > len(pentests):
