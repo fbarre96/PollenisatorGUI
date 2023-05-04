@@ -150,8 +150,11 @@ class APIClient():
             port = config.get("port")
             proxies = config.get("proxies", "")
             if isinstance(proxies, str):
-                proxies = {"http": proxies, "https": proxies}
-            
+                if proxies == "":
+                    proxies = {}
+                else:
+                    proxies = {"http": proxies, "https": proxies}
+            self.proxies = proxies
             token = None
             if not force:
                 token = config.get("token", None)

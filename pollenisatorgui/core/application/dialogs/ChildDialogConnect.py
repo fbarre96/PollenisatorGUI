@@ -107,7 +107,10 @@ class ChildDialogConnect:
         lbl_proxy = CTkLabel(cf1.interior, text="Proxy url : ")
         lbl_proxy.grid(row=0, column=0)
         self.ent_proxy = CTkEntry(cf1.interior, placeholder_text="http://127.0.0.1:8080")
-        self.ent_proxy.insert(tk.END, self.clientCfg.get("proxies", ""), )
+        proxies = self.clientCfg.get("proxies", "")
+        if proxies != "":
+            self.ent_proxy.insert(tk.END, proxies)
+            cf1.toggle()
         self.ent_proxy.grid(row=0, column=1)
         self.validateHost()
 
