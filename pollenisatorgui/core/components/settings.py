@@ -127,6 +127,11 @@ class Settings:
                 cls.__pentest_types = {"Web":["Base", "Application", "Data", "Policy"], "LAN":["Infrastructure", "Active Directory", "Data", "Policy"]}
         return cls.__pentest_types
 
+    def getClientName(self):
+        return self.db_settings.get("client_name", "")
+    
+    def getMissionName(self):
+        return self.db_settings.get("mission_name", "")
 
     def getTerms(self):
         """
@@ -247,6 +252,15 @@ class Settings:
             self.db_settings.get("include_domains_with_ip_in_scope", False))
         self.visual_include_domains_with_topdomain_in_scope.set(
             self.db_settings.get("include_domains_with_topdomain_in_scope", False))
+        self.text_pentest_name.delete("0", tk.END)
+        apiclient = APIClient.getInstance()
+        self.text_pentest_name.insert("0", apiclient.getCurrentPentestName())
+        self.text_mission_name.delete("0", tk.END)
+        self.text_mission_name.insert("0",
+            self.db_settings.get("mission_name", ""))
+        self.text_client_name.delete("0", tk.END)
+        self.text_client_name.insert("0",
+            self.db_settings.get("client_name", ""))
         self.visual_search_show_hidden.set(
             self.local_settings.get("search_show_hidden", True))
         self.visual_search_exact_match.set(
@@ -321,7 +335,7 @@ class Settings:
                         if tag not in v:
                             apiclient.unregisterTag(apiclient.getCurrentPentest(), tag)
                 else:
-                    apiclient.updatePentestSetting({"key":k, "value": str(v)})
+                    apiclient.updatePentestSetting({"key":k, "value": json.dumps(v)})
 
     def save(self):
         """
@@ -412,13 +426,24 @@ class Settings:
                            anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lblframe_pentest_params = ttk.LabelFrame(
             self.settingsFrame, text="Pentest parameters:")
-        
+        lbl_pentest_name = CTkLabel(lblframe_pentest_params, text="Pentest name:")
+        lbl_pentest_name.grid(row=0, column=0, sticky=tk.E)
+        self.text_pentest_name = CTkEntry(lblframe_pentest_params)
+        self.text_pentest_name.grid(row=0, column=1, sticky=tk.W)
+        lbl_client_name = CTkLabel(lblframe_pentest_params, text="Client's name:")
+        lbl_client_name.grid(row=1, column=0, sticky=tk.E)
+        self.text_client_name = CTkEntry(lblframe_pentest_params)
+        self.text_client_name.grid(row=1, column=1, sticky=tk.W)
+        lbl_mision_name = CTkLabel(lblframe_pentest_params, text="Mission name:")
+        lbl_mision_name.grid(row=2, column=0, sticky=tk.E)
+        self.text_mission_name = CTkEntry(lblframe_pentest_params)
+        self.text_mission_name.grid(row=2, column=1, sticky=tk.W)
         lbl_pentest_type = CTkLabel(
             lblframe_pentest_params, text="Pentest type:")
-        lbl_pentest_type.grid(row=0, column=0, sticky=tk.E)
+        lbl_pentest_type.grid(row=3, column=0, sticky=tk.E)
         self.box_pentest_type = CTkComboBox(
             lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()))
-        self.box_pentest_type.grid(row=1, column=1, sticky=tk.W)
+        self.box_pentest_type.grid(row=3, column=1, sticky=tk.W)
         # self.text_pentesters = CTkTextbox(
         #     lblframe_pentest_params, height=3, font = ("Sans", 10))
         # lbl_pentesters = CTkLabel(
@@ -465,6 +490,7 @@ class Settings:
         self.settingsFrame.grid(column=0, row=0, sticky="nsew")
         #self.settingsFrame.pack(fill=tk.BOTH, expand=1)
         #self.reloadUI()
+
     def searchCallback(self, searchreq):
         apiclient = APIClient.getInstance()
         users = apiclient.searchUsers(searchreq)
@@ -482,13 +508,19 @@ class Settings:
         ) == 1
         self.db_settings["include_domains_with_ip_in_scope"] = self.visual_include_domains_with_ip_in_scope.get(
         ) == 1
+        pentest_name = self.text_pentest_name.get().strip()
+        apiclient = APIClient.getInstance()
+        if apiclient.getCurrentPentestName() != pentest_name:
+            apiclient.updatePentest(pentest_name)
+        self.db_settings["mission_name"] = self.text_mission_name.get().strip()
+        self.db_settings["client_name"] = self.text_client_name.get().strip()
         self.db_settings["pentest_type"] = self.box_pentest_type.get()
         self.db_settings["include_domains_with_topdomain_in_scope"] = self.visual_include_domains_with_topdomain_in_scope.get(
         ) == 1
         self.db_settings["pentesters"] = []
         form_values = self.form_pentesters.getValue()
         form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
-        self.db_settings["pentesters"] = [x for x in form_values_as_dicts["Additional pentesters names"] if x != ""]
+        self.db_settings["pentesters"] = [x for x in form_values_as_dicts["Additional pentesters names"] if x.strip() != ""]
         self.db_settings["tags"] = {}
         for tagRegistered in self.text_db_tags.get('1.0', tk.END).split(
                 "\n"):

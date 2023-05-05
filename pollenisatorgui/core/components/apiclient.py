@@ -599,6 +599,18 @@ class APIClient():
             return None
 
     @handle_api_errors
+    def updatePentest(self, pentest_name):
+        api_url = '{0}pentest/{1}'.format(self.api_url_base, self.getCurrentPentest())
+        data = {"pentest_name":pentest_name}
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
     def updatePentestSetting(self, key_value_dict):
         api_url = '{0}settings/{1}'.format(self.api_url_base, self.getCurrentPentest())
         response = requests.post(api_url, headers=self.headers, data=json.dumps(key_value_dict, cls=JSONEncoder), proxies=self.proxies, verify=False)

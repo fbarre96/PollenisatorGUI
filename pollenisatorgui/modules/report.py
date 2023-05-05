@@ -10,6 +10,7 @@ import threading
 from PIL import ImageTk, Image
 from bson.objectid import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.defect import Defect
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
@@ -51,9 +52,7 @@ class Report(Module):
         self.pane_base_height = 31
         self.style = None
         self.treevw = None
-        self.ent_client = None
         self.drag_toast = None
-        self.ent_contract = None
         self.combo_word = None
         self.combo_pptx = None
         self.btn_template_photo = None
@@ -209,15 +208,6 @@ class Report(Module):
         officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
         ### INFORMATION EXPORT FRAME ###
         informations_frame = CTkFrame(officeFrame)
-        lbl_client = CTkLabel(informations_frame, text="Client's name :")
-        lbl_client.grid(row=0, column=0, sticky=tk.E)
-        self.ent_client = CTkEntry(informations_frame, width=200)
-        self.ent_client.grid(row=0, column=1, sticky=tk.W)
-        lbl_contract = CTkLabel(informations_frame, text="Contract's name :")
-        lbl_contract.grid(row=1, column=0, sticky=tk.E)
-        self.ent_contract = CTkEntry(informations_frame, width=200)
-        self.ent_contract.grid(row=1, column=1, sticky=tk.W)
-
         lbl_lang = CTkLabel(informations_frame, text="Lang :")
         lbl_lang.grid(row=2, column=0, sticky=tk.E)
         self.combo_lang = CTkComboBox(informations_frame, values=self.langs, command=self.langChange)
@@ -631,14 +621,7 @@ class Report(Module):
                 self.paned_remarks.paneconfigure(self.remarkframeTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
 
     def generateReportPowerpoint(self):
-        if self.ent_client.get().strip() == "":
-            tk.messagebox.showerror(
-                "Missing required field", "The client's name input must be filled.")
-            return
-        if self.ent_contract.get().strip() == "":
-            tk.messagebox.showerror(
-                "Missing required field", "The contract's name input must be filled.")
-            return
+       
         apiclient = APIClient.getInstance()
         toExport = apiclient.getCurrentPentest()
         if toExport != "":
@@ -646,21 +629,14 @@ class Report(Module):
             dialog = ChildDialogInfo(
                 self.parent, "PowerPoint Report", "Creating report . Please wait.")
             dialog.show()
-            x = threading.Thread(target=generateReport, args=(dialog, modele_pptx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang))
+            x = threading.Thread(target=generateReport, args=(dialog, modele_pptx, self.mainRedac, self.curr_lang))
             x.start()
 
     def generateReportWord(self):
         """
         Export a pentest defects to a word formatted file.
         """
-        if self.ent_client.get().strip() == "":
-            tk.messagebox.showerror(
-                "Missing required field", "The client's name input must be filled.")
-            return
-        if self.ent_contract.get().strip() == "":
-            tk.messagebox.showerror(
-                "Missing required field", "The contract's name input must be filled.")
-            return
+        
         apiclient = APIClient.getInstance()
         toExport = apiclient.getCurrentPentest()
         if toExport != "":
@@ -668,7 +644,7 @@ class Report(Module):
             dialog = ChildDialogInfo(
                 self.parent, "Word Report", "Creating report . Please wait.")
             dialog.show()
-            x = threading.Thread(target=generateReport, args=(dialog, modele_docx, self.ent_client.get().strip(), self.ent_contract.get().strip(), self.mainRedac, self.curr_lang))
+            x = threading.Thread(target=generateReport, args=(dialog, modele_docx,  self.mainRedac, self.curr_lang))
             x.start()
             
 
@@ -707,9 +683,11 @@ class Report(Module):
         
 
 
-def generateReport(dialog, modele, client, contract, mainRedac, curr_lang):
+def generateReport(dialog, modele, mainRedac, curr_lang):
     apiclient = APIClient.getInstance()
-    res, msg = apiclient.generateReport(modele, client, contract, mainRedac, curr_lang)
+    settings = Settings()
+    settings._reloadDbSettings()
+    res, msg = apiclient.generateReport(modele, settings.getClientName(), settings.getMissionName(), mainRedac, curr_lang)
     dialog.destroy()
     if not res:
         tkinter.messagebox.showerror(
