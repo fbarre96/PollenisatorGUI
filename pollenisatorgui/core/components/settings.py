@@ -96,6 +96,8 @@ class Settings:
                 global_tags = json.loads(global_tags["value"])
         if global_tags is None:
             global_tags = {}
+        if isinstance(global_tags, str):
+            global_tags = json.loads(global_tags)
         if not onlyGlobal:
             try:
                 db_tags = cls.getPentestTags()

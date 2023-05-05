@@ -160,7 +160,7 @@ class APIClient():
                 token = config.get("token", None)
             self.api_url = http_proto+"://"+host+":"+str(port)+"/"
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
-            response = requests.get(self.api_url_base, headers=self.headers, proxies=self.proxies, verify=False, timeout=2)
+            response = requests.get(self.api_url_base, headers=self.headers, proxies=self.proxies, verify=False, timeout=10)
         except requests.exceptions.RequestException as e:
             return False
         if response.status_code == 200:

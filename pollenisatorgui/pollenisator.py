@@ -122,7 +122,7 @@ def promptForPentest():
                 i = 0
         except ValueError:
             i = 0
-    apiclient.setCurrentPentest(pentests[i-1])
+    apiclient.setCurrentPentest(pentests[i-1]["uuid"])
 
 def parseDefaultTarget(stringToParse):
     if "|" in stringToParse:

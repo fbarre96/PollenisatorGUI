@@ -68,7 +68,6 @@ class ChildDialogFixes:
             _event: Not used but mandatory"""
         
         self.rvalue = self.fixes
-        print(self.fixes)
         self.app.destroy()
 
     def initUI(self, parent):
@@ -194,8 +193,13 @@ class ChildDialogFixes:
         Args:
             _event: not used but mandatory
         """
-        selected = self.treevw.selection()[0]
+        try:
+            selected = self.treevw.selection()[0]
+        except IndexError:
+            return
         self.treevw.delete(selected)
+        ind = [fix["title"] for fix in self.fixes].index(str(selected))
+        del self.fixes[ind]
         self.resizeTreeview()
 
     def reset(self):

@@ -305,7 +305,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "2.5.*"
+    version_compatible = "1.5.*"
 
     
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
