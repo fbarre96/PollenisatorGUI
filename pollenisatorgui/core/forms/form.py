@@ -35,6 +35,11 @@ class Form(object):
             Return None
         """
         return None
+    
+    def bind(self, event, callback):
+        binds = self.kwargs.get("binds", {})
+        binds[event] = callback
+        self.kwargs["binds"] = binds
 
     def setValue(self, newval):
         """

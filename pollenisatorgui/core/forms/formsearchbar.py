@@ -140,6 +140,7 @@ class FormSearchBar(Form):
 
     def addOptionForm(self, optionForm, optionName):
         self.options_forms.append((optionForm, optionName))
+        optionForm.bind('<Key-Return>', self.updateValues)
 
     def setResultForm(self, resultForm):
         self.result_form = resultForm

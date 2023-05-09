@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.font as tkfont
 from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pyperclip
@@ -41,6 +42,8 @@ class FormTreevw(Form):
         self.contextualMenu = kwargs.get("contextualMenu", None)
         self.doubleClickBinds = kwargs.get("doubleClickBinds", None)
         self.f = None
+        self._detached = set()
+        self._cache = {}
         self.type = "dict"
         self.movingSelection = None
         self.lastMovedTo = None
@@ -191,7 +194,9 @@ class FormTreevw(Form):
             self.tvFrame, height=min(self.getKw("height", len(
                 self.default_values)+1), self.getKw("max_height", 10)))
         settings = Settings()
-        self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())
+        font = tkfont.nametofont('TkTextFont')
+        self.treevw.tag_configure("even", background=utils.getBackgroundColor(), font=tkfont.nametofont('TkTextFont'))
+        self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor(), font=tkfont.nametofont('TkTextFont'))
         self.scbVSel = CTkScrollbar(self.tvFrame,
                                      orientation=tk.VERTICAL,
                                      command=self.treevw.yview)
@@ -206,7 +211,7 @@ class FormTreevw(Form):
         if len(self.headings) > 1:
             self.treevw['columns'] = self.headings[1:]
         root = CTkLabel(self.tvFrame)
-        self.f = tk.font.Font(root, "Sans", bold=True, size=10)
+        self.f = tkfont.nametofont('TkTextFont')
         columnsLen = self.recurse_insert(self.default_values)
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.headings))]
         for h_i, header in enumerate(self.headings):
@@ -254,6 +259,31 @@ class FormTreevw(Form):
             name: the tag name clicked
         """
         return lambda : self.sort_column(self.treevw, col, reverse)
+    
+    def filter(self, *args):
+        children = list(self._detached) + list(self.treevw.get_children())
+        self._detached = set()
+        self._brut_searcher(children, *args)
+
+    def _brut_searcher(self, children, *args):
+        i_r = -1
+        for item_id in children:
+            allValid = True
+            for iarg, arg in enumerate(args):
+                if iarg == 0:
+                    text = self.treevw.item(item_id)['text']
+                else:
+                    text = self.treevw.item(item_id)['values'][iarg-1]
+                if arg not in text:
+                    allValid = False
+                    break
+            if allValid:
+                i_r += 1
+                self.treevw.reattach(item_id, '', i_r)
+            else:
+                self._detached.add(item_id)
+                self.treevw.detach(item_id)
+        self.resetOddTags()
 
     def sort_column(self, tv, col, reverse):
         if col != "#0":
@@ -275,6 +305,7 @@ class FormTreevw(Form):
 
     def reset(self):
         """Reset the treeview values (delete all lines)"""
+        self._detached = set()
         for item in self.treevw.get_children():
             self.treevw.delete(item)
 

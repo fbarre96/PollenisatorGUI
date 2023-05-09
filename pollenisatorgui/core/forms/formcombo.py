@@ -34,10 +34,7 @@ class FormCombo(Form):
         self.box = None
         self.wid_kwargs = None
 
-    def bind(self, event, callback):
-        binds = self.kwargs.get("binds", {})
-        binds[event] = callback
-        self.kwargs["binds"] = binds
+    
 
     def constructView(self, parent):
         """
