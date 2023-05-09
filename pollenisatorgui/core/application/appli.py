@@ -400,14 +400,17 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.scanManager = ScanManager(self, self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
 
         apiclient.appli = self
-        opened = self.openConnectionDialog()
-
+        opened, errored = self.openConnectionDialog()
+        if errored:
+            return
         if not opened:
             try:
                 self.wait_visibility()
             except tk.TclError: #closed dialog
                 return
-            self.openConnectionDialog(force=True)
+            opened, errored = self.openConnectionDialog(force=True)
+            if errored:
+                return
             self.openPentestsWindow()
         self.loadModulesInfos() 
         self.scanManager.nbk = self.nbk #FIXME ORDER, INITIALISATION of SCAN MANAGERis too early
@@ -451,11 +454,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
                 self.forceUpdate(".".join(srv_version.split(".")[:-1]), Appli.version_compatible)
                 self.onClosing()
-                return False
+                return False, True
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
                 self.forceUpdate(".".join(srv_version.split(".")[:-1]), Appli.version_compatible)
                 self.onClosing()
-                return False
+                return False, True
             if self.sio is not None:
                 self.sio.disconnect()
             self.sio = socketio.Client()
@@ -484,7 +487,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 self.destroy()
             except tk.TclError:
                 pass
-        return apiclient.isConnected()
+        return apiclient.isConnected(), False
     
     def initModules(self):
         discovered_plugins = {
