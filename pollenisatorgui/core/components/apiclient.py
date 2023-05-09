@@ -1222,10 +1222,10 @@ class APIClient():
         api_url = '{0}report/{1}/generate'.format(self.api_url_base, self.getCurrentPentest())
         response = requests.get(api_url, headers=self.headers, params={"templateName":templateName,"mainRedactor":mainRedac, "lang":lang}, proxies=self.proxies, verify=False)
         if response.status_code == 200:
-            timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
+            timestr = datetime.now().strftime("%Y%m")
             ext = os.path.splitext(templateName)[-1]
-            basename = clientName.strip()+"_"+contractName.strip()
-            out_name = str(timestr)+"_"+basename
+            basename = clientName.strip()+" - "+contractName.strip()
+            out_name = str(timestr)+" - "+basename
             out_path = os.path.join(dir_path, "../../exports/")
             f = tk.filedialog.asksaveasfilename(defaultextension=ext, initialdir=out_path, initialfile=out_name+ext)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel". and empty tuple if close by cross
