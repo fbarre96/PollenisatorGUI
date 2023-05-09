@@ -94,7 +94,7 @@ class APIClient():
 
     def searchDefect(self, searchTerms, **kwargs):
         api_url = '{0}report/search'.format(self.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', "")}), headers=self.headers, proxies=self.proxies, verify=False)
+        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', ""), "perimeter":kwargs.get('perimeter', "")}), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res_obj["answers"], "\n".join(res_obj["errors"])
@@ -415,7 +415,7 @@ class APIClient():
         data = {"pentest_type":str(pentest_type), "start_date":start_date, "end_date":end_date, "scope":scope, "settings":settings, "pentesters":pentesters}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
-            return True, "Success"
+            return True, json.loads(response.content.decode('utf-8'))
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
         else:

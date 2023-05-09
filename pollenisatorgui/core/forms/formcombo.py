@@ -34,6 +34,11 @@ class FormCombo(Form):
         self.box = None
         self.wid_kwargs = None
 
+    def bind(self, event, callback):
+        binds = self.kwargs.get("binds", {})
+        binds[event] = callback
+        self.kwargs["binds"] = binds
+
     def constructView(self, parent):
         """
         Create the combobox view inside the parent view given
@@ -74,6 +79,10 @@ class FormCombo(Form):
             return ""
         return v
 
+    def get(self):
+        """alias of getValue"""
+        return self.getValue()
+    
     def setValue(self, newval):
         """
         Set the combo value.
@@ -84,6 +93,10 @@ class FormCombo(Form):
         command = self.box.cget("command")
         if command is not None:
             command()
+
+    def set(self, newval):
+        # alias for setValue
+        return self.setValue(newval)
 
     def checkForm(self):
         """
@@ -107,6 +120,9 @@ class FormCombo(Form):
         self.box.focus_set()
 
     def configure(self, **kwargs):
+        if "values" in kwargs:
+            self.box.configure(values=kwargs["values"])
+            del kwargs["values"]
         self.wid_kwargs = kwargs
 
     def check_input(self, event):

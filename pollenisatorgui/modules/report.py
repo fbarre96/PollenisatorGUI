@@ -71,7 +71,7 @@ class Report(Module):
         """
         self.langs = APIClient.getInstance().getLangList()
         self.combo_lang.configure(values=self.langs)
-        self.combo_lang.set("en")
+        self.combo_lang.set(self.settings.db_settings.get("lang", "en"))
         self.langChange(None)
         self.reset()
         self.fillWithDefects()
@@ -253,7 +253,7 @@ class Report(Module):
         self.reportFrame.pack(side=tk.TOP, fill=tk.BOTH, padx=10, pady=10, expand=1)
         
 
-    def langChange(self, event):
+    def langChange(self, event=None):
         self.curr_lang = self.combo_lang.get()
         templates = APIClient.getInstance().getTemplateList(self.curr_lang)
         self.docx_models = [f for f in templates if f.endswith(".docx")]

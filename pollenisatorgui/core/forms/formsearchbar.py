@@ -28,7 +28,7 @@ class FormSearchBar(Form):
         self._results = None
         self.kwargs = kwargs
         self.entry = None
-        self.combo_search = None
+        self.result_form = None
         self.options_forms = []
 
     def constructView(self, parent):
@@ -46,16 +46,20 @@ class FormSearchBar(Form):
         self.entry.grid(column=1, row=0)
         self.entry.bind("<Control-a>", self.selectAll)
         self.val.set(self.default)
-        lbl = CTkLabel(frame, text="Search results : ")
-        lbl.grid(column=0, row=1)
+        
         values = []
         if self.default != "":
             values.append(self.default)
-        self.combo_search = CTkComboBox(frame, values=values, width=200, command= self.postSelect, state="readonly")
-        self.combo_search.bind('<<ComboboxSelected>>', self.postSelect)
+        if self.result_form is None:
+            lbl = CTkLabel(frame, text="Search results : ")
+            lbl.grid(column=0, row=1)
+            self.result_form = CTkComboBox(frame, values=values, width=200, state="readonly")
+            self.result_form.grid(column=1, row=1)
+        self.result_form.configure( command= self.postSelect)
+        self.result_form.bind('<<ComboboxSelected>>', self.postSelect)
         if self.default != "":
-            self.combo_search.set(self.default)
-        self.combo_search.grid(column=1, row=1)
+            self.result_form.set(self.default)
+        
         self.entry.bind('<Key-Return>', self.updateValues)
         if self.getKw("autofocus", False):
             self.entry.focus_set()
@@ -79,18 +83,18 @@ class FormSearchBar(Form):
         self._results, err_msg = self.searchCallback(self.val.get(), **options)
         if self._results is None:
             tkinter.messagebox.showinfo("SearchBar is not responding", err_msg)
-            self.combo_search['values'] = [self.val.get()]
-            self.combo_search.set(self.val.get())
+            self.result_form['values'] = [self.val.get()]
+            self.result_form.set(self.val.get())
             return
         list_choice = []
         for result in self._results:
             if isinstance(result["TITLE"], str):
                 list_choice.append(result["TITLE"])
-        self.combo_search.configure(values=list_choice)
+        self.result_form.configure(values=list_choice)
         if len(list_choice) == 0:
-            self.combo_search.set("")
+            self.result_form.set("")
         if len(list_choice) > 0:
-            self.combo_search.set(list_choice[0])
+            self.result_form.set(list_choice[0])
         if len(list_choice) == 1:
             self.postSelect()
 
@@ -124,7 +128,7 @@ class FormSearchBar(Form):
         Returns:
             Return the entry value as string.
         """
-        title = self.combo_search.get()
+        title = self.result_form.get()
         if self._results is not None:
             for elem in self._results:
                 if elem["TITLE"] == title:
@@ -136,3 +140,6 @@ class FormSearchBar(Form):
 
     def addOptionForm(self, optionForm, optionName):
         self.options_forms.append((optionForm, optionName))
+
+    def setResultForm(self, resultForm):
+        self.result_form = resultForm

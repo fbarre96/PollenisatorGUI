@@ -263,6 +263,7 @@ class Settings:
         self.text_client_name.delete("0", tk.END)
         self.text_client_name.insert("0",
             self.db_settings.get("client_name", ""))
+        self.combo_lang.set(self.db_settings.get("lang", "en"))
         self.visual_search_show_hidden.set(
             self.local_settings.get("search_show_hidden", True))
         self.visual_search_exact_match.set(
@@ -436,16 +437,22 @@ class Settings:
         lbl_client_name.grid(row=1, column=0, sticky=tk.E)
         self.text_client_name = CTkEntry(lblframe_pentest_params)
         self.text_client_name.grid(row=1, column=1, sticky=tk.W)
+        
         lbl_mision_name = CTkLabel(lblframe_pentest_params, text="Mission name:")
         lbl_mision_name.grid(row=2, column=0, sticky=tk.E)
         self.text_mission_name = CTkEntry(lblframe_pentest_params)
         self.text_mission_name.grid(row=2, column=1, sticky=tk.W)
+        lbl_report_lang =  CTkLabel(lblframe_pentest_params, text="Report language:")
+        lbl_report_lang.grid(row=3, column=0, sticky=tk.E)
+        langs = APIClient.getInstance().getLangList()
+        self.combo_lang = CTkComboBox(lblframe_pentest_params, values=langs)
+        self.combo_lang.grid(row=3, column=1, sticky=tk.W)
         lbl_pentest_type = CTkLabel(
             lblframe_pentest_params, text="Pentest type:")
-        lbl_pentest_type.grid(row=3, column=0, sticky=tk.E)
+        lbl_pentest_type.grid(row=4, column=0, sticky=tk.E)
         self.box_pentest_type = CTkComboBox(
             lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()))
-        self.box_pentest_type.grid(row=3, column=1, sticky=tk.W)
+        self.box_pentest_type.grid(row=4, column=1, sticky=tk.W)
         # self.text_pentesters = CTkTextbox(
         #     lblframe_pentest_params, height=3, font = ("Sans", 10))
         # lbl_pentesters = CTkLabel(
@@ -516,6 +523,7 @@ class Settings:
             apiclient.updatePentest(pentest_name)
         self.db_settings["mission_name"] = self.text_mission_name.get().strip()
         self.db_settings["client_name"] = self.text_client_name.get().strip()
+        self.db_settings["lang"] = self.combo_lang.get().strip()
         self.db_settings["pentest_type"] = self.box_pentest_type.get()
         self.db_settings["include_domains_with_topdomain_in_scope"] = self.visual_include_domains_with_topdomain_in_scope.get(
         ) == 1
