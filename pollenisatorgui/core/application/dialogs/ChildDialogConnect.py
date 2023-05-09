@@ -45,7 +45,7 @@ class ChildDialogConnect:
                 Image.open(getWaitingMarkIconPath()))
         return self.__class__.cwaiting_icon
 
-    def __init__(self, parent, displayMsg="Connect to api:"):
+    def __init__(self, parent, displayMsg="Connect to api"):
         """
         Open a child dialog of a tkinter application to connect to a pollenisator server.
 

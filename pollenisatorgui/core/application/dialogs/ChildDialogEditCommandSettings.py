@@ -13,7 +13,7 @@ class ChildDialogEditCommandSettings:
     Open a child dialog of a tkinter application to fill settings for a command
     """
 
-    def __init__(self, parent, displayMsg="Choose a database to open:", default=None):
+    def __init__(self, parent, displayMsg="Choose a database to open", default=None):
         """
         Open a child dialog of a tkinter application to ask a combobox option.
 

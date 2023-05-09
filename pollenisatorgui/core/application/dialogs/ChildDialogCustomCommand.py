@@ -38,7 +38,7 @@ class ChildDialogCustomCommand:
         lbl.pack()
         self.ent_customCommand = CTkEntry(appFrame, width=50)
         self.ent_customCommand.pack()
-        lbl2 = CTkLabel(appFrame, text="Select the parser:")
+        lbl2 = CTkLabel(appFrame, text="Select the parser")
         lbl2.pack()
         apiclient = APIClient.getInstance()
         parsers = apiclient.getPlugins()
@@ -46,7 +46,7 @@ class ChildDialogCustomCommand:
             appFrame, values=tuple(parsers), state="readonly")
         self.box_template.set("Default")
         self.box_template.pack()
-        lbl3 = CTkLabel(appFrame, text="Select the worker:")
+        lbl3 = CTkLabel(appFrame, text="Select the worker")
         lbl3.pack()
         self.box_workers = CTkComboBox(
             appFrame, values=tuple(workers), state="readonly")

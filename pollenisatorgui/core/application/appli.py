@@ -663,7 +663,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         searchFrame = CTkFrame(self.mainPageFrame, fg_color=utils.getBackgroundSecondColor())
         filterbar_frame = CTkFrame(searchFrame, fg_color="transparent")
         self.image_filter = CTkImage(Image.open(utils.getIcon("filter.png")))
-        lblSearch = CTkLabel(filterbar_frame, text="Filter bar:", image=self.image_filter, compound = "left")
+        lblSearch = CTkLabel(filterbar_frame, text="Filter bar", image=self.image_filter, compound = "left")
         lblSearch.pack(side="left", fill=tk.NONE)
         self.searchBar = AutocompleteEntry(self.settings, filterbar_frame)
         #self.searchBar = CTkEntry(filterbar_frame, width=108)

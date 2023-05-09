@@ -9,7 +9,7 @@ class ChildDialogCombo:
     """
     Open a child dialog of a tkinter application with a combobox.
     """
-    def __init__(self, parent, options, displayMsg="Choose a database to open:", default=None, **kwargs):
+    def __init__(self, parent, options, displayMsg="Choose a database to open", default=None, **kwargs):
         """
         Open a child dialog of a tkinter application to ask a combobox option.
 

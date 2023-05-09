@@ -381,7 +381,7 @@ class Settings:
         chkbox_dark_mode.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
         lbl_domains = ttk.LabelFrame(
-            self.settingsFrame, text="Discovered domains options:")
+            self.settingsFrame, text="Discovered domains options")
         
         chkbox_include_domains_with_ip_in_scope = CTkSwitch(lbl_domains, text="Check if discovered subdomains ips are in scope",
                                                                   variable=self.visual_include_domains_with_ip_in_scope)
@@ -398,14 +398,14 @@ class Settings:
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
         lbl_domains.pack(padx=10, pady=10, side=tk.TOP,
                          anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
-        frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminals:")
+        frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminals")
         self.text_terms = CTkTextbox(
             frame_term,  wrap="word")
         self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
         chkbox_trap_commands = CTkSwitch(frame_term, text="Trap every command (instead of using pollex)", variable=self.visual_trap_commands)
         chkbox_trap_commands.pack(side=tk.TOP, pady=5)
         frame_fav_term = CTkFrame(frame_term)
-        lbl_fav_term = CTkLabel(frame_fav_term, text="Favorite term:")
+        lbl_fav_term = CTkLabel(frame_fav_term, text="Favorite term")
         lbl_fav_term.grid(row=0, column=0, sticky=tk.E, pady=5)
         self.box_favorite_term = CTkComboBox(frame_fav_term, values=(self.getTerms()))
         self.box_favorite_term.grid(row=0, column=1, sticky=tk.W, pady=5)
@@ -415,7 +415,7 @@ class Settings:
                            anchor=tk.W, fill=tk.X, expand=tk.YES)
         frame_term.pack(padx=10, pady=10, side=tk.TOP,
                            anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
-        lbl_SearchBar = ttk.LabelFrame(self.settingsFrame, text="Search settings:")
+        lbl_SearchBar = ttk.LabelFrame(self.settingsFrame, text="Search settings")
         
         chkbox_search_show_hidden = CTkSwitch(lbl_SearchBar, text="Show hidden objects",
                                                     variable=self.visual_search_show_hidden)
@@ -428,27 +428,27 @@ class Settings:
         lbl_SearchBar.pack(padx=10, pady=10, side=tk.TOP,
                            anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lblframe_pentest_params = ttk.LabelFrame(
-            self.settingsFrame, text="Pentest parameters:")
-        lbl_pentest_name = CTkLabel(lblframe_pentest_params, text="Pentest name:")
+            self.settingsFrame, text="Pentest parameters")
+        lbl_pentest_name = CTkLabel(lblframe_pentest_params, text="Pentest name")
         lbl_pentest_name.grid(row=0, column=0, sticky=tk.E)
         self.text_pentest_name = CTkEntry(lblframe_pentest_params)
         self.text_pentest_name.grid(row=0, column=1, sticky=tk.W)
-        lbl_client_name = CTkLabel(lblframe_pentest_params, text="Client's name:")
+        lbl_client_name = CTkLabel(lblframe_pentest_params, text="Client's name")
         lbl_client_name.grid(row=1, column=0, sticky=tk.E)
         self.text_client_name = CTkEntry(lblframe_pentest_params)
         self.text_client_name.grid(row=1, column=1, sticky=tk.W)
         
-        lbl_mision_name = CTkLabel(lblframe_pentest_params, text="Mission name:")
+        lbl_mision_name = CTkLabel(lblframe_pentest_params, text="Mission name")
         lbl_mision_name.grid(row=2, column=0, sticky=tk.E)
         self.text_mission_name = CTkEntry(lblframe_pentest_params)
         self.text_mission_name.grid(row=2, column=1, sticky=tk.W)
-        lbl_report_lang =  CTkLabel(lblframe_pentest_params, text="Report language:")
+        lbl_report_lang =  CTkLabel(lblframe_pentest_params, text="Report language")
         lbl_report_lang.grid(row=3, column=0, sticky=tk.E)
         langs = APIClient.getInstance().getLangList()
         self.combo_lang = CTkComboBox(lblframe_pentest_params, values=langs)
         self.combo_lang.grid(row=3, column=1, sticky=tk.W)
         lbl_pentest_type = CTkLabel(
-            lblframe_pentest_params, text="Pentest type:")
+            lblframe_pentest_params, text="Pentest type")
         lbl_pentest_type.grid(row=4, column=0, sticky=tk.E)
         self.box_pentest_type = CTkComboBox(
             lblframe_pentest_params, values=tuple(Settings.getPentestTypes().keys()))
@@ -456,7 +456,7 @@ class Settings:
         # self.text_pentesters = CTkTextbox(
         #     lblframe_pentest_params, height=3, font = ("Sans", 10))
         # lbl_pentesters = CTkLabel(
-        #     lblframe_pentest_params, text="Pentester names:")
+        #     lblframe_pentest_params, text="Pentester names")
         # lbl_pentesters.grid(row=2, column=0, sticky=tk.E)
         # self.text_pentesters.grid(row=2, column=1, sticky=tk.W, pady=5)
         lblframe_pentest_params.pack(
@@ -471,22 +471,22 @@ class Settings:
         form_pentesters_panel.pack(
             padx=10, pady=10, side=tk.TOP, anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lblframe_global_params = ttk.LabelFrame(
-            self.settingsFrame, text="Other parameters:")
+            self.settingsFrame, text="Other parameters")
         lblframe_global_params.columnconfigure(1, weight=2)
         lbl_pentest_types = CTkLabel(
-            lblframe_global_params, text="Pentests possible types:")
+            lblframe_global_params, text="Pentests possible types")
         lbl_pentest_types.grid(row=0, column=0, sticky=tk.E, pady=10, padx=5)
         self.text_pentest_types = CTkTextbox(
             lblframe_global_params,  wrap="word")
         self.text_pentest_types.grid(row=0, column=1, sticky=tk.W+tk.E, pady=10, padx=5)
         lbl_tags = CTkLabel(
-            lblframe_global_params, text="Registered tags:")
+            lblframe_global_params, text="Registered tags")
         lbl_tags.grid(row=1, column=0, sticky=tk.E, pady=10, padx=5)
         self.text_tags = CTkTextbox(
             lblframe_global_params,wrap="word")
         self.text_tags.grid(row=1, column=1, sticky=tk.W+tk.E)
         lbl_db_tags = CTkLabel(
-            lblframe_global_params, text="Pentest only tags:")
+            lblframe_global_params, text="Pentest only tags")
         lbl_db_tags.grid(row=2, column=0, sticky=tk.E, pady=10, padx=5)
         self.text_db_tags = CTkTextbox(
             lblframe_global_params, wrap="word")

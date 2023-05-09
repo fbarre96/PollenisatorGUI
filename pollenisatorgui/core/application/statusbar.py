@@ -28,7 +28,7 @@ class StatusBar(CTkFrame):
         """
         # Cannot be imported at module level as tkinter will not have loaded.
         super().__init__(master, fg_color="transparent")
-        # label = CTkLabel(self, text="Tagged:")
+        # label = CTkLabel(self, text="Tagged")
         # label.pack(side="left")
         self.registeredTags = []
         self.statusbarController = statusbarController
@@ -41,7 +41,7 @@ class StatusBar(CTkFrame):
         for widget in self.winfo_children():
             widget.destroy()
         #self.pack_forget()
-        lbl = CTkLabel(self, text="Shortcuts :")
+        lbl = CTkLabel(self, text="Shortcuts")
         lbl.pack(side="left", padx=1)
 
         self.registeredTags = Settings.getTags(ignoreCache=True)

@@ -205,10 +205,10 @@ class Report(Module):
 	            frameBtn, text="Browse defects templates", image=self.image_docs, command=self.browseDefectsCallback)	
         btn_browseDefects.pack(side=tk.TOP, pady=5)
         frameBtn.grid(row=0, column=2, sticky=tk.W + tk.E)
-        officeFrame = ttk.LabelFrame(belowFrame, text=" Office reports ")
+        officeFrame = ttk.LabelFrame(belowFrame, text=" Reports ")
         ### INFORMATION EXPORT FRAME ###
         informations_frame = CTkFrame(officeFrame)
-        lbl_lang = CTkLabel(informations_frame, text="Lang :")
+        lbl_lang = CTkLabel(informations_frame, text="Lang")
         lbl_lang.grid(row=2, column=0, sticky=tk.E)
         self.combo_lang = CTkComboBox(informations_frame, values=self.langs, command=self.langChange)
         self.combo_lang.grid(row=2, column=1, sticky=tk.W)
