@@ -128,13 +128,21 @@ class DefectView(ViewElement):
         lbl_filter_title = formFilter.addFormLabel("Filters")
         self.str_filter_title = formFilter.addFormStr("Title", "", placeholder_text="title", row=0, column=1, binds={"<Key-Return>":  self.filter})
         formFilter.addFormLabel("Risk", row=0, column=2)
-        self.box_filter_risk = formFilter.addFormCombo("Risk", [""]+Defect.getRisks(), "", command=self.filter, width=100, row=0, column=3)
+        risks = set([result["risk"] for result in results]+[""])
+        self.box_filter_risk = formFilter.addFormCombo("Risk", risks, "", command=self.filter, width=100, row=0, column=3)
         formFilter.addFormLabel("Perimeter", row=0, column=4)
         default_perimeter = settings.getPentestType()
-        self.box_filter_perimeter = formFilter.addFormCombo("Perimeter", [""]+list(settings.getPentestTypes().keys()), default_perimeter , command=self.filter, width=100, row=0, column=5)
+        perimeters = set()
+        perimeters.add(default_perimeter)
+        perimeters.add("")
+        for result in results:
+            for perimeter in result["perimeter"].split(","):
+                perimeters.add(perimeter)
+        self.box_filter_perimeter = formFilter.addFormCombo("Perimeter", perimeters, default_perimeter , command=self.filter, width=100, row=0, column=5)
         formFilter.addFormLabel("Lang", row=0, column=6)
+        langs = set([result["language"] for result in results]+[""])
         default_lang = settings.db_settings.get("lang", "en")
-        self.box_filter_lang = formFilter.addFormCombo("Lang", apiclient.getLangList(), default_lang, command=self.filter, width=100, row=0, column=7)
+        self.box_filter_lang = formFilter.addFormCombo("Lang", langs, default_lang, command=self.filter, width=100, row=0, column=7)
         formTreevw = self.form.addFormPanel()
         if results is not None:
             for result in results:
