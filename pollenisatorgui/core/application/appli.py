@@ -255,6 +255,7 @@ class ButtonNotebook(CTkFrame):
         self.current = None
         self.frameButtons.pack(side="left", anchor="nw", fill=tk.Y)
         self.btns = {}
+        self.lbl = None
 
     def add(self, widget, name, order, image):
         if name not in self.tabs:
@@ -264,14 +265,21 @@ class ButtonNotebook(CTkFrame):
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
             self.redraw()
+            
 
     def redraw(self):
         for btn in self.btns.values():
             btn.pack_forget()
+        if self.lbl:
+            self.lbl.pack_forget()
         btns = sorted(self.tabs.values(), key=lambda x:x["order"])
         for btn in btns:
             
             self.btns[btn["name"]].pack(side="top", fill=tk.X, anchor="nw")
+        self.image = Image.open(utils.getIcon("LogoPollenisator.png"))
+        img = CTkImage(light_image=self.image, dark_image=self.image, size=(100, 123))
+        self.lbl = CTkLabel(self.frameButtons, text="", image=img)
+        self.lbl.pack(side="bottom", fill=tk.X, pady=5,anchor="sw")
 
     def clicked(self, event):
         widget = event.widget.master
