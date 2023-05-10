@@ -539,6 +539,7 @@ class Report(Module):
         """	
         Fetch remarks and fill the remarks table with them.	
         """	
+        self.reset_remarks()
         remarks = Remark.fetchObjects({})	
         for remark in remarks:	
             self.addRemark(remark)

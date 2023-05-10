@@ -86,6 +86,8 @@ class FormCombo(Form):
         Args:
             newval: the new value to be set inside the combobox
         """
+        if newval not in self.choicesList:
+            self.choicesList.append(newval)
         self.box.set(newval)
         command = self.box.cget("command")
         if command is not None:
@@ -119,9 +121,22 @@ class FormCombo(Form):
     def configure(self, **kwargs):
         if "values" in kwargs:
             self.box.configure(values=kwargs["values"])
+            self.choicesList = kwargs["values"]
             del kwargs["values"]
         self.wid_kwargs = kwargs
 
+    def winfo_reqwidth(self):
+        return self.box.winfo_reqwidth()
+    
+    def winfo_reqheight(self):
+        return self.box.winfo_reqheight()
+    
+    def winfo_rootx(self):
+        return self.box.winfo_rootx()
+    
+    def winfo_rooty(self):
+        return self.box.winfo_rooty()
+    
     def check_input(self, event):
         value = event.widget.get()
         if value == '':

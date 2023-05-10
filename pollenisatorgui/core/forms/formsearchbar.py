@@ -1,4 +1,5 @@
 import tkinter as tk
+from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialogToast
 from pollenisatorgui.core.forms.form import Form
 
 import tkinter.ttk as ttk
@@ -39,6 +40,7 @@ class FormSearchBar(Form):
             parent: parent FormPanel.
         """
         self.val = tk.StringVar()
+        self.parent = parent
         frame = CTkFrame(parent.panel)
         lbl = CTkLabel(frame, text=self.name+" : ")
         lbl.grid(column=0, row=0)
@@ -93,6 +95,9 @@ class FormSearchBar(Form):
         self.result_form.configure(values=list_choice)
         if len(list_choice) == 0:
             self.result_form.set("")
+            toast = ChildDialogToast(self.parent, "No results found" , 
+                                     x=self.result_form.winfo_rootx()+self.result_form.winfo_reqwidth(), y=self.result_form.winfo_rooty(), width=self.result_form.winfo_reqwidth())
+            toast.show()
         if len(list_choice) > 0:
             self.result_form.set(list_choice[0])
         if len(list_choice) == 1:
@@ -106,20 +111,22 @@ class FormSearchBar(Form):
                     for subform_depth in subform.subforms:
                         if getattr(subform_depth, "subforms", None) is None:
                             if subform_depth.name.lower() in selected.keys():
-                                if getattr(subform_depth, "addItem", None) is None:
-                                    subform_depth.setValue(selected[subform_depth.name.lower()])
-                                else:
-                                    itemToAdd = selected[subform_depth.name.lower()]
-                                    if isinstance(itemToAdd, dict):
-                                        subform_depth.addItem(**itemToAdd)
+                                if subform_depth.name.lower() not in [tup[1] for tup in self.options_forms]:
+                                    if getattr(subform_depth, "addItem", None) is None:
+                                        subform_depth.setValue(selected[subform_depth.name.lower()])
+                                    else:
+                                        itemToAdd = selected[subform_depth.name.lower()]
+                                        if isinstance(itemToAdd, dict):
+                                            subform_depth.addItem(**itemToAdd)
                 else:
-                    if subform.name.lower() in selected.keys():
-                        if getattr(subform, "addItem", None) is None:
-                            subform.setValue(selected[subform.name.lower()])
-                        else:
-                            itemToAdd = selected[subform.name.lower()]
-                            if isinstance(itemToAdd, dict):
-                                subform.addItem(**itemToAdd)
+                    if subform.name.lower() not in [tup[1] for tup in self.options_forms]:
+                        if subform.name.lower() in selected.keys():
+                            if getattr(subform, "addItem", None) is None:
+                                subform.setValue(selected[subform.name.lower()])
+                            else:
+                                itemToAdd = selected[subform.name.lower()]
+                                if isinstance(itemToAdd, dict):
+                                    subform.addItem(**itemToAdd)
 
     def getValue(self):
         """

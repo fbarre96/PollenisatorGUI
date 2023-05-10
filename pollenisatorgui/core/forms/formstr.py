@@ -166,7 +166,7 @@ class FormStr(Form):
         import re
         if re.match(self.regexValidation, self.getValue()) is not None:
             return True, ""
-        return False, self.kwargs.get("error_msg", self.name+" value is incorrect.")
+        return False, self.kwargs.get("error_msg", self.name+" value is incorrect. \n "+self.getValue()+"does not match regex "+str(self.regexValidation))
 
     def setFocus(self):
         """Set the focus to the ttk entry widget.

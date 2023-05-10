@@ -33,9 +33,12 @@ class ChildDialogToast(CTkToplevel):
         """
         show the floating window, fading on 1.0 sec
         """
-        x = y = 0
-        x += self.kwargs.get("x", self.parent.winfo_rootx() + 25)
-        y += self.kwargs.get("y", (self.parent.winfo_rooty() + self.parent.winfo_reqheight() - 100))
+        x = self.kwargs.get("x")
+        if x is None:
+            x = self.parent.winfo_rootx() + 25
+        y = self.kwargs.get("y")
+        if y is None:
+            y = (self.parent.winfo_rooty() + self.parent.winfo_reqheight() - 100)
         # creates a toplevel window
         # Leaves only the label and removes the app window
         self.wm_overrideredirect(True)
