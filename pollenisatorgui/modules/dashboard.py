@@ -111,12 +111,15 @@ class Dashboard(Module):
         sub_frame.pack(padx=3, pady=1, side=tk.TOP, anchor=tk.W)
 
     def set_vuln_count(self):
-        self.label_count_vuln.configure(text=str(self.infos.get("defect_count", 0))+" Vulnerabilities")
-        self.label_count_vuln_critical.configure(text=str(self.infos.get("defect_count_critical", 0))+" Critical")
-        self.label_count_vuln_major.configure(text=str(self.infos.get("defect_count_major", 0))+" Major")
-        self.label_count_vuln_important.configure(text=str(self.infos.get("defect_count_important", 0))+" Important")
-        self.label_count_vuln_minor.configure(text=str(self.infos.get("defect_count_minor", 0))+" Minor")
-
+        try:
+            self.label_count_vuln.configure(text=str(self.infos.get("defect_count", 0))+" Vulnerabilities")
+            self.label_count_vuln_critical.configure(text=str(self.infos.get("defect_count_critical", 0))+" Critical")
+            self.label_count_vuln_major.configure(text=str(self.infos.get("defect_count_major", 0))+" Major")
+            self.label_count_vuln_important.configure(text=str(self.infos.get("defect_count_important", 0))+" Important")
+            self.label_count_vuln_minor.configure(text=str(self.infos.get("defect_count_minor", 0))+" Minor")
+        except tk.TclError:
+            return
+        
     def populate_autoscan_frame(self, frame):
         self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
         self.image_start = CTkImage(Image.open(utils.getIcon("start.png")))

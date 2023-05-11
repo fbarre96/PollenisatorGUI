@@ -346,7 +346,9 @@ class PollenisatorTreeview(ttk.Treeview):
         searcher = None
         if query.strip() != "":
             try:
-                if settings.local_settings.get("quicksearch", False) and quick_search_allowed:
+                if len(query.strip().split(" ")) == 1 and quick_search_allowed: # 1 word search = quick search
+                    self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
+                elif settings.local_settings.get("quicksearch", False) and quick_search_allowed:
                     self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
                 else:
                     searcher = Filter(query, )
