@@ -8,19 +8,21 @@ import pyperclip
 
 class ScrollableTreeview(CTkFrame):
     def __init__(self, root, columns, **kwargs):
-        super().__init__(root)
+        super().__init__(root, height=0)
+        
         self.root = root
         self.columns = columns
         self.infos = []
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(2, weight=0)
-        self.maxPerPage = kwargs.get("height", 10)
+        height = kwargs.get("height", 10)
+        self.maxPerPage = height
         self.currentPage = 0
         self.lastPage = 0
         self.pagePanel = None
         self.sort_keys = kwargs.get("sort_keys", None)
-        self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=kwargs.get("height", 10))
+        self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=height)
         self.treevw['columns'] = columns
         settings = Settings()
         self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())

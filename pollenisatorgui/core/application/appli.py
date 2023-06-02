@@ -406,7 +406,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.initModules()
         apiclient = APIClient.getInstance()
         self.scanManager = ScanManager(self, self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
-
         apiclient.appli = self
         opened, errored = self.openConnectionDialog()
         if errored:
@@ -423,6 +422,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.loadModulesInfos() 
         self.scanManager.nbk = self.nbk #FIXME ORDER, INITIALISATION of SCAN MANAGERis too early
         self.scanManager.linkTw = self.treevw
+
 
     def start_autoscan(self):
         return self.scanManager.startAutoscan()
@@ -1124,7 +1124,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(self, defaultextension=".json")
+            f = tkinter.filedialog.askopenfilename(defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)

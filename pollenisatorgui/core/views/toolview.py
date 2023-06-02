@@ -295,7 +295,7 @@ class ToolView(ViewElement):
             None if failed. 
         """
         apiclient = APIClient.getInstance()
-        return apiclient.sendLaunchTask(self.controller.model.getId()) is not None
+        return apiclient.sendQueueTasks(self.controller.model.getId()) is not None
 
     def launchCallback(self, _event=None):
         """
@@ -306,14 +306,6 @@ class ToolView(ViewElement):
             _event: Automatically generated with a button Callback, not used.
         """
         res = self.safeLaunchCallback()
-        if not res:
-            dialog = ChildDialogQuestion(self.appliViewFrame,
-                                         "Safe queue failed", "This tool cannot be launched because no worker add space for its thread.\nDo you want to launch it anyway?")
-            self.appliViewFrame.wait_window(dialog.app)
-            answer = dialog.rvalue
-            if answer == "Yes":
-                apiclient = APIClient.getInstance()
-                apiclient.sendLaunchTask(self.controller.model.getId(),  False)
         if res:
             self.form.clear()
             for widget in self.appliViewFrame.winfo_children():
@@ -322,7 +314,7 @@ class ToolView(ViewElement):
 
     def remoteInteraction(self, _event=None):
         dialog = ChildDialogRemoteInteraction(self.mainApp, self.controller, self.mainApp.scanManager)
-        dialog.app.wait_window(dialog.app)
+        #dialog.app.wait_window(dialog.app)
         
     def stopCallback(self, _event=None):
         """

@@ -58,7 +58,7 @@ class CommandController(ControllerElement):
         owners = values["owners"]
         #types = [k for k, v in types.items() if v == 1]
         self.model.initialize(name, bin_path, plugin, 
-                              text,  indb, timeout, owners)
+                              text,  indb, None, timeout, owners)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:

@@ -22,7 +22,7 @@ class ChildDialogView:
         self.parent = parent
         self.app.resizable(True, True)
         self.app.bind("<Escape>", self.cancel)
-        self.app.geometry("900x900")
+        self.app.geometry("1000x1000")
         self.appFrame = ScrollableFrameXPlateform(self.app)
         self.appFrame.columnconfigure(0, weight=1)
         self.appFrame.rowconfigure(0, weight=1)

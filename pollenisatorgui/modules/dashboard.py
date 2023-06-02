@@ -2,9 +2,11 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
 from PIL import Image
+from pollenisatorgui.core.application.dialogs.ChildDialogSelectChecks import ChildDialogSelectChecks
 from pollenisatorgui.core.components import utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
+from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.modules.module import Module
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import threading
@@ -44,10 +46,12 @@ class Dashboard(Module):
         """
         Reload data and display them
         """
+        if self.tkApp.quitting:
+            return
         self.loadData()
         self.displayData()
-        self.timer = threading.Timer(3.0, self.refreshUI)
-        self.timer.start()
+        #self.timer = threading.Timer(3.0, self.refreshUI)
+        #self.timer.start()
 
 
     def loadData(self):
@@ -56,7 +60,6 @@ class Dashboard(Module):
         """
         
         self.infos = APIClient.getInstance().getGeneralInformation()
-        
 
     def displayData(self):
         """
@@ -66,7 +69,7 @@ class Dashboard(Module):
         self.set_autoscan_status()
         self.set_scan_progression()
         self.set_cheatsheet_progression()
-        #self.set_results()
+        self.set_results()
 
     def initUI(self, parent, nbk, treevw, tkApp):
         """
@@ -79,6 +82,7 @@ class Dashboard(Module):
         self.parent = parent
         self.tkApp = tkApp
         self.treevwApp = treevw
+        self.autoscan_slider = None
         self.moduleFrame = CTkFrame(parent)
         vuln_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_vuln_frame(vuln_frame)
@@ -86,13 +90,16 @@ class Dashboard(Module):
         autoscan_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_autoscan_frame(autoscan_frame)
         autoscan_frame.pack(side=tk.TOP, ipady=10, pady=10)
-        #results_frame = CTkFrame(self.moduleFrame, height=0)
-        #self.populate_results_frame(results_frame)
-        #results_frame.pack(side=tk.TOP, ipady=10, pady=10, fill=tk.BOTH , expand=True)
+        results_frame = CTkFrame(self.moduleFrame, height=0)
+        self.populate_results_frame(results_frame)
+        results_frame.pack(side=tk.TOP, ipady=10, pady=10, fill=tk.BOTH , expand=True)
         self.moduleFrame.pack(padx=10, pady=10, side="top", fill=tk.BOTH, expand=True)
 
     def populate_vuln_frame(self, vuln_frame):
         self.vuln_image = CTkImage(Image.open(utils.getIcon("defect.png")))
+        self.host_image = CTkImage(Image.open(utils.getIcon("ip.png")))
+        self.label_host_count = CTkLabel(vuln_frame, text="X Hosts", image=self.host_image, compound="left")
+        self.label_host_count.pack(padx=10, pady=3, side=tk.TOP, anchor=tk.W)
         self.label_count_vuln = CTkLabel(vuln_frame, image=self.vuln_image, compound="left", text="X Vulnerabilities")
         self.label_count_vuln.pack(padx=10, pady=3, side=tk.TOP, anchor=tk.W)
         sub_frame = CTkFrame(vuln_frame)
@@ -120,6 +127,17 @@ class Dashboard(Module):
         except tk.TclError:
             return
         
+    def slider_event(self, event):
+        val = self.autoscan_slider.get()
+        val = int(val)
+        self.autoscan_threads_lbl.configure(text=str(val) + " thread"+("s" if val > 1 else ""))
+        self.settings.setPentestSetting("autoscan_threads", val)
+
+    def update_thread_label(self, event):
+        val = self.autoscan_slider.get()
+        val = int(round(val)) #behavior is weird .set(4) then .get() return 3.7
+        self.autoscan_threads_lbl.configure(text=str(val) + " thread"+("s" if val > 1 else ""))
+
     def populate_autoscan_frame(self, frame):
         self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
         self.image_start = CTkImage(Image.open(utils.getIcon("start.png")))
@@ -129,9 +147,17 @@ class Dashboard(Module):
         self.btn_autoscan = CTkButton(
             frame_status, text="", image=self.image_auto)
         self.set_autoscan_status()
-        lbl.pack(side=tk.LEFT, padx=5)
         self.btn_autoscan.pack(side=tk.LEFT, padx=5)
         frame_status.pack(side=tk.TOP)
+        frame_settings = CTkFrame(frame)
+        self.autoscan_slider = CTkSlider(frame_settings, from_=1, to=10, number_of_steps=10, command=self.update_thread_label)
+        self.autoscan_slider.bind("<ButtonRelease-1>", self.slider_event)
+        self.autoscan_slider.pack(side=tk.LEFT, padx=5)
+        threads = int(self.settings.db_settings.get("autoscan_threads", 4))
+        self.autoscan_slider.set(threads)
+        self.autoscan_threads_lbl = CTkLabel(frame_settings, text=str(threads)+" thread"+("s" if threads > 1 else ""))
+        self.autoscan_threads_lbl.pack(side=tk.LEFT, padx=5)
+        frame_settings.pack(side=tk.TOP)
         frame_progress = CTkFrame(frame)
         lbl = CTkLabel(frame_progress, text="Scan Progression")
         lbl.pack(side=tk.LEFT, padx=5)
@@ -156,6 +182,10 @@ class Dashboard(Module):
             self.btn_autoscan.configure(text="Stop autoscan", command=self.click_stop_autoscan, image=self.image_stop)
         else:
             self.btn_autoscan.configure(text="Start autoscan", command=self.click_start_autoscan, image=self.image_start)
+        if self.autoscan_slider:
+            value = int(self.settings.db_settings.get("autoscan_threads", 4))
+            self.autoscan_slider.set(value)
+            self.update_thread_label(value)
 
     def click_stop_autoscan(self):
         res = self.tkApp.stop_autoscan()
@@ -163,6 +193,7 @@ class Dashboard(Module):
             self.set_autoscan_status()
 
     def click_start_autoscan(self):
+
         res = self.tkApp.start_autoscan()
         if res:
             self.set_autoscan_status()
@@ -186,15 +217,17 @@ class Dashboard(Module):
         self.label_cheatsheet_progress.update_idletasks()
 
     
-    # def populate_results_frame(self, frame):
-    #     self.form = FormPanel()
-    #     self.treeview = self.form.addFormTreevw("results", ("Result type", "Criticity", "Target"), status="readonly", fill="both", side="top",expand=True)
-    #     self.form.constructView(frame)
+    def populate_results_frame(self, frame):
+        self.form = FormPanel()
+        
+        self.treeview = self.form.addFormTreevw("results", ("Result type", "Time", "Criticity", "Target"), status="readonly", fill="both", side="top",expand=True)
+        self.form.constructView(frame)
 
-    # def set_results(self):
-    #     self.datamanager = DataManager.getInstance()
-    #     defects = self.datamanager.get("defects", '*', {}).values()
-    #     self.treeview.reset()
-    #     for defect in defects:
-    #         self.treeview.addItem("", tk.END, defect.getId(), text="Security Defect", values=(defect.risk, defect.getDetailedString(onlyTarget=True)))
+    def set_results(self):
+        self.datamanager = DataManager.getInstance()
+        self.label_host_count.configure(text="Hosts : "+str(self.infos.get("hosts_count", 0)))
+        defects = self.datamanager.get("defects", '*', {}).values()
+        self.treeview.reset()
+        for defect in defects:
+            self.treeview.addItem("", tk.END, defect.getId(), text="Security Defect", values=(defect.creation_time, defect.risk, defect.getDetailedString(onlyTarget=True)))
 

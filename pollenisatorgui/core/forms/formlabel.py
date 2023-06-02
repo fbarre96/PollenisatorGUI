@@ -61,8 +61,10 @@ class FormLabel(Form):
         """
         return self.text
     
-    def setValue(self, _newval):
+    def setValue(self, newval):
         """nothing to set so overwrite
         Args:
             _newval: not used"""
+        self.text = newval
+        self.lbl.configure(text=self.text)
         return

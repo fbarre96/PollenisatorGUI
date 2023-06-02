@@ -2,6 +2,7 @@
 
 from tkinter import TclError
 import tkinter as tk
+from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.models.defect import Defect
 import pollenisatorgui.core.components.utils as utils
@@ -58,7 +59,7 @@ class DefectView(ViewElement):
         result = topPanel.addFormCombo("Result", [""], default="", width=200, row=3, column=1)
         s.setResultForm(result)
         topPanel = self.form.addFormPanel(grid=True)
-        topPanel.addFormLabel("Title")
+        topPanel.addFormLabel("Title_lbl", text="Title")
         topPanel.addFormStr("Title", r".+", "", column=1, width=400)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Ease")
@@ -80,7 +81,6 @@ class DefectView(ViewElement):
         topPanel.addFormLabel("Language", row=1, column=2)
         topPanel.addFormStr("Language", "", "en", row=1, column=3)
         
-
         chklistPanel = self.form.addFormPanel(grid=True)
         defectTypes = settings.getPentestTypes()
         if defectTypes is not None:
@@ -112,6 +112,74 @@ class DefectView(ViewElement):
             self.completeInsertWindow()
         else:
             self.showForm()
+        self.updateRiskBox()
+
+    def insert(self, _event=None):
+        """
+        Entry point to the model doInsert function.
+
+        Args:
+            _event: automatically filled if called by an event. Not used
+        Returns:
+            * a boolean to shwo success or failure
+            * an empty message on success, an error message on failure
+        """
+        res, msg = super().insert(_event)
+        if res:
+            apiclient = APIClient.getInstance()
+            results, msg = apiclient.searchDefect(self.controller.model.title, check_api=False)
+            if results is not None and len(results) == 0:
+                dialog = ChildDialogQuestion(self.mainApp, "Create defect template", "This defect seems new. Do you want to create a defect template with this defect?")
+                self.mainApp.wait_window(dialog.app)
+                if dialog.rvalue == "Yes":
+                    self.saveAsDefectTemplate()
+        return res
+
+    def openMultiModifyWindow(self, addButtons=True):
+        self.form.clear()
+        settings = self.mainApp.settings
+        settings.reloadSettings()
+        apiclient = APIClient.getInstance()
+        results, msg = apiclient.searchDefect("", check_api=False)
+        default_values = {}
+        formFilter = self.form.addFormPanel(grid=True)
+        lbl_filter_title = formFilter.addFormLabel("Filters")
+        self.str_filter_title = formFilter.addFormStr("Title", "", placeholder_text="title", row=0, column=1, binds={"<Key-Return>":  self.filter})
+        formFilter.addFormLabel("Risk", row=0, column=2)
+        risks = set([result["risk"] for result in results]+[""])
+        self.box_filter_risk = formFilter.addFormCombo("Risk", risks, "", command=self.filter, width=100, row=0, column=3)
+        formFilter.addFormLabel("Perimeter", row=0, column=4)
+        default_perimeter = settings.getPentestType()
+        perimeters = set()
+        perimeters.add(default_perimeter)
+        perimeters.add("")
+        for result in results:
+            for perimeter in result.get("perimeter", "").split(","):
+                perimeters.add(perimeter)
+        self.box_filter_perimeter = formFilter.addFormCombo("Perimeter", perimeters, default_perimeter , command=self.filter, width=100, row=0, column=5)
+        formFilter.addFormLabel("Lang", row=0, column=6)
+        langs = set([result["language"] for result in results]+[""])
+        default_lang = settings.db_settings.get("lang", "en")
+        self.box_filter_lang = formFilter.addFormCombo("Lang", langs, default_lang, command=self.filter, width=100, row=0, column=7)
+        formTreevw = self.form.addFormPanel()
+        if results is not None:
+            for result in results:
+                if result is not None:
+                    default_values[result.get("id", str(result["_id"]))] = (result["title"], result["risk"], result["language"], result.get("perimeter", settings.getPentestType()))
+            self.browse_top_treevw = formTreevw.addFormTreevw("Defects", ("Title", "Risk", "Lang", "Perimeter"),
+                                default_values, side="top", fill="both", width=500, height=8, status="readonly", 
+                                binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
+            
+        panel_action = self.form.addFormPanel()
+        self.import_image = CTkImage(Image.open(utils.getIcon("import.png")))
+        self.export_image = CTkImage(Image.open(utils.getIcon("download.png")))
+        panel_action.addFormButton("Import", self.importDefectTemplates, image=self.import_image)
+        panel_action.addFormButton("Export", self.exportDefectTemplates, image=self.export_image)
+        if addButtons:
+            self.completeModifyWindow()
+        else:
+            self.showForm()
+        self.filter()
 
     def openMultiInsertWindow(self, addButtons=True):
         """
@@ -214,7 +282,7 @@ class DefectView(ViewElement):
 
     def findDefectTemplateByTitle(self, title, multi=False):
         apiclient = APIClient.getInstance()
-        defects_matching, msg = apiclient.searchDefect(title)
+        defects_matching, msg = apiclient.searchDefect(title, check_api=False)
         if defects_matching is not None:
             if len(defects_matching) >= 1 and not multi:
                 return Defect(defects_matching[0])
@@ -274,7 +342,7 @@ class DefectView(ViewElement):
             if not self.controller.model.isTemplate:
                 topPanel.addFormSearchBar("Search Defect", APIClient.getInstance().searchDefect, globalPanel, row=row, column=1, autofocus=False)
                 row += 1
-            topPanel.addFormLabel("Title", row=row, column=0)
+            topPanel.addFormLabel("Title_lbl", text="Title", row=row, column=0)
             topPanel.addFormStr(
                 "Title", ".+", modelData["title"],  width=400, row=row, column=1)
             row += 1
@@ -430,6 +498,7 @@ class DefectView(ViewElement):
             for module in self.mainApp.modules:
                 if callable(getattr(module["object"], "removeItem", None)):
                     module["object"].removeItem(iid)
+
     def addInTreeview(self, parentNode=None, _addChildren=True):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
@@ -437,7 +506,6 @@ class DefectView(ViewElement):
             _addChildren: not used here
         """
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-
         if not self.controller.isAssigned():
             # Unassigned defect are loaded on the report tab
             return
@@ -505,7 +573,7 @@ class DefectView(ViewElement):
                     tk.messagebox.showerror("Multi insert error", f"Invalid defect result for : {title}. Wrong type : {result.get('type')}")
                     return False
                 d_o.initialize("", "", "", result["title"], result["synthesis"], result["description"],
-                            result["ease"], result["impact"], result["risk"], "N/A", types, result["language"], "", result["fixes"])
+                            result["ease"], result["impact"], result["risk"], "N/A", types, result["language"], "", None, result["fixes"])
                 d_o.addInDb()
             #if msg != "":
             #    tk.messagebox.showerror("Could not search defect from knowledge db", msg)
@@ -537,7 +605,46 @@ class DefectView(ViewElement):
                     module["object"].updateDefectInTreevw(self.controller.model)
         super().updateReceived()
 
-    def saveAsDefectTemplate(self, _event):
+    def saveAsDefectTemplate(self, _event=None):
+        settings = self.mainApp.settings
+        settings.reloadSettings()
+        perimeter = settings.getPentestType()
+        self.controller.model.perimeter = perimeter 
         res = self.controller.model.addInDefectTemplates()
         defect_m = self.findDefectTemplateByTitle(self.controller.model.title)
         self.openInChildDialog(defect_m)
+
+    def importDefectTemplates(self, _event):
+        filename = ""
+        f = tk.filedialog.askopenfilename(defaultextension=".json")
+        if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+            return
+        filename = str(f)
+        try:
+            apiclient = APIClient.getInstance()
+            success = apiclient.importDefectTemplates(filename)
+        except IOError:
+            tk.messagebox.showerror(
+                "Import defects templates", "Import failed. "+str(filename)+" was not found or is not a file.")
+            return False
+        if not success:
+            tk.messagebox.showerror("Defects templates import", "Defects templatest failed")
+        else:
+            tk.messagebox.showinfo("Defects templates import", "Defects templates completed")
+        self.openMultiModifyWindow(False)
+        return success
+    
+    def exportDefectTemplates(self, _event):
+        apiclient = APIClient.getInstance()
+        res = apiclient.exportDefectTemplates(self.mainApp)
+        if res is None:
+            return
+        else:
+            res, msg = res # unpack tuple
+        if res:
+            tk.messagebox.showinfo(
+                "Export Defect templates", "Export completed in "+str(msg))
+        else:
+            tk.messagebox.showinfo(msg)
+
+    

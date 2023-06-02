@@ -42,7 +42,7 @@ class ChildDialogFileParser:
         self.form.addFormButton("Parse", self.onOk, side=tk.RIGHT)
 
         self.form.constructView(appFrame)
-        appFrame.pack(ipadx=10, ipady=10)
+        appFrame.pack(pady=10,padx=10)
 
         try:
             self.app.wait_visibility()

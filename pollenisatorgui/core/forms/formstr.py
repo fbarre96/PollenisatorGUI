@@ -113,8 +113,9 @@ class FormStr(Form):
         for bind, bind_call in self.getKw("binds", {}).items():
             self.entry.bind(bind, bind_call)
         if self.default != "" and self.default is not None:
-            self.entry.insert(0, self.default)
-        
+            self.setValue(self.default)
+            
+
         if parent.gridLayout:
             self.entry.grid(row=self.getKw("row", 0), column=self.getKw(
                 "column", 0), sticky=self.getKw("sticky", tk.W))
@@ -150,8 +151,11 @@ class FormStr(Form):
         Args:
             newval: the new value to be set inside the text
         """
+        state = self.entry.cget("state")
+        self.entry.configure(state="normal")
         self.entry.delete("0", "end")
         self.entry.insert("0", newval)
+        self.entry.configure(state=state)
 
     def checkForm(self):
         """

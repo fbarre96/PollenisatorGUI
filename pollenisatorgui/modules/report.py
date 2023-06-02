@@ -197,7 +197,9 @@ class Report(Module):
         btn_addDefect = CTkButton(
             frameBtn, text="Add defect", image=self.image_add, command=self.addDefectCallback)
         btn_addDefect.pack(side=tk.TOP, pady=5)
-        
+        btn_addDefect = CTkButton(
+            frameBtn, text="Add Many defects", image=self.image_add, command=self.addManyDefectsCallback)
+        btn_addDefect.pack(side=tk.TOP, pady=5)
         btn_setMainRedactor = CTkButton(
             frameBtn, text="Set main redactor", command=self.setMainRedactor, image=self.image_edit)
         btn_setMainRedactor.pack(side=tk.TOP, pady=5)
@@ -368,7 +370,10 @@ class Report(Module):
         Args:
             _event: not used but mandatory
         """
-        selected = self.treevw.selection()[0]
+        try:
+            selected = self.treevw.selection()[0]
+        except IndexError:
+            return
         self.removeItem(selected)
 
     def deleteSelectedRemarkItem(self, _event=None):	
@@ -428,6 +433,11 @@ class Report(Module):
         self.parent.wait_window(dialog.app)
 
     def browseDefectsCallback(self):	
+        """Open an view to browse defects Templates"""	
+        dialog = ChildDialogDefectView(self.tkApp, "Browse defect templates", self.settings, Defect(), True)	
+        self.parent.wait_window(dialog.app)	
+
+    def addManyDefectsCallback(self):
         """Open an multiview insert defect view form in a child window"""	
         dialog = ChildDialogDefectView(self.tkApp, "Add and edit multiple defect", self.settings, None, True)	
         self.parent.wait_window(dialog.app)	
@@ -588,7 +598,7 @@ class Report(Module):
                 break
         if not already_inserted:
             try:
-                self.treevw.insert('', indToInsert, defect_o.getId(), text=defect_o.title,
+                self.treevw.insert('', int(indToInsert), defect_o.getId(), text=defect_o.title,
                                    values=new_values,
                                    tags=(defect_o.risk))
             except tk.TclError:

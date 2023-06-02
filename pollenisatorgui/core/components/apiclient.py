@@ -9,6 +9,7 @@ from pollenisatorgui.core.components.utils import JSONEncoder, JSONDecoder, save
 from shutil import copyfile
 from jose import jwt, JWTError
 from functools import wraps
+from bson import ObjectId
 import tkinter as tk
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
@@ -94,7 +95,7 @@ class APIClient():
 
     def searchDefect(self, searchTerms, **kwargs):
         api_url = '{0}report/search'.format(self.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', ""), "perimeter":kwargs.get('perimeter', "")}), headers=self.headers, proxies=self.proxies, verify=False)
+        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', ""), "perimeter":kwargs.get('perimeter', ""), "check_api":kwargs.get('check_api', "")}), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res_obj["answers"], "\n".join(res_obj["errors"])
@@ -826,9 +827,14 @@ class APIClient():
             return False
 
     @handle_api_errors
-    def sendLaunchTask(self, tool_iid, checks=True, worker=""):
-        api_url = '{0}tools/{1}/launchTask/{2}'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
-        data = {"checks":checks}
+    def sendQueueTasks(self, tools_iid):
+        if isinstance(tools_iid, str):
+            tools_iid = [ObjectId(tools_iid)]
+        elif isinstance(tools_iid, ObjectId):
+            tools_iid = [tools_iid]
+
+        api_url = '{0}tools/{1}/queueTasks'.format(self.api_url_base, self.getCurrentPentest())
+        data = tools_iid
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1099,6 +1105,26 @@ class APIClient():
             f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
+            filename = str(f)
+            with open(filename, mode='wb') as f:
+                f.write(response.content)
+                return True, filename
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        return False, response.text    
+    
+    @handle_api_errors
+    def exportDefectTemplates(self, parent):
+        api_url = '{0}report/DefectTemplates/export'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            filename = "defect_templates.json" 
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            out_path = os.path.normpath(os.path.join(
+                dir_path, "../../exports/"))
+            f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
+            if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
+                return 
             filename = str(f)
             with open(filename, mode='wb') as f:
                 f.write(response.content)

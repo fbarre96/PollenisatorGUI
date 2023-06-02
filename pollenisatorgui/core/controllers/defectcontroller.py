@@ -77,13 +77,14 @@ class DefectController(ControllerElement):
         if risk == "" or risk == "N/A":
             risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
         self.model.initialize(ip, port, proto, title, synthesis, description, ease,
-                              impact, risk, redactor, mtype, language, notes, fixes, proofs)
+                              impact, risk, redactor, mtype, language, notes, None, fixes, proofs)
         ret, _ = self.model.addInDb()
         # Update this instance.
         # Upload proof after insert on db cause we need its mongoid
         for p in proof:
             if p.strip() != "":
                 self.model.uploadProof(proof)
+        
         return ret, 0  # 0 erros
 
     def addAProof(self, proof_path):

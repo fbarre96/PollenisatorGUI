@@ -86,7 +86,11 @@ class FormCombo(Form):
         Args:
             newval: the new value to be set inside the combobox
         """
-        if newval not in self.choicesList:
+        if isinstance(newval, list):
+            self.choicesList = newval
+            if newval:
+                self.box.set(newval[0])
+        elif newval not in self.choicesList:
             self.choicesList.append(newval)
         self.box.set(newval)
         command = self.box.cget("command")
@@ -144,8 +148,9 @@ class FormCombo(Form):
         else:
             data = []
             for item in self.choicesList:
-                if value.lower() in item.lower():
-                    data.append(item)
+                if isinstance(value, str):
+                    if value.lower() in item.lower():
+                        data.append(item)
 
             self.box['values'] = data
             if len(data) == 1:

@@ -3,7 +3,9 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogView import ChildDialogView
+from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.models.defect import Defect
@@ -41,8 +43,12 @@ class ChildDialogDefectView(ChildDialogView):
                 self.defect_vw.openInsertWindow(addButtons=True)
                 self.completeDialogView(False)
         else:
-            self.defect_vw.openModifyWindow(addButtons=True)
-            self.completeDialogView(False)
+            if multi:
+                self.defect_vw.openMultiModifyWindow(addButtons=False)
+                self.completeDialogView(True)
+            else:
+                self.defect_vw.openModifyWindow(addButtons=True)
+                self.completeDialogView(False)
     
     def okCallback(self, _event=None):
         """called when pressing the validating button

@@ -22,7 +22,7 @@ class Defect(Element):
             valueFromDb: a dict holding values to load into the object. A mongo fetched defect is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}),
                         ip(""), port(""), proto(""), title(""), synthesis(""), description(""), ease(""), impact(""), risk(""),
-                        redactor("N/A"), type([]), language(""), notes(""), fixes([]), proofs([]), index(None)
+                        redactor("N/A"), type([]), language(""), notes(""), creation_time(None),fixes([]), proofs([]), index(None)
         """
         if valuesFromDb is None:
             valuesFromDb = {}
@@ -42,10 +42,11 @@ class Defect(Element):
                         valuesFromDb.get(
                             "risk", ""), valuesFromDb.get("redactor", "N/A"), types,
                         valuesFromDb.get("language", ""),
-                        valuesFromDb.get("notes", ""), valuesFromDb.get("fixes", []), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
+                        valuesFromDb.get("notes", ""), valuesFromDb.get("creation_time", None),
+                        valuesFromDb.get("fixes", []), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
                         valuesFromDb.get("index", "0"))
 
-    def initialize(self, ip, port, proto, title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", fixes=None, proofs=None, infos=None, index="0"):
+    def initialize(self, ip, port, proto, title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0"):
         """Set values of defect
         Args:
             ip: defect will be assigned to this IP, can be empty
@@ -85,6 +86,8 @@ class Defect(Element):
         self.proofs = proofs if proofs is not None else []
         self.fixes = fixes if fixes is not None else []
         self.index = index
+        self.creation_time = creation_time
+        self.creation_time = None
         return self
 
     @classmethod
@@ -174,6 +177,7 @@ class Defect(Element):
         base["type"] = list(self.mtype)
         base["language"] = self.language
         base["fixes"] = self.fixes
+        base["perimeter"] = self.perimeter
         res, id = apiclient.insertAsTemplate(base)
         if not res:
             return False, id
@@ -376,5 +380,5 @@ class Defect(Element):
         """
         return {"title": self.title, "synthesis":self.synthesis, "description":self.description, "ease": self.ease, "impact": self.impact,
                 "risk": self.risk, "redactor": self.redactor, "type": self.mtype, "language":self.language, "notes": self.notes, "fixes":self.fixes,
-                "ip": self.ip, "port": self.port, "proto": self.proto,"index":self.index,
+                "ip": self.ip, "port": self.port, "proto": self.proto,"index":self.index, "creation_time":self.creation_time,
                 "proofs": self.proofs, "_id": self.getId(), "tags": self.tags, "infos": self.infos}

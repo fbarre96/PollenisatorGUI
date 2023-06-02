@@ -319,6 +319,11 @@ class Settings:
         with open(self.confdir, mode="w") as f:
             f.write(json.dumps(self.local_settings))
 
+    def setPentestSetting(self, key, val):
+        apiclient = APIClient.getInstance()
+        self.db_settings[key] = val
+        apiclient.updatePentestSetting({"key":key, "value": json.dumps(val)})
+
     def savePentestSettings(self):
         apiclient = APIClient.getInstance()
         settings = apiclient.find("settings")

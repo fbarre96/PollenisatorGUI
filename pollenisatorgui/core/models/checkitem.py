@@ -114,6 +114,7 @@ class CheckItem(Element):
             return None
         for d in ds:
             yield CheckItem(d)
+    
 
     def getChildren(self):
         """Return a list of all children of this check

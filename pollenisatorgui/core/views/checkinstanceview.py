@@ -150,7 +150,9 @@ class CheckInstanceView(ViewElement):
                 apiclient = APIClient.getInstance()
                 success, data = apiclient.getCommandLine(tool_iid)
                 comm, fileext = data["comm"], data["ext"]
-                toolModel = datamanager.get("tools", tool_iid)
+                toolModel =  Tool.fetchObject({"_id":ObjectId(tool_iid)})
+                if toolModel is None:
+                    continue
                 formCommands.addFormButton(toolModel.name, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
                 form_str = None
                 if success:
@@ -319,7 +321,7 @@ class CheckInstanceView(ViewElement):
     def peekToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         dialog = ChildDialogRemoteInteraction(self.mainApp, ToolController(tool_m), self.mainApp.scanManager)
-        dialog.app.wait_window(dialog.app)
+        #dialog.app.wait_window(dialog.app)
         
     def stopToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})

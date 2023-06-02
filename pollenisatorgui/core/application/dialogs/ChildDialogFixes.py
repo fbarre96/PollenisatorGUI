@@ -14,7 +14,7 @@ class ChildDialogFixes:
     """
     def __init__(self, parent, defectView=None):
         """
-        Open a child dialog of a tkinter application to choose autoscan settings.
+        Open a child dialog of a tkinter application to edit fixes settings.
 
         Args:
             parent: the tkinter parent view to use for this window construction.
