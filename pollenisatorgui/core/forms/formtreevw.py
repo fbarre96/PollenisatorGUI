@@ -289,7 +289,7 @@ class FormTreevw(Form):
         if col != "#0":
             l = [(tv.set(k, col), k) for k in tv.get_children('')]
         else:
-            l = [(k, k)for k in tv.get_children('')]
+            l = [(tv.item(k)["text"],k) for k in tv.get_children('')]
         l.sort(reverse=reverse)
         # rearrange items in sorted positions
         for index, (val, k) in enumerate(l):
