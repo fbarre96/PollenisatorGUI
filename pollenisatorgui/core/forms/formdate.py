@@ -49,11 +49,14 @@ class FormDate(Form):
         frame = CTkFrame(parent.panel)
         self.entry = CTkEntry(frame, textvariable=self.val)
         self.val.set(self.default)
+        
         self.entry.bind('<Control-a>', self.selectAll)
         self.entry.grid(row=0, column=0)
         datepicker = CTkLabel(frame, text="", image=FormDate.img_class)
         datepicker.grid(row=0,column=1, padx=5)
         datepicker.bind("<Button-1>", self.showDatePicker)
+        for bind, bind_call in self.getKw("binds", {}).items():
+            self.entry.bind(bind, bind_call)
         if parent.gridLayout:
             frame.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), sticky=self.getKw("sticky", tk.W), **self.kwargs)
         else:

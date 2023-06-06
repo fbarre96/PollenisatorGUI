@@ -20,6 +20,7 @@ class ScrollableTreeview(CTkFrame):
         self.maxPerPage = height
         self.currentPage = 0
         self.lastPage = 0
+        self._detached = set()
         self.pagePanel = None
         self.sort_keys = kwargs.get("sort_keys", None)
         self.treevw = ttk.Treeview(self, style=kwargs.get("style",None), height=height)
@@ -90,6 +91,7 @@ class ScrollableTreeview(CTkFrame):
     def unselect(self, event=None):
         for item in self.treevw.selection():
             self.treevw.selection_remove(item)
+            
 
     def selectAll(self, event=None):
         self.treevw.selection_set(self.treevw.get_children())
@@ -196,6 +198,46 @@ class ScrollableTreeview(CTkFrame):
         """
         self.contextualMenu.unpost()
 
+    def filter(self, *args):
+        children = list(self._detached) + list(self.treevw.get_children())
+        self._detached = set()
+        self._brut_searcher(children, *args)
+
+    def _brut_searcher(self, children, *args):
+        i_r = -1
+        for item_id in children:
+            allValid = True
+            for iarg, arg in enumerate(args):
+                if iarg == 0:
+                    text = self.treevw.item(item_id)['text']
+                    condition = arg in text
+                else:
+                    obj = self.treevw.item(item_id)['values'][iarg-1]
+                    if isinstance(arg, tuple) or isinstance(arg, list):
+                        condition = arg[0](*arg[1:], obj)
+                    else:
+                        text = str(arg)
+                        condition = arg in text
+                if not condition:
+                    allValid = False
+                    break
+            if allValid:
+                i_r += 1
+                self.treevw.reattach(item_id, '', i_r)
+            else:
+                self._detached.add(item_id)
+                self.treevw.detach(item_id)
+        self.resetOddTags()
+
+    @classmethod
+    def date_compare(cls, start, end, toCompare):
+        dated = utils.stringToDate(start)
+        datef = utils.stringToDate(end)
+        toCompare = utils.stringToDate(toCompare)
+        if dated is None or datef is None:
+            return True
+        return dated <= toCompare <= datef
+
     def column_clicked(self, col, reverse):
         """A lambda to call the statusbarController.statusbarClicked with the tag name clicked
         Args:
@@ -221,6 +263,7 @@ class ScrollableTreeview(CTkFrame):
         for item in self.treevw.get_children():
             self.treevw.delete(item)
         self.infos = []
+        self._detached = set()
         self.currentPage = 0
         self.lastPage = 0
         self.setPaginationPanel()
@@ -255,6 +298,9 @@ class ScrollableTreeview(CTkFrame):
     
     def get_children(self):
         return self.treevw.get_children()
+    
+    def identify(self, *args, **kwargs):
+        return self.treevw.identify(*args, **kwargs)
 
     def parent(self, item):
         return self.treevw.parent(item)
