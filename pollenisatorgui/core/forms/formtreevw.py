@@ -274,9 +274,14 @@ class FormTreevw(Form):
                     text = self.treevw.item(item_id)['text']
                 else:
                     text = self.treevw.item(item_id)['values'][iarg-1]
-                if arg not in text:
-                    allValid = False
-                    break
+                if isinstance(arg, str):
+                    if arg not in text:
+                        allValid = False
+                        break
+                elif isinstance(arg, bool):
+                    if not arg:
+                        allValid = False
+                        break
             if allValid:
                 i_r += 1
                 self.treevw.reattach(item_id, '', i_r)

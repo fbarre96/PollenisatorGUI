@@ -9,7 +9,7 @@ class ChildDialogView:
     """
     Open a child dialog of a tkinter application to answer a question.
     """
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, scrollable=False):
         """
         Open a child dialog of a tkinter application to choose autoscan settings.
 
@@ -22,8 +22,11 @@ class ChildDialogView:
         self.parent = parent
         self.app.resizable(True, True)
         self.app.bind("<Escape>", self.cancel)
-        self.app.geometry("1000x1000")
-        self.appFrame = ScrollableFrameXPlateform(self.app)
+        #self.app.geometry("1000x1000")
+        if scrollable:
+            self.appFrame = ScrollableFrameXPlateform(self.app)
+        else:
+            self.appFrame = CTkFrame(self.app)
         self.appFrame.columnconfigure(0, weight=1)
         self.appFrame.rowconfigure(0, weight=1)
         self.rvalue = None
@@ -38,7 +41,7 @@ class ChildDialogView:
             cancel_button.pack(side="right", padx=5, pady=10, ipadx=10)
             cancel_button.bind('<Button-1>', self.cancel)
         self.appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
-
+        self.app.update()
         # self.appFrame.pack(fill=tk.X, ipady=10, ipadx=10, expand=True) this break the canvas drawing with scrollbar
         try:
             self.app.wait_visibility()

@@ -47,7 +47,7 @@ class DefectView(ViewElement):
         apiclient = APIClient.getInstance()
         modelData = self.controller.getData()
         topPanel = self.form.addFormPanel(grid=True)
-        s = topPanel.addFormSearchBar("Search Defect", self.searchCallback, self.form, row=0, column= 0)
+        s = topPanel.addFormSearchBar("Search Defect", self.searchCallback, self.form, row=0, column=0)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Search Language",row=1, column=0)
         lang = topPanel.addFormCombo("Lang", apiclient.getLangList(), default=settings.db_settings.get("lang", "en"), width=100, row=1, column=1)
@@ -161,12 +161,15 @@ class DefectView(ViewElement):
         langs = set([result["language"] for result in results]+[""])
         default_lang = settings.db_settings.get("lang", "en")
         self.box_filter_lang = formFilter.addFormCombo("Lang", langs, default_lang, command=self.filter, width=100, row=0, column=7)
+        formFilterSecond = self.form.addFormPanel(grid=True)
+        lbl_filter_title = formFilterSecond.addFormLabel("Show only results from")
+        self.box_filter_source = formFilterSecond.addFormCombo("Source", ["All", "Local Templates", "API"], "All", command=self.filter, row=0, column=1)
         formTreevw = self.form.addFormPanel()
         if results is not None:
             for result in results:
                 if result is not None:
-                    default_values[result.get("id", str(result["_id"]))] = (result["title"], result["risk"], result["language"], result.get("perimeter", settings.getPentestType()))
-            self.browse_top_treevw = formTreevw.addFormTreevw("Defects", ("Title", "Risk", "Lang", "Perimeter"),
+                    default_values[str(result.get("_id", result.get("id")))] = (result["title"], result["risk"], result["language"], result.get("perimeter", settings.getPentestType()), result["source"])
+            self.browse_top_treevw = formTreevw.addFormTreevw("Defects", ("Title", "Risk", "Lang", "Perimeter", "Source"),
                                 default_values, side="top", fill="both", width=500, height=8, status="readonly", 
                                 binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
             
@@ -211,12 +214,15 @@ class DefectView(ViewElement):
         langs = set([result["language"] for result in results]+[""])
         default_lang = settings.db_settings.get("lang", "en")
         self.box_filter_lang = formFilter.addFormCombo("Lang", langs, default_lang, command=self.filter, width=100, row=0, column=7)
+        formFilterSecond = self.form.addFormPanel(grid=True)
+        lbl_filter_title = formFilterSecond.addFormLabel("Show only results from")
+        self.box_filter_source = formFilterSecond.addFormCombo("Source", ["All", "Local Templates", "API"], "All", command=self.filter, row=0, column=1)
         formTreevw = self.form.addFormPanel()
         if results is not None:
             for result in results:
                 if result is not None:
-                    default_values[result["id"]] = (result["title"], result["risk"], result["language"], result["perimeter"])
-            self.browse_top_treevw = formTreevw.addFormTreevw("Defects", ("Title", "Risk", "Lang", "Perimeter"),
+                    default_values[str(result.get("_id", result.get("id")))]  = (result["title"], result["risk"], result["language"], result["perimeter"], result["source"])
+            self.browse_top_treevw = formTreevw.addFormTreevw("Defects", ("Title", "Risk", "Lang", "Perimeter", "Source"),
                                 default_values, side="top", fill="both", width=500, height=8, status="readonly", 
                                 binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
             
@@ -240,7 +246,15 @@ class DefectView(ViewElement):
         lang = self.box_filter_lang.getValue()
         perimeter = self.box_filter_perimeter.getValue()
         risk = self.box_filter_risk.getValue()
-        self.browse_top_treevw.filter(title, risk, lang, perimeter)
+        source = self.box_filter_source.getValue()
+        if source == "Local Templates":
+            source = "local"
+        elif source == "All":
+            source = True
+        else:
+            source = source.lower()
+        
+        self.browse_top_treevw.filter(title, risk, lang, perimeter, source)
 
     
     def searchCallback(self, searchreq, **options):

@@ -430,17 +430,26 @@ class Report(Module):
     def addDefectCallback(self):
         """Open an insert defect view form in a child window"""
         dialog = ChildDialogDefectView(self.tkApp, "Add a security defect", self.settings)
-        self.parent.wait_window(dialog.app)
+        try:
+            self.tkApp.wait_window(dialog.app)	
+        except tk.TclError:
+            pass
 
     def browseDefectsCallback(self):	
         """Open an view to browse defects Templates"""	
         dialog = ChildDialogDefectView(self.tkApp, "Browse defect templates", self.settings, Defect(), True)	
-        self.parent.wait_window(dialog.app)	
+        try:
+            self.tkApp.wait_window(dialog.app)	
+        except tk.TclError:
+            pass
 
     def addManyDefectsCallback(self):
         """Open an multiview insert defect view form in a child window"""	
         dialog = ChildDialogDefectView(self.tkApp, "Add and edit multiple defect", self.settings, None, True)	
-        self.parent.wait_window(dialog.app)	
+        try:
+            self.tkApp.wait_window(dialog.app)	
+        except tk.TclError:
+            pass
 		
     def addRemarkCallback(self):	
         """Open an insert defect view form in a child window"""	

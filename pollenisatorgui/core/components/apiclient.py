@@ -95,7 +95,11 @@ class APIClient():
 
     def searchDefect(self, searchTerms, **kwargs):
         api_url = '{0}report/search'.format(self.api_url_base)
-        response = requests.post(api_url, data=json.dumps({"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', ""), "perimeter":kwargs.get('perimeter', ""), "check_api":kwargs.get('check_api', "")}), headers=self.headers, proxies=self.proxies, verify=False)
+        data = {"type":"defect", "terms":searchTerms, "language":kwargs.get('lang', ""), "perimeter":kwargs.get('perimeter', "")}
+        check_api = kwargs.get('check_api', None)
+        if check_api is not None:
+            data["check_api"] = check_api
+        response = requests.post(api_url, data=json.dumps(data), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return res_obj["answers"], "\n".join(res_obj["errors"])
