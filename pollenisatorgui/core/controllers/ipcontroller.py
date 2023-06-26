@@ -19,7 +19,6 @@ class IpController(ControllerElement):
             The mongo ObjectId _id of the updated Ip document.
         """
         self.model.notes = values.get("Notes", self.model.notes)
-        self.model.tags = values.get("Tags", self.model.tags)
         self.model.infos = values.get("Infos", self.model.infos)
         if not isinstance(self.model.infos, dict):
             self.model.infos = json.loads(self.model.infos)

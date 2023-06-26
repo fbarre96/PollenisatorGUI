@@ -29,8 +29,7 @@ class Scope(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = {}
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("wave", ""), valuesFromDb.get("scope", ""),
                         valuesFromDb.get("notes", ""), valuesFromDb.get("infos", {}))
 
@@ -57,7 +56,7 @@ class Scope(Element):
         """
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
-            apiclient.update("scopes", ObjectId(self._id), {"notes": self.notes, "tags": self.tags})
+            apiclient.update("scopes", ObjectId(self._id), {"notes": self.notes})
         else:
             apiclient.update("scopes", ObjectId(self._id), pipeline_set)
 
@@ -182,7 +181,7 @@ class Scope(Element):
         Returns:
             dict with keys wave, scope, notes, _id, tags and infos
         """
-        return {"wave": self.wave, "scope": self.scope, "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+        return {"wave": self.wave, "scope": self.scope, "notes": self.notes, "_id": self.getId(), "infos": self.infos}
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.

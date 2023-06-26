@@ -48,8 +48,14 @@ class StatusBar(CTkFrame):
         column = 1
         keys = list(self.registeredTags.keys())
         self.listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
-        for registeredTag, color in self.registeredTags.items():
+        datamanager = DataManager.getInstance()
+        tags = datamanager.get("tags", "*")
+        for tag_iid, tag_obj in tags.items():
+            for tag_name in tag_obj.tags:
+                self.tagsCount[tag_name] = self.tagsCount.get(tag_name, 0) + 1
+        for registeredTag, tag_info in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
+            color = tag_info["color"]
             try:
                 if color == "transparent":
                     color = "white"
@@ -116,9 +122,10 @@ class StatusBar(CTkFrame):
         """
         if notification["collection"] == "settings":
             self.after(2000, self.refreshUI)
-        if old_obj is not None and obj is not None:
-            if old_obj.tags != obj.tags:
-                self.notify(obj.tags, old_obj.tags)
+        if notification["collection"] == "tags":
+            if old_obj is not None and obj is not None:
+                if old_obj.tags != obj.tags:
+                    self.notify(obj.tags, old_obj.tags)
     
 
     def refreshTags(self, tags):

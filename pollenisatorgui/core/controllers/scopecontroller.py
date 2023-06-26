@@ -20,7 +20,6 @@ class ScopeController(ControllerElement):
             The mongo ObjectId _id of the updated Scope document.
         """
         self.model.notes = values.get("Notes", self.model.notes)
-        self.model.tags = values.get("Tags", self.model.tags)
         self.model.update()
 
     def doInsert(self, values):

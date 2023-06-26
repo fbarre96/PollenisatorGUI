@@ -427,7 +427,7 @@ class ScanManager:
             queue.put("\n")
             progress = queueResponse.get()
             return progress
-        return ""
+        return True
 
     def stopTask(self, toolId):
         thread, queue, queueResponse, toolModel = self.local_scans.get(str(toolId), (None, None, None, None))
@@ -453,7 +453,7 @@ class ScanManager:
                 logger.debug("Proc finished : "+str(self.local_scans[item]))
                 try:
                     del self.local_scans[item]
-                except KeyError:
+                except KeyError as e:
                     pass
 
         if worker == "" or worker == "localhost" or worker == apiclient.getUser():

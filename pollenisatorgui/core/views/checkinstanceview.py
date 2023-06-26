@@ -179,16 +179,17 @@ class CheckInstanceView(ViewElement):
                 tool_m = Tool(tool_data)
                 tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
                 tool_panel.addFormSeparator(fill=tk.X)
-                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W,style="link.TButton", infos={"iid":tool_iid})
-                if tool_m.tags:
-                    for tag in tool_m.tags:
+                tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W, style="link.TButton", infos={"iid":tool_iid})
+                tags = ToolController(tool_m).getTags()
+                if tags:
+                    for tag in tags:
                         registeredTags = Settings.getTags()
                         keys = list(registeredTags.keys())
                         column = 0
                         item_no = 0
                         
                         s = ttk.Style(self.mainApp)
-                        color = registeredTags.get(tag, "gray97")
+                        color = registeredTags.get(tag, {}).get("color"," gray97")
                         try: # CHECK IF COLOR IS VALID
                             CTkLabel(self.mainApp, fg_color=color)
                         except tk.TclError as e:

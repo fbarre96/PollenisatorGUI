@@ -14,19 +14,17 @@ class Element(metaclass=MetaElement):
     """
     coll_name = None
 
-    def __init__(self, _id, parent, tags, infos):
+    def __init__(self, _id, parent, infos):
         """
         Constructor to be inherited. Child model will all use this constructor.
 
         Args:
             _id: mongo database id
             parent: a parent mongo id object for this model.
-            tags: a list of tags applied on this object
             infos: a dicitonnary of custom information 
         """
         # Initiate a cachedIcon for a model, not a class.
         self._id = _id
-        self.tags = tags
         self.parent = parent
         self.infos = infos
         self.cachedIcon = None
@@ -137,12 +135,7 @@ class Element(metaclass=MetaElement):
         """
         # pass
 
-    def getTags(self):
-        """Returns the tag list assigned to this element.
-        Returns:
-            list of string
-        """
-        return self.tags
+
 
 
     def getTagsGroups(self):
@@ -155,51 +148,7 @@ class Element(metaclass=MetaElement):
         tags = settings.Settings.getTags()
         return [tags, ["hidden"]]
 
-    def addTag(self, newTag, overrideGroupe=True):
-        """Add the given tag to this object.
-        Args:
-            newTag: a new tag as a string to be added to this model tags
-            overrideGroupe: Default to True. If newTag is in a group with a tag already assigned to this object, it will replace this old tag.
-        """
-        tags = self.getTags()
-        if newTag not in tags:
-            for group in self.getTagsGroups():
-                if newTag in group:
-                    i = 0
-                    len_tags = len(tags)
-                    while i < len_tags:
-                        if tags[i] in group:
-                            if overrideGroupe:
-                                tags.remove(tags[i])
-                                i -= 1
-                            else:
-                                continue
-                        len_tags = len(tags)
-                        i += 1
-            tags.append(newTag)
-            self.tags = tags
-            self.update()
-
-    def delTag(self, tagToDelete):
-        """Delete the given tag in this object.
-        Args:
-            tagToDelete: a tag as a string to be deleted from this model tags
-        """
-        tags = self.getTags()
-        apiclient = APIClient.getInstance()
-        if tagToDelete in tags:
-            del tags[tags.index(tagToDelete)]
-            notify = tagToDelete != "hidden"
-            apiclient.update(self.__class__.coll_name, ObjectId(self._id), {"tags": tags})
-
-    def setTags(self, tags):
-        """Change all tags for the given new ones and update database
-        Args:
-            tags: a list of tag string
-        """
-        self.tags = tags
-        apiclient = APIClient.getInstance()
-        apiclient.update(self.__class__.coll_name, ObjectId(self._id), {"tags": tags})
+    
 
     def getDetailedString(self):
         """To be inherited and overriden

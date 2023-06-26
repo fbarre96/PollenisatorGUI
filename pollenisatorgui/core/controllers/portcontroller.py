@@ -20,7 +20,6 @@ class PortController(ControllerElement):
         self.model.service = values.get("Service", self.model.service)
         self.model.product = values.get("Product", self.model.product)
         self.model.notes = values.get("Notes", self.model.notes)
-        self.model.tags = values.get("Tags", self.model.tags)
         self.model.infos = json.loads(values.get("Infos", self.model.infos))
         self.model.update()
 

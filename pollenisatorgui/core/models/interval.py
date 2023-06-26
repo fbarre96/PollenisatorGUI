@@ -27,8 +27,7 @@ class Interval(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = {}
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("wave", ""), valuesFromDb.get("dated", "None"),
                         valuesFromDb.get("datef", "None"), valuesFromDb.get("infos", {}))
 
@@ -101,7 +100,7 @@ class Interval(Element):
         Returns:
             dict with keys wave, dated, datef, _id, tags and infos
         """
-        return {"wave": self.wave, "dated": self.dated, "datef": self.datef, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+        return {"wave": self.wave, "dated": self.dated, "datef": self.datef, "_id": self.getId(), "infos": self.infos}
 
 
     def __str__(self):

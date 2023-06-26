@@ -543,7 +543,6 @@ class Report(Module):
             return
         defect_m = Defect.fetchObject({"_id": ObjectId(item)})
         dialog = ChildDialogDefectView(self.tkApp, "Edit defect", self.settings, defect_m)
-        self.parent.wait_window(dialog.app)
         self.updateDefectInTreevw(defect_m)
 
     def fillWithDefects(self):

@@ -804,11 +804,11 @@ class APIClient():
             return None
 
     @handle_api_errors
-    def updateTag(self, name, color, isGlobal=False):
+    def updateTag(self, name, color, level, isGlobal=False):
         api_url = '{0}settings/updateTag'.format(self.api_url_base)
         if not isGlobal:
             api_url += '/'+self.getCurrentPentest()
-        data = {"name":name, "color":color, "global":isGlobal}
+        data = {"name":name, "color":color, "level":level, "global":isGlobal}
         response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1561,3 +1561,41 @@ class APIClient():
             raise ErrorHTTP(response, False, response.text)
         else:
             return []
+        
+    @handle_api_errors
+    def addTag(self, item_id, item_type, tag, overrideGroup=True):
+        api_url = '{0}tags/{1}/addTag/{2}'.format(self.api_url_base, self.getCurrentPentest(), item_id)
+        data = {"item_type":item_type,"tag":tag, "overrideGroup":overrideGroup}
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return None
+    
+    @handle_api_errors
+    def delTag(self, item_id, item_type, tag):
+        api_url = '{0}tags/{1}/delTag/{2}'.format(self.api_url_base, self.getCurrentPentest(), item_id)
+        data = {"item_type":item_type,"tag":tag}
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return None
+        
+    @handle_api_errors
+    def setTags(self, item_id, item_type, tags):
+        api_url = '{0}tags/{1}/setTags/{2}'.format(self.api_url_base, self.getCurrentPentest(), item_id)
+        data = {"item_type":item_type,"tags":tags}
+        response = requests.put(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return None
+        
+    

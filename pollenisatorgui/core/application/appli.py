@@ -313,7 +313,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "2.5.*"
+    version_compatible = "2.6.*"
 
     
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
@@ -460,11 +460,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             apiclient.attach(self)
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
-                self.forceUpdate(".".join(srv_version.split(".")[:-1]), Appli.version_compatible)
+                self.forceUpdate(srv_version, Appli.version_compatible)
                 self.onClosing()
                 return False, True
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
-                self.forceUpdate(".".join(srv_version.split(".")[:-1]), Appli.version_compatible)
+                self.forceUpdate(srv_version, Appli.version_compatible)
                 self.onClosing()
                 return False, True
             if self.sio is not None:
@@ -934,6 +934,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         profiler.dump_stats("profiles.stats")
 
     def search(self, filter_str):
+        self.nbk.select("Main View")
         self.searchMode = True
         self.searchBar.delete(0, tk.END)
         self.searchBar.insert(tk.END, filter_str)
@@ -953,7 +954,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         Args:
             _event: not used but mandatory
         """
-        print(f"REFRESH VIEW ")
         setViewOn = None
         nbkOpenedTab = self.nbk.getOpenTabName()
         activeTw = None
@@ -968,12 +968,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         else:
             for module in self.modules:
                 if nbkOpenedTab.strip().lower() == module["name"].strip().lower():
-                    print(f"REFRESH VIEW Opening module {module['name']}")
                     module["object"].open()
         if activeTw is not None:
             if len(activeTw.selection()) == 1:
                 setViewOn = activeTw.selection()[0]
             activeTw.refresh(force=True)
+            self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
+
             activeTw.filter_empty_nodes()
         if setViewOn is not None:
             try:

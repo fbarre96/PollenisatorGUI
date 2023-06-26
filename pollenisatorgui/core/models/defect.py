@@ -28,8 +28,7 @@ class Defect(Element):
             valuesFromDb = {}
         self.proofs = []
         self.isTemplate = False
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         types = valuesFromDb.get("type", [])
         if isinstance(types, str):
             types = [types]
@@ -87,7 +86,6 @@ class Defect(Element):
         self.fixes = fixes if fixes is not None else []
         self.index = index
         self.creation_time = creation_time
-        self.creation_time = None
         return self
 
     @classmethod
@@ -381,4 +379,4 @@ class Defect(Element):
         return {"title": self.title, "synthesis":self.synthesis, "description":self.description, "ease": self.ease, "impact": self.impact,
                 "risk": self.risk, "redactor": self.redactor, "type": self.mtype, "language":self.language, "notes": self.notes, "fixes":self.fixes,
                 "ip": self.ip, "port": self.port, "proto": self.proto,"index":self.index, "creation_time":self.creation_time,
-                "proofs": self.proofs, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+                "proofs": self.proofs, "_id": self.getId(),"infos": self.infos}

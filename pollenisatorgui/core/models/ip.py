@@ -31,18 +31,16 @@ class Ip(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = {}
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("ip", ""), valuesFromDb.get("notes", ""),
-                        valuesFromDb.get("in_scopes", None), tags=valuesFromDb.get("tags", []), infos=valuesFromDb.get("infos", {}))
+                        valuesFromDb.get("in_scopes", None), infos=valuesFromDb.get("infos", {}))
 
-    def initialize(self, ip="", notes="", in_scopes=None, tags=None, infos=None):
+    def initialize(self, ip="", notes="", in_scopes=None, infos=None):
         """Set values of ip
         Args:
             ip: the host (ip or domain) to represent
             notes: notes concerning this IP (opt). Default to ""
             in_scopes: a list of scopes that matches this host. If empty this IP will be OOS (Out of Scope). Default to None
-            tags: a list of tags. Default to None
             infos: a dictionnary of additional info
         Returns:
             this object
@@ -50,7 +48,6 @@ class Ip(Element):
         self.ip = ip
         self.notes = notes
         self.in_scopes = in_scopes if in_scopes is not None else self.getScopesFittingMe()
-        self.tags = tags if tags is not None else []
         self.infos = infos if infos is not None else {}
         return self
 
@@ -148,7 +145,7 @@ class Ip(Element):
         """
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
-            apiclient.update("ips", ObjectId(self._id), {"notes": self.notes, "in_scopes": self.in_scopes, "tags": self.tags, "infos": self.infos})
+            apiclient.update("ips", ObjectId(self._id), {"notes": self.notes, "in_scopes": self.in_scopes, "infos": self.infos})
         else:
             apiclient.update("ips", ObjectId(self._id), pipeline_set)
 
@@ -167,7 +164,6 @@ class Ip(Element):
         apiclient = APIClient.getInstance()
         # Add ip as it is unique
         base["notes"] = self.notes
-        base["tags"] = self.tags
         base["in_scopes"] = self.in_scopes
         base["infos"] = self.infos
         resInsert, idInsert = apiclient.insert("ips", base)
@@ -244,7 +240,7 @@ class Ip(Element):
         Returns:
             dict with keys ip, in_scopes, notes, _id, tags and infos
         """
-        return {"ip": self.ip, "in_scopes": self.in_scopes, "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+        return {"ip": self.ip, "in_scopes": self.in_scopes, "notes": self.notes, "_id": self.getId(), "infos": self.infos}
 
     def _getParentId(self):
         """

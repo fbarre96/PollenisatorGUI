@@ -29,8 +29,7 @@ class Wave(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = {}
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("wave", ""),
                         valuesFromDb.get("wave_commands", []), valuesFromDb.get("infos", {}))
 
@@ -49,7 +48,7 @@ class Wave(Element):
         return self
 
     def getData(self):
-        return{"wave": self.wave, "wave_commands": self.wave_commands, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+        return{"wave": self.wave, "wave_commands": self.wave_commands, "_id": self.getId(), "infos": self.infos}
 
 
     def delete(self):

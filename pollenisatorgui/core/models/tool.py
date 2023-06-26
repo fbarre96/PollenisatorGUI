@@ -27,8 +27,7 @@ class Tool(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = {}
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.datef = "None"
         self.dated = "None"
         self.scanner_ip = "None"
@@ -46,10 +45,10 @@ class Tool(Element):
                         valuesFromDb.get("dated", "None"), valuesFromDb.get(
                             "datef", "None"),
                         valuesFromDb.get(
-                            "scanner_ip", "None"), valuesFromDb.get("status", []), valuesFromDb.get("notes", ""), valuesFromDb.get("resultfile", ""), valuesFromDb.get("plugin_used", ""), valuesFromDb.get("tags", []), valuesFromDb.get("infos", {}))
+                            "scanner_ip", "None"), valuesFromDb.get("status", []), valuesFromDb.get("notes", ""), valuesFromDb.get("resultfile", ""), valuesFromDb.get("plugin_used", ""),  valuesFromDb.get("infos", {}))
 
     def initialize(self, command_iid, check_iid=None, wave="", name="", scope="", ip="", port="", proto="tcp", lvl="", text="",
-                   dated="None", datef="None", scanner_ip="None", status=None, notes="", resultfile="", plugin_used="", tags=None, infos=None):
+                   dated="None", datef="None", scanner_ip="None", status=None, notes="", resultfile="", plugin_used="",  infos=None):
         
         """Set values of tool
         Args:
@@ -90,7 +89,6 @@ class Tool(Element):
         self.notes = notes
         self.resultfile = resultfile
         self.plugin_used = plugin_used
-        self.tags = tags if tags is not None else []
         self.infos = infos if infos is not None else {}
         if status is None:
             status = []
@@ -135,7 +133,6 @@ class Tool(Element):
         if isinstance(self.status, str):
             self.status = [self.status]
         base["status"] = self.status
-        base["tags"] = self.tags
         base["text"] = self.text
         base["resultfile"] = self.resultfile
         base["plugin_used"] = self.plugin_used
@@ -155,7 +152,7 @@ class Tool(Element):
                 "ip": self.ip, "port": self.port, "proto": self.proto,
                 "lvl": self.lvl, "text": self.text, "dated": self.dated,
                 "datef": self.datef, "scanner_ip": self.scanner_ip,
-                "notes": self.notes, "_id": self.getId(), "tags": self.tags, "infos": self.infos, "status":self.getStatus()}
+                "notes": self.notes, "_id": self.getId(), "infos": self.infos, "status":self.getStatus()}
 
     def setStatus(self,status):
         """Set this tool status with given list of status
@@ -238,7 +235,7 @@ class Tool(Element):
         apiclient = APIClient.getInstance()
         if pipeline_set is None:
             apiclient.update("tools", ObjectId(self._id), {"scanner_ip": str(self.scanner_ip), "dated": str(self.dated), "status": self.status,
-                         "datef":  str(self.datef), "notes":  self.notes, "resultfile": self.resultfile, "plugin_used":self.plugin_used, "tags": self.tags, "infos":self.infos})
+                         "datef":  str(self.datef), "notes":  self.notes, "resultfile": self.resultfile, "plugin_used":self.plugin_used, "infos":self.infos})
         else:
             apiclient.update(
                 "tools", ObjectId(self._id), pipeline_set)

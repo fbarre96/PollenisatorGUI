@@ -41,6 +41,8 @@ class FormChecklist(Form):
                 cb.set(1)
             else:
                 cb.set(0)
+        self.command_check()
+
     def constructView(self, parent):
         """
         Create the checlist view inside the parent view given
@@ -50,6 +52,8 @@ class FormChecklist(Form):
         """
         ################################ THIS is difficult to achieve as the forms positions and width are complicated to get.
         ################################ Temporary fix : hard coded max width.
+        self.command_check = self.getKw("command", None)
+
         frame = CTkFrame(parent.panel)
         self.val = []
         lbl = CTkLabel(frame, text=self.name+" : ")
@@ -70,7 +74,7 @@ class FormChecklist(Form):
                 v1.set(1)
             self.val.append(v1)
             chk = CTkCheckBox(container_frame, text=choice,
-                                 variable=self.val[-1])
+                                 variable=self.val[-1], command=self.command_check)
             if chk.winfo_reqwidth() + accx >= 400 and choice != self.choicesList[-1]:
                 container_frame.pack()
                 container_frame = CTkFrame(frame)

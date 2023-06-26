@@ -21,8 +21,7 @@ class Command(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("name", ""), valuesFromDb.get("bin_path", ""), valuesFromDb.get("plugin", ""), 
                         valuesFromDb.get("text", ""), 
                         valuesFromDb.get("indb", "pollenisator"),  valuesFromDb.get("original_iid"), valuesFromDb.get("timeout", 300), 
@@ -188,7 +187,7 @@ class Command(Element):
         """
         return {"name": self.name, "bin_path":self.bin_path, "plugin":self.plugin,  "text": self.text,
                 "timeout": self.timeout,
-                "indb":self.indb, "owners": self.owners, "_id": self.getId(), "tags": self.tags, "infos": self.infos}
+                "indb":self.indb, "owners": self.owners, "_id": self.getId(), "infos": self.infos}
 
 
     def getDbKey(self):

@@ -24,7 +24,7 @@ class Remark(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = {}
-        super().__init__(valuesFromDb.get("_id", None), None, [], {})
+        super().__init__(valuesFromDb.get("_id", None), None, {})
         self.initialize(valuesFromDb.get("type", "Positive"), valuesFromDb.get("title", ""), valuesFromDb.get("description", ""))
 
     def initialize(self, typeof, title, description):

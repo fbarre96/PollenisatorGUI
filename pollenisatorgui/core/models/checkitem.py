@@ -21,8 +21,7 @@ class CheckItem(Element):
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
-        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get(
-            "tags", []), valuesFromDb.get("infos", {}))
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("title"), valuesFromDb.get("pentest_types", []), valuesFromDb.get(
                             "lvl", "network"),
                         valuesFromDb.get("ports", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("max_thread", 1), valuesFromDb.get("description", ""), valuesFromDb.get("category", ""),\

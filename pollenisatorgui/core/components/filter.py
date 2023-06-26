@@ -3,6 +3,8 @@ from lark import Lark, Transformer, exceptions
 import re
 from bson import ObjectId
 
+from pollenisatorgui.core.components.datamanager import DataManager
+
 class Term:
     """A search term, meaning "key.name" == (value) """
     def __init__(self, val):
@@ -220,6 +222,7 @@ type == "ip" and infos.key == "ABC"
         """
         found_res = []
         views = appTw.views
+        datamanager = DataManager.getInstance()
         for dbId in views:
             view_object = views[dbId]["view"]
             data = view_object.controller.getData()
@@ -242,6 +245,12 @@ type == "ip" and infos.key == "ABC"
                 len_keys = len(keys)
             dtype = view_object.controller.getType()
             data["type"] = dtype
+            tag = datamanager.find("tags", {"item_id":ObjectId(dbId)}, multi=False)
+            if tag is not None:
+                data["tags"] = tag.get("tags",[])
+            else:
+                data["tags"] = []
+
             result = self.evaluate(self.parsed, data)
             if result:
                 found_res.append(dbId)

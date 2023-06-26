@@ -87,6 +87,8 @@ class DataManager(Subject):
     def remove(self, collection, iid):
         if collection not in self.data.keys() and collection+"s" in self.data.keys():
             collection = collection+"s"
+        if collection not in self.data.keys() and collection[:-1] in self.data.keys():
+            collection = collection[:-1]
         if collection not in self.data.keys():
             return 
         del self.data[collection][str(iid)]
@@ -94,6 +96,8 @@ class DataManager(Subject):
     def set(self, collection, iid, newVal):
         if collection not in self.data.keys() and collection+"s" in self.data.keys():
             collection = collection+"s"
+        if collection not in self.data.keys() and collection[:-1] in self.data.keys():
+            collection = collection[:-1]
         if collection not in self.data.keys():
             return 
         self.data[collection][str(iid)] = newVal

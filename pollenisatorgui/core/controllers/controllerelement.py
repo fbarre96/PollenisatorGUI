@@ -1,6 +1,10 @@
 """Controller for model object. Mostly handles conversion between mongo data and python objects"""
 
 from bson.objectid import ObjectId
+from pollenisatorgui.core.components.apiclient import APIClient
+
+from pollenisatorgui.core.components.datamanager import DataManager
+from pollenisatorgui.core.models.tags import Tag
 
 
 class ControllerElement:
@@ -72,36 +76,41 @@ class ControllerElement:
             return "Error"
 
     def getTags(self):
-        """Returns a list of string secribing tags
+        """Returns a list of string decribing tags
         Returns:
             list of string
         """
         if self.model is None:
             return
-        return self.model.tags
+        datamanager = DataManager.getInstance()
+        if str(self.model.getId()) == "64897e07a893f5520713416e":
+            pass
+        res = datamanager.find("tags",{"item_id":ObjectId(self.model.getId())}, multi=False)
+        if res is None:
+            return []
+        return res["tags"]
+
+    def addTag(self, newTag, overrideGroupe=True):
+        """Add the given tag to this object.
+        Args:
+            newTag: a new tag as a string to be added to this model tags
+            overrideGroupe: Default to True. If newTag is in a group with a tag already assigned to this object, it will replace this old tag.
+        """
+        Tag.addTagTo(self.getDbId(), self.getType(), newTag, overrideGroupe)
+
+    def delTag(self, tagToDelete):
+        """Delete the given tag in this object.
+        Args:
+            tagToDelete: a tag as a string to be deleted from this model tags
+        """
+        Tag.delTag(self.getDbId(), self.getType(), tagToDelete)
 
     def setTags(self, tags):
-        """Set the model tags to given tags
+        """Change all tags for the given new ones and update database
         Args:
-            tags: a list of string describing tags.
+            tags: a list of tag string
         """
-        self.model.setTags(tags)
-
-    def delTag(self, tag):
-        """Delete the given tag name in model if it has it
-        Args:
-            tag: astring describing a tag.
-        """
-        self.model.delTag(tag)
-
-    def addTag(self, newTag, override=True):
-        """Add the given tag name in model if it has it
-        Args:
-            newTag: a string describing a tag.
-            override: if True (default), will force add of the new tag and remove tag of the same tag group.
-                      if False, will not add this tag.
-        """
-        self.model.addTag(newTag, override)
+        Tag.setTags(self.getDbId(), self.getType(), tags)
 
     def getDetailedString(self):
         """Return a string describing the model with more info than getModelRepr. E.G a port goes from "tcp/80" to "IP.IP.IP.IP tcp/80"

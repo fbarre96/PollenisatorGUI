@@ -76,7 +76,7 @@ class Settings:
         """
         Returns tags defined in settings.
         Returns:
-            If none are defined returns {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"gray97"}
+            If none are defined returns default
             otherwise returns a dict with defined key values
         """
         apiclient = APIClient.getInstance()
@@ -84,7 +84,7 @@ class Settings:
             cls.tags_cache = None
         if cls.tags_cache is not None and not onlyGlobal:
             return cls.tags_cache
-        cls.tags_cache = {"todo":"orange", "pwned":"red", "Interesting":"dark green", "Uninteresting":"sky blue", "neutral":"gray97"}
+        cls.tags_cache = {"todo":{"color":"orange", "level":"todo"}, "pwned":{"color":"red", "level":"high"}, "Interesting":{"color":"dark green", "level":"medium"}, "Uninteresting":{"color":"sky blue", "level":"low"}, "neutral":{"color":"transparent", "level":"info"}}
         try:
             global_tags = apiclient.getSettings({"key": "tags"})
         except ErrorHTTP:
@@ -299,16 +299,12 @@ class Settings:
             tk.INSERT, buffer)
         self.text_tags.delete('1.0', tk.END)
         tagsRegistered = Settings.getTags(onlyGlobal=True)
-        buffer = ""
-        for tagName, tagColor in tagsRegistered.items():
-            buffer += tagName +" : "+ tagColor+"\n"
+        buffer = json.dumps(tagsRegistered, indent=4)
         self.text_tags.insert(
             tk.INSERT, buffer)
         self.text_db_tags.delete('1.0', tk.END)
         tagsPentestRegistered = Settings.getPentestTags()
-        buffer = ""
-        for tagName, tagColor in tagsPentestRegistered.items():
-            buffer += tagName +" : "+ tagColor+"\n"
+        buffer = json.dumps(tagsPentestRegistered, indent=4)
         self.text_db_tags.insert(
             tk.INSERT, buffer)
         
@@ -334,11 +330,11 @@ class Settings:
             if k in existing_settings:
                 if k == "tags":
                     for line_key, line_value in v.items():
-                        tag, color = line_key, line_value
+                        tag, tag_infos = line_key, line_value
                         if tag not in existing_settings["tags"]["value"]:
-                            apiclient.registerTag(apiclient.getCurrentPentest(), tag, color)
+                            apiclient.registerTag(apiclient.getCurrentPentest(), tag, tag_infos["color"], tag_infos["level"])
                         else:
-                            apiclient.updateTag(tag, color, False)
+                            apiclient.updateTag(tag, tag_infos["color"], tag_infos["level"], False)
                     for tag in existing_settings["tags"].get("value",{}):
                         if tag not in v:
                             apiclient.unregisterTag(apiclient.getCurrentPentest(), tag)
@@ -536,13 +532,8 @@ class Settings:
         form_values = self.form_pentesters.getValue()
         form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
         self.db_settings["pentesters"] = [x for x in form_values_as_dicts["Additional pentesters names"] if x.strip() != ""]
-        self.db_settings["tags"] = {}
-        for tagRegistered in self.text_db_tags.get('1.0', tk.END).split(
-                "\n"):
-            if tagRegistered.strip() != "":
-                line_splitted = tagRegistered.strip().split(":")
-                if len(line_splitted) == 2:
-                    self.db_settings["tags"][line_splitted[0].strip()] = line_splitted[1].strip()
+        self.db_settings["tags"] = json.loads(self.text_db_tags.get('1.0', tk.END))
+       
 
         self.local_settings["search_show_hidden"] = self.visual_search_show_hidden.get(
         ) == 1
@@ -564,13 +555,7 @@ class Settings:
                 if len(line_splitted) == 2:
                     typesOfDefects = list(map(lambda x: x.strip(), line_splitted[1].split(",")))
                     self.global_settings["pentest_types"][line_splitted[0].strip()] = typesOfDefects
-        self.global_settings["tags"] = {}
-        for tagRegistered in self.text_tags.get('1.0', tk.END).split(
-                "\n"):
-            if tagRegistered.strip() != "":
-                line_splitted = tagRegistered.strip().split(":")
-                if len(line_splitted) == 2:
-                    self.global_settings["tags"][line_splitted[0].strip()] = line_splitted[1].strip()
+        self.global_settings["tags"] = json.loads(self.text_tags.get('1.0', tk.END))
         self.save()
         tkinter.messagebox.showinfo(
             "Settings", info)

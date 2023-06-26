@@ -332,6 +332,7 @@ class FormPanel(Form):
         f = FormButton(name, callback, **kwargs)
         self.subforms.append(f)
         return f
+    
 
     def addFormSeparator(self,  **kwargs):
         """

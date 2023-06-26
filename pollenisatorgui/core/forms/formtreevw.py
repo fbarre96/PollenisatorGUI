@@ -260,29 +260,43 @@ class FormTreevw(Form):
         """
         return lambda : self.sort_column(self.treevw, col, reverse)
     
-    def filter(self, *args):
-        children = list(self._detached) + list(self.treevw.get_children())
-        self._detached = set()
-        self._brut_searcher(children, *args)
+    def filter(self, *args, **kwargs):
+        if kwargs.get("reset", True):
+            children = list(self._detached) + list(self.treevw.get_children())
+            self._detached = set()
+        else:
+            children = list(self.treevw.get_children())
+        self._brut_searcher(children, *args, **kwargs)
 
-    def _brut_searcher(self, children, *args):
+    def _brut_searcher(self, children, *args, **kwargs):
         i_r = -1
         for item_id in children:
             allValid = True
+            oneValid = False
             for iarg, arg in enumerate(args):
                 if iarg == 0:
                     text = self.treevw.item(item_id)['text']
                 else:
                     text = self.treevw.item(item_id)['values'][iarg-1]
+                check_all = kwargs.get("check_all", True)
                 if isinstance(arg, str):
-                    if arg not in text:
-                        allValid = False
-                        break
+                    is_valid = arg in text
                 elif isinstance(arg, bool):
-                    if not arg:
-                        allValid = False
+                    is_valid = arg
+                elif isinstance(arg, list):
+                    is_valid = text in arg
+                if not is_valid:
+                    allValid = False
+                    if check_all:
                         break
-            if allValid:
+                else:
+                    oneValid = True
+                    if not check_all:
+                        break
+            if allValid and check_all:
+                i_r += 1
+                self.treevw.reattach(item_id, '', i_r)
+            elif oneValid and not check_all:
                 i_r += 1
                 self.treevw.reattach(item_id, '', i_r)
             else:
@@ -311,6 +325,8 @@ class FormTreevw(Form):
     def reset(self):
         """Reset the treeview values (delete all lines)"""
         self._detached = set()
+        if self.treevw is None:
+            return
         for item in self.treevw.get_children():
             self.treevw.delete(item)
 
@@ -333,6 +349,16 @@ class FormTreevw(Form):
     def addItem(self, parent="", insertPos="0", iid=None, **kwargs):
         self.treevw.insert(parent, insertPos, iid, **kwargs)
         self.resetOddTags()
+
+    def auto_resize_columns(self):
+        columnsLen = [self.f.measure(str(x)) for x in self.headings]    
+        for children in self.treevw.get_children():
+            item = self.treevw.item(children)
+            columnsLen[0] = max(columnsLen[0], self.f.measure(item["text"]))
+            for i, value in enumerate(item["values"]):
+                columnsLen[i+1] = max(columnsLen[i+1], self.f.measure(value))
+        for h_i, header in enumerate(self.headings):
+            self.treevw.column("#"+str(h_i), minwidth=columnsLen[h_i], width=columnsLen[h_i])
 
     def OnDoubleClick(self, event):
         """Callback for double click event
