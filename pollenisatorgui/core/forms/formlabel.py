@@ -43,6 +43,7 @@ class FormLabel(Form):
         self.lbl = CTkLabel(parent.panel, text=self.text, justify=tk.LEFT, fg_color=self.getKw("fg_color", None), **kwargs)
         if bold:
             self.lbl.cget("font").configure(weight="bold")
+        self.lbl.cget("font").configure(size=self.getKw("font_size",12))
         try:
             if parent.gridLayout:
         

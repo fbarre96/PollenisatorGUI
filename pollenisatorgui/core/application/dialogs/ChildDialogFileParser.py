@@ -87,6 +87,8 @@ class ChildDialogFileParser:
                         files.add(os.path.join(r, fil))
             else:
                 files.add(filepath)
+        if not files:
+            return
         dialog = ChildDialogProgress(self.app, "Importing files", "Importing "+str(
             len(files)) + " files. Please wait for a few seconds.", 100.0/len(files), "determinate")
         dialog.show(len(files))

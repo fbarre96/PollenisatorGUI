@@ -47,11 +47,11 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         logger.debug("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
-            return
+            sys.exit(1)
 
         logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
+        sys.exit(1)
 
     sys.excepthook = handle_exception
     # Connect to given pentest
@@ -70,7 +70,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         print(str(comm))
         logger.debug("Autoscan: Execute tool locally error in getting commandLine : "+str(toolId))
         toolModel.setStatus(["error"])
-        return False, str(comm)
+        sys.exit(1)
     
     outputRelDir = toolModel.getOutputDir(apiclient.getCurrentPentest())
     abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -87,7 +87,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
             print(str(exc))
             logger.debug("Autoscan: Execute tool locally error in creating output directory : "+str(exc))
             toolModel.setStatus(["error"])
-            return False, str(exc)
+            sys.exit(1)
     outputPath = os.path.join(outputDir, toolFileName)
     comm = comm.replace("|outputDir|", outputPath)
     settings = Settings()
@@ -100,7 +100,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
             toolModel.setStatus(["error"])
             toolModel.notes = str(toolModel.name)+" : no binary path setted"
             logger.debug("Autoscan: Execute tool locally no bin path setted : "+str(toolModel.name))
-            return False, str(toolModel.name)+" : no binary path setted"
+            sys.exit(1)
     comm = bin_path + " " + comm
     toolModel.updateInfos({"cmdline":comm})
     if "timedout" in toolModel.status:
@@ -124,11 +124,11 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         print(('TASK STARTED:'+toolModel.name))
         print("Will timeout at "+str(timeLimit))
         # Execute the command with a timeout
-        returncode, stdout = utils.execute(comm, timeLimit, True, queue, queueResponse, cwd=outputDir)
+        returncode = utils.execute(comm, timeLimit, queue, queueResponse, cwd=outputDir)
         if returncode == -1:
             toolModel.setStatus(["timedout"])
             logger.debug("Autoscan: TOOL timedout at "+str(timeLimit))
-            return False, "timedout"
+            sys.exit(-1)
     except Exception as e:
         print(str(e))
         toolModel.setStatus(["error"])
@@ -143,12 +143,12 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         print(str(msg))
         toolModel.setStatus(["error"])
         logger.debug("Autoscan: import tool result error "+str(msg))
-        return False, str(msg)
+        sys.exit(1)
           
     # Delay
     if command_dict is not None:
         print(msg)
-    return True, outputfile
+    sys.exit(0)
     
 def getWaveTimeLimit():
     """

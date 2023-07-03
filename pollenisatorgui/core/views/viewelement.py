@@ -275,7 +275,6 @@ class ViewElement(object):
         Open a dialog to show the tool information.
         """
         dialog = ChildDialogGenericView(self.mainApp, "Modify", self)
-        self.mainApp.wait_window(dialog.app)
         return dialog.rvalue
     def updateReceived(self):
         """Called when any view element update is received by notification.

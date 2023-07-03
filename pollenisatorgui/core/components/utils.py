@@ -1,4 +1,6 @@
 """Provide useful functions"""
+import multiprocessing
+import select
 import sys
 import os
 import socket
@@ -8,6 +10,7 @@ from datetime import datetime
 from threading import Timer
 import json
 from netaddr import IPNetwork
+import pty
 from netaddr.core import AddrFormatError
 from bson import ObjectId
 import signal
@@ -321,7 +324,82 @@ def handleProcKill(proc):
     proc._killed = True
 
 
-def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=None, cwd=None):
+def read_and_forward_pty_output(fd, queue, queueResponse, printStdout):
+    max_read_bytes = 1024 * 20
+    try:
+        while True:
+            time.sleep(0.01)
+            if fd:
+                timeout_sec = 0
+                (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
+                if data_ready:
+                    output = os.read(fd, max_read_bytes).decode(
+                        errors="ignore"
+                    )
+                    output = output.replace("\r","")
+                    if printStdout:
+                        print(output)
+                    if queueResponse is not None:
+                        queueResponse.put(output)
+    except OSError as e:
+        # occurs when the subprocess is over, os.read fails with OSError: [Errno 5] Input/output error
+        
+        return
+    except Exception as e:
+        print(e)
+        return
+
+def execute(command, timeout=None,  queue=None, queueResponse=None, cwd=None, printStdout=False):
+    """
+    Execute a bash command and print output
+
+    Args:
+        command: A bash command
+        timeout: a date in the futur when the command will be stopped if still running or None to not use this option, default as None.
+
+    Returns:
+        Return the return code of this command
+
+    Raises:
+        Raise a KeyboardInterrupt if the command was interrupted by a KeyboardInterrupt (Ctrl+c)
+    """
+    if isinstance(timeout, float):
+        timeout = (timeout-datetime.now()).total_seconds()
+    elif timeout is not None:
+        if timeout.year < datetime.now().year+1:
+            timeout = (timeout-datetime.now()).total_seconds()
+        else:
+            timeout = None
+    
+    (child_pid, fd) = pty.fork()
+    if child_pid == 0:
+        try:
+            proc = subprocess.run(
+                command, shell=True, cwd=cwd, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            sys.exit(-1)
+        except Exception as e:
+            print(e)
+            sys.exit(1)
+        finally:
+            sys.exit(0)
+    else:
+        
+        p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd,queue, queueResponse, printStdout])
+        p.start()
+        p.join()
+    info = os.waitpid(child_pid, 0)
+    if os.WIFEXITED(info[1]):
+        returncode = os.WEXITSTATUS(info[1])
+    else:
+        returncode = -1
+   
+    return returncode
+
+
+
+
+def execute_old(command, timeout=None, printStdout=True, queue=None, queueResponse=None, cwd=None):
     """
     Execute a bash command and print output
 
@@ -339,12 +417,13 @@ def execute(command, timeout=None, printStdout=True, queue=None, queueResponse=N
     
     try:
         os.setpgrp()
+        time.sleep(1) #HACK Break if not there when launching fast custom tools on local host for unknown reason
+
         proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid, cwd=cwd)
         proc._killed = False
         signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
         signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
-        time.sleep(1) #HACK Break if not there when launching fast custom tools on local host for unknown reason
         try:
             timer = None
             if timeout is not None:

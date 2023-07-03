@@ -224,6 +224,12 @@ class PollenisatorTreeview(ttk.Treeview):
             except tk.TclError:
                 pass
 
+    def open(self, nodeId):
+        try:
+            self.item(nodeId, open=True)
+        except tk.TclError:
+            pass
+
     def expand(self):
         """
         Expand all children recursivly of a treeview node.

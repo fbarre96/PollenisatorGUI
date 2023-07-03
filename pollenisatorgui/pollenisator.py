@@ -6,6 +6,7 @@
 # Major version released: 09/2019
 # @version: 2.2
 """
+import shutil
 from pollenisatorgui.core.models.command import Command
 import time
 import tkinter as tk
@@ -158,52 +159,62 @@ def pollex():
     if not res:
         consoleConnect()
     cmdName +="::"+str(time.time()).replace(" ","-")
-    commands = Command.fetchObjects({"bin_path":{'$regex':bin_name}})
-    choices = set()
-    if commands is not None:
-        for command in commands:
-            choices.add(command.plugin)
-    if len(choices) == 0:
-        plugin = "Default"
-    elif len(choices) == 1:
-        plugin = choices.pop()
-    else:
-        choice = -1
-        while choice == -1:
-            print("Choose plugin:")
-            for i, choice in enumerate(choices):
-                print(f"{i+1}. {choice}")
-            try:
-                choice_str = input()
-                choice = int(choice_str)
-            except ValueError as e:
-                print("You must type a valid number")
-            if choice > len(choices) or choice < 1:
-                choice = -1
-                print("You must type a number between 1 and "+str(len(choices)))
-        plugin = list(choices)[choice-1]
-    print("INFO : Executing plugin "+str(plugin))
-    success, comm, fileext = apiclient.getDesiredOutputForPlugin(execCmd, plugin)
+    # commands = Command.fetchObjects({"bin_path":{'$regex':bin_name}})
+    # choices = set()
+    # if commands is not None:
+    #     for command in commands:
+    #         choices.add(command.plugin)
+    # if len(choices) == 0:
+    #     plugin = "Default"
+    # elif len(choices) == 1:
+    #     plugin = choices.pop()
+    # else:
+    #     choice = -1
+    #     while choice == -1:
+    #         print("Choose plugin:")
+    #         for i, choice in enumerate(choices):
+    #             print(f"{i+1}. {choice}")
+    #         try:
+    #             choice_str = input()
+    #             choice = int(choice_str)
+    #         except ValueError as e:
+    #             print("You must type a valid number")
+    #         if choice > len(choices) or choice < 1:
+    #             choice = -1
+    #             print("You must type a number between 1 and "+str(len(choices)))
+    #     plugin = list(choices)[choice-1]
+    res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
+    (success, data) = res
     if not success:
-        print("ERROR : An error as occured : "+str(comm))
+        print("ERROR : "+data)
         return
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        outputFilePath = os.path.join(tmpdirname, cmdName)
-        comm = comm.replace("|outputDir|", outputFilePath)
-        if (verbose):
-            print("Executing command : "+str(comm))
-        returncode, stdout = utils.execute(comm, None, True, cwd=tmpdirname)
-        #if stdout.strip() != "":
-        #    print(stdout.strip())
+    if not data:
+        print("ERROR : An error as occured : "+str(data))
+        return
+    comm = data["command_line_options"]
+    plugin_results = data["plugin_results"]
+    if (verbose):
+        print("INFO : Matching plugins are "+str(data["plugin_results"]))
+    tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
+    for plugin,ext in plugin_results.items():
+        outputFilePath = os.path.join(tmpdirname, cmdName) + ext
+        comm = comm.replace(f"|{plugin}.outputDir|", outputFilePath)
+    if (verbose):
+        print("Executing command : "+str(comm))
+        print("output should be in "+str(outputFilePath))
+    returncode = utils.execute(comm, None, cwd=tmpdirname, printStdout=True)
+    for plugin,ext in plugin_results.items():
+        outputFilePath = os.path.join(tmpdirname, cmdName) + ext
         if not os.path.exists(outputFilePath):
-            if os.path.exists(outputFilePath+fileext):
-                outputFilePath+=fileext
+            if os.path.exists(outputFilePath+ext):
+                outputFilePath+=ext
             else:
                 print(f"ERROR : Expected file was not generated {outputFilePath}")
-                return
+                continue
         print(f"INFO : Uploading results {outputFilePath}")
         msg = apiclient.importExistingResultFile(outputFilePath, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), comm)
         print(msg)
+    shutil.rmtree(tmpdirname)
 
 def pollup():
     """Send a file to pollenisator backend for analysis

@@ -1,3 +1,4 @@
+import multiprocessing
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
@@ -33,7 +34,9 @@ def main(apiclient, **kwargs):
         utils.executeInExternalTerm(f"'{cmd}'")
     responder_conf = ""
     if utils.which_expand_alias("locate"):
-        res_code, stdout = utils.execute("locate Responder.conf", None)
+        output = multiprocessing.Queue()
+        res_code = utils.execute("locate Responder.conf", None, queueResponse=output)
+        stdout = "" if output.empty() else output.get()
         if stdout is None or stdout.strip() == "":
             file = tk.filedialog.askopenfilename(" Locate responder conf file please",filetypes=[('Config Files', '*.conf')])
             if file:

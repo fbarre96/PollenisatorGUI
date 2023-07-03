@@ -423,10 +423,12 @@ class ScanManager:
         if thread is None or queue is None:
             return ""
         progress = ""
-        if thread.is_alive():
+        if not queueResponse.empty():
             queue.put("\n")
             progress = queueResponse.get()
             return progress
+        if not thread.is_alive():
+            return True
         return True
 
     def stopTask(self, toolId):

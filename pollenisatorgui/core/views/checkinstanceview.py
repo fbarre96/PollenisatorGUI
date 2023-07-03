@@ -143,7 +143,10 @@ class CheckInstanceView(ViewElement):
         lambdas_running_stop = [self.stopToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         datamanager = DataManager.getInstance()
+            
         if dict_of_tools_not_done:
+            self.form.addFormSeparator()
+            self.form.addFormLabel("Command suggestions", font_size=20, side=tk.TOP, anchor=tk.CENTER)
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
             for tool_iid, tool_string in dict_of_tools_not_done.items():
@@ -173,12 +176,14 @@ class CheckInstanceView(ViewElement):
                                border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         if dict_of_tools_done:
+            self.form.addFormSeparator()
+            self.form.addFormLabel("Results", font_size=20, side=tk.TOP, anchor=tk.CENTER)
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             row=0
             for tool_iid, tool_data in dict_of_tools_done.items():
                 tool_m = Tool(tool_data)
                 tool_panel = formCommands.addFormPanel(side=tk.TOP, fill=tk.X, pady=0)
-                tool_panel.addFormSeparator(fill=tk.X)
+                #tool_panel.addFormSeparator(fill=tk.X)
                 tool_panel.addFormButton(tool_m.getDetailedString(), self.openToolDialog, side=tk.TOP, anchor=tk.W, style="link.TButton", infos={"iid":tool_iid})
                 tags = ToolController(tool_m).getTags()
                 if tags:
@@ -252,6 +257,8 @@ class CheckInstanceView(ViewElement):
                         files.add(os.path.join(r, fil))
             else:
                 files.add(filepath)
+        if not files:
+            return
         dialog = ChildDialogProgress(self.mainApp, "Importing files", "Importing "+str(
             len(files)) + " files. Please wait for a few seconds.", 1/len(files)*50, "determinate")
         dialog.show(len(files))

@@ -1168,9 +1168,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.openPentest(dialog.rvalue)
         return dialog.rvalue
 
-       
-
-    
 
     def newPentest(self, pentestName, pentest_type, start_date, end_date, scope, settings, pentesters):
         """

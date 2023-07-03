@@ -952,16 +952,16 @@ class APIClient():
 
     @handle_api_errors
     def getDesiredOutputForPlugin(self, cmdline, plugin):
-        """Get full command line from cmd line and choosen plugin, a marker for |outputDir| is to be replaced
+        """Complete information for a command line. Plugin can be 'auto-detect', a marker for |outputDir| is to be replaced
         """
         api_url = '{0}tools/getDesiredOutputForPlugin'.format(self.api_url_base)
         response = requests.post(api_url, headers=self.headers, data=json.dumps({"plugin":plugin, "cmdline":cmdline}), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            return True, data["command_line_options"], data["ext"]
+            return True, data
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
-        return False, response.content.decode('utf-8'), ""
+        return False, response.content.decode('utf-8')
     
     @handle_api_errors
     def getCommandLine(self, toolId, commandline_options=""):
