@@ -1240,7 +1240,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":pentestName})
             self.settings.reloadSettings()
             self.refresh_tabs()
-            
+            if first_use_detected:
+                self.testLocalTools()
             self.nbk.select("Dashboard")
 
     def refresh_tabs(self):

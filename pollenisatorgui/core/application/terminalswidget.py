@@ -162,7 +162,7 @@ class TerminalsWidget(CTkFrame):
                 signal.signal(signal.SIGTERM, lambda signum,sigframe: killThisProc(proc))
             except Exception as e:
                 logger.error(e)
-                os._exit(1)
+                sys.exit(0)
             try:
                 # Wait for session to pop
                 for i in range(3):
@@ -183,16 +183,15 @@ class TerminalsWidget(CTkFrame):
                         
             except Exception as e:
                 logger.error(e)
-                os._exit(1)
+                sys.exit(0)
             proc._killed = False
             stdout, stderr = proc.communicate() # wait for ending
-            os._exit(0)
+            sys.exit(0)
         else:
             
             queue = multiprocessing.Queue()
             queueResponse = multiprocessing.Queue()
             p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, queue, queueResponse])
-            
             p.start()
             self.terminalFrame.bind("<Configure>", self.update_size)
             self.update_size()
