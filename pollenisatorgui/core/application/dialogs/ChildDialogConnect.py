@@ -108,7 +108,7 @@ class ChildDialogConnect:
         lbl_proxy.grid(row=0, column=0)
         self.ent_proxy = CTkEntry(cf1.interior, placeholder_text="http://127.0.0.1:8080")
         proxies = self.clientCfg.get("proxies", "")
-        if proxies != "":
+        if proxies != "" and str(proxies).strip() != "{}":
             self.ent_proxy.insert(tk.END, proxies)
             cf1.toggle()
         self.ent_proxy.grid(row=0, column=1)

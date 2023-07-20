@@ -124,40 +124,44 @@ class TerminalsWidget(CTkFrame):
         child_pid
         if child_pid == 0:
             # child process with ✨ black magic ✨
-            session_name = "pollenisator"
-            sessions = self.s.sessions.filter(session_name=session_name)
-            if len(sessions) > 0:
-                for session in sessions:
-                    session.kill_session()
-            wid = self.wid
-            config_location = os.path.join(getMainDir(), "config/")
-            xterm_conf = os.path.join(config_location, ".Xresources")
-            tmux_conf = os.path.join(config_location, ".tmux.conf")
-            terminal_conf = os.path.join(config_location, "shell_ressources")
-            subprocess.run("xrdb -load %s" % xterm_conf, shell=True)
-            shell_command = os.environ.get("SHELL")
-            trap_suffix = ("trap" if settings.isTrapCommand()  else "notrap")
-            if shell_command.endswith("zsh"):
-                terminal_conf = os.path.join(terminal_conf, "zshrc_"+trap_suffix)
-                default_command = f"ZDOTDIR={terminal_conf} {shell_command}"
-            else:
-                terminal_conf = os.path.join(terminal_conf, "bash_setupTerminalForPentest_"+trap_suffix+".sh")
-                default_command = f"{shell_command} --rcfile {terminal_conf}"
+            try:
+                session_name = "pollenisator"
+                sessions = self.s.sessions.filter(session_name=session_name)
+                if len(sessions) > 0:
+                    for session in sessions:
+                        session.kill_session()
+                wid = self.wid
+                config_location = os.path.join(getMainDir(), "config/")
+                xterm_conf = os.path.join(config_location, ".Xresources")
+                tmux_conf = os.path.join(config_location, ".tmux.conf")
+                terminal_conf = os.path.join(config_location, "shell_ressources")
+                subprocess.run("xrdb -load %s" % xterm_conf, shell=True)
+                shell_command = os.environ.get("SHELL")
+                trap_suffix = ("trap" if settings.isTrapCommand()  else "notrap")
+                if shell_command.endswith("zsh"):
+                    terminal_conf = os.path.join(terminal_conf, "zshrc_"+trap_suffix)
+                    default_command = f"ZDOTDIR={terminal_conf} {shell_command}"
+                else:
+                    terminal_conf = os.path.join(terminal_conf, "bash_setupTerminalForPentest_"+trap_suffix+".sh")
+                    default_command = f"{shell_command} --rcfile {terminal_conf}"
+                    
+                tmux_conf_new = tmux_conf+".popo"
+                with open(tmux_conf, "r") as f:
+                    tmux_conf_content = f.read()
+                    with open(tmux_conf_new, "w") as f2:
+                        tmux_conf_content += f"\nset -g default-command \"{default_command}\""
+                        f2.write(tmux_conf_content)
+                    tmux_conf = tmux_conf_new
+                command = f"xterm -into {wid} -class popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
+                with open("/home/barre/log.txt", "w") as f:
+                    f.write(command)
                 
-            tmux_conf_new = tmux_conf+".popo"
-            with open(tmux_conf, "r") as f:
-                tmux_conf_content = f.read()
-                with open(tmux_conf_new, "w") as f2:
-                    tmux_conf_content += f"\nset -g default-command \"{default_command}\""
-                    f2.write(tmux_conf_content)
-                tmux_conf = tmux_conf_new
-            command = f"xterm -into {wid} -class popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
-            with open("/home/barre/log.txt", "w") as f:
-                f.write(command)
-            
-            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
-            signal.signal(signal.SIGINT, lambda signum,sigframe: killThisProc(proc))
-            signal.signal(signal.SIGTERM, lambda signum,sigframe: killThisProc(proc))
+                proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
+                signal.signal(signal.SIGINT, lambda signum,sigframe: killThisProc(proc))
+                signal.signal(signal.SIGTERM, lambda signum,sigframe: killThisProc(proc))
+            except Exception as e:
+                logger.error(e)
+                os._exit(1)
             try:
                 # Wait for session to pop
                 for i in range(3):
@@ -177,9 +181,11 @@ class TerminalsWidget(CTkFrame):
                         window.select_window()
                         
             except Exception as e:
-                pass
+                logger.error(e)
+                os._exit(1)
             proc._killed = False
             stdout, stderr = proc.communicate() # wait for ending
+            os._exit(0)
         else:
             
             queue = multiprocessing.Queue()

@@ -7,12 +7,12 @@
 
 #### Ubuntu
 ```
-sudo apt-get install python3-pip git python3-pil python3-tk python3-pil.imagetk tmux xterm
+sudo apt-get install python3-pip git python3-pil python3-pil.imagetk python3-tk tmux xterm xdotool
 ```
 
 #### Archlinux
 ```
-pacman -S python tk git tmux xterm
+pacman -S python tk git tmux xterm xdotool
 ```
 
 ### Additional optional packages
