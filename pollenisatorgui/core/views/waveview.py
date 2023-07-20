@@ -29,6 +29,7 @@ class WaveView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Wave
         """
+        self.form.clear()
         modelData = self.controller.getData()
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormLabel("Wave", modelData["wave"])

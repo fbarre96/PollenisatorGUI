@@ -6,18 +6,16 @@
 # Major version released: 09/2019
 # @version: 2.2
 """
-import shutil
-from pollenisatorgui.core.models.command import Command
+
 import time
 import tkinter as tk
 import os
 import sys
-import shlex
+
 import signal
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.appli import Appli
 import pollenisatorgui.core.components.utils as utils
-import tempfile
 import threading
 from getpass import getpass
 from pollenisatorgui.core.components.logger_config import logger
@@ -54,12 +52,10 @@ class GracefulKiller:
             signum: not used
             frame: not used
         """
-        print('You pressed Ctrl+C!')
-        import traceback
-        traceback.print_stack(_frame)
+        #import traceback
+        #traceback.print_stack(_frame)
         self.app.onClosing()
         event_obj.set()
-
         self.kill_now = True
 
 
@@ -140,81 +136,6 @@ def parseDefaultTarget(stringToParse):
     else:
         return {"check_iid":str(stringToParse), "lvl":"import"}
 
-def pollex():
-    """Send a command to execute for pollenisator-gui running instance
-    """
-    verbose = False
-    if sys.argv[1] == "-v":
-        verbose = True
-        execCmd = shlex.join(sys.argv[2:])
-    else:
-        execCmd = shlex.join(sys.argv[1:])
-    bin_name = shlex.split(execCmd)[0]
-    if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code", "cd", "pwd", "cat"]:
-        return
-    cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
-    apiclient = APIClient.getInstance()
-    apiclient.tryConnection()
-    res = apiclient.tryAuth()
-    if not res:
-        consoleConnect()
-    cmdName +="::"+str(time.time()).replace(" ","-")
-    # commands = Command.fetchObjects({"bin_path":{'$regex':bin_name}})
-    # choices = set()
-    # if commands is not None:
-    #     for command in commands:
-    #         choices.add(command.plugin)
-    # if len(choices) == 0:
-    #     plugin = "Default"
-    # elif len(choices) == 1:
-    #     plugin = choices.pop()
-    # else:
-    #     choice = -1
-    #     while choice == -1:
-    #         print("Choose plugin:")
-    #         for i, choice in enumerate(choices):
-    #             print(f"{i+1}. {choice}")
-    #         try:
-    #             choice_str = input()
-    #             choice = int(choice_str)
-    #         except ValueError as e:
-    #             print("You must type a valid number")
-    #         if choice > len(choices) or choice < 1:
-    #             choice = -1
-    #             print("You must type a number between 1 and "+str(len(choices)))
-    #     plugin = list(choices)[choice-1]
-    res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
-    (success, data) = res
-    if not success:
-        print("ERROR : "+data)
-        return
-    if not data:
-        print("ERROR : An error as occured : "+str(data))
-        return
-    comm = data["command_line_options"]
-    plugin_results = data["plugin_results"]
-    if (verbose):
-        print("INFO : Matching plugins are "+str(data["plugin_results"]))
-    tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
-    for plugin,ext in plugin_results.items():
-        outputFilePath = os.path.join(tmpdirname, cmdName) + ext
-        comm = comm.replace(f"|{plugin}.outputDir|", outputFilePath)
-    if (verbose):
-        print("Executing command : "+str(comm))
-        print("output should be in "+str(outputFilePath))
-    returncode = utils.execute(comm, None, cwd=tmpdirname, printStdout=True)
-    for plugin,ext in plugin_results.items():
-        outputFilePath = os.path.join(tmpdirname, cmdName) + ext
-        if not os.path.exists(outputFilePath):
-            if os.path.exists(outputFilePath+ext):
-                outputFilePath+=ext
-            else:
-                print(f"ERROR : Expected file was not generated {outputFilePath}")
-                continue
-        print(f"INFO : Uploading results {outputFilePath}")
-        msg = apiclient.importExistingResultFile(outputFilePath, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), comm)
-        print(msg)
-    shutil.rmtree(tmpdirname)
 
 def pollup():
     """Send a file to pollenisator backend for analysis
@@ -281,7 +202,6 @@ def main():
     gc = None
     app = Appli()
     try:
-        
         gc = GracefulKiller(app)
         if not app.quitting:
             app.mainloop()
@@ -293,11 +213,10 @@ def main():
         print("Destroying app window")
     except tk.TclError:
         pass
-    app.onClosing()
     if gc is not None:
         gc.kill_now = True
     event_obj.set()
-
+    app.onClosing()
 
 if __name__ == '__main__':
     main()

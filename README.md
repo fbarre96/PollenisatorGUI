@@ -3,17 +3,21 @@
  
 
 ## INSTALL ##
-### Prérequis 
+### Package required 
 
 #### Ubuntu
 ```
-sudo apt-get install python3-pip git python3-pil python3-tk python3-pil.imagetk
+sudo apt-get install python3-pip git python3-pil python3-tk python3-pil.imagetk tmux xterm
 ```
 
 #### Archlinux
 ```
-pacman -S python tk git
+pacman -S python tk git tmux xterm
 ```
+
+### Additional optional packages
+
+Docker can be installed to fire-up a scan worker. Otherwise, your computer can be used if you have pentest tools installed (additional configuration may be required).
 
 ### Installation :
 

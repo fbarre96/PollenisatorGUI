@@ -25,6 +25,7 @@ class MultiSelectionView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or perform actions on multiple different objects common properties like tags.
         """
+        self.form.clear()
         top_panel = self.form.addFormPanel()
         top_panel.addFormButton("Export", self.appliTw.exportSelection)
         top_panel.addFormButton("Hide", self.appliTw.hideSelection)

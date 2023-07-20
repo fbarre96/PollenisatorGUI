@@ -49,6 +49,8 @@ class Terminal(Module):
 
     @classmethod
     def openTerminal(cls, default_target=None):
+        
+            
         if cls.settings.isTrapCommand():
             comm = "bash --rcfile "+os.path.join(utils.getMainDir(), "setupTerminalForPentest.sh")
         else:
@@ -58,7 +60,7 @@ class Terminal(Module):
         
 
     def onClosing(self, _signum=None, _frame=None):
-        self.exiting.value = 1
+        #self.exiting.value = 1
         if self.s:
             self.s.close()
 

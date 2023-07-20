@@ -24,9 +24,14 @@ class ChildDialogGenericView(ChildDialogView):
         super().__init__(parent, title)
         self.view = view
         self.view.appliViewFrame = self.appFrame
+        self.viewdelete = self.view.delete
+        self.view.delete = self.deleteProxy
         self.view.openModifyWindow()
         self.completeDialogView(False)
 
+    def deleteProxy(self, *args, **kwargs):
+        self.viewdelete(*args, **kwargs)
+        self.app.destroy()
    
 
   

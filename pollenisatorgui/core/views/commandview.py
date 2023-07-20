@@ -56,6 +56,7 @@ class CommandView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
+        self.form.clear()
         modelData = self.controller.getData()
         self._initContextualMenu()
         settings = self.mainApp.settings
@@ -76,7 +77,7 @@ class CommandView(ViewElement):
             panel_bottom.addFormButton("Add to my commands", self.controller.addToMyCommands)
         else:
             settings = Settings()
-            settings._reloadLocalSettings()
+            settings.reloadLocalSettings()
             my_commands = settings.local_settings.get("my_commands", {})
             default = my_commands.get(modelData["name"], modelData["bin_path"])
             panel_bottom.addFormLabel("My binary path")
@@ -215,7 +216,7 @@ class CommandView(ViewElement):
         self.widgetMenuOpen.insert(tk.INSERT, "|port|")
 
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a command update is received by notification.
         Update the command treeview item (resulting in icon reloading)
         """

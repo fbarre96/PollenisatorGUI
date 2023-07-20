@@ -15,6 +15,7 @@ class IntervalView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Interval
         """
+        self.form.clear()
         modelData = self.controller.getData()
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormLabel("Start date")
@@ -75,7 +76,7 @@ class IntervalView(ViewElement):
         if self.mainApp.settings.is_checklist_view():
             self.hide("checklist_view")
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a interval update is received by notification.
         Update the interval node and tells to the parent wave to update (its tools).
         """

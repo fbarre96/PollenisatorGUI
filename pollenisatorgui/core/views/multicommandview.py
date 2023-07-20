@@ -14,6 +14,7 @@ class MultiCommandView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to manipulate many commands
         """
+        self.form.clear()
         top_panel = self.form.addFormPanel()
         top_panel.addFormButton("Add to my commands", self.addSelectedToMyCommands)
         top_panel.addFormButton("Add to Worker commands", self.addSelectedToWorkerCommands)

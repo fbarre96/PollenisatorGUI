@@ -21,6 +21,7 @@ class ScopeView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Scope
         """
+        self.form.clear()
         modelData = self.controller.getData()
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormLabel("Scope", column=0)
@@ -118,7 +119,7 @@ class ScopeView(ViewElement):
             return
         parentId = self.controller.getParentId()
         parentView = self.appliTw.views[str(parentId)]["view"]
-        parentView.updateReceived()
+        parentView.updateReceived(None, None)
         super().insertReceived()
 
     def key(self):

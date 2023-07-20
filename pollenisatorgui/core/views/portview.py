@@ -51,6 +51,7 @@ class PortView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Port
         """
+        self.form.clear()
         modelData = self.controller.getData()
         self.image_nav = tk.PhotoImage(file=utils.getIcon("internet.png"))
         top_panel = self.form.addFormPanel(grid=True)
@@ -176,7 +177,7 @@ class PortView(ViewElement):
         """
         return tuple([int(self.controller.getData()["port"])])
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a port update is received by notification.
         Update the port node in summary
         """

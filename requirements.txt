@@ -14,4 +14,5 @@ python-socketio
 ttkwidgets
 watchdog
 python-tkdnd
-customtkinter
+customtkinter==5.1.2
+libtmux

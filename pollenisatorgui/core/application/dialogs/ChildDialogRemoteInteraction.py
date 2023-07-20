@@ -58,6 +58,8 @@ class ChildDialogRemoteInteraction:
             elif isinstance(result, bool) and result:
                 self.text_area.insert(tk.END, "Scan ended. You can quit and download result file.")
                 return True
+            elif isinstance(result, bool) and not result:
+                pass #
             elif isinstance(result, bytes):
                 self.text_area.insert(tk.END, result.decode("utf-8").replace("\r","\n"))
             elif result is None:

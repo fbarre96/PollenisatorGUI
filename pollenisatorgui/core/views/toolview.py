@@ -115,6 +115,7 @@ class ToolView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Tool
         """
+        self.form.clear()
         modelData = self.controller.getData()
         
         top_panel = self.form.addFormPanel()
@@ -205,18 +206,22 @@ class ToolView(ViewElement):
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             _addChildren: not used for tools
+
         """
+        
         mustHide = False
         if parentNode is None:
             mustHide = True 
             parentNode = self.controller.getParentId()
+            if parentNode is None:
+                parentNode = ""
 
         nodeText = str(self.controller.getModelRepr())
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=nodeText, tags=self.controller.getTags(), image=self.getIcon())
-        except tk.TclError:
+        except tk.TclError as e:
             pass
         self.appliTw.sort(parentNode)
         if self.mainApp.settings.is_checklist_view():
@@ -365,6 +370,8 @@ class ToolView(ViewElement):
         Returns:
             A string that should be unique to describe the parent list of tool node
         """
+        if parent_db_id is None:
+            return ""
         return str(parent_db_id)
 
     @classmethod
@@ -377,7 +384,7 @@ class ToolView(ViewElement):
         """
         return str(treeview_id)
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a tool update is received by notification.
         Update the tool treeview item (resulting in icon reloading)
         """

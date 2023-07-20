@@ -181,7 +181,6 @@ class CheatsheetTreeview(PollenisatorTreeview):
         return self.contextualMenu
 
     def update_received(self, dataManager, notif, obj, old_obj):
-      
         collection = notif["collection"]
         action = notif["action"]
         iid = notif["iid"]
@@ -220,7 +219,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
             except tk.TclError:
                 if view is not None:
                     view.addInTreeview()
-            if str(self.openedViewFrameId) == str(iid):
+            if str(iid) == str(self.openedViewFrameId):
                 self.after(105, view.reopenView)
                 
             if view is not None:

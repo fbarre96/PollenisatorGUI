@@ -1,0 +1,54 @@
+popoxterm*faceName: dejavu sans mono
+popoxterm*faceSize: 12
+popoxterm*allowWindowOps: true
+! Dark mode color scheme
+! --------------
+! Background
+popoxterm*background: #1c1c1c
+! Foreground (text)
+popoxterm*foreground: #f2f2f2
+! Cursor color
+popoxterm*cursorColor: #f2f2f2
+! Selection background color
+popoxterm*colorUL: #f2f2f2
+! Bold text color
+popoxterm*colorBD: #f2f2f2
+! Normal black color
+popoxterm*color0: #4d4d4d
+! Normal red color
+popoxterm*color1: #f99286
+! Normal green color
+popoxterm*color2: #8ec07c
+! Normal yellow color
+popoxterm*color3: #ffc24b
+! Normal blue color
+popoxterm*color4: #5e81ac
+! Normal magenta color
+popoxterm*color5: #b48ead
+! Normal cyan color
+popoxterm*color6: #81a2be
+! Normal white color
+popoxterm*color7: #e0e0e0
+! Bright black color
+popoxterm*color8: #4d4d4d
+! Bright red color
+popoxterm*color9: #f99286
+! Bright green color
+popoxterm*color10: #8ec07c
+! Bright yellow color
+popoxterm*color11: #ffc24b
+! Bright blue color
+popoxterm*color12: #5e81ac
+! Bright magenta color
+popoxterm*color13: #b48ead
+! Bright cyan color
+popoxterm*color14: #81a2be
+! Bright white color
+popoxterm*color15: #f2f2f2
+popoxterm*VT100.Translations: #override \
+              Ctrl<Key>BackSpace: string(0x08)\n\
+              <Key>BackSpace: string(0x7F)\n\
+              <Key>Delete:    string("\033[3~")\n\
+              <Key>Home:      string("\033[1~")\n\
+              <Key>End:       string("\033[4~")
+popoxterm*ttyModes: erase ^? 

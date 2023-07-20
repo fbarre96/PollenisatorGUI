@@ -19,6 +19,7 @@ import importlib
 import pkgutil
 import socketio
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
+from pollenisatorgui.core.application.terminalswidget import TerminalsWidget
 from pollenisatorgui.core.components.datamanager import DataManager
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.treeviews.PentestTreeview import PentestTreeview
@@ -370,7 +371,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         # This results in lots of widget here with a confusing naming style
         #### core components (Tab menu on the left objects)####
         #### MAIN VIEW ####
-        self.openedViewFrameId = None
         self.mainPageFrame = None
         self.paned = None
         self.proxyFrameMain = None
@@ -378,6 +378,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.frameTw = None
         self.treevw = None
         self.datamanager = None
+        self.terminals = None
         self.myscrollbarMain = None
         #### COMMAND VIEW ####
         self.commandsPageFrame = None
@@ -528,6 +529,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         try:
             err = traceback.format_exception(args[0], args[1], args[2])
             err = "\n".join(err)
+            
             if args[0] is ErrorHTTP: # args[0] is class of ecx
                 if args[1].response.status_code == 401:
                     tk.messagebox.showerror("Disconnected", "You are not connected.")
@@ -543,7 +545,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         except Exception as e:
             print("Exception in error handler "+str(e))
             sys.exit(1)
-
+        
+        
     def promptForConnection(self):
         """Close current database connection and open connection form for the user
         
@@ -576,28 +579,44 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         import webbrowser
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
+    def notify(self, notification):
+        if notification["action"] == "notif_terminal":
+            check_iid = notification["iid"]["check_iid"]
+            pentest = notification["db"]
+            self.terminals.notif_terminal(check_iid)
+
     def handleNotif(self, notification):
+        self.notify(notification)
         self.datamanager.handleNotification(notification)
         
-
-   
-
+    
+    
     def onClosing(self):
         """
         Close the application properly.
         """
+        if self.quitting:
+            return
+        self.quitting = True
         apiclient = APIClient.getInstance()
         apiclient.dettach(self)
+        if self.terminals is not None:
+            self.terminals.onClosing()
         print("Stopping application...")
         if self.sio is not None:
             self.sio.disconnect()
             self.sio.eio.disconnect()
         if self.scanManager is not None:
             self.scanManager.onClosing()
+        
+            
         for module in self.modules:
             if callable(getattr(module["object"], "onClosing", None)):
                 module["object"].onClosing()
         self.quit()
+
+    def reopen(self, event=None):
+        self.treevw.reopen()
 
     def _initMenuBar(self):
         """
@@ -607,12 +626,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.configure(menu=menubar)
 
         self.bind('<F5>', self.refreshView)
+        self.bind('<F6>', self.reopen)
         self.bind('<Control-o>', self.openPentestsWindow)
         fileMenu =  utils.craftMenuWithStyle(menubar)
         fileMenu.add_command(label="Pentests management (Ctrl+o)",
                              command=self.openPentestsWindow)
         fileMenu.add_command(label="Connect to server", command=self.promptForConnection)
-        
         fileMenu.add_command(label="Export commands",
                              command=self.exportCommands)
         fileMenu.add_command(label="Import commands",
@@ -624,7 +643,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         fileMenu.add_command(label="Import defect templates",
                              command=self.importDefectTemplates)                     
 
-        fileMenu.add_command(label="Exit", command=self.onExit)
+        fileMenu.add_command(label="Exit", command=self.onClosing)
         fileMenu2 = utils.craftMenuWithStyle(menubar)
         fileMenu2.add_command(label="Import existing tools results ...",
                               command=self.importExistingTools)
@@ -701,8 +720,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         #PANED PART
         self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal")
         #RIGHT PANE : Canvas + frame
-        self.proxyFrameMain = CTkFrame(self.paned)
+        self.panedRight = ttk.PanedWindow(self.paned, orient="vertical")
+        self.proxyFrameMain = CTkFrame(self.panedRight)
+        self.proxyFrameMain.rowconfigure(0, weight=1) 
+        self.proxyFrameMain.columnconfigure(0, weight=1) 
         self.viewframe = ScrollableFrameXPlateform(self.proxyFrameMain)
+        self.terminals = TerminalsWidget(self.panedRight, height=200)
+        
         #LEFT PANE : Treeview
         self.left_pane = CTkFrame(self.paned)
         self.frameTw = CTkFrame(self.left_pane)
@@ -726,13 +750,19 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         
         self.left_pane.pack(side="left", fill=tk.BOTH, expand=True)
         self.paned.add(self.left_pane)
-        self.proxyFrameMain.pack(side="left")
-        self.viewframe.pack(side="left", expand=1, fill=tk.BOTH)
-        self.paned.add(self.proxyFrameMain)
+        self.proxyFrameMain.pack(side="top",fill=tk.BOTH, expand=True)
+        
+        self.viewframe.pack(fill=tk.BOTH, expand=1)
+        self.terminals.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=1)
+        self.panedRight.add(self.proxyFrameMain, weight=1)
+        self.panedRight.add(self.terminals, weight=0)
+        self.paned.add(self.panedRight)
+
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.mainPageFrame.pack(fill="both", expand=True)
         self.nbk.add(self.mainPageFrame, "Main View", order=Module.HIGH_PRIORITY, image=self.main_tab_img)
-
+        
+        
     def searchbarSelectAll(self, _event):
         """
         Callback to select all the text in searchbar
@@ -871,13 +901,18 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def refreshUI(self):
         for widget in self.viewframe.winfo_children():
             widget.destroy()
+        
         self.left_pane.update()
         self.after(50, lambda: self.paned.paneconfigure(self.left_pane, height=self.left_pane.winfo_reqheight()))
         self.treevw.refresh()
         self.treevw.filter_empty_nodes()
         self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
+        self.terminals.open_terminal()
         # self.nbk.select("Main View")
 
+    def open_terminal(self, iid, title):
+        self.terminals.open_terminal(iid, title)
+        
     def quickSearchChanged(self, event=None):
         """Called when the quick search bar is modified. Change settings
         Args:
@@ -998,7 +1033,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """ test local binary path with which"""
         datamanager = DataManager.getInstance()
         apiclient = APIClient.getInstance()
-        self.settings._reloadLocalSettings()
+        self.settings.reloadLocalSettings()
         commands = datamanager.find("commands", {"owners":apiclient.getUser()})
         for command in commands:
             bin_path = self.settings.local_settings.get("my_commands", {}).get(command["name"])
@@ -1143,12 +1178,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         else:
             tkinter.messagebox.showinfo("Defects templates import", "Defects templates completed")
         return success
-
-    def onExit(self):
-        """
-        Exit the application
-        """
-        self.onClosing()
 
     def openPentestsWindow(self, _event=None):
         """

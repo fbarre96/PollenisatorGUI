@@ -27,6 +27,7 @@ class IpView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Ip
         """
+        self.form.clear()
         modelData = self.controller.getData()
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormLabel("Ip")
@@ -130,11 +131,11 @@ class IpView(ViewElement):
             self.hide("tags")
         if self.mainApp.settings.is_checklist_view():
             self.hide("checklist_view")
-        if self.mainApp.settings.is_hide_oos() and "OOS" in self.controller.getTags():
-            self.hide("filter_oos")
         modelData = self.controller.getData()
+        if self.mainApp.settings.is_hide_oos() and not modelData["in_scopes"]:
+            self.hide("filter_oos")
         if not modelData["in_scopes"]:
-            self.controller.addTag("OOS")
+            self.appliTw.item(ip_node, tags=self.controller.getTags()+["OOS"])
 
     def split_ip(self):
         """Split a IP address given as string into a 4-tuple of integers.
@@ -161,28 +162,30 @@ class IpView(ViewElement):
         Can also insert in treeview with OOS tags.
         """
         modelData = self.controller.getData()
-        if modelData.get("in_scopes", []):
+        if modelData.get("in_scopes", []): # in_scopes is not empty
             for module in self.mainApp.modules:
                 if callable(getattr(module["object"], "insertIP", None)):
                     module["object"].insertIp(modelData["ip"])
         else:
             self.appliTw.item(str(self.controller.getDbId()), text=str(
-                self.controller.getModelRepr()), image=self.getIcon())
-            self.controller.addTag("OOS")
+                self.controller.getModelRepr()), image=self.getIcon(), tags=["OOS"])
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a IP update is received by notification.
         Update the ip node OOS status tags and add/remove it from summary.
         """
         if self.controller.model is not None:
             modelData = self.controller.getData()
             if not modelData["in_scopes"]:
-                self.controller.addTag("OOS")
+                self.appliTw.item(str(self.controller.getDbId()), tags=self.controller.getTags()+["OOS"])
                 for module in self.mainApp.modules:
                     if callable(getattr(module["object"], "deleteIp", None)):
                         module["object"].deleteIp(modelData["ip"])
             else:
-                self.controller.delTag("OOS")
+                tags = list(self.controller.getTags())
+                if "OOS" in tags:
+                    tags.remove("OOS")
+                self.appliTw.item(str(self.controller.getDbId()), tags=tags)
                 for module in self.mainApp.modules:
                     if callable(getattr(module["object"], "insertIp", None)):
                         module["object"].insertIp(modelData["ip"])

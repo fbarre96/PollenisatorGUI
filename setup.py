@@ -193,7 +193,7 @@ setup(
     entry_points={  # Optional
         'console_scripts': [
             'pollenisator-gui=pollenisatorgui.pollenisator:main',
-            'pollex=pollenisatorgui.pollenisator:pollex',
+            'pollex=pollenisatorgui.pollex:pollex',
             'pollup=pollenisatorgui.pollenisator:pollup',
             'pollwatch=pollenisatorgui.pollenisator:pollwatch'
         ],

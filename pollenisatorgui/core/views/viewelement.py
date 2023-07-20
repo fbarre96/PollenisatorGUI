@@ -10,6 +10,7 @@ from tkinter import ttk
 from tkinter import TclError
 from customtkinter import *
 from PIL import Image
+import tkinter as tk
 import pollenisatorgui.core.components.utils as utils
 
 
@@ -205,18 +206,25 @@ class ViewElement(object):
             #             column = 0
         self.showForm()
 
-
+    def clearWindow(self):
+        self.form.clear()
+        for widget in self.appliViewFrame.winfo_children():
+            widget.destroy()
 
     def reopenView(self):
         self.clearWindow()
         self.form.clear()
         self.openModifyWindow()
+        
 
     def showForm(self):
         """Resets the application view frame and start displaying the form in it
         """
         for widget in self.appliViewFrame.winfo_children():
-            widget.destroy()
+            try:
+                widget.destroy()
+            except tk.TclError:
+                pass
         self.form.constructView(self.appliViewFrame)
 
     def completeInsertWindow(self):
@@ -254,6 +262,8 @@ class ViewElement(object):
         Returns:
             A string that should be unique to describe the parent list of viewelement node
         """
+        if parent_db_id is None:
+            return None
         return str(parent_db_id)
 
     def getParentId(self):
@@ -276,7 +286,8 @@ class ViewElement(object):
         """
         dialog = ChildDialogGenericView(self.mainApp, "Modify", self)
         return dialog.rvalue
-    def updateReceived(self):
+    
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when any view element update is received by notification.
         Resets the node tags according to database and hide it if "hidden" is in tags
         """

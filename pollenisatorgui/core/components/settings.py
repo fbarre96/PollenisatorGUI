@@ -145,7 +145,7 @@ class Settings:
              '''konsole --noclose -e''']
             otherwise returns a list with defined  values
         """
-        self._reloadLocalSettings()
+        self.reloadLocalSettings()
         return self.local_settings.get("terms",
             ["""gnome-terminal --window --""",
              """xfce4-terminal -x""",
@@ -159,7 +159,7 @@ class Settings:
             If none are defined returns first in the list of terms
             Otherwise returns the favorite terminal configured 
         """
-        self._reloadLocalSettings()
+        self.reloadLocalSettings()
         fav = self.local_settings.get("fav_term", None)
         if fav is None:
             terms = self.getTerms()
@@ -194,11 +194,11 @@ class Settings:
         """
         Change favorite term 
         """
-        self._reloadLocalSettings()
+        self.reloadLocalSettings()
         self.local_settings["fav_term"] = self.box_favorite_term.get()
         self.saveLocalSettings()
     
-    def _reloadLocalSettings(self):
+    def reloadLocalSettings(self):
         """
         Reload local settings from local conf file
         """
@@ -239,7 +239,7 @@ class Settings:
         """
         Reload local, database and global settings.
         """
-        self._reloadLocalSettings()
+        self.reloadLocalSettings()
         self._reloadDbSettings()
         self._reloadGlobalSettings()
 

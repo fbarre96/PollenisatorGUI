@@ -100,16 +100,13 @@ class CheckInstanceView(ViewElement):
         
         super().__init__(appTw, appViewFrame, mainApp, controller)
 
-    def clearWindow(self):
-        self.form.clear()
-        for widget in self.appliViewFrame.winfo_children():
-            widget.destroy()
+    
             
     def openModifyWindow(self):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
-        self.clearWindow()
+        self.form.clear()
         infos = self.controller.getCheckInstanceInfo()
         modelData = self.controller.getData()
         check_m = self.controller.getCheckItem()
@@ -142,6 +139,7 @@ class CheckInstanceView(ViewElement):
         lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_running_stop = [self.stopToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
+        lambdas_del = [self.deleteToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         datamanager = DataManager.getInstance()
             
         if dict_of_tools_not_done:
@@ -208,15 +206,17 @@ class CheckInstanceView(ViewElement):
                             column = 0
                         if column == 0:
                             tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
-                tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT)
+                tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT, height=min(26*+len(tool_m.notes.split("\n")), 200))
                 tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, width=20, side=tk.LEFT, anchor=tk.E)
+                tool_panel.addFormButton("Delete", lambdas_del[row], width=20, side=tk.LEFT, anchor=tk.E, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
         upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, anchor=tk.N, pady=5)
         self.form_file = upload_panel.addFormFile("upload_tools", height=2, side=tk.LEFT, pady=5)
         upload_panel.addFormButton("Upload", callback=self.upload_scan_files, anchor=tk.N, side=tk.LEFT, pady=5)
 
-            #for command, status in infos.get("tools_status", {}).items():
+        #for command, status in infos.get("tools_status", {}).items():
         if "script" in check_m.check_type:
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
@@ -231,10 +231,11 @@ class CheckInstanceView(ViewElement):
         panel_detail.addFormLabel("Notes", row=2, column=0)
         panel_detail.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
         self.completeModifyWindow(addTags=False)
-
+    
     def attackOnTerminal(self, event):
-        import pollenisatorgui.modules.terminal as terminal
-        terminal.Terminal.openTerminal(str(self.controller.getDbId()))
+        #import pollenisatorgui.modules.terminal as terminal
+        #terminal.Terminal.openTerminal(str(self.controller.getDbId()))
+        self.mainApp.open_terminal(str(self.controller.getDbId()), self.controller.target_repr)
 
     def status_change(self, event):
         status = self.form_status.getValue()
@@ -298,6 +299,9 @@ class CheckInstanceView(ViewElement):
 
     def downloadToolCallbackLambda(self, tool_iid):
         return lambda event: self.downloadToolCallback(tool_iid)
+    
+    def deleteToolCallbackLambda(self, tool_iid):
+        return lambda event: self.deleteToolCallback(tool_iid)
 
     def openToolDialog(self, event, infos):
         tool_iid = infos.get("iid")
@@ -341,6 +345,10 @@ class CheckInstanceView(ViewElement):
         tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
         tool_vw.downloadResultFile()
         
+    def deleteToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
+        tool_vw.delete()
 
     def viewScript(self, script):
         ScriptManager.openScriptForUser(script)
@@ -429,7 +437,7 @@ class CheckInstanceView(ViewElement):
         self.menuContextuel.unpost()
 
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a command update is received by notification.
         Update the command treeview item (resulting in icon reloading)
         """

@@ -429,7 +429,7 @@ class ScanManager:
             return progress
         if not thread.is_alive():
             return True
-        return True
+        return False
 
     def stopTask(self, toolId):
         thread, queue, queueResponse, toolModel = self.local_scans.get(str(toolId), (None, None, None, None))
@@ -551,7 +551,7 @@ class ScanManager:
         return self.local_scans.get(str(toolId), None) is not None
 
     def registerAsWorker(self, _event=None):
-        self.settings._reloadLocalSettings()
+        self.settings.reloadLocalSettings()
         self.sio = socketio.Client()
         apiclient = APIClient.getInstance()
         self.sio.connect(apiclient.api_url)

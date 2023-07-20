@@ -96,6 +96,7 @@ class RemarkView(ViewElement):
         Args:
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
+        self.form.clear()
         modelData = self.controller.getData()
         search_panel = self.form.addFormPanel(grid=True, side="left", pady=0, padx=0)
         type_combo_search = search_panel.addFormPanel(grid=True, row=0, column=0)

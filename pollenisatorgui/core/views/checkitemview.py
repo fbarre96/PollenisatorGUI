@@ -157,6 +157,7 @@ class CheckItemView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
+        self.form.clear()
         modelData = self.controller.getData()
         self._initContextualMenu()
         panel_top = self.form.addFormPanel(grid=True)
@@ -168,9 +169,7 @@ class CheckItemView(ViewElement):
             #self.form.addFormButton("Add a step", self.addStep)
         self.completeModifyWindow(editable=True, addTags=False)
 
-    def clearWindow(self):
-        for widget in self.appliViewFrame.winfo_children():
-            widget.destroy()
+
 
     def addStep(self, event=None):
         newCheckItem = CheckItem({"parent":str(self.controller.getDbId())})
@@ -270,7 +269,7 @@ class CheckItemView(ViewElement):
         ret = [{"TITLE":command["name"], "commands":{"text":command["name"], "values":(0, str(command["_id"]))}} for command in commands]
         return ret, ""
 
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a command update is received by notification.
         Update the command treeview item (resulting in icon reloading)
         """

@@ -331,6 +331,7 @@ class DefectView(ViewElement):
         Args:
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
+        self.form.clear()
         modelData = self.controller.getData()
         settings = self.mainApp.settings
         settings.reloadSettings()
@@ -607,7 +608,7 @@ class DefectView(ViewElement):
                 if callable(getattr(module["object"], "addDefect", None)):
                     module["object"].addDefect(self.controller.model)
     
-    def updateReceived(self):
+    def updateReceived(self, obj=None, old_obj=None):
         """Called when a defect update is received by notification.
         Update the defect node and the report defect table.
         """

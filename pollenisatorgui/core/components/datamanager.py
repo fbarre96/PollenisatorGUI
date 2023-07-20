@@ -2,7 +2,7 @@ import os
 from bson import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.models.metaelement import REGISTRY
-from multiprocessing import Manager
+
 class Subject:
     """Represents what is being observed"""
  

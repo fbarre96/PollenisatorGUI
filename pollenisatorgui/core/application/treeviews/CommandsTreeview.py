@@ -242,7 +242,7 @@ class CommandsTreeview(PollenisatorTreeview):
             except tk.TclError:
                 if view is not None:
                     view.addInTreeview()
-            if str(self.appli.openedViewFrameId) == str(iid):
+            if str(iid) == self.openedViewFrameId:
                 for widget in self.appli.viewframe.winfo_children():
                     widget.destroy()
                 view.openModifyWindow()
