@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import pty
 import select
+import shutil
 import signal
 import subprocess
 import time
@@ -136,7 +137,9 @@ class TerminalsWidget(CTkFrame):
                 tmux_conf = os.path.join(config_location, ".tmux.conf")
                 terminal_conf = os.path.join(config_location, "shell_ressources")
                 subprocess.run("xrdb -load %s" % xterm_conf, shell=True)
-                shell_command = os.environ.get("SHELL")
+                shell_command = os.environ.get("SHELL", "/bin/bash")
+                if shutil.which("zsh") or os.environ.get("ZSH"):
+                    shell_command = "zsh"
                 trap_suffix = ("trap" if settings.isTrapCommand()  else "notrap")
                 if shell_command.endswith("zsh"):
                     terminal_conf = os.path.join(terminal_conf, "zshrc_"+trap_suffix)
