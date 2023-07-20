@@ -156,8 +156,6 @@ class TerminalsWidget(CTkFrame):
                         f2.write(tmux_conf_content)
                     tmux_conf = tmux_conf_new
                 command = f"xterm -into {wid} -class popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
-                with open("/home/barre/log.txt", "w") as f:
-                    f.write(command)
                 
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
                 signal.signal(signal.SIGINT, lambda signum,sigframe: killThisProc(proc))
