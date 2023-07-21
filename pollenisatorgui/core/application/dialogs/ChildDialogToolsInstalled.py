@@ -67,9 +67,9 @@ class ChildDialogToolsInstalled(CTkToplevel):
         item = self.tv.identify("item", event.x, event.y)
         if item is None or item == '':
             return
-        command_name = self.tv.item(item)["text"]
+        plugin_name = self.tv.item(item)["text"]
         current_bin_path = self.tv.item(item)["values"][0]
-        dialog_ask_text = ChildDialogAskText(self, info=f"New path for command {command_name}", default=current_bin_path ,multiline=False)
+        dialog_ask_text = ChildDialogAskText(self, info=f"New path for plugin {plugin_name}", default=current_bin_path ,multiline=False)
         self.wait_window(dialog_ask_text.app)
         if dialog_ask_text.rvalue is not None:
             new_path = dialog_ask_text.rvalue
@@ -82,16 +82,20 @@ class ChildDialogToolsInstalled(CTkToplevel):
     def reloadUI(self):
         for widget in self.mainFrame.winfo_children():
             widget.destroy()
-        self.tv = ScrollableTreeview(self.mainFrame,('Command name','Local command Configured'), height=25)
+        self.tv = ScrollableTreeview(self.mainFrame,('Plugin name','Local command Configured'), height=25)
         self.tv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=1)
         self.tv.bind("<Double-Button-1>", self.OnDoubleClick)
         for tool_result in self.tools_results.get("failures", []):
-            self.tv.insert("", "end", tool_result["command"]["name"], text=tool_result["command"]["name"], values=(tool_result["command"]["bin_path"],),
+            self.tv.insert("", "end", tool_result["plugin"]["plugin"], text=tool_result["plugin"]["plugin"], values=(tool_result["bin_path"],),
                            image=self.badIcon())
         for tool_result in self.tools_results.get("successes", []):
-            self.tv.insert("", "end", tool_result["command"]["name"], text=tool_result["command"]["name"], values=(tool_result["command"]["bin_path"],),
+            self.tv.insert("", "end", tool_result["plugin"]["plugin"], text=tool_result["plugin"]["plugin"], values=(tool_result["bin_path"],),
                            image=self.validIcon())
-        
+        CTkButton(self.mainFrame, text="OK", command=self.onOk).pack(side=tk.RIGHT)
+            
+        self.button = CTkButton(self.mainFrame, text="Cancel",command=self.onError,
+                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato").pack(side=tk.RIGHT)
         self.mainFrame.pack(fill=tk.BOTH, ipadx=10, ipady=10, expand=1)
         try:
             self.wait_visibility()
@@ -102,3 +106,24 @@ class ChildDialogToolsInstalled(CTkToplevel):
         except tk.TclError:
             pass
     
+    def onError(self, _event=None):
+        self.rvalue = None
+        self.destroy()
+
+    def onOk(self, _event=None):
+        """
+        Called when the user clicked the validation button.
+        launch parsing with selected parser on selected file/directory.
+        Close the window.
+
+        Args:
+            _event: not used but mandatory
+        """
+        res = {}
+        for item in self.tv.infos:
+            command_name = item["text"]
+            bin_path = item["values"][0]
+            res[command_name] = bin_path
+        self.rvalue = res
+        self.destroy()
+        return

@@ -137,6 +137,7 @@ class ScrollableTreeview(CTkFrame):
 
     def item(self, iid, **kwargs):
         try:
+            self.infos[[x["iid"] for x in self.infos].index(iid)].update(kwargs)
             return self.treevw.item(iid, **kwargs)
         except tk.TclError as e:
             raise e
@@ -296,7 +297,9 @@ class ScrollableTreeview(CTkFrame):
     def selection(self):
         return self.treevw.selection()
     
-    def get_children(self):
+    def get_children(self, all=False):
+        if all:
+            return [x["iid"] for x in self.infos]
         return self.treevw.get_children()
     
     def identify(self, *args, **kwargs):

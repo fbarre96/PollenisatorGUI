@@ -36,7 +36,7 @@ class ChildDialogEditCommandSettings:
         optionsFrame.addFormStr("bin", r".+", row=0, column=1)
         optionsFrame.addFormLabel("Plugin", row=1, column=0)
         apiclient = APIClient.getInstance()
-        optionsFrame.addFormCombo("plugin", tuple(apiclient.getPlugins()), row=1, column=1)
+        optionsFrame.addFormCombo("plugin", tuple([x["plugin"] for x in apiclient.getPlugins()]), row=1, column=1)
         self.form.addFormButton("Cancel", self.onError, 
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")

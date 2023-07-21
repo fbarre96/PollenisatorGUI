@@ -38,7 +38,7 @@ class ChildDialogFileParser:
                               side=tk.TOP, mode="file|directory")
         self.form.addFormLabel("Plugins", side=tk.TOP)
         self.form.addFormCombo(
-            "Plugin", ["auto-detect"]+apiclient.getPlugins(), "auto-detect", side=tk.TOP)
+            "Plugin", ["auto-detect"]+[x["plugin"] for x in apiclient.getPlugins()], "auto-detect", side=tk.TOP)
         self.form.addFormButton("Parse", self.onOk, side=tk.RIGHT)
 
         self.form.constructView(appFrame)

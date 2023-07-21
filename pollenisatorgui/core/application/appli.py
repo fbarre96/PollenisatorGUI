@@ -1033,25 +1033,35 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def wrapperTestLocalTools(self):
         results = self.testLocalTools()
         dialog = ChildDialogToolsInstalled(results)
-        self.wait_window(dialog.app)
-            
-
+        dialog.wait_window()
+        if dialog.rvalue is not None:
+            self.settings.local_settings["my_commands"] = dialog.rvalue
+            self.settings.saveLocalSettings()
 
     def testLocalTools(self):
         """ test local binary path with which"""
-        datamanager = DataManager.getInstance()
         apiclient = APIClient.getInstance()
         self.settings.reloadLocalSettings()
-        commands = datamanager.find("command", {"owners":apiclient.getUser()})
+        plugins = apiclient.getPlugins()
         results = {"successes":[], "failures":[]}
-        for command in commands:
-            bin_path = self.settings.local_settings.get("my_commands", {}).get(command["name"])
-            if bin_path is None:
-                results["failures"].append({"title":"Missing a binary path", "command":command, "bin_path":"", "msg":f"The local settings for {command['name']} is not set. Missing local binary path."})
-            elif not utils.which_expand_alias(bin_path):
-                results["failures"].append({"title":"Invalid binary path", "command":command, "bin_path":bin_path, "msg":f"The local settings for {command['name']} is not recognized. ({bin_path})."})
+        for plugin in plugins:
+            if plugin["plugin"] == "Default":
+                continue
+            bin_path = self.settings.local_settings.get("my_commands", {}).get(plugin["plugin"])
+            if bin_path is None or bin_path == "" or utils.which_expand_alias(bin_path):
+                default_bin_names = plugin["default_bin_names"]
+                found_matching = False
+                for default_bin_name in default_bin_names:
+                    if utils.which_expand_alias(default_bin_name):
+                        plugin["bin_path"] = default_bin_name
+                        bin_path = default_bin_name
+                        results["successes"].append({"title":"Success", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is valid. ({bin_path})."})
+                        found_matching = True
+                        break
+                if found_matching == False:
+                    results["failures"].append({"title":"Invalid binary path", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is not recognized. ({bin_path})."})
             else:
-                results["successes"].append({"title":"Success", "command":command, "bin_path":bin_path, "msg":f"The local settings for {command['name']} is valid. ({bin_path})."})
+                results["successes"].append({"title":"Success", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is valid. ({bin_path})."})
         return results
     
 

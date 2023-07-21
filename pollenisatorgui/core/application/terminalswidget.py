@@ -37,6 +37,7 @@ def read_and_forward_pty_output(fd, queue=None, queueResponse=None):
 
 def killThisProc(proc):
     try:
+        logger.error("Killing process terminal")
         time.sleep(1) # HACK to avoid xterm crash ✨ black magic ✨
         os.kill(proc.pid, signal.SIGTERM)
     except Exception as e:
@@ -184,9 +185,14 @@ class TerminalsWidget(CTkFrame):
             except Exception as e:
                 logger.error(e)
                 sys.exit(0)
-            proc._killed = False
-            stdout, stderr = proc.communicate() # wait for ending
-            sys.exit(0)
+            try:
+                proc._killed = False
+                stdout, stderr = proc.communicate() # wait for ending
+                sys.exit(0)
+            except Exception as e:
+                logger.error(e)
+                sys.exit(0)
+                
         else:
             
             queue = multiprocessing.Queue()

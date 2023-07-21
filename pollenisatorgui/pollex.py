@@ -15,7 +15,7 @@ def pollex():
     else:
         execCmd = shlex.join(sys.argv[1:])
     bin_name = shlex.split(execCmd)[0]
-    if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code", "cd", "pwd", "cat", "export"]:
+    if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code", "cd", "ls","pwd", "cat", "export"]:
         return
     import os
     import shutil

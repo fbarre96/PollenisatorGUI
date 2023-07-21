@@ -42,7 +42,7 @@ class CommandView(ViewElement):
         row += 1
         
         panel_bottom.addFormLabel("Plugin", row=row)
-        panel_bottom.addFormCombo("Plugin", APIClient.getInstance().getPlugins(), default.get("plugin", "Default") , column=1, row=row)
+        panel_bottom.addFormCombo("Plugin", [x["plugin"] for x in APIClient.getInstance().getPlugins()], default.get("plugin", "Default") , column=1, row=row)
         panel_bottom.addFormHelper(
             "The plugin handling this command.", column=2, row=row)
         row += 1

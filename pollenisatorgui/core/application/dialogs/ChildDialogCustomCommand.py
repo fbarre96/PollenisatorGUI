@@ -43,7 +43,7 @@ class ChildDialogCustomCommand:
         apiclient = APIClient.getInstance()
         parsers = apiclient.getPlugins()
         self.box_template = CTkComboBox(
-            appFrame, values=tuple(parsers), state="readonly")
+            appFrame, values=tuple([x["plugin"] for x in parsers]), state="readonly")
         self.box_template.set("Default")
         self.box_template.pack()
         lbl3 = CTkLabel(appFrame, text="Select the worker")
