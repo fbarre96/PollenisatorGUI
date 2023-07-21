@@ -553,19 +553,21 @@ class ScanManager:
 
     def registerAsWorker(self, _event=None):
         results = self.mainApp.testLocalTools()
-        dialog = ChildDialogToolsInstalled(results)
-        dialog.wait_window()
-        if not dialog.rvalue:
-            return
+        if len(results["failures"]) > 0:
+            dialog = ChildDialogToolsInstalled(results)
+            dialog.wait_window()
+            if not dialog.rvalue:
+                self.settings.local_settings["my_commands"] = dialog.rvalue
+                self.settings.saveLocalSettings()
         self.settings.reloadLocalSettings()
         self.sio = socketio.Client()
         apiclient = APIClient.getInstance()
         self.sio.connect(apiclient.api_url)
         name = apiclient.getUser()
-        bins = list(set(self.settings.local_settings.get("my_commands",{}).values()))
+        plugins = list(set(self.settings.local_settings.get("my_commands",{}).keys()))
         print("REGISTER "+str(name))
-        print("KNOWNS BINS "+str(bins))
-        self.sio.emit("register", {"name":name, "binaries":bins})
+        print("supported plugins "+str(plugins))
+        self.sio.emit("register", {"name":name, "binaries":plugins})
         @self.sio.event
         def executeCommand(data):
             print("GOT EXECUTE "+str(data))
