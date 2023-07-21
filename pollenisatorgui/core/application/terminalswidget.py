@@ -40,6 +40,7 @@ def killThisProc(proc):
         logger.error("Killing process terminal")
         time.sleep(1) # HACK to avoid xterm crash ✨ black magic ✨
         os.kill(proc.pid, signal.SIGTERM)
+        
     except Exception as e:
         pass
 

@@ -16,6 +16,7 @@ from bson import ObjectId
 import signal
 from shutil import which
 import shlex
+import psutil
 import tkinter  as tk
 import tkinter.ttk as ttk
 from customtkinter import *
@@ -324,11 +325,19 @@ def handleProcKill(proc):
     proc._killed = True
 
 
-def read_and_forward_pty_output(fd, queue, queueResponse, printStdout):
+def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout):
     max_read_bytes = 1024 * 20
     try:
         while True:
             time.sleep(0.01)
+            if queue.qsize() > 0:
+                key = queue.get()
+                if key == "kill":
+                    parent = psutil.Process(child_pid)
+                    for child in parent.children(recursive=True):
+                        child.kill()
+                    parent.kill()
+                    sys.exit(-1)
             if fd:
                 timeout_sec = 0
                 (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
@@ -375,7 +384,7 @@ def execute(command, timeout=None,  queue=None, queueResponse=None, cwd=None, pr
     if child_pid == 0:
         try:
             proc = subprocess.run(
-                command, shell=True, cwd=cwd, timeout=timeout)
+                command, shell=True, cwd=cwd, timeout=timeout, preexec_fn=os.setsid)
         except subprocess.TimeoutExpired:
             sys.exit(-1)
         except Exception as e:
@@ -385,7 +394,7 @@ def execute(command, timeout=None,  queue=None, queueResponse=None, cwd=None, pr
             sys.exit(0)
     else:
         
-        p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd,queue, queueResponse, printStdout])
+        p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout])
         p.start()
         p.join()
     info = os.waitpid(child_pid, 0)

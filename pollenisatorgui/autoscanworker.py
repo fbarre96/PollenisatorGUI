@@ -3,6 +3,7 @@
 
 import errno
 import os
+import signal
 import time
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
@@ -18,6 +19,9 @@ import sys
 
 event_obj = threading.Event()
 
+
+def sendKill(queue):
+    queue.put("kill")
 
 def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False, infos={}, logger_given=None):
     """
@@ -54,6 +58,8 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         sys.exit(1)
 
     sys.excepthook = handle_exception
+    #register signals
+    signal.signal(signal.SIGTERM, lambda signum, sigframe: sendKill(queue))
     # Connect to given pentest
     logger.debug("executeTool: Execute tool locally:" +str(local)+" setTimer:"+str(setTimer)+" toolId:"+str(toolId))
     APIClient.setInstance(apiclient)
