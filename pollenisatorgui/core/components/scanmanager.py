@@ -1,5 +1,6 @@
 """Hold functions to interact form the scan tab in the notebook"""
 from pollenisatorgui.core.application.dialogs.ChildDialogScanHistory import ChildDialogScanHistory
+from pollenisatorgui.core.application.dialogs.ChildDialogToolsInstalled import ChildDialogToolsInstalled
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.core.components.apiclient import APIClient
@@ -551,6 +552,11 @@ class ScanManager:
         return self.local_scans.get(str(toolId), None) is not None
 
     def registerAsWorker(self, _event=None):
+        results = self.mainApp.testLocalTools()
+        dialog = ChildDialogToolsInstalled(results)
+        dialog.wait_window()
+        if not dialog.rvalue:
+            return
         self.settings.reloadLocalSettings()
         self.sio = socketio.Client()
         apiclient = APIClient.getInstance()

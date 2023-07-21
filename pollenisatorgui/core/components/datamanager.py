@@ -67,7 +67,12 @@ class DataManager(Subject):
             is_match = True
             for key, val in search.items():
                 data = data_model.getData()
-                if data.get(key, None) != val:
+                compared = data.get(key, None)
+                if isinstance(compared, list):
+                    if val not in compared:
+                        is_match = False
+                        break
+                elif compared != val:
                     is_match = False
                     break
             if is_match:

@@ -18,6 +18,7 @@ from PIL import ImageTk, Image
 import importlib
 import pkgutil
 import socketio
+from pollenisatorgui.core.application.dialogs.ChildDialogToolsInstalled import ChildDialogToolsInstalled
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.application.terminalswidget import TerminalsWidget
 from pollenisatorgui.core.components.datamanager import DataManager
@@ -650,7 +651,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         fileMenu2.add_command(label="Reset unfinished tools",
                               command=self.resetUnfinishedTools)
         fileMenu2.add_command(label="Test local tools",
-                              command=self.testLocalTools)
+                              command=self.wrapperTestLocalTools)
         fileMenu2.add_command(label="Refresh (F5)",
                               command=self.refreshView)
         fileMenuUser = utils.craftMenuWithStyle(menubar)
@@ -1029,21 +1030,29 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             utils.resetUnfinishedTools()
             self.treevw.load()
 
+    def wrapperTestLocalTools(self):
+        results = self.testLocalTools()
+        dialog = ChildDialogToolsInstalled(results)
+        self.wait_window(dialog.app)
+            
+
+
     def testLocalTools(self):
         """ test local binary path with which"""
         datamanager = DataManager.getInstance()
         apiclient = APIClient.getInstance()
         self.settings.reloadLocalSettings()
-        commands = datamanager.find("commands", {"owners":apiclient.getUser()})
+        commands = datamanager.find("command", {"owners":apiclient.getUser()})
+        results = {"successes":[], "failures":[]}
         for command in commands:
             bin_path = self.settings.local_settings.get("my_commands", {}).get(command["name"])
             if bin_path is None:
-                tk.messagebox.showerror("Missing a binary path", f"The local settings for {command['name']} is not set. Missing local binary path.")
-                return False
-            if not utils.which_expand_alias(bin_path):
-                tk.messagebox.showerror("Invalid binary path", f"The local settings for {command['name']} is not recognized. ({bin_path}).")
-        tk.messagebox.showinfo("Test local tools success", "All binary path exists")
-        return True
+                results["failures"].append({"title":"Missing a binary path", "command":command, "bin_path":"", "msg":f"The local settings for {command['name']} is not set. Missing local binary path."})
+            elif not utils.which_expand_alias(bin_path):
+                results["failures"].append({"title":"Invalid binary path", "command":command, "bin_path":bin_path, "msg":f"The local settings for {command['name']} is not recognized. ({bin_path})."})
+            else:
+                results["successes"].append({"title":"Success", "command":command, "bin_path":bin_path, "msg":f"The local settings for {command['name']} is valid. ({bin_path})."})
+        return results
     
 
     def exportCommands(self):
@@ -1240,8 +1249,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":pentestName})
             self.settings.reloadSettings()
             self.refresh_tabs()
-            if first_use_detected:
-                self.testLocalTools()
             self.nbk.select("Dashboard")
 
     def refresh_tabs(self):
