@@ -1,6 +1,6 @@
 import sys
 import shlex
-
+import multiprocessing
 
 def pollex():
     """Send a command to execute for pollenisator-gui running instance
@@ -31,9 +31,21 @@ def pollex():
     res = apiclient.tryAuth()
     if not res:
         consoleConnect()
-    cmdName +="::"+str(time.time()).replace(" ","-")
     res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
     (success, data) = res
+    if not success:
+        print(msg)
+        consoleConnect()
+    res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
+    (success, data) = res
+    if not success:
+        print(msg)
+        return
+    cmdName +="::"+str(time.time()).replace(" ","-")
+    default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
+    if default_target.get("tool_iid") is not  None:
+        apiclient.setToolStatus(default_target.get("tool_iid"), ["running"])
+    
     if not success:
         print("ERROR : "+data)
         return
@@ -52,7 +64,10 @@ def pollex():
     if (verbose):
         print("Executing command : "+str(comm))
         print("output should be in "+str(outputFilePath))
-    returncode = utils.execute(comm, None, cwd=tmpdirname, printStdout=True)
+    queue = multiprocessing.Queue()
+    queueResponse = multiprocessing.Queue()
+    returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
+    queue.put("kill")
     if len(plugin_results) == 1 and "Default" in plugin_results:
         if (verbose):
             print("INFO : Only default plugin found")
@@ -60,6 +75,8 @@ def pollex():
         if str(response).strip().lower() == "n":
             shutil.rmtree(tmpdirname)
             return
+    atLeastOne = False
+    error = ""
     for plugin,ext in plugin_results.items():
         outputFilePath = os.path.join(tmpdirname, cmdName) + ext
         if not os.path.exists(outputFilePath):
@@ -67,8 +84,15 @@ def pollex():
                 outputFilePath+=ext
             else:
                 print(f"ERROR : Expected file was not generated {outputFilePath}")
+                error = "ERROR : Expected file was not generated"
                 continue
         print(f"INFO : Uploading results {outputFilePath}")
-        msg = apiclient.importExistingResultFile(outputFilePath, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), comm)
+        msg = apiclient.importExistingResultFile(outputFilePath, plugin, default_target, comm)
         print(msg)
+        atLeastOne = True
+    if not atLeastOne:
+        notes = ""
+        while not queueResponse.empty():
+            notes += queueResponse.get()
+        apiclient.setToolStatus(default_target.get("tool_iid"), ["error"], error+"\nSTDOUT:\n"+notes)
     shutil.rmtree(tmpdirname)

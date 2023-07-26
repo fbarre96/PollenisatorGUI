@@ -125,12 +125,9 @@ def parseDefaultTarget(stringToParse):
     if "|" in stringToParse:
         parts = stringToParse.split("|")
         ret = {}
-        ret["lvl"] = parts[0]
-        ret["wave"] = parts[1]
-        ret["scope"] = parts[2]
-        ret["ip"] = parts[3]
-        ret["port"] = parts[4]
-        ret["proto"] = parts[5]
+        ret["check_iid"] = parts[0]
+        ret["tool_iid"] = parts[1]
+        ret["lvl"] = "import"
         return ret
 
     else:

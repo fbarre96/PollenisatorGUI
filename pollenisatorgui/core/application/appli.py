@@ -39,6 +39,7 @@ from pollenisatorgui.core.components.admin import AdminView
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.filter import Filter
+from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
@@ -353,6 +354,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.scanViewFrame = None
         self.admin = None
         self.nbk = None
+        self.notif_handlers = []
         self.sio = None #socketio client
         self.initialized = False
         self.settings = Settings()
@@ -581,10 +583,31 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         webbrowser.open_new_tab("https://github.com/AlgoSecure/Pollenisator/issues")
 
     def notify(self, notification):
-        if notification["action"] == "notif_terminal":
-            check_iid = notification["iid"]["check_iid"]
-            pentest = notification["db"]
-            self.terminals.notif_terminal(check_iid)
+        for notif_handler in self.notif_handlers:
+            if notif_handler["pentest"] is not None and notif_handler["pentest"] != notification["db"]:
+                continue
+            if notif_handler["collection"] is not None and notif_handler["collection"] != notification["collection"]:
+                continue
+            if notif_handler["iid"] is not None and notif_handler["iid"] != str(notification["iid"]):
+                continue
+            if notif_handler["notif_name"] is not None and notif_handler["notif_name"] != notification["action"]:
+                continue
+            notif_handler["handler"](notification)
+    
+    def subscribe_notification(self, notif_name, handler, pentest=None, collection=None, iid=None):
+        if handler is None:
+            return
+        self.notif_handlers.append({"pentest":pentest, "collection":collection, "iid":iid, "notif_name":notif_name, "handler":handler})
+    
+    def unsubscribe_notification(self, notif_name, pentest=None, collection=None, iid=None):
+        i = 0
+        while self.notif_handlers and i < len(self.notif_handlers):
+            notif_handler = self.notif_handlers[i]
+            if notif_handler["pentest"] == pentest and notif_handler["notif_name"] == notif_name \
+                and notif_handler["collection"] == collection and str(notif_handler["iid"]) == str(iid): 
+                del self.notif_handlers[i]
+            else:
+                i+=1
 
     def handleNotif(self, notification):
         self.notify(notification)
@@ -726,7 +749,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.proxyFrameMain.rowconfigure(0, weight=1) 
         self.proxyFrameMain.columnconfigure(0, weight=1) 
         self.viewframe = ScrollableFrameXPlateform(self.proxyFrameMain)
-        self.terminals = TerminalsWidget(self.panedRight, height=200)
+        self.terminals = TerminalsWidget(self.panedRight, self,  height=200)
         
         #LEFT PANE : Treeview
         self.left_pane = CTkFrame(self.paned)
@@ -913,6 +936,16 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def open_terminal(self, iid, title):
         self.terminals.open_terminal(iid, title)
+
+    def launch_in_terminal(self, tool_model, command):
+        self.terminals.open_terminal(str(tool_model.check_iid)+"|"+str(tool_model.getId()), ToolController(tool_model).getDetailedString())
+        self.terminals.launch_in_terminal(str(tool_model.check_iid)+"|"+str(tool_model.getId()), command)
+
+    def open_ro_terminal(self, check_iid, title, tool_controller, scanManager):
+        self.terminals.open_ro_terminal(check_iid, title, tool_controller, scanManager)
+
+    def open_any_terminal(self, iid, title, tool_controller, scanManager):
+        self.terminals.open_any_terminal(iid, title, tool_controller, scanManager)
         
     def quickSearchChanged(self, event=None):
         """Called when the quick search bar is modified. Change settings

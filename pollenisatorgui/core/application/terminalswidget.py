@@ -10,8 +10,9 @@ import tkinter as tk
 from tkinter import ttk
 from customtkinter import *
 import libtmux
+from pollenisatorgui.core.application.pseudotermframe import PseudoTermFrame
 from pollenisatorgui.core.components.settings import Settings
-from pollenisatorgui.core.components.utils import getMainDir, getIcon
+from pollenisatorgui.core.components.utils import getMainDir, getIcon, craftMenuWithStyle
 from pollenisatorgui.core.components.logger_config import logger
 from PIL import Image, ImageTk
 
@@ -37,7 +38,7 @@ def read_and_forward_pty_output(fd, queue=None, queueResponse=None):
 
 def killThisProc(proc):
     try:
-        logger.error("Killing process terminal")
+        logger.error("TERMINAL : Killing process terminal")
         time.sleep(1) # HACK to avoid xterm crash ✨ black magic ✨
         os.kill(proc.pid, signal.SIGTERM)
         
@@ -46,15 +47,22 @@ def killThisProc(proc):
 
 class TerminalsWidget(CTkFrame):
     cachedClassIcon = None
+    cachedPseudoTerminalClassIcon = None
     icon = "tab_terminal.png"
-    def __init__(self, parent,  **kwargs):
+    iconPseudoTerminal = "pseudo_terminal.png"
+    def __init__(self, parent,  mainApp, **kwargs):
         super().__init__(parent,  **kwargs)
         self.parent = parent
         
         self.child_pid = None
+        self.pseudoTermFrames = {}
+        self.terminalFrames = {}
         self.proc = None
         self.fd = None
+        self.mainApp = mainApp
+        self.mainApp.subscribe_notification("notif_terminal", self.notif_terminal)
         self.inited = False
+        self.opened = None
         self.initUI()
 
     def initUI(self):
@@ -62,19 +70,54 @@ class TerminalsWidget(CTkFrame):
         s = ttk.Style()
         s.configure('Terminal.Treeview.Item', indicatorsize=0)
         self.terminalTv = ttk.Treeview(self.panedwindow, show="tree", selectmode="browse", style="Terminal.Treeview")
+        self.contextualMenu = craftMenuWithStyle(self.parent)
+        self.contextualMenu.add_command(
+            label="Close term", command=self.closeTerm)
+        self.contextualMenu.add_command(
+            label="(Exit)", command= lambda: 0)# do nothing
+        self.terminalTv.bind("<Button-3>", self.doPopup)
         self.terminalTv.column('#0', minwidth=50, width=80, stretch=tk.YES)
-        self.terminalFrame = tk.Frame(self)
+        self.proxyFrame = tk.Frame(self)
+        self.pseudoTerminalFrame = tk.Frame(self.proxyFrame)
+        self.terminalFrame = tk.Frame(self.proxyFrame)
         self.terminalFrame.pack(fill=tk.BOTH, expand=True)
+        self.proxyFrame.pack(fill=tk.BOTH, expand=True)
         self.terminalTv.pack(fill=tk.Y, expand=True, padx=0,ipadx=0)
         self.terminalTv.bind("<<TreeviewSelect>>", self.onTreeviewSelect)
         self.terminalTv.tag_configure("notified", background="red")
         self.panedwindow.add(self.terminalTv)
-        self.panedwindow.add(self.terminalFrame)
+        self.panedwindow.add(self.proxyFrame)
         self.panedwindow.pack(fill=tk.BOTH, expand=True)
+
+    
+
+    def doPopup(self, event):
+        """Open the popup 
+        Args:
+            event: filled with the callback, contains data about line clicked
+        """
+        self.contextualMenu.selection = self.terminalTv.identify(
+            "item", event.x, event.y)
+        # display the popup menu
+        try:
+            self.contextualMenu.tk_popup(event.x_root, event.y_root)
+        except Exception as e:
+            print(e)
+        finally:
+            # make sure to release the grab (Tk 8.0a1 only)
+            self.contextualMenu.grab_release()
+        self.contextualMenu.focus_set()
+        self.contextualMenu.bind('<FocusOut>', self.popupFocusOut)
+
+    def popupFocusOut(self, _event=None):
+        """Called when the contextual menu loses focus. Closes it.
+        Args:
+            _event: default to None
+        """
+        self.contextualMenu.unpost()
     
     def onTreeviewSelect(self, event=None):
         selection = self.terminalTv.selection()
-        
         if len(selection) == 1:
             try:
                 self.terminalTv.item(str(selection[0]), tags=("neutral",))
@@ -103,18 +146,66 @@ class TerminalsWidget(CTkFrame):
             cls.cachedClassIcon = ImageTk.PhotoImage(resized_image)
         return cls.cachedClassIcon
     
+    @classmethod
+    def getPseudoTerminalIcon(cls):
+        if cls.cachedPseudoTerminalClassIcon is None:
+            path = getIcon(cls.iconPseudoTerminal)
+            img = Image.open(path)
+            resized_image = img.resize((16,16), Image.ANTIALIAS)
+            cls.cachedPseudoTerminalClassIcon = ImageTk.PhotoImage(resized_image)
+        return cls.cachedPseudoTerminalClassIcon
+    
 
     def open_terminal(self, iid=None, title=""):
         if iid is not None:
-            
             self.create_window(iid, title)
         elif not self.inited:
             self.create_terminal()
             self.inited = True
         return
+
+    def launch_in_terminal(self, iid, commandline):
+        session = self.get_session()
+        settings = Settings()
+        settings.reloadLocalSettings()
+        if not settings.isTrapCommand():
+            commandline = "pollex "+commandline
+        if session is not None:
+            window = session.windows.filter(window_name=str(iid))[0]
+            self.terminalFrames[iid] = commandline
+            window.select_window()
+            window.panes[0].send_keys(commandline)
+
+
+    def open_ro_terminal(self, iid, title, tool_controller, scanManager):
+        if iid is not None:
+            self.create_ro_window(iid, title, tool_controller, scanManager)
+        return
     
-    def notif_terminal(self, iid):
-        self.terminalTv.item(str(iid), tags="notified")
+    def open_any_terminal(self, iid, title, tool_controller, scanManager):
+        if iid is not None:
+            if iid in self.terminalFrames:
+                self.open_terminal(iid, title)
+            else:
+                self.open_ro_terminal(iid, title, tool_controller, scanManager)
+
+        return  
+
+    def get_session(self):
+        sessions = self.s.sessions.filter(session_name="pollenisator")
+        if sessions:
+            session = sessions[0]
+        else:
+            session = None
+        return session
+
+    def notif_terminal(self, notification):
+        iid = notification.get("iid",{})
+        check_iid = iid.get("check_iid", "")
+        tool_iid = iid.get("tool_iid")
+        iid = str(check_iid) if tool_iid is None else str(check_iid)+"|"+str(tool_iid)
+        if self.opened != str(iid):
+            self.terminalTv.item(str(iid), tags="notified")
         return
 
     def create_terminal(self):
@@ -159,22 +250,17 @@ class TerminalsWidget(CTkFrame):
                     tmux_conf = tmux_conf_new
                 command = f"xterm -into {wid} -class popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
                 
-                proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
+                proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
                 signal.signal(signal.SIGINT, lambda signum,sigframe: killThisProc(proc))
                 signal.signal(signal.SIGTERM, lambda signum,sigframe: killThisProc(proc))
-            except Exception as e:
-                logger.error(e)
-                sys.exit(0)
-            try:
                 # Wait for session to pop
                 for i in range(3):
                     if len(self.s.sessions.filter(session_name=session_name)) > 0:
                         break
                     time.sleep(0.5*i)
                 
-                sessions = self.s.sessions.filter(session_name=session_name)
-                if sessions:
-                    session = sessions[0]
+                session = self.get_session()
+                if session is not None:
                     for i in range(3):
                         if len(session.windows.filter(window_name="shell")) > 0:
                             break
@@ -184,14 +270,15 @@ class TerminalsWidget(CTkFrame):
                         window.select_window()
                         
             except Exception as e:
-                logger.error(e)
+                logger.error("TERMINAL exception: "+str(e))
                 sys.exit(0)
             try:
                 proc._killed = False
                 stdout, stderr = proc.communicate() # wait for ending
+                logger.error("TERMINAL ended: "+str(stdout)+"///"+str(stderr))
                 sys.exit(0)
             except Exception as e:
-                logger.error(e)
+                logger.error("TERMINAL end exception: "+str(e))
                 sys.exit(0)
                 
         else:
@@ -206,16 +293,58 @@ class TerminalsWidget(CTkFrame):
             self.terminalTv.selection_set("shell")
     
     def view_window(self, iid):
-        sessions = self.s.sessions.filter(session_name="pollenisator")
-        if sessions:
-            session = sessions[0]
-            windows = session.windows.filter(window_name=str(iid))
-            if not windows:
-                window = session.new_window(attach=True, window_name=str(iid))
-            else:
-                window = windows[0]
-                window.select_window()
+        if iid.endswith("|ro"):
+            if self.terminalFrame.winfo_viewable():
+                self.terminalFrame.pack_forget()
+            if not self.pseudoTerminalFrame.winfo_viewable():
+                self.pseudoTerminalFrame.pack(fill=tk.BOTH, expand=True)
+            elif self.opened.endswith("|ro"):
+                if self.opened in self.pseudoTermFrames:
+                    self.pseudoTermFrames[self.opened].pack_forget()
+                     
+
+        else:
+            if self.pseudoTerminalFrame.winfo_viewable():
+                self.pseudoTerminalFrame.pack_forget()
+            if not self.terminalFrame.winfo_viewable():
+                self.terminalFrame.pack(fill=tk.BOTH, expand=True)
+            sessions = self.s.sessions.filter(session_name="pollenisator")
+            if sessions:
+                session = sessions[0]
+                windows = session.windows.filter(window_name=str(iid))
+                if not windows:
+                    window = session.new_window(attach=True, window_name=str(iid))
+                else:
+                    window = windows[0]
+                    window.select_window()
+        self.opened = iid
             
+    def closeTerm(self):
+        if self.contextualMenu.selection is None:
+            return
+        item = self.terminalTv.item(self.contextualMenu.selection)
+        iid = self.contextualMenu.selection
+        if not iid:
+            return
+        if iid == "shell":
+            return
+        if iid.endswith("|ro"):
+            if iid in self.pseudoTermFrames:
+                self.pseudoTermFrames[iid].quit()
+            self.terminalTv.selection_set("shell")
+            self.pseudoTermFrames[iid].destroy()
+            del self.pseudoTermFrames[iid]
+        else:
+            sessions = self.s.sessions.filter(session_name="pollenisator")
+            if sessions:
+                session = sessions[0]
+                windows = session.windows.filter(window_name=str(iid))
+                if windows:
+                    window = windows[0]
+                    window.kill_window()
+                del self.terminalFrames[iid]
+        self.terminalTv.delete(iid)
+        
 
 
     def create_window(self, iid, title="none"):
@@ -228,7 +357,8 @@ class TerminalsWidget(CTkFrame):
 
             if not windows:
                 window = session.new_window(attach=True, window_name=str(iid))
-                
+            else:
+                window = windows[0]
                 #if iid != "shell":
                     #window.panes[0].send_keys("export POLLENISATOR_DEFAULT_TARGET="+str(iid))
                     
@@ -237,3 +367,19 @@ class TerminalsWidget(CTkFrame):
             except tk.TclError:
                 pass
             self.terminalTv.selection_set(str(iid)) # trigger treeview select 
+
+    def create_ro_window(self, iid, title, toolController, scanManager):
+            
+        tv_iid = iid+"|"+"ro"
+        if tv_iid in self.pseudoTermFrames:
+            self.pseudoTermFrames[tv_iid].quit()
+        self.pseudoTermFrames[tv_iid] = PseudoTermFrame(self.pseudoTerminalFrame, toolController, scanManager)
+        self.pseudoTermFrames[tv_iid].pack(fill=tk.BOTH, expand=True)
+        try:
+            self.terminalTv.insert("", "end", iid=str(tv_iid), text=title, image=TerminalsWidget.getPseudoTerminalIcon())
+        except tk.TclError as e:
+            print(e)
+            pass
+        self.terminalTv.selection_set(str(tv_iid)) # trigger treeview select 
+
+        

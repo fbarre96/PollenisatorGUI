@@ -161,7 +161,7 @@ class Tool(Element):
         """
         self.status = status
         apiclient = APIClient.getInstance()
-        apiclient.setToolStatus(self, self.status)
+        apiclient.setToolStatus(self.getId(), self.status)
 
     def getStatus(self):
         """
@@ -314,6 +314,8 @@ class Tool(Element):
             self.status.remove("done")
         if "running" in self.status:
             self.status.remove("running")
+        if "error" in self.status:
+            self.status.remove("error")
         if not self.status:
             self.status = ["ready"]
         self.update()

@@ -82,6 +82,7 @@ class Dashboard(Module):
         if self.parent is not None:  # Already initialized
             return
         self.parent = parent
+        self.nbk = nbk
         self.tkApp = tkApp
         self.treevwApp = treevw
         self.autoscan_slider = None
@@ -160,15 +161,18 @@ class Dashboard(Module):
         self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
         self.image_start = CTkImage(Image.open(utils.getIcon("start.png")))
         self.image_stop = CTkImage(Image.open(utils.getIcon("stop.png")))
-        frame_status = CTkFrame(frame)
-        lbl = CTkLabel(frame_status, text="Autoscan",
-                       image=self.image_auto, compound="left")
-        self.btn_autoscan = CTkButton(
-            frame_status, text="", image=self.image_auto)
+        self.image_pentest = CTkImage(Image.open(utils.getIcon("hacker.png")))
+        frame_status = FormPanel(side=tk.TOP, fill=tk.X)
+        frame_status.addFormButton("Go to pentest", self.go_to_pentest, image=self.image_pentest, padx=5, side=tk.LEFT, anchor="center")
+        frame_status.addFormSeparator(orient="vertical", padx=0, fill=tk.Y, side=tk.LEFT)
+        autoscan_panel = frame_status.addFormPanel(side=tk.LEFT, fill=tk.X, padx=0, pady=0, anchor="center")
+        autoscan_action_panel = autoscan_panel.addFormPanel(side=tk.TOP, fill=tk.X, padx=0, pady=0, anchor="n")
+        autoscan_action_panel.addFormLabel("Autoscan", image=self.image_auto, compound="left" , padx=5, side=tk.LEFT )
+        self.btn_autoscan = autoscan_action_panel.addFormButton("autoscan", self.set_autoscan_status, text="", image=self.image_auto, padx=0, side=tk.LEFT)
         self.set_autoscan_status()
-        self.btn_autoscan.pack(side=tk.LEFT, padx=5)
-        frame_status.pack(side=tk.TOP)
-        frame_settings = CTkFrame(frame)
+        autoscan_action_panel.addFormHelper("Autoscan will launch queued scans on available workers automatically. Queueing scan must be done manually.", padx=0, pady=0, side=tk.RIGHT)
+        frame_status.constructView(frame)
+        frame_settings = CTkFrame(autoscan_panel.panel)
         self.autoscan_slider = CTkSlider(
             frame_settings, from_=1, to=10, number_of_steps=10, command=self.update_thread_label)
         self.autoscan_slider.bind("<ButtonRelease-1>", self.slider_event)
@@ -178,7 +182,9 @@ class Dashboard(Module):
         self.autoscan_threads_lbl = CTkLabel(frame_settings, text=str(
             threads)+" thread"+("s" if threads > 1 else ""))
         self.autoscan_threads_lbl.pack(side=tk.LEFT, padx=5)
-        frame_settings.pack(side=tk.TOP)
+        frame_settings.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        
         frame_progress = CTkFrame(frame)
         lbl = CTkLabel(frame_progress, text="Scan Progression")
         lbl.pack(side=tk.LEFT, padx=5)
@@ -202,7 +208,7 @@ class Dashboard(Module):
         self.label_cheatsheet_progress.pack(side=tk.LEFT, padx=2)
         frame_progress_cheatsheet.pack(side=tk.TOP, pady=5)
 
-    def set_autoscan_status(self):
+    def set_autoscan_status(self, event=None):
         apiclient = APIClient.getInstance()
         status = apiclient.getAutoScanStatus()
         if status:
@@ -226,6 +232,10 @@ class Dashboard(Module):
         res = self.tkApp.start_autoscan()
         if res:
             self.set_autoscan_status()
+
+    def go_to_pentest(self, event=None):
+        self.nbk.select("Main View")
+
 
     def set_scan_progression(self):
         done = self.infos.get("tools_done_count", 0)
@@ -252,10 +262,10 @@ class Dashboard(Module):
         form_top.addFormLabel("Text filter", row=0, column=0, sticky="s")
         self.str_filter = form_top.addFormStr("text_filter", placeholder="high", binds={"<Key-Return>":self.filter}, width=300, row=0, column=1, sticky="S")
         form_bottom = self.form.addFormPanel(side="bottom", fill="x", pady=0)
-        values = ["Critical", "Major", "Important","Minor"]
+        values = ["Critical", "Major", "Important", "Minor"]
         tags_registered = Settings.getTags()
         for tag_info in tags_registered.values():
-            if tag_info["level"] not in values:
+            if tag_info["level"] not in values and tag_info["level"] != "":
                 values.append(tag_info["level"])
         check_panel = form_top.addFormPanel(row=0, column=2,fill=None)
         self.severity_btns = check_panel.addFormChecklist("Severity", list(values), command=self.filter)
@@ -295,6 +305,7 @@ class Dashboard(Module):
         tags = self.infos.get("tagged", [])
         tags_registered = Settings.getTags()
         for tag_infos in tags:
-            self.treeview.addItem("", tk.END, tag_infos["_id"], text="Tag", values=(
-                tag_infos["date"], tags_registered[tag_infos.get("name")]["level"], tag_infos["name"],  tag_infos["detailed_string"]))
+            if tags_registered.get(tag_infos.get("name"), {}).get("level", "") != "":
+                self.treeview.addItem("", tk.END, tag_infos["_id"], text="Tag", values=(
+                    tag_infos["date"], tags_registered[tag_infos.get("name")]["level"], tag_infos["name"],  tag_infos["detailed_string"]))
         self.treeview.auto_resize_columns()

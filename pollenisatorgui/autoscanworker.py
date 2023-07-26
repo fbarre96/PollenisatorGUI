@@ -70,7 +70,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         command_dict = {"plugin":toolModel.plugin_used, "timeout":0}
     msg = ""
     success, data = apiclient.getCommandLine(toolId, toolModel.text)
-    comm, fileext = data["comm"], data["ext"]
+    comm, fileext = data["comm_with_output"], data["ext"]
     logger.debug("executeTool: got command line for toolId:"+str(toolId))
     if not success:
         print(str(comm))

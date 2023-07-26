@@ -836,10 +836,20 @@ class APIClient():
             tools_iid = [ObjectId(tools_iid)]
         elif isinstance(tools_iid, ObjectId):
             tools_iid = [tools_iid]
-
         api_url = '{0}tools/{1}/queueTasks'.format(self.api_url_base, self.getCurrentPentest())
         data = tools_iid
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+        
+    @handle_api_errors  
+    def getQueue(self):
+        api_url = '{0}tools/{1}/getQueue'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
@@ -960,7 +970,7 @@ class APIClient():
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return True, data
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
+            raise ErrorHTTP(response, False, response.content.decode('utf-8'))
         return False, response.content.decode('utf-8')
     
     @handle_api_errors
@@ -992,8 +1002,8 @@ class APIClient():
             return response.content.decode('utf-8')
 
     @handle_api_errors
-    def setToolStatus(self, toolmodel, newStatus, arg=""):
-        api_url = '{0}tools/{1}/{2}/changeStatus'.format(self.api_url_base, self.getCurrentPentest(), toolmodel.getId())
+    def setToolStatus(self, tool_iid, newStatus, arg=""):
+        api_url = '{0}tools/{1}/{2}/changeStatus'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
         response = requests.post(api_url, headers=self.headers, data=json.dumps({"newStatus":newStatus, "arg":arg}), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1048,9 +1058,10 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def sendStartAutoScan(self):
+    def sendStartAutoScan(self, command_iids=[]):
         api_url = '{0}autoscan/{1}/start'.format(self.api_url_base, self.getCurrentPentest())
-        response = requests.post(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        data = {"command_iids":command_iids}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
@@ -1598,4 +1609,4 @@ class APIClient():
         else:
             return None
         
-    
+   

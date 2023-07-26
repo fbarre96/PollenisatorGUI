@@ -40,15 +40,17 @@ class FormButton(Form):
             parent: parent form panel.
         """
         s = self.getKw("style", None)
+        text = self.getKw("text", self.name)
         if s is None:
-            self.btn = CTkButton(parent.panel, text=self.name, width=self.getKw("width", 150), image=self.getKw("image", None),
+            self.btn = CTkButton(parent.panel, text=text, width=self.getKw("width", 150), image=self.getKw("image", None),
                                   border_color=self.getKw("border_color", None),
                                   border_width=self.getKw("border_width", None),
                                   text_color=self.getKw("text_color", None),
                                   hover_color=self.getKw("hover_color", None),
-                                  fg_color=self.getKw("fg_color", None))
+                                  fg_color=self.getKw("fg_color", None),
+                                  state=self.getKw("state", "normal"))
         else:
-            self.btn = ttk.Button(parent.panel, text=self.name, image=self.getKw("image", None), style=s)
+            self.btn = ttk.Button(parent.panel, text=text, image=self.getKw("image", None), style=s)
             tooltip = self.getKw("tooltip", None)
             if tooltip is not None:
                 self.btn.configure(tooltip=tooltip)
@@ -71,7 +73,11 @@ class FormButton(Form):
         """Change kwargs to given one. Must be called before constructView
         Args:
             **kwargs: any ttk Button keyword arguments."""
-        self.wid_kwargs = kwargs
+        if self.btn is None:
+            self.wid_kwargs = kwargs
+        else:
+            self.btn.configure(**kwargs)
+  
 
     def setFocus(self):
         """Set the focus to the ttk button.

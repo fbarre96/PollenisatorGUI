@@ -59,6 +59,7 @@ class CheckInstanceController(ControllerElement):
             self.model.target_repr = reprs.get(str(self.model.getId()), str(self.model))
         else:
             self.model.target_repr = str(self)
+        return self.model.target_repr
     
     @target_repr.setter
     def target_repr(self, value):

@@ -1,4 +1,5 @@
 """Hold functions to interact form the scan tab in the notebook"""
+from pollenisatorgui.core.application.dialogs.ChildDialogAutoScanParams import ChildDialogAutoScanParams
 from pollenisatorgui.core.application.dialogs.ChildDialogScanHistory import ChildDialogScanHistory
 from pollenisatorgui.core.application.dialogs.ChildDialogToolsInstalled import ChildDialogToolsInstalled
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
@@ -91,6 +92,7 @@ class ScanManager:
         self.nbk = nbk
         self.settings = settings
         self.btn_autoscan = None
+        self.workers = None
         self.btn_docker_worker = None
         self.parent = None
         self.sio = None
@@ -100,6 +102,7 @@ class ScanManager:
         path = utils.getIconDir()
         self.tool_icon = tk.PhotoImage(file=path+"tool.png")
         self.nok_icon = tk.PhotoImage(file=path+"cross.png")
+        self.waiting_icon = tk.PhotoImage(file=path+"waiting.png")
         self.ok_icon = tk.PhotoImage(file=path+"done_tool.png")
         self.running_icon = tk.PhotoImage(file=path+"running.png")
         DataManager.getInstance().attach(self)
@@ -107,7 +110,6 @@ class ScanManager:
     def startAutoscan(self):
         """Start an automatic scan. Will try to launch all undone tools."""
         apiclient = APIClient.getInstance()
-        
         if len(self.workerTv.get_children()) == 0:
             if not self.ask_start_worker():
                 return
@@ -116,14 +118,18 @@ class ScanManager:
         if len(workers) == 0:
             tk.messagebox.showwarning("No selected worker found", "A worker exist but is not registered for this pentest. You might want to register it by double clicking on it or using the Use button.")
             return False
+        dialog = ChildDialogAutoScanParams(self.parent)
+        dialog.wait_window()
+        params = dialog.rvalue
+        if params is None:
+            return
         if self.settings.db_settings.get("include_all_domains", False):
             answer = tk.messagebox.askyesno(
                 "Autoscan warning", "The current settings will add every domain found in attack's scope. Are you sure ?")
             if not answer:
                 return False
         self.btn_autoscan.configure(text="Stop Scanning", command=self.stopAutoscan)
-        apiclient.sendStartAutoScan()
-        logger.debug('Ask start autoscan')
+        apiclient.sendStartAutoScan(command_iids=params)
         return True
     
     def stop(self):
@@ -154,19 +160,49 @@ class ScanManager:
             except tk.TclError:
                 pass
 
+    def refreshQueuedScans(self):
+        apiclient = APIClient.getInstance()
+        queued_scans = apiclient.getQueue()
+        if queued_scans is None:
+            return 
+        checks = CheckInstance.fetchObjects([str(ObjectId(queued_scan["check_iid"])) for queued_scan in queued_scans if queued_scan["check_iid"] != ""])
+        mapping = {}
+        for check in checks:
+            mapping[str(check._id)] = check
+        try:
+            for children in self.queueTv.get_children():
+                self.queueTv.delete(children)
+        except tk.TclError:
+            pass
+        except RuntimeError:
+            return
+        for queued_scan in queued_scans:
+            check = mapping.get(str(queued_scan["check_iid"]), None)
+            group_name = "" if check is None else check.check_m.title
+            try:
+                self.queueTv.insert('','end', str(queued_scan["_id"]), text=group_name, values=(queued_scan["name"], queued_scan["text"]), image=self.waiting_icon)
+            except tk.TclError:
+                pass
+
+    def is_worker_valid_for_pentest(self, worker_data):
+        apiclient = APIClient.getInstance()
+        return worker_data.get("pentest", "") == apiclient.getCurrentPentest()
+
+
     def refreshWorkers(self):
         apiclient = APIClient.getInstance()
         workers = apiclient.getWorkers()
+        self.workers = workers
         try:
             for children in self.workerTv.get_children():
-                    self.workerTv.delete(children)
+                self.workerTv.delete(children)
         except:
             pass
         registeredCommands = set()
         for worker in workers:
             workername = worker["name"]
             try:
-                if apiclient.getCurrentPentest() == worker.get("pentest", ""):
+                if self.is_worker_valid_for_pentest(worker):
                     worker_node = self.workerTv.insert(
                         '', 'end', workername, text=workername, image=self.ok_icon)
                 else:
@@ -182,6 +218,30 @@ class ScanManager:
                 pass
         return len(workers)
     
+    def is_already_queued(self, tool_iid):
+        try:
+            children = self.queueTv.get_children()
+            return tool_iid in children
+        except tk.TclError:
+            return False
+        
+    def is_ready_to_queue(self, tool_iid):
+        foundValidWorker = False
+        apiclient = APIClient.getInstance()
+        if self.workers:
+            for worker in self.workers:
+                if self.is_worker_valid_for_pentest(worker):
+                    foundOne = True
+                    break
+        if not foundValidWorker:
+            return False, "No worker available yet."
+        if self.is_already_queued(tool_iid):
+            return False, "Tool already queued."
+        if not apiclient.getAutoScanStatus():
+            return False, "No autoscan running."
+        return True, ""
+        
+
     def slider_event(self, event):
         val = self.autoscan_slider.get()
         val = int(val)
@@ -197,6 +257,7 @@ class ScanManager:
         """Reload informations and renew widgets"""
         apiclient = APIClient.getInstance()
         self.refreshRunningScans()
+        self.refreshQueuedScans()
         self.settings._reloadDbSettings()
         v = int(self.settings.db_settings.get("autoscan_threads", 4))
         self.autoscan_slider.set(v)
@@ -207,7 +268,8 @@ class ScanManager:
         if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = CTkButton(
-                    self.parent, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan)
+                    self.parent, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
             else:
                 self.btn_autoscan = CTkButton(
                     self.parent, text="Start Scanning", command=self.startAutoscan)
@@ -306,18 +368,7 @@ class ScanManager:
         info = CTkLabel(importScanFrame, text="You can also drop your files / folder here")
         info.pack(side=tk.BOTTOM, pady=10)
         importScanFrame.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
-        # for worker in workers:
-        #     workername = worker["name"]
-        #     try:
-        #         if apiclient.getCurrentPentest() == worker.get("pentest", ""):
-        #             worker_node = self.workerTv.insert(
-        #                 '', 'end', workername, text=workername, image=self.ok_icon)
-        #         else:
-        #             worker_node = self.workerTv.insert(
-        #                 '', 'end', workername, text=workername, image=self.nok_icon)
-        #     except tk.TclError:
-        #         pass
-        #### TREEVIEW SCANS : overview of ongoing auto scan####
+        ####### RUNNING SCANS
         scansInfoFrame = CTkFrame(parentFrame)
         
         self.scanTv = ttk.Treeview(scansInfoFrame)
@@ -328,13 +379,18 @@ class ScanManager:
         self.scanTv.bind("<Double-Button-1>", self.OnDoubleClick)
 
         self.show_history = CTkButton(scansInfoFrame, text="Show history", command=self.showHistory)
-        self.show_history.pack(side=tk.BOTTOM, pady=10, padx=10)
-        
-        # running_scans = Tool.fetchObjects({"status":"running"})
-        # for running_scan in running_scans:
-        #     self.scanTv.insert('','end', running_scan.getId(), text=running_scan.name, values=(running_scan.dated), image=self.running_icon)
-        #### BUTTONS FOR AUTO SCANNING ####
+        self.show_history.pack(side=tk.BOTTOM, pady=2, padx=10)
         scansInfoFrame.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
+        ###### QUEUED
+        queuedScansFrame = CTkFrame(parentFrame)
+        
+        self.queueTv = ttk.Treeview(queuedScansFrame)
+        self.queueTv['columns'] = ("Check type", 'Tool', 'options')
+        self.queueTv.heading("#0", text='Queued scans', anchor=tk.W)
+        self.queueTv.column("#0", anchor=tk.W)
+        self.queueTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
+        queuedScansFrame.grid(row=2, column=0, columnspan=2, sticky=tk.NSEW)
+        ######
         parentFrame.pack(expand=1, fill=tk.BOTH)
         parentScrollableFrame.pack(expand=1, fill=tk.BOTH)
 
@@ -391,6 +447,7 @@ class ScanManager:
         elif notif["collection"] == "tools" and notif["action"] == "update":
             if dataManager.currentPentest == notif["db"]:
                 self.refreshRunningScans()
+                self.refreshQueuedScans()
         
 
     def OnWorkerDoubleClick(self, event):
@@ -411,7 +468,7 @@ class ScanManager:
         for item in items:
             if "|" not in self.workerTv.item(item)["text"]: # exclude tools and keep worker nodes
                 self.setUseForPentest(item)
-    
+
     def setUseForPentest(self, worker_hostname):
         apiclient = APIClient.getInstance()
         worker = apiclient.getWorker({"name":worker_hostname})
@@ -567,7 +624,7 @@ class ScanManager:
         plugins = list(set(self.settings.local_settings.get("my_commands",{}).keys()))
         print("REGISTER "+str(name))
         print("supported plugins "+str(plugins))
-        self.sio.emit("register", {"name":name, "binaries":plugins})
+        self.sio.emit("register", {"name":name, "supported_plugins":plugins})
         @self.sio.event
         def executeCommand(data):
             print("GOT EXECUTE "+str(data))

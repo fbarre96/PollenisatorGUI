@@ -13,7 +13,6 @@ from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogInfo import ChildDialogInfo
-from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
 import pollenisatorgui.core.components.utils as utils
 from bson import ObjectId, errors
 from customtkinter import *
@@ -318,7 +317,7 @@ class ToolView(ViewElement):
             self.openModifyWindow()
 
     def remoteInteraction(self, _event=None):
-        dialog = ChildDialogRemoteInteraction(self.mainApp, self.controller, self.mainApp.scanManager)
+        self.mainApp.open_ro_terminal(self.controller.model.check_iid, self.title, self.controller, self.mainApp.scanManager)
         #dialog.app.wait_window(dialog.app)
         
     def stopCallback(self, _event=None):

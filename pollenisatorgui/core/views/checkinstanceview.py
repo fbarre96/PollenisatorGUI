@@ -7,7 +7,6 @@ from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialo
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
-from pollenisatorgui.core.application.dialogs.ChildDialogRemoteInteraction import ChildDialogRemoteInteraction
 from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.views.toolview import ToolView
 from pollenisatorgui.core.views.viewelement import ViewElement
@@ -130,16 +129,20 @@ class CheckInstanceView(ViewElement):
         #if "commands" in check_m.check_type:
 
         self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
+        self.buttonQueueImage = CTkImage(Image.open(utils.getIconDir()+'exec_cloud.png'))
         self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
         self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
         dict_of_tools_not_done = infos.get("tools_not_done")
+        dict_of_tools_error = infos.get("tools_error")
         dict_of_tools_running = infos.get("tools_running")
         dict_of_tools_done = infos.get("tools_done")
-        lambdas_not_done = [self.launchToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
+        lambdas_lauch_tool_local = [self.launchToolLocalCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
+        lambdas_lauch_tool_worker = [self.queueToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
         lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_running_stop = [self.stopToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         lambdas_del = [self.deleteToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
+        lambdas_error_reset = [self.resetToolCallbackLambda(iid) for iid in dict_of_tools_error.keys()]
         datamanager = DataManager.getInstance()
             
         if dict_of_tools_not_done:
@@ -158,10 +161,15 @@ class CheckInstanceView(ViewElement):
                 form_str = None
                 if success:
                     commandModel = datamanager.get("commands", toolModel.command_iid)
-                    form_str= formCommands.addFormStr("bin_path", "", commandModel.bin_path, status="disabled", width=80, row=row, column=1)
+                    form_str_bin= formCommands.addFormStr("bin_path", "", commandModel.bin_path, status="disabled", width=80, row=row, column=1)
                     form_str= formCommands.addFormStr("commandline", "", comm, width=550, row=row, column=2)
 
-                formCommands.addFormButton("", lambdas_not_done[row], row=row, column=3, width=0, infos= {'formstr': form_str}, image=self.buttonExecuteImage)
+                formCommands.addFormButton("", lambdas_lauch_tool_local[row], row=row, column=3, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, image=self.buttonExecuteImage)
+                ready, msg = self.mainApp.scanManager.is_ready_to_queue(str(tool_iid))
+                if ready:
+                    formCommands.addFormButton("", lambdas_lauch_tool_worker[row], row=row, column=4, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
+                                           state="normal" if ready else "disabled", image=self.buttonQueueImage)
+                
                 row+=1
         if dict_of_tools_running:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
@@ -209,6 +217,18 @@ class CheckInstanceView(ViewElement):
                 tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT, height=min(26*+len(tool_m.notes.split("\n")), 200))
                 tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, width=20, side=tk.LEFT, anchor=tk.E)
                 tool_panel.addFormButton("Delete", lambdas_del[row], width=20, side=tk.LEFT, anchor=tk.E, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               border_width=1, border_color="firebrick1", hover_color="tomato")
+                row+=1
+        if dict_of_tools_error:
+            formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
+            row=0
+            formCommands.addFormSeparator(row=row, column=0, columnspan=3)
+            for tool_iid, tool_data in dict_of_tools_error.items():
+                tool_m = Tool(tool_data)
+                formCommands.addFormButton(tool_m.getDetailedString(), self.openToolDialog, row=row,column=0,  style="link.TButton", infos={"iid":tool_iid})
+                
+                formCommands.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  row=row, column=1 , height=min(26*+len(tool_m.notes.split("\n")), 200))
+                formCommands.addFormButton("Reset", lambdas_error_reset[row], row=row, column=2,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
@@ -288,8 +308,11 @@ class CheckInstanceView(ViewElement):
 
        
     
-    def launchToolCallbackLambda(self, tool_iid, **kwargs):
-        return lambda event, kwargs: self.launchToolCallback(tool_iid, **kwargs)
+    def launchToolLocalCallbackLambda(self, tool_iid, **kwargs):
+        return lambda event, kwargs: self.launchToolLocalCallback(tool_iid, **kwargs)
+    
+    def queueToolCallbackLambda(self, tool_iid, **kwargs):
+        return lambda event, kwargs: self.queueToolWorkerCallback(tool_iid, **kwargs)
 
     def peekToolCallbackLambda(self, tool_iid):
         return lambda event: self.peekToolCallback(tool_iid)
@@ -302,6 +325,9 @@ class CheckInstanceView(ViewElement):
     
     def deleteToolCallbackLambda(self, tool_iid):
         return lambda event: self.deleteToolCallback(tool_iid)
+    
+    def resetToolCallbackLambda(self, tool_iid):
+        return lambda event: self.resetToolCallback(tool_iid)
 
     def openToolDialog(self, event, infos):
         tool_iid = infos.get("iid")
@@ -318,22 +344,59 @@ class CheckInstanceView(ViewElement):
         view.openInDialog()
         self.openModifyWindow()
 
-    def launchToolCallback(self, tool_iid, **kwargs):
+    def launchToolLocalCallback(self, tool_iid, **kwargs):
         form_commandline = kwargs.get("formstr", None)
+        command_bin = kwargs.get("bin", None)
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
 
         if form_commandline is not None:
             command_line = form_commandline.getValue()
             tool_m.text = command_line
             tool_m.update({"text":command_line})
-        self.mainApp.scanManager.launchTask(tool_m)
-        self.peekToolCallback(tool_iid)
-        self.mainApp.after(600, self.openModifyWindow)
+            settings = Settings()
+            my_commands = settings.local_settings.get("my_commands", {})
+            bin_path = my_commands.get(tool_m.name)
+            if bin_path is None:
+                bin_path = command_bin.getValue()
+            if utils.which_expand_alias(bin_path):
+                self.mainApp.launch_in_terminal(tool_m, bin_path+" "+command_line)
+            else:
+                tk.messagebox.showerror("Could not launch this tool", "Binary path is not available ({})")
+            #
+            #self.mainApp.scanManager.launchTask(tool_m)
+            #self.peekToolCallback(tool_iid)
+            #self.mainApp.after(600, self.openModifyWindow)
+
+    def queueToolWorkerCallback(self, tool_iid, **kwargs):
+        apiclient = APIClient.getInstance()
+        form_commandline = kwargs.get("formstr", None)
+        
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+
+        if form_commandline is not None:
+            command_line = form_commandline.getValue()
+            tool_m.text = command_line
+            tool_m.update({"text":command_line})
+        results = apiclient.sendQueueTasks(tool_iid)
+        if results.get("successes", []):
+            self.mainApp.subscribe_notification("tool_start", self.toolStartedEvent, pentest=apiclient.getCurrentPentest(), iid=tool_iid)
+            #self.mainApp.after(600, self.openModifyWindow)
+        else:
+            if results.get("failures", []):
+                failure = results.get("failures", [])[0]
+                tk.messagebox.showerror("Error", "Error while queueing task : "+str(failure.get("error", "unknown error")), parent=self.mainApp)
+
+    def toolStartedEvent(self, notification):
+        iid = notification.get("iid")
+        if iid is None:
+            return
+        apiclient = APIClient.getInstance()
+        self.mainApp.unsubscribe_notification("tool_start", pentest=apiclient.getCurrentPentest(), iid=iid)
+        self.peekToolCallback(iid)
 
     def peekToolCallback(self, tool_iid):
-        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
-        dialog = ChildDialogRemoteInteraction(self.mainApp, ToolController(tool_m), self.mainApp.scanManager)
-        #dialog.app.wait_window(dialog.app)
+        tool_controller = ToolController(Tool.fetchObject({"_id":ObjectId(tool_iid)}))
+        self.mainApp.open_any_terminal(str(self.controller.getDbId())+"|"+str(tool_controller.getDbId()), tool_controller.getDetailedString(), tool_controller, self.mainApp.scanManager)
         
     def stopToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
@@ -349,6 +412,11 @@ class CheckInstanceView(ViewElement):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
         tool_vw.delete()
+
+    def resetToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
+        tool_vw.resetCallback()
 
     def viewScript(self, script):
         ScriptManager.openScriptForUser(script)
@@ -442,8 +510,7 @@ class CheckInstanceView(ViewElement):
         Update the command treeview item (resulting in icon reloading)
         """
         try:
-            self.appliTw.item(str(self.controller.getDbId()), text=str(
-                self.controller.getModelRepr()), image=self.getIcon())
+            self.appliTw.item(str(self.controller.getDbId()), image=self.getIcon())
         except tk.TclError:
             print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
         super().updateReceived()

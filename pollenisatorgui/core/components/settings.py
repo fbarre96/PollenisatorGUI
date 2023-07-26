@@ -84,7 +84,7 @@ class Settings:
             cls.tags_cache = None
         if cls.tags_cache is not None and not onlyGlobal:
             return cls.tags_cache
-        cls.tags_cache = {"todo":{"color":"orange", "level":"todo"}, "pwned":{"color":"red", "level":"high"}, "Interesting":{"color":"dark green", "level":"medium"}, "Uninteresting":{"color":"sky blue", "level":"low"}, "neutral":{"color":"transparent", "level":"info"}}
+        cls.tags_cache = {"todo":{"color":"orange", "level":"todo"}, "pwned":{"color":"red", "level":"high"}, "Interesting":{"color":"dark green", "level":"medium"}, "Uninteresting":{"color":"sky blue", "level":"low"}, "neutral":{"color":"transparent", "level":""}}
         try:
             global_tags = apiclient.getSettings({"key": "tags"})
         except ErrorHTTP:
@@ -172,7 +172,7 @@ class Settings:
         return self.local_settings.get("hide_oos", False)
     
     def is_checklist_view(self):
-        return self.local_settings.get("checklist_view", False)
+        return self.local_settings.get("checklist_view", True)
 
     def is_show_only_todo(self):
         return self.local_settings.get("show_only_todo", False)

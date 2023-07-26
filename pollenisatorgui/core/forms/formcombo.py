@@ -87,7 +87,7 @@ class FormCombo(Form):
             newval: the new value to be set inside the combobox
         """
         if isinstance(newval, list):
-            self.choicesList = newval
+            #self.choicesList = newval
             if newval:
                 self.box.set(newval[0])
         elif newval not in self.choicesList:

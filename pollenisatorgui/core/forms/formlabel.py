@@ -40,7 +40,9 @@ class FormLabel(Form):
         if width is not None:
             kwargs["width"] = int(width)
         bold = self.getKw("bold", False)
-        self.lbl = CTkLabel(parent.panel, text=self.text, justify=tk.LEFT, fg_color=self.getKw("fg_color", None), **kwargs)
+        image = self.getKw("image", None)
+        compound = self.getKw("compound", None)
+        self.lbl = CTkLabel(parent.panel, text=self.text, justify=tk.LEFT, fg_color=self.getKw("fg_color", None), image=image, compound=compound, **kwargs)
         if bold:
             self.lbl.cget("font").configure(weight="bold")
         self.lbl.cget("font").configure(size=self.getKw("font_size",12))

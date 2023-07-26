@@ -4,7 +4,7 @@ source ~/.zshrc
 trap_pollex() {
   if (( ${#BASH_SOURCE[@]} <= 1 )); then
     eval "pollex $1"
-    false
+    exec zsh #HACK: https://reespozzi.medium.com/cancel-a-terminal-command-during-preexec-zsh-function-c5b0d27b99fb
   else
     true
   fi

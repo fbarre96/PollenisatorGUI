@@ -330,7 +330,7 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
     try:
         while True:
             time.sleep(0.01)
-            if queue.qsize() > 0:
+            if queue is not None and queue.qsize() > 0:
                 key = queue.get()
                 if key == "kill":
                     parent = psutil.Process(child_pid)
@@ -594,6 +594,14 @@ def getHelpIconPath():
     """
     return getIcon("help.png")
 
+def loadIcon(name, **kwargs):
+    """Returns:
+         a help icon path
+    """
+    path = getIcon(name)
+    image = Image.open(path)
+    img = image.resize((16, 16))
+    return ImageTk.PhotoImage(img)
 
 def getIconDir():
     """Returns:

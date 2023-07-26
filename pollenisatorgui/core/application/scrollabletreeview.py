@@ -137,10 +137,12 @@ class ScrollableTreeview(CTkFrame):
 
     def item(self, iid, **kwargs):
         try:
-            self.infos[[x["iid"] for x in self.infos].index(iid)].update(kwargs)
-            return self.treevw.item(iid, **kwargs)
+            self.treevw.item(iid, **kwargs)
         except tk.TclError as e:
-            raise e
+            pass
+        self.infos[[x["iid"] for x in self.infos].index(iid)].update(kwargs)
+        return self.infos[[x["iid"] for x in self.infos].index(iid)]
+        
         
     def _initContextualMenu(self, parent):
         """Initialize the contextual menu for paperclip.
@@ -173,7 +175,7 @@ class ScrollableTreeview(CTkFrame):
         selected = self.treevw.selection()
         texts = []
         for item in selected:
-            it = self.treevw.item(item)
+            it = self.item(item)
             texts.append(it.get("text", "") + " " +
                          " ".join(map(str,it.get("values", []))))
 
@@ -210,15 +212,15 @@ class ScrollableTreeview(CTkFrame):
             allValid = True
             for iarg, arg in enumerate(args):
                 if iarg == 0:
-                    text = self.treevw.item(item_id)['text']
+                    text = self.item(item_id)['text']
                     condition = arg in text
                 else:
-                    obj = self.treevw.item(item_id)['values'][iarg-1]
+                    obj = self.item(item_id)['values'][iarg-1]
                     if isinstance(arg, tuple) or isinstance(arg, list):
                         condition = arg[0](*arg[1:], obj)
                     else:
                         text = str(arg)
-                        condition = arg in text
+                        condition = arg.lower() in str(obj).lower()
                 if not condition:
                     allValid = False
                     break
@@ -272,8 +274,12 @@ class ScrollableTreeview(CTkFrame):
 
     def resetOddTags(self):
         for i, child in enumerate(self.treevw.get_children()):
-            tags = ("odd") if i%2 != 0 else ()
-            self.treevw.item(child, tags=tags)
+            odd_tag = ("odd") if i%2 != 0 else ()
+            current_tags = self.item(child)["tags"]
+            current_tags = [current_tags] if isinstance(current_tags, str) else list(current_tags)
+            if "odd" in current_tags:
+                current_tags.remove("odd")
+            self.item(child, tags=[odd_tag]+current_tags)
 
     def delete(self, _event=None):
         """Callback for <Del> event
@@ -282,7 +288,7 @@ class ScrollableTreeview(CTkFrame):
             _event: not used but mandatory"""
         for selected in self.treevw.selection():
             try:
-                item = self.treevw.item(selected)
+                item = self.item(selected)
                 if item["text"].strip() != "":
                     self.treevw.delete(selected)
                     try:
@@ -304,6 +310,9 @@ class ScrollableTreeview(CTkFrame):
     
     def identify(self, *args, **kwargs):
         return self.treevw.identify(*args, **kwargs)
+    
+    def identify_column(self, *args, **kwargs):
+        return self.treevw.identify_column(*args, **kwargs)
 
     def parent(self, item):
         return self.treevw.parent(item)
