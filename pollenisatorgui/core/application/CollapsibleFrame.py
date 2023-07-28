@@ -55,12 +55,14 @@ class CollapsibleFrame(CTkFrame):
         self.after(0, lambda width=width:self._update_width(width))
 
     def _place_caption(self, caption_separation, icon_x, width_of_icon):
-        self.update()
-        x = caption_separation + icon_x + width_of_icon
-        y = -(self._captionLabel.winfo_reqheight()//2)-1
-
-        self._captionLabel.place(in_= self._containerFrame, x=x, y=y, anchor=tk.NW, bordermode="ignore")
-
+        try:
+            self.update()
+            x = caption_separation + icon_x + width_of_icon
+            y = -(self._captionLabel.winfo_reqheight()//2)-1
+            self._captionLabel.place(in_= self._containerFrame, x=x, y=y, anchor=tk.NW, bordermode="ignore")
+        except tk.TclError:
+            pass
+        
     def _update_width(self, width):
         self.update()
         if width is None:

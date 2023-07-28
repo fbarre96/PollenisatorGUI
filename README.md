@@ -7,12 +7,12 @@
 
 #### Ubuntu
 ```
-sudo apt-get install python3-pip git python3-pil python3-pil.imagetk python3-tk tmux xterm xdotool x11-xserver-utils
+sudo apt-get install python3-pipx git python3-pil python3-pil.imagetk python3-tk tmux xterm xdotool x11-xserver-utils
 ```
 
 #### Archlinux
 ```
-pacman -S python tk git tmux xterm xdotool x11-xserver-utils
+pacman -S python python-pipx tk git tmux xterm xdotool x11-xserver-utils
 ```
 
 ### Additional optional packages
@@ -24,7 +24,7 @@ Docker can be installed to fire-up a scan worker. Otherwise, your computer can b
 ```
 git clone https://github.com/fbarre96/PollenisatorGUI
 cd PollenisatorGUI
-pip install .
+pipx install .
 ```
 
 Check if you have a warning message saying that pip default install forder is out of your PATH.

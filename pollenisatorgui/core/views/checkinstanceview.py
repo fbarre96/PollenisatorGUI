@@ -363,9 +363,6 @@ class CheckInstanceView(ViewElement):
             else:
                 tk.messagebox.showerror("Could not launch this tool", "Binary path is not available ({})")
             #
-            #self.mainApp.scanManager.launchTask(tool_m)
-            #self.peekToolCallback(tool_iid)
-            #self.mainApp.after(600, self.openModifyWindow)
 
     def queueToolWorkerCallback(self, tool_iid, **kwargs):
         apiclient = APIClient.getInstance()

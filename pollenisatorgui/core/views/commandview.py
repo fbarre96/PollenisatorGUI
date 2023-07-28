@@ -38,7 +38,7 @@ class CommandView(ViewElement):
         panel_bottom.addFormLabel("Common binary name", row=row)
         panel_bottom.addFormStr("Bin path", r"", default.get("bin_path", ""), column=1, row=row)
         panel_bottom.addFormHelper(
-            "The binary name (nmap for Nmap, dirsearch for Diresearch even if it's dir.py for exemple).", column=2, row=row)
+            "The binary name (nmap for Nmap, dirsearch for Diresearch even if it's dir.py for exemple).\nHelps user not to configure this for common name", column=2, row=row)
         row += 1
         
         panel_bottom.addFormLabel("Plugin", row=row)
@@ -68,10 +68,11 @@ class CommandView(ViewElement):
         panel_text = self.form.addFormPanel()
         panel_text.addFormLabel("Command line options", side="top")
         panel_text.addFormHelper(
-            """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|, |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|, |ip.infos.*| |port.infos.*|""", side="right")
+            """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|,\n |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|,\n|ip.infos.*| |port.infos.*| |tool.infos.*|""", side="right")
         panel_text.addFormText("Command line options", r"",
                                modelData["text"], self.menuContextuel, side="left", height=100)
-        panel_bottom = self.form.addFormPanel()
+        self._commonWindowForms(modelData)
+        panel_bottom = self.form.addFormPanel(fill=tk.X, grid=True)
         
         if not self.controller.isMine():
             panel_bottom.addFormButton("Add to my commands", self.controller.addToMyCommands)
@@ -81,8 +82,9 @@ class CommandView(ViewElement):
             my_commands = settings.local_settings.get("my_commands", {})
             default = my_commands.get(modelData["name"], modelData["bin_path"])
             panel_bottom.addFormLabel("My binary path")
-            panel_bottom.addFormStr("My binary path", r"", default, width=30)
-        self._commonWindowForms(modelData)
+            panel_bottom.addFormStr("My binary path", r"", default, column=1)
+            panel_bottom.addFormHelper("""This is local to your computer. It will not be shared with other users.\nIt is useful to launch commands on your own computer""",column=2)
+        
         self.completeModifyWindow(addTags=False)
 
     def openInsertWindow(self):

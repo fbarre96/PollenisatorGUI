@@ -114,7 +114,7 @@
     "selected_color": ["#2CC985", "#2FA572"],
     "selected_hover_color": ["#0C955A", "#106A43"],
     "unselected_color": ["#979DA2", "gray29"],
-    "unselected_hover_color": ["gray70", "2FC572"],
+    "unselected_hover_color": ["gray70", "#2FC572"],
     "text_color": ["gray98", "#DCE4EE"],
     "text_color_disabled": ["gray78", "gray68"]
   },

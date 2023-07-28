@@ -142,7 +142,7 @@ class TerminalsWidget(CTkFrame):
         if cls.cachedClassIcon is None:
             path = getIcon(cls.icon)
             img = Image.open(path)
-            resized_image = img.resize((16,16), Image.ANTIALIAS)
+            resized_image = img.resize((16,16), Image.Resampling.LANCZOS)
             cls.cachedClassIcon = ImageTk.PhotoImage(resized_image)
         return cls.cachedClassIcon
     
@@ -151,7 +151,7 @@ class TerminalsWidget(CTkFrame):
         if cls.cachedPseudoTerminalClassIcon is None:
             path = getIcon(cls.iconPseudoTerminal)
             img = Image.open(path)
-            resized_image = img.resize((16,16), Image.ANTIALIAS)
+            resized_image = img.resize((16,16), Image.Resampling.LANCZOS)
             cls.cachedPseudoTerminalClassIcon = ImageTk.PhotoImage(resized_image)
         return cls.cachedPseudoTerminalClassIcon
     

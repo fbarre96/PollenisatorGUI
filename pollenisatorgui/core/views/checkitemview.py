@@ -79,25 +79,28 @@ class CheckItemView(ViewElement):
         panel_bottom.addFormLabel("Check type", row=0, column=0)
         self.checktypeForm = panel_bottom.addFormCombo("Check type", ("manual_commands", "auto_commands", "script", "manual"), 
                                                         default=default.get("check_type","manual"),  
-                                                        binds={"<<ComboboxSelected>>": lambda ev: self.updateCheckType(action)},
+                                                        command=lambda ev: self.updateCheckType(action),
                                                         row=0, column=1)
-        panel_bottom = self.form.addFormPanel(grid=True)
+        panel_bottom.addFormLabel("Trigger", row=0, column=0)
         panel_bottom.addFormChecklist("Pentest types", list(Settings.getPentestTypes().keys()), default.get("pentest_types", []), row=1, column=1)
         panel_bottom = self.form.addFormPanel(grid=True)
         apiclient = APIClient.getInstance()
         lvls = apiclient.getTriggerLevels()
-        panel_bottom.addFormLabel("Level", row=0, column=0)
-        panel_bottom.addFormCombo(
-            "Level", lvls, default.get("lvl", "network"), width=200, row=0, column=1)
+        panel_bottom.addFormLabel("Trigger", row=0, column=0)
+        self.triggerLevelForm = panel_bottom.addFormCombo(
+            "Level", lvls, default.get("lvl", "network"),  command=lambda ev: self.triggerLevelUpdate(default.get("lvl", "network")), width=200, row=0, column=1)
         panel_bottom.addFormHelper(
-            "lvl wave: will run on each wave once\nlvl network: will run on each NetworkIP once\nlvl domain: will run on each scope domain once\nlvl ip: will run on each ip/hostname once\nlvl port: will run on each port once", row=0, column=2)
-        panel_bottom = self.form.addFormPanel(grid=True)
-        panel_bottom.addFormLabel("Ports/Services (if level is port only)")
-        panel_bottom.addFormStr(
-            "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", default.get("ports", ""), column=1)
-        panel_bottom.addFormHelper(
-            "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
+            "When the event is triggered, \na instance for this check will be created on the triggering object", row=0, column=2)
+        self.panel_trigger_options = self.form.addFormPanel(grid=True)
+        if default.get("lvl","network").startswith("port"):
+            self.panel_trigger_options.clear()
+            self.panel_trigger_options.addFormLabel("Ports/Services (if level is port only)")
+            self.panel_trigger_options.addFormStr(
+                "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", default.get("ports", ""), column=1)
+            self.panel_trigger_options.addFormHelper(
+                "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
 
+        panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Category", row=1, column=0)
         panel_bottom.addFormStr("Category", r"", default.get("category", ""), row=1, column=1)
         panel = self.form.addFormPanel(grid=True)
@@ -137,6 +140,17 @@ class CheckItemView(ViewElement):
             self.textForm = formTv.addFormStr("Script", ".+", default.get("script", ""))
             btn = formTv.addFormButton("Browse", lambda _event : self.browseScriptCallback(self.textForm))
 
+    def triggerLevelUpdate(self, old_value):
+        if self.triggerLevelForm.getValue() != old_value:
+            self.controller.model.lvl = self.triggerLevelForm.getValue()
+            self.reopen()
+
+    def reopen(self):
+        if self.is_insert_view:
+            self.openInsertWindow()
+            return
+        self.openModifyWindow()
+
     def updateCheckType(self, action):
         form_values = self.form.getValue()
         form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
@@ -157,6 +171,7 @@ class CheckItemView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
+        self.is_insert_view = False
         self.form.clear()
         modelData = self.controller.getData()
         self._initContextualMenu()
@@ -180,6 +195,8 @@ class CheckItemView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new Command
         """
+        self.is_insert_view = True
+        self.form.clear()
         data = self.controller.getData()
         self._initContextualMenu()
         panel_top = self.form.addFormPanel(grid=True)

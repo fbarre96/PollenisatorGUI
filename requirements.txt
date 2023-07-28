@@ -16,3 +16,4 @@ watchdog
 python-tkdnd
 customtkinter==5.1.2
 libtmux
+psutil

@@ -754,17 +754,21 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         #LEFT PANE : Treeview
         self.left_pane = CTkFrame(self.paned)
         self.frameTw = CTkFrame(self.left_pane)
-        self.frameTw.rowconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
+        self.frameTw.rowconfigure(1, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
-        
         self.treevw = PentestTreeview(self, self.frameTw)
+        frameContext = CTkFrame(self.frameTw)
+        self.btn_context = CTkSegmentedButton(frameContext, values=["Hosts", "Checklist"], command=self.checklistViewSwap)
+        self.btn_context.set("Check" if self.settings.is_checklist_view() else "Host")
+        self.btn_context.pack(side="left")
+        frameContext.grid(row=0, column=0)
         self.treevw.initUI()
         self.scbVSel = CTkScrollbar(self.frameTw,
                                 orientation=tk.VERTICAL,
                                 command=self.treevw.yview)
         self.treevw.configure(yscrollcommand=self.scbVSel.set)
-        self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
-        self.scbVSel.grid(row=0, column=1, sticky=tk.NS)
+        self.treevw.grid(row=1, column=0, sticky=tk.NSEW)
+        self.scbVSel.grid(row=1, column=1, sticky=tk.NS)
         # FILTER PANE:
         # self.filtersFrame = CTkFrame(self.left_pane)
         # self.initFiltersFrame(self.filtersFrame)
@@ -798,8 +802,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         return "break"
 
    
-
-   
+    def checklistViewSwap(self, _event=None):
+        is_checklist_view = "Check" in self.btn_context.get()
+        settings = Settings()
+        settings.local_settings["checklist_view"] = is_checklist_view
+        settings.saveLocalSettings()
+        self.treevw.checklistViewSwap()
 
 
     def initCommandsView(self):

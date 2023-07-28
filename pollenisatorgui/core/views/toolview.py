@@ -159,8 +159,8 @@ class ToolView(ViewElement):
             elif "running" in self.controller.getStatus():
                 actions_panel.addFormButton(
                     "Stop", self.stopCallback, side="right")
-                actions_panel.addFormButton(
-                    "Remote Interaction", self.remoteInteraction, side="right")
+                #actions_panel.addFormButton(
+                #    "Remote Interaction", self.remoteInteraction, side="right")
             elif "done" in self.controller.getStatus():
                 actions_panel.addFormButton(
                     "Download result file", self.downloadResultFile, image=self.image_download, side="right")

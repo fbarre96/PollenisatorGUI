@@ -3,32 +3,27 @@ from pollenisatorgui.core.application.dialogs.ChildDialogAutoScanParams import C
 from pollenisatorgui.core.application.dialogs.ChildDialogScanHistory import ChildDialogScanHistory
 from pollenisatorgui.core.application.dialogs.ChildDialogToolsInstalled import ChildDialogToolsInstalled
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
-from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import multiprocessing
 import threading
 import time
+from pollenisatorgui.core.components.scanworker import ScanWorker
 from pollenisatorgui.core.forms.formpanel import FormPanel
-from pollenisatorgui.core.models.wave import Wave
 from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.application.dialogs.ChildDialogFileParser import ChildDialogFileParser
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.models.checkinstance import CheckInstance
-from pollenisatorgui.autoscanworker import executeTool
-from PIL import Image, ImageTk
+from PIL import Image
 import pollenisatorgui.core.components.utils as utils
 import os
 import docker
-import socketio
 from bson import ObjectId
 from pollenisatorgui.core.components.logger_config import logger
-import tkinterDnD as dnd
 
 try:
     import git
@@ -98,7 +93,7 @@ class ScanManager:
         self.sio = None
         self.workerTv = None
         self.linkTw = linkedTreeview
-        self.local_scans = dict()
+        self.scan_worker = ScanWorker(self.settings)
         path = utils.getIconDir()
         self.tool_icon = tk.PhotoImage(file=path+"tool.png")
         self.nok_icon = tk.PhotoImage(file=path+"cross.png")
@@ -477,65 +472,13 @@ class ScanManager:
             apiclient.setWorkerInclusion(worker_hostname, not (isIncluded))
 
     def getToolProgress(self, toolId):
-        thread, queue, queueResponse, toolModel = self.local_scans.get(str(toolId), (None, None,None,None))
-        if thread is None or queue is None:
-            return ""
-        progress = ""
-        if not queueResponse.empty():
-            queue.put("\n")
-            progress = queueResponse.get()
-            return progress
-        if not thread.is_alive():
-            return True
-        return False
+        return self.scan_worker.getToolProgress(toolId)
 
     def stopTask(self, toolId):
-        thread, queue, queueResponse, toolModel = self.local_scans.get(str(toolId), (None, None, None, None))
-        if thread is None:
-            return False
-        try:
-            thread.terminate()
-        except:
-            pass
-        try:
-            del self.local_scans[str(toolId)]
-        except KeyError:
-            toolModel.markAsNotDone()
-        return True
+        return self.scan_worker.stopTask(toolId)
 
     def launchTask(self, toolModel, checks=True, worker="", infos={}):
-        logger.debug("Launch task for tool "+str(toolModel.getId()))
-        apiclient = APIClient.getInstance()
-        launchableToolId = toolModel.getId()
-        for item in list(self.local_scans.keys()):
-            process_info = self.local_scans.get(item, None)
-            if process_info is not None and not process_info[0].is_alive():
-                logger.debug("Proc finished : "+str(self.local_scans[item]))
-                try:
-                    del self.local_scans[item]
-                except KeyError as e:
-                    pass
-
-        if worker == "" or worker == "localhost" or worker == apiclient.getUser():
-            scan = self.local_scans.get(str(launchableToolId), None)
-            if scan is not None:
-                if scan[0].is_alive() and str(scan[0].pid) != "":
-                    return
-                else:
-                    del self.local_scans[str(launchableToolId)]
-                    scan = None
-
-            logger.debug("Launch task (start process) , local worker , for tool "+str(toolModel.getId()))
-            thread = None
-            queue = multiprocessing.Queue()
-            queueResponse = multiprocessing.Queue()
-            thread = multiprocessing.Process(target=executeTool, args=(queue, queueResponse, apiclient, str(launchableToolId), True, False, (worker == apiclient.getUser()), infos, logger))
-            thread.start()
-            self.local_scans[str(launchableToolId)] = (thread, queue, queueResponse, toolModel)
-            logger.debug('Local tool launched '+str(toolModel.getId()))
-        else:
-            logger.debug('laucnh task, send remote tool launch '+str(toolModel.getId()))
-            apiclient.sendQueueTasks(toolModel.getId())
+        return self.scan_worker.launchTask(toolModel, checks=checks, worker=worker, infos=infos)
 
 
     def OnWorkerDelete(self, event):
@@ -591,22 +534,16 @@ class ScanManager:
                     dialog.destroy()
         except Exception as e:
             pass
+        self.scan_worker.onClosing()
         apiclient = APIClient.getInstance()
         apiclient.deleteWorker(apiclient.getUser()) 
         if self.sio is not None:
             self.sio.disconnect()
 
-    def beacon(self):
-        apiclient = APIClient.getInstance()
-        try:
-            self.sio.emit("keepalive", {"name":apiclient.getUser(), "running_tasks":[str(x) for x in self.local_scans]})
-            timer = threading.Timer(5.0, self.beacon)
-            timer.start()
-        except socketio.exceptions.BadNamespaceError:
-            pass
+    
 
     def is_local_launched(self, toolId):
-        return self.local_scans.get(str(toolId), None) is not None
+        return self.scan_worker.is_local_launched(toolId)
 
     def registerAsWorker(self, _event=None):
         results = self.mainApp.testLocalTools()
@@ -617,45 +554,10 @@ class ScanManager:
                 self.settings.local_settings["my_commands"] = dialog.rvalue
                 self.settings.saveLocalSettings()
         self.settings.reloadLocalSettings()
-        self.sio = socketio.Client()
         apiclient = APIClient.getInstance()
-        self.sio.connect(apiclient.api_url)
         name = apiclient.getUser()
-        plugins = list(set(self.settings.local_settings.get("my_commands",{}).keys()))
-        print("REGISTER "+str(name))
-        print("supported plugins "+str(plugins))
-        self.sio.emit("register", {"name":name, "supported_plugins":plugins})
-        @self.sio.event
-        def executeCommand(data):
-            print("GOT EXECUTE "+str(data))
-            logger.debug("Got execute "+str(data))
-            toolId = data.get("toolId")
-            infos = data.get("infos")
-            tool = Tool.fetchObject({"_id":ObjectId(toolId)})
-            if tool is None:
-                logger.debug("Local worker scan was requested but tool not found : "+str(toolId))
-                return
-            logger.debug("Local worker launch task: tool  "+str(toolId))
-            self.launchTask(tool, True, apiclient.getUser(), infos=infos)
-
-        @self.sio.event
-        def stopCommand(data):
-            logger.debug("Got stop "+str(data))
-            toolId = data.get("tool_iid")
-            self.stopTask(toolId)
-
-        @self.sio.event
-        def getProgress(data): 
-            print("Get Progress "+str(data))
-            logger.debug("get progress "+str(data))
-            toolId = data.get("tool_iid")
-            msg = self.getToolProgress(toolId)
-            print(msg)
-            self.sio.emit("getProgressResult", {"result":msg})
+        self.scan_worker.connect(name)
         
-        
-        timer = threading.Timer(5.0, self.beacon)
-        timer.start()
         dialog = ChildDialogProgress(self.parent, "Registering", "Waiting for register 0/4", progress_mode="indeterminate")
         dialog.show()
         nb_try = 0

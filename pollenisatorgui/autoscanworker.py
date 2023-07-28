@@ -13,7 +13,6 @@ import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.interval import Interval
 from pollenisatorgui.core.models.tool import Tool
-from pollenisatorgui.core.models.command import Command
 import threading
 import sys
 
@@ -23,7 +22,7 @@ event_obj = threading.Event()
 def sendKill(queue):
     queue.put("kill")
 
-def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False, infos={}, logger_given=None):
+def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False, infos={}, logger_given=None, worker_name=""):
     """
      remote task
     Execute the tool with the given toolId on the given pentest name.
@@ -122,7 +121,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
     ##
     try:
         launchableToolId = toolModel.getId()
-        name = apiclient.getUser()
+        name = worker_name
         toolModel.markAsRunning(name, infos)
         logger.debug(f"Mark as running tool_iid {launchableToolId}")
         logger.debug('Autoscan: TASK STARTED:'+toolModel.name)

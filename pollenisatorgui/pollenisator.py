@@ -184,6 +184,8 @@ def pollwatch():
         observer.stop()
         observer.join()
 
+    
+
 def main():
     """Main function. Start pollenisator application
     """

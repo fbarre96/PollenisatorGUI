@@ -243,9 +243,7 @@ class CommandsTreeview(PollenisatorTreeview):
                 if view is not None:
                     view.addInTreeview()
             if str(iid) == self.openedViewFrameId:
-                for widget in self.appli.viewframe.winfo_children():
-                    widget.destroy()
-                view.openModifyWindow()
+                self.event_generate("<F6>")
             if view is not None:
                 view.controller.actualize()
                 view.updateReceived()
