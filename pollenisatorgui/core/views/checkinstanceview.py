@@ -8,6 +8,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.controllers.toolcontroller import ToolController
+from pollenisatorgui.core.views.checkinstancemultiview import CheckInstanceMultiView
 from pollenisatorgui.core.views.toolview import ToolView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
@@ -35,6 +36,8 @@ class CheckInstanceView(ViewElement):
     cached_done_icon = None
     cached_running_icon = None
     cached_not_ready_icon = None
+
+    multiview_class = CheckInstanceMultiView
 
     def getIcon(self, check_infos=None):
         """
@@ -359,7 +362,7 @@ class CheckInstanceView(ViewElement):
             if bin_path is None:
                 bin_path = command_bin.getValue()
             if utils.which_expand_alias(bin_path):
-                self.mainApp.launch_in_terminal(tool_m, bin_path+" "+command_line)
+                self.mainApp.launch_tool_in_terminal(tool_m, bin_path+" "+command_line)
             else:
                 tk.messagebox.showerror("Could not launch this tool", "Binary path is not available ({})")
             #
@@ -421,7 +424,8 @@ class CheckInstanceView(ViewElement):
     def execScript(self, script):
         data = self.controller.getData()
         data["default_target"] = str(self.controller.getDbId())
-        ScriptManager.executeScript(script, data)
+        scriptmanager = ScriptManager()
+        scriptmanager.executeScript(self.mainApp, script, data, parent=self.mainApp)
     
 
     def addInTreeview(self, parentNode=None, addChildren=True, detailed=False):

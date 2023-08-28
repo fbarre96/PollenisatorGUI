@@ -2,7 +2,7 @@ import pollenisatorgui.core.components.utils as utils
 import os
 from pollenisatorgui.core.components.apiclient import APIClient
 
-def main(apiclient, **kwargs):
+def main(apiclient, appli, **kwargs):
 	APIClient.setInstance(apiclient)
 	if not utils.which_expand_alias("gowitness"):
 		return False, "binary 'gowitness' is not in the PATH."

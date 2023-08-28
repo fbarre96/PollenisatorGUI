@@ -24,6 +24,8 @@ class ViewElement(object):
     """
     icon = 'undefined.png'
     cachedClassIcon = None
+    
+    multiview_class = None
 
     def __init__(self, appTw, appViewFrame, mainApp, controller):
         """Constructor

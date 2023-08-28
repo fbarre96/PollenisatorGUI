@@ -51,7 +51,7 @@ class CheckItemController(ControllerElement):
         # Get form values
         title = values["Title"]
         description = values["Description"]
-        ports = values["Ports/Services"]
+        ports = values.get("Ports/Services", "")
         lvl = values["Level"]
         priority = values["Priority"]
         max_thread = values.get("Shared threads", 1)

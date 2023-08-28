@@ -14,11 +14,16 @@ class ScriptManager:
     Open the scripts window manager
     """
     folder_icon = None
-    def __init__(self, parent, whatfor="execute"):
+
+    def __init__(self) -> None:
+        pass
+
+    def initUI(self, appli, whatfor="execute"):
         """
-            parent: the tkinter parent view to use for this window construction.
+            appli: the tkinter parent view to use for this window construction.
         """
-        self.parent = parent
+        self.appli = appli
+        parent = appli
         self.app = CTkToplevel(parent)
         self.app.title("Scripts Manager")
         self.app.resizable(True, True)
@@ -143,7 +148,7 @@ class ScriptManager:
 
     def executedSelectedScripts(self):
         for selected in self.file_tree.get_checked():
-            self.executeScript(selected)
+            self.executeScript(self.appli, selected, parent=self.app)
 
     def returnSelection(self):
         ret = []
@@ -157,19 +162,18 @@ class ScriptManager:
         self.rvalue = ret
         self.app.destroy()
 
-    @classmethod
-    def executeScript(cls, script_path, data={}):
+    def executeScript(self, appli, script_path, data={}, parent=None):
         script_dir = ScriptManager.getScriptsDir()
         category_name = os.path.dirname(script_path.replace(script_dir, ""))
         category_name = re.sub(r"^/+", "",  category_name)
         script_name = ".".join(os.path.splitext(os.path.basename(script_path))[:-1])
         module = os.path.join("pollenisatorgui/scripts/",category_name, script_name).replace("/", '.')
         imported = importlib.import_module(module)
-        success, res = imported.main(APIClient.getInstance(), **data)
+        success, res = imported.main(APIClient.getInstance(), appli, **data)
         if success:
-            tk.messagebox.showinfo("Script finished", f"Script {script_name} finished.\n{res}")
+            tk.messagebox.showinfo("Script finished", f"Script {script_name} finished.\n{res}", parent=parent)
         else:
-            tk.messagebox.showwarning("Script failed", f"Script {script_name} failed.\n{res}")
+            tk.messagebox.showwarning("Script failed", f"Script {script_name} failed.\n{res}", parent=parent)
 
     def openPathForUser(self):
         selection = self.treevw.selection()

@@ -902,7 +902,9 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def openScriptModule(self):
         """Open the script window"""
-        self.scriptManager = ScriptManager(self)
+        self.scriptManager = ScriptManager()
+        self.scriptManager.initUI(self)
+        self.wait_window(self.scriptManager.app)
 
     def initUI(self):
         """
@@ -945,7 +947,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def open_terminal(self, iid, title):
         self.terminals.open_terminal(iid, title)
 
-    def launch_in_terminal(self, tool_model, command):
+
+    def launch_in_terminal(self, iid, title, commandline):
+        self.terminals.open_terminal(iid, title)
+        self.terminals.launch_in_terminal(iid, commandline)
+
+    def launch_tool_in_terminal(self, tool_model, command):
         self.terminals.open_terminal(str(tool_model.check_iid)+"|"+str(tool_model.getId()), ToolController(tool_model).getDetailedString())
         self.terminals.launch_in_terminal(str(tool_model.check_iid)+"|"+str(tool_model.getId()), command)
 

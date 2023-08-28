@@ -513,6 +513,18 @@ class APIClient():
             raise ErrorHTTP(response)
         else:
             return None
+        
+    @handle_api_errors
+    def apply_check_to_pentest(self, check_iid):
+        api_url = '{0}cheatsheet/{1}/{2}'.format(self.api_url_base, self.getCurrentPentest(), check_iid)
+        response = requests.post(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res["res"]
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
 
     @handle_api_errors
     def deleteCheckInstance(self, iid):
@@ -1609,4 +1621,4 @@ class APIClient():
         else:
             return None
         
-   
+    

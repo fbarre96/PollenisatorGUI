@@ -6,7 +6,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 import os
 
 
-def main(apiclient, **kwargs):
+def main(apiclient, appli, **kwargs):
    APIClient.setInstance(apiclient)
    addrs = psutil.net_if_addrs()
    print(addrs.keys())

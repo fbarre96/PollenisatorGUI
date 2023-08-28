@@ -140,7 +140,10 @@ class ScrollableTreeview(CTkFrame):
             self.treevw.item(iid, **kwargs)
         except tk.TclError as e:
             pass
-        self.infos[[x["iid"] for x in self.infos].index(iid)].update(kwargs)
+        try:
+            self.infos[[x["iid"] for x in self.infos].index(iid)].update(kwargs)
+        except ValueError as e:
+            raise tk.TclError(e)
         return self.infos[[x["iid"] for x in self.infos].index(iid)]
         
         

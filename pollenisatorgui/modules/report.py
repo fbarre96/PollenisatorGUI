@@ -223,7 +223,7 @@ class Report(Module):
         self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models)
         self.combo_word.grid(row=0, column=1)
         self.btn_template_photo = CTkImage(Image.open(utils.getIcon("download.png")))
-        btn_word_template_dl = CTkButton(templatesFrame, text="", width=40, image=self.btn_template_photo, command=self.downloadWordTemplate)
+        btn_word_template_dl = CTkButton(templatesFrame, text="View empty template", width=40, image=self.btn_template_photo, command=self.downloadWordTemplate)
         btn_word_template_dl.grid(row=0, column=2, sticky=tk.W)
         btn_word = CTkButton(
             templatesFrame, text="Generate", image=self.image_word, command=self.generateReportWord)
@@ -235,7 +235,7 @@ class Report(Module):
         self.combo_pptx = CTkComboBox(
             templatesFrame, values=self.pptx_models)
         self.combo_pptx.grid(row=1, column=1)
-        btn_pptx_template_dl = CTkButton(templatesFrame,image=self.btn_template_photo,width=40, text="", command=self.downloadPptxTemplate)
+        btn_pptx_template_dl = CTkButton(templatesFrame,text="View empty template",image=self.btn_template_photo,width=40, text="", command=self.downloadPptxTemplate)
         btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
         btn_ppt = CTkButton(
             templatesFrame, text="Generate", image=self.image_ppt, command=self.generateReportPowerpoint)

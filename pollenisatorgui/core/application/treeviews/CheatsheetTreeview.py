@@ -163,11 +163,25 @@ class CheatsheetTreeview(PollenisatorTreeview):
         """Alias to self.load method"""
         self.load()
 
+    def applyToPentest(self, node=None):
+        """Add the current check to the pentest check instances where it applies
+        """
+        if node is None:
+            try:
+                node = str(self.contextualMenu.selection)
+            except:
+                return
+        apiclient = APIClient.getInstance()
+        apiclient.apply_check_to_pentest(str(node))
+
     def _initContextualsMenus(self):
         """
         Create the contextual menu
         """
         self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
+        self.contextualMenu.add_command(
+            label="Apply to opened pentest", command=self.applyToPentest)
+        self.contextualMenu.add_separator()
         self.contextualMenu.add_command(
             label="Sort children", command=self.sort)
         self.contextualMenu.add_command(

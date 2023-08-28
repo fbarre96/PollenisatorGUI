@@ -30,7 +30,7 @@ users_to_test = [
     "adminglpi",
 ]
 
-def main(apiclient, **kwargs):
+def main(apiclient, appli, **kwargs):
     if not utils.which_expand_alias("cme"):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)

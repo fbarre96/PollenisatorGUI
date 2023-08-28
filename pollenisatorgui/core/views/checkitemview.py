@@ -162,7 +162,8 @@ class CheckItemView(ViewElement):
             self.openInsertWindow()
 
     def browseScriptCallback(self, textForm):
-        scriptManagerInst = ScriptManager(self.mainApp, whatfor="select")
+        scriptManagerInst = ScriptManager()
+        scriptManagerInst.initUI(self.mainApp, whatfor="select")
         self.mainApp.wait_window(scriptManagerInst.app)
         liste = scriptManagerInst.rvalue
         textForm.setValue(", ".join(liste))

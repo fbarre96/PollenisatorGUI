@@ -90,6 +90,8 @@ class PollenisatorTreeview(ttk.Treeview):
     def closeMenu(self, _event=None):
         """Does nothing. Used to close the contextual menu."""
         return  # Do nothing.
+    
+    
 
     def sort(self, node=None):
         """
@@ -250,6 +252,8 @@ class PollenisatorTreeview(ttk.Treeview):
             event: a ttk Treeview event autofilled. Contains information on what treeview node was clicked.
         """
         # display the popup menu
+        self.contextualMenu.selection = self.identify(
+            "item", event.x, event.y)
         try:
             self.contextualMenu.tk_popup(event.x_root, event.y_root)
         except Exception as e:
