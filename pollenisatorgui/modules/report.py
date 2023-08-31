@@ -235,7 +235,7 @@ class Report(Module):
         self.combo_pptx = CTkComboBox(
             templatesFrame, values=self.pptx_models)
         self.combo_pptx.grid(row=1, column=1)
-        btn_pptx_template_dl = CTkButton(templatesFrame,text="View empty template",image=self.btn_template_photo,width=40, text="", command=self.downloadPptxTemplate)
+        btn_pptx_template_dl = CTkButton(templatesFrame,text="View empty template",image=self.btn_template_photo,width=40, command=self.downloadPptxTemplate)
         btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
         btn_ppt = CTkButton(
             templatesFrame, text="Generate", image=self.image_ppt, command=self.generateReportPowerpoint)
