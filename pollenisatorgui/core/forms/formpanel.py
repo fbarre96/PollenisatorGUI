@@ -44,6 +44,7 @@ class FormPanel(Form):
         self.kwargs = kwargs
         self.gridLayout = self.getKw("grid", False)
         self.make_uniform_column = self.getKw("make_uniform_column", None)
+        self.save_row_configure = []
         self.panel = None
 
     def constructView(self, parent):
@@ -79,7 +80,9 @@ class FormPanel(Form):
                 self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
             else:
                 self.panel.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
-    
+        for rowconfigured in self.save_row_configure:
+            self.panel.grid_rowconfigure(rowconfigured[0], weight=rowconfigured[1])
+
     def checkForm(self):
         """
         Check if this form is correctly filled. A panel is correctly filled if all subforms composing it are correctly filled.
@@ -108,6 +111,9 @@ class FormPanel(Form):
     def makeUniformColumn(self, n):
         for i in range(n):
             self.panel.grid_columnconfigure(i, weight=1, uniform="uniform")
+
+    def rowconfigure(self, row, weight):
+        self.save_row_configure.append([row, weight]) 
 
     def getValue(self):
         """

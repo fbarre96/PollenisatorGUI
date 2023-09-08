@@ -119,19 +119,20 @@ class CheckInstanceView(ViewElement):
         self._initContextualMenu()
         self.form.addFormHidden("parent", modelData.get("parent"))
         panel_top = self.form.addFormPanel(grid=True)
-        panel_top.addFormLabel("Status", row=0, column=0)
+        
+        
+        #panet_top_sub = panel_top.addFormPanel(grid=True, row=3, column=0, columnspan=2)
+        panel_top.addFormLabel("Target", row=0, column=0)
+        panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
+        panel_top.addFormLabel("Status", row=0, column=2)
         default_status = infos.get("status", "")
         if default_status == "":
             default_status = modelData.get("status", "")
         if default_status == "":
             default_status = "todo"
         self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
-        self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=1, pady=5)
-        
-        panet_top_sub = panel_top.addFormPanel(grid=True, row=3, column=0, columnspan=2)
-        panet_top_sub.addFormLabel("Target", row=0, column=0)
-        panet_top_sub.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
-        panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
+        self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=3, pady=5)
+        #panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
         
         #if "commands" in check_m.check_type:
 
@@ -139,6 +140,10 @@ class CheckInstanceView(ViewElement):
         self.buttonQueueImage = CTkImage(Image.open(utils.getIconDir()+'exec_cloud.png'))
         self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
         self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
+        self.image_download = utils.loadIcon("download.png")
+        self.image_reset = utils.loadIcon("reset.png")
+        self.image_delete = utils.loadIcon("delete.png")
+        self.image_defect = utils.loadIcon("defect.png")
         dict_of_tools_not_done = infos.get("tools_not_done")
         dict_of_tools_error = infos.get("tools_error")
         dict_of_tools_running = infos.get("tools_running")
@@ -150,8 +155,10 @@ class CheckInstanceView(ViewElement):
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         lambdas_del = [self.deleteToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         lambdas_error_reset = [self.resetToolCallbackLambda(iid) for iid in dict_of_tools_error.keys()]
+        lambdas_defect_create = [self.createDefectCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
+        lambdas_reset = [self.resetToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         datamanager = DataManager.getInstance()
-            
+        
         if dict_of_tools_not_done:
             self.form.addFormSeparator()
             self.form.addFormLabel("Command suggestions", font_size=20, side=tk.TOP, anchor=tk.CENTER)
@@ -171,7 +178,7 @@ class CheckInstanceView(ViewElement):
                     form_str_bin= formCommands.addFormStr("bin_path", "", commandModel.bin_path, status="disabled", width=80, row=row, column=1)
                     form_str= formCommands.addFormStr("commandline", "", comm, width=550, row=row, column=2)
 
-                formCommands.addFormButton("", lambdas_lauch_tool_local[row], row=row, column=3, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, image=self.buttonExecuteImage)
+                formCommands.addFormButton("Execute", lambdas_lauch_tool_local[row], row=row, column=3, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, image=self.buttonExecuteImage)
                 ready, msg = self.mainApp.scanManager.is_ready_to_queue(str(tool_iid))
                 if ready:
                     formCommands.addFormButton("", lambdas_lauch_tool_worker[row], row=row, column=4, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
@@ -184,8 +191,10 @@ class CheckInstanceView(ViewElement):
             for tool_iid, tool_string in dict_of_tools_running.items():
                 formCommands.addFormSeparator(row=row, column=0, columnspan=3)
                 formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
-                formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=1, width=0, image=self.buttonRunImage)
-                formCommands.addFormButton("Stop", lambdas_running_stop[row], row=row*2+1, column=2,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                tool_model = datamanager.get("tools", tool_iid)
+                form_str = formCommands.addFormStr("commandline", "", tool_model.text, status="disabled", width=550, row=row*2+1, column=2)
+                formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=3, width=0, image=self.buttonRunImage)
+                formCommands.addFormButton("Stop", lambdas_running_stop[row], row=row*2+1, column=4,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         if dict_of_tools_done:
@@ -222,9 +231,12 @@ class CheckInstanceView(ViewElement):
                         if column == 0:
                             tool_panel = tool_panel.addFormPanel(pady=0,side=tk.TOP, anchor=tk.W)
                 tool_panel.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  side=tk.LEFT, height=min(26*+len(tool_m.notes.split("\n")), 200))
-                tool_panel.addFormButton("", lambdas_done[row], image=self.buttonDownloadImage, width=20, side=tk.LEFT, anchor=tk.E)
-                tool_panel.addFormButton("Delete", lambdas_del[row], width=20, side=tk.LEFT, anchor=tk.E, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
-                               border_width=1, border_color="firebrick1", hover_color="tomato")
+                action_panel = tool_panel.addFormPanel(side=tk.LEFT, anchor=tk.CENTER, fill=tk.BOTH, grid=True)
+                action_panel.rowconfigure(0, 2)
+                action_panel.addFormButton("", lambdas_done[row], image=self.image_download, style="icon.TButton", tooltip="Download original result file generated by the tool")
+                action_panel.addFormButton("", lambdas_defect_create[row],  image=self.image_defect, style="icon.TButton", tooltip="Create a security defect instance with this tool notes", column=1)
+                action_panel.addFormButton("", lambdas_reset[row], image=self.image_reset, style="icon.TButton", tooltip="Reset the tool data. All data will be lost.", column=2)
+                action_panel.addFormButton("", lambdas_del[row], image=self.image_delete, style="icon.TButton", tooltip="Delete the tool data. Tool results too.", column=3)
                 row+=1
         if dict_of_tools_error:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
@@ -240,8 +252,8 @@ class CheckInstanceView(ViewElement):
                 row+=1
         upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
         upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, anchor=tk.N, pady=5)
-        self.form_file = upload_panel.addFormFile("upload_tools", height=2, side=tk.LEFT, pady=5)
-        upload_panel.addFormButton("Upload", callback=self.upload_scan_files, anchor=tk.N, side=tk.LEFT, pady=5)
+        self.form_file = upload_panel.addFormFile("upload_tools", height=2, side=tk.LEFT, pady=5, command=self.mod_file_callback)
+        self.upload_btn = upload_panel.addFormButton("Upload", callback=self.upload_scan_files, state="disabled", anchor=tk.N, side=tk.LEFT, pady=5)
 
         #for command, status in infos.get("tools_status", {}).items():
         if "script" in check_m.check_type:
@@ -254,10 +266,16 @@ class CheckInstanceView(ViewElement):
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
         panel_detail = self.form.addFormPanel(grid=True)
         panel_detail.addFormLabel("Description", row=1, column=0)
-        panel_detail.addFormText("Description", r"", default=check_m.description, height=100, state="disabled", row=1, column=1, pady=5)
+        panel_detail.addFormText("Description", r"", default=check_m.description if check_m.description != "" else "No description", height=100, state="disabled", row=1, column=1, pady=5)
         panel_detail.addFormLabel("Notes", row=2, column=0)
         panel_detail.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
         self.completeModifyWindow(addTags=False)
+
+    def mod_file_callback(self):
+        if self.form_file.get_paths():
+            self.upload_btn.configure(state="normal")
+        else:
+            self.upload_btn.configure(state="disabled")
     
     def attackOnTerminal(self, event):
         #import pollenisatorgui.modules.terminal as terminal
@@ -332,6 +350,12 @@ class CheckInstanceView(ViewElement):
     
     def deleteToolCallbackLambda(self, tool_iid):
         return lambda event: self.deleteToolCallback(tool_iid)
+    
+    def createDefectCallbackLambda(self, tool_iid):
+        return lambda event: self.createDefectToolCallback(tool_iid)
+    
+    def resetToolCallbackLambda(self, tool_iid):
+        return lambda event: self.resetToolCallback(tool_iid)
     
     def resetToolCallbackLambda(self, tool_iid):
         return lambda event: self.resetToolCallback(tool_iid)
@@ -440,6 +464,16 @@ class CheckInstanceView(ViewElement):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
         tool_vw.delete()
+
+    def resetToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
+        tool_vw.resetCallback()
+
+    def createDefectToolCallback(self, tool_iid):
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
+        tool_vw.createDefectCallback()
 
     def resetToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})

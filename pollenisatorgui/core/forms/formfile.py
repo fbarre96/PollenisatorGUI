@@ -49,6 +49,7 @@ class FormFile(Form):
         listboxframe = ttk.Frame(frame, height=0)
         listboxframe.grid_columnconfigure(0, weight=1)
         listboxframe.grid_rowconfigure(0, weight=1)
+        self.callback = self.getKw("command", None)
         self.listbox = tk.Listbox(listboxframe, 
                               width=self.getKw("width", 50), height=self.getKw("height", 10), selectmode=tk.SINGLE, bg=utils.getBackgroundColor(), fg=utils.getTextColor())
         self.listbox.register_drop_target("*")
@@ -73,8 +74,7 @@ class FormFile(Form):
         # view the content vertically using scrollbar
         self.scrolbar.configure(command=self.listbox.yview)
         self.scrolbarH.configure(command=self.listbox.xview)
-        for d in self.default:
-            self.listbox.insert("end", d)
+        self.add_paths(self.default)
         listboxframe.pack(expand=0, fill=tk.X, side=tk.TOP, anchor=tk.CENTER)
         self.modes = self.getKw("mode", "file").split("|")
         btn_frame = CTkFrame(frame,height=0)
@@ -113,7 +113,8 @@ class FormFile(Form):
             return
         if f != "":
             filename = str(f)
-            self.listbox.insert("end", filename)
+            self.add_paths([filename])
+            self.callback()
 
     def on_click_dir(self, _event=None, parent=None):
         """Callback when '...' is clicked and modes="directory" was set.
@@ -130,7 +131,8 @@ class FormFile(Form):
             return
         if f != "":
             filename = str(f)
-            self.listbox.insert("end", filename)
+            self.add_paths([filename])
+            self.callback()
 
     def getValue(self):
         """
@@ -163,17 +165,30 @@ class FormFile(Form):
     def setFocus(self):
         """Set the focus to the ttk entry part of the widget.
         """
-        self.lsitbox.focus_set()
+        self.listbox.focus_set()
+
+    def add_paths(self, paths):
+        for path in paths:
+            self.listbox.insert("end", path)
+    
+    def get_paths(self):
+        return list(self.listbox.get('@1,0', tk.END))
 
     def add_path_listbox(self, event):
         data = utils.drop_file_event_parser(event)
+        added = []
         for d in data:
             if os.path.isfile(d) and "file" in self.modes:
-                self.listbox.insert("end", d)
+                added.append(d)
             elif os.path.isdir(d) and "directory" in self.modes:
-                self.listbox.insert("end", d)
-
+                added.append(d)
+        if added and self.callback and callable(self.callback):
+            self.add_paths(added)
+            self.callback()
+        
+        
     def delete_path_listbox(self, event):
         curr = self.listbox.curselection()
         for i in curr:
             self.listbox.delete(i)
+        self.callback()
