@@ -163,13 +163,16 @@ class TerminalsWidget(CTkFrame):
             self.create_terminal()
             self.inited = True
         return
+    
 
-    def launch_in_terminal(self, iid, commandline):
+    def launch_in_terminal(self, iid, commandline, use_pollex=True):
         session = self.get_session()
         settings = Settings()
         settings.reloadLocalSettings()
-        if not settings.isTrapCommand():
+        if not settings.isTrapCommand() and use_pollex:
             commandline = "pollex "+commandline
+        if settings.isTrapCommand() and not use_pollex:
+            commandline = "donttrap "+commandline
         if session is not None:
             window = session.windows.filter(window_name=str(iid))[0]
             self.terminalFrames[iid] = commandline

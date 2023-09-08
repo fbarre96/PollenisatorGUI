@@ -1,7 +1,6 @@
 """View for scope list object. Present an multi insertion form to user when interacted with."""
 
 from pollenisatorgui.core.views.viewelement import ViewElement
-from pollenisatorgui.core.views.scopeview import ScopeView
 
 
 class MultipleScopeView(ViewElement):
@@ -14,7 +13,7 @@ class MultipleScopeView(ViewElement):
         """
         modelData = self.controller.getData()
         top_panel = self.form.addFormPanel(grid=True)
-        top_panel.addFormLabel("Scopes")
+        top_panel.addFormLabel("Insert Scopes")
         top_panel.addFormHelper(
             "Add Network IP 'XXX.XXX.XXX.XXX/XX' or domain names to the pentest's scope\nEach network/domain name must on a separated line", column=1)
         top_panel = self.form.addFormPanel()
@@ -32,13 +31,16 @@ class MultipleScopeView(ViewElement):
         self.form.addFormHidden("wave", modelData["wave"])
         self.completeInsertWindow()
 
-    def addChildrenBaseNodes(self, newNode):
-        """
-        Add to the given node from a treeview the mandatory childrens.
-        For a scope it is the tools parent node and the ips parent node.
+    # def addChildrenBaseNodes(self, newNode):
+    #     """
+    #     Add to the given node from a treeview the mandatory childrens.
+    #     For a scope it is the tools parent node and the ips parent node.
 
-        Args:
-            newNode: the newly created node we want to add children to.
-        """
-        ScopeView(self.appliTw, self.appliViewFrame, self.mainApp,
-                  self.controller).addChildrenBaseNodes(newNode)
+    #     Args:
+    #         newNode: the newly created node we want to add children to.
+    #     """
+    #     ScopeView(self.appliTw, self.appliViewFrame, self.mainApp,
+    #               self.controller).addChildrenBaseNodes(newNode)
+        
+    def getAdditionalContextualCommands(self):
+        return {"Insert Scopes":self.openInsertWindow}

@@ -140,7 +140,12 @@ class Filter:
         """
         # pylint: disable=anomalous-backslash-in-string
         return """
-Search examples in match (python condition):
+In Quick Search mode, results are text based only.
+
+In Advanced mode (not quick search), filters are used
+
+Search examples in match (python type condition):
+
 type == "port"
 type == "port" and port == 443
 type == "port" and port regex "443$"

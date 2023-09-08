@@ -42,12 +42,12 @@ class FormButton(Form):
         s = self.getKw("style", None)
         text = self.getKw("text", self.name)
         if s is None:
-            self.btn = CTkButton(parent.panel, text=text, width=self.getKw("width", 150), image=self.getKw("image", None),
+            self.btn = CTkButton(parent.panel, text=text, width=int(self.getKw("width", 150)), height=int(self.getKw("height", 28)), image=self.getKw("image", None),
                                   border_color=self.getKw("border_color", None),
                                   border_width=self.getKw("border_width", None),
                                   text_color=self.getKw("text_color", None),
                                   hover_color=self.getKw("hover_color", None),
-                                  fg_color=self.getKw("fg_color", None),
+                                  fg_color=self.getKw("fg_color", None), font=self.getKw("font", None),
                                   state=self.getKw("state", "normal"))
         else:
             self.btn = ttk.Button(parent.panel, text=text, image=self.getKw("image", None), style=s)

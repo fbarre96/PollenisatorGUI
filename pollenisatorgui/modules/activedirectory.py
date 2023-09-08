@@ -383,7 +383,7 @@ class ActiveDirectory(Module):
         command_option = command_option.replace("|password|", user_o["password"])
         command_option = command_option.replace("|share|",share_name.replace("\\\\", "\\"))
         command_option = command_option.replace("|ip|",ip)
-        utils.executeInExternalTerm(command_option)
+        self.tkApp.launch_in_terminal(None, "Share command", command_option)
 
     def userCommand(self, command_option, user):
         if user is None:
@@ -412,7 +412,7 @@ class ActiveDirectory(Module):
             command_option = command_option.replace("|domain|", user[0])
             command_option = command_option.replace("|username|", user[1])
             command_option = command_option.replace("|password|", user[2])
-        utils.executeInExternalTerm(command_option)
+        self.tkApp.launch_in_terminal(None, "user command", command_option)
 
     def computerCommand(self, command_option, ips=None, user=None):
         if ips is None:
@@ -469,7 +469,7 @@ class ActiveDirectory(Module):
                             if dialog.rvalue is None:
                                 return
                             command_option = command_option.replace(f"|{user_keyword}|", dialog.rvalue)
-            utils.executeInExternalTerm(command_option)
+            self.tkApp.launch_in_terminal(None, "computer command", command_option)
              
     def ask_confirmation(self, title, question):
         dialog = ChildDialogQuestion(self.parent, title, question)

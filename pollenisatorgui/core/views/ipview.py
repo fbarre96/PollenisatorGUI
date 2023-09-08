@@ -5,6 +5,7 @@ from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.models.ip import Ip
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
+from pollenisatorgui.core.views.multipleipview import MultipleIpView
 from pollenisatorgui.core.views.portview import PortView
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.portcontroller import PortController
@@ -59,6 +60,15 @@ class IpView(ViewElement):
                       self.mainApp, PortController(Port(modelData)))
         pv.openInsertWindow()
 
+    def getAdditionalContextualCommands(self):
+        return {"New IPs/Hosts": self.addAHostCallback,  "Add a port":self.addPortCallback, "Add a defect":self.addDefectCallback,
+                "Insert command": self.openInsertWindow}
+    
+    
+    def addAHostCallback(self, _event):
+        objView = MultipleIpView(self.appliTw, self.appliViewFrame, self.mainApp, IpController(Ip()))
+        objView.openInsertWindow()
+
     def addDefectCallback(self, _event):
         """
         Create an empty defect model and its attached view. Open this view insert window.
@@ -72,6 +82,7 @@ class IpView(ViewElement):
         dv = DefectView(self.appliTw, self.appliViewFrame, self.mainApp,
                         DefectController(Defect(modelData)))
         dv.openInsertWindow(modelData.get("notes", ""))
+        
 
     def _insertChildrenDefects(self):
         """Insert every children defect in database as DefectView under this node"""

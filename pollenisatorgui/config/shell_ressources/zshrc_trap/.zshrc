@@ -3,8 +3,17 @@ source ~/.zshrc
 
 trap_pollex() {
   if (( ${#BASH_SOURCE[@]} <= 1 )); then
-    eval "pollex $1"
-    exec zsh #HACK: https://reespozzi.medium.com/cancel-a-terminal-command-during-preexec-zsh-function-c5b0d27b99fb
+    local command="$1"
+    # Check if the command starts with "donttrap"
+    if [[ "$command" == donttrap* ]]; then
+      # If it starts with "donttrap," execute it without alteration
+      command="${command#donttrap}"
+      eval "$command"
+      exec zsh #HACK: https://reespozzi.medium.com/cancel-a-terminal-command-during-preexec-zsh-function-c5b0d27b99fb
+    else
+      eval "pollex $command"
+      exec zsh #HACK: https://reespozzi.medium.com/cancel-a-terminal-command-during-preexec-zsh-function-c5b0d27b99fb
+    fi
   else
     true
   fi

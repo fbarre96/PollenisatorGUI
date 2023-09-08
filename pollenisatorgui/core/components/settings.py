@@ -55,7 +55,6 @@ class Settings:
         self.visual_dark_mode = None
         #self.text_pentesters = None
         self.box_favorite_term = None
-        self.text_terms = None
         self.visual_trap_commands = None
         self.pentesters_treevw = None
         from pollenisatorgui.core.components.datamanager import DataManager
@@ -135,39 +134,8 @@ class Settings:
     def getMissionName(self):
         return self.db_settings.get("mission_name", "")
 
-    def getTerms(self):
-        """
-        Returns terminals configured with a command execution option
-        Returns:
-            If none are defined returns ['''gnome-terminal --window --''',
-             '''xfce4-terminal -x'',
-             '''xterm -hold -e''',
-             '''konsole --noclose -e''']
-            otherwise returns a list with defined  values
-        """
-        self.reloadLocalSettings()
-        return self.local_settings.get("terms",
-            ["""gnome-terminal --window --""",
-             """xfce4-terminal -x""",
-             "xterm -e",
-             "konsole --noclose -e"])
+   
     
-    def getFavoriteTerm(self):
-        """
-        Returns favorite terminal configured 
-        Returns:
-            If none are defined returns first in the list of terms
-            Otherwise returns the favorite terminal configured 
-        """
-        self.reloadLocalSettings()
-        fav = self.local_settings.get("fav_term", None)
-        if fav is None:
-            terms = self.getTerms()
-            for term in terms:
-                term_name = term.split(" ")[0].strip()
-                if which(term_name):
-                    fav = term_name
-        return fav
     def is_hide_oos(self):
         return self.local_settings.get("hide_oos", False)
     
@@ -190,13 +158,7 @@ class Settings:
         self.local_settings["trap_commands"] = self.visual_trap_commands.get()
         self.saveLocalSettings()
 
-    def setFavoriteTerm(self):
-        """
-        Change favorite term 
-        """
-        self.reloadLocalSettings()
-        self.local_settings["fav_term"] = self.box_favorite_term.get()
-        self.saveLocalSettings()
+
     
     def reloadLocalSettings(self):
         """
@@ -271,9 +233,6 @@ class Settings:
         self.visual_dark_mode.set(
             self.local_settings.get("dark_mode", False))
         self.visual_trap_commands.set(self.local_settings.get("trap_commands", False))
-        self.text_terms.delete('1.0', tk.END)
-        terms_cmd = self.getTerms()
-        self.text_terms.insert(tk.INSERT, "\n".join(terms_cmd))
         #self.text_pentesters.delete('1.0', tk.END)
         #self.text_pentesters.insert(
         #    tk.INSERT, "\n".join(
@@ -284,11 +243,6 @@ class Settings:
         for pentester in pentesters_as_list:
             dict_for_tw[pentester] = tuple([pentester])
         self.pentesters_treevw.recurse_insert(dict_for_tw)
-        terms_name = [term_cmd.split(" ")[0] for term_cmd in terms_cmd]
-        self.box_favorite_term.configure(values=terms_name)
-        fav_term = self.getFavoriteTerm()
-        if fav_term in terms_name:
-            self.box_favorite_term.set(fav_term)
         self.box_pentest_type.set(self.db_settings.get("pentest_type", "None"))
         self.text_pentest_types.delete('1.0', tk.END)
         pentestTypes = Settings.getPentestTypes()
@@ -399,21 +353,9 @@ class Settings:
             padx=10, pady=10, side=tk.TOP, anchor=tk.W)
         lbl_domains.pack(padx=10, pady=10, side=tk.TOP,
                          anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
-        frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminals")
-        self.text_terms = CTkTextbox(
-            frame_term,  wrap="word")
-        self.text_terms.pack(side=tk.TOP, fill=tk.X,pady=5)
+        frame_term = ttk.LabelFrame(self.settingsFrame, text="Local terminal configuration")
         chkbox_trap_commands = CTkSwitch(frame_term, text="Trap every command (instead of using pollex)", variable=self.visual_trap_commands)
         chkbox_trap_commands.pack(side=tk.TOP, pady=5)
-        frame_fav_term = CTkFrame(frame_term)
-        lbl_fav_term = CTkLabel(frame_fav_term, text="Favorite term")
-        lbl_fav_term.grid(row=0, column=0, sticky=tk.E, pady=5)
-        self.box_favorite_term = CTkComboBox(frame_fav_term, values=(self.getTerms()))
-        self.box_favorite_term.grid(row=0, column=1, sticky=tk.W, pady=5)
-        
-      
-        frame_fav_term.pack(padx=10, pady=10, side=tk.TOP,
-                           anchor=tk.W, fill=tk.X, expand=tk.YES)
         frame_term.pack(padx=10, pady=10, side=tk.TOP,
                            anchor=tk.CENTER, fill=tk.X, expand=tk.YES)
         lbl_SearchBar = ttk.LabelFrame(self.settingsFrame, text="Search settings")
@@ -544,8 +486,6 @@ class Settings:
         ) == 1
         if old != self.local_settings["dark_mode"]:
             info = "Dark mode changed. You need to restart the application to see the changes."
-        self.local_settings["terms"] = [x.strip() for x in self.text_terms.get('1.0', tk.END).split("\n") if x.strip() != ""]
-        self.local_settings["fav_term"] = self.box_favorite_term.get().strip()
         self.local_settings["trap_commands"] = self.visual_trap_commands.get() == 1
         self.global_settings["pentest_types"] = {}
         for type_of_pentest in self.text_pentest_types.get('1.0', tk.END).split(

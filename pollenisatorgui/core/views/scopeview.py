@@ -1,12 +1,11 @@
 """View for scope object. Handle node in treeview and present forms to user when interacted with."""
 
 from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
-from pollenisatorgui.core.controllers.toolcontroller import ToolController
-from pollenisatorgui.core.models.checkinstance import CheckInstance
-from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.ipview import IpView
-from pollenisatorgui.core.views.toolview import ToolView
+from pollenisatorgui.core.views.multiplescopeview import MultipleScopeView
+from pollenisatorgui.core.controllers.scopecontroller import ScopeController
+from pollenisatorgui.core.models.scope import Scope
 from pollenisatorgui.core.views.viewelement import ViewElement
 from tkinter import TclError
 
@@ -32,6 +31,7 @@ class ScopeView(ViewElement):
         self.form.addFormText("Notes", r"", notes, None, side="top")
         self.completeModifyWindow()
 
+    
     def addChildrenBaseNodes(self, newNode):
         """
         Add to the given node from a treeview the mandatory childrens.
@@ -42,6 +42,13 @@ class ScopeView(ViewElement):
         """
 
         return self.appliTw.insert(newNode, "end", IpView.DbToTreeviewListId(newNode), text="IPs", image=IpView.getClassIcon())
+    
+    def openInsertWindow(self):
+        view = MultipleScopeView(self.appliTw, self.appliViewFrame, self.mainApp, self.controller)
+        view.openInsertWindow()
+    
+    def getAdditionalContextualCommands(self):
+        return {"Insert Scopes":self.openInsertWindow}
 
     def addInTreeview(self, parentNode=None, addChildren=True):
         """Add this view in treeview. Also stores infos in application treeview.

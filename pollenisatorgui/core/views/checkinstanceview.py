@@ -1,6 +1,7 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
 import tkinter.ttk as ttk
+import webbrowser
 from customtkinter import *
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialogToast
@@ -49,7 +50,10 @@ class CheckInstanceView(ViewElement):
         if check_infos is None:
             check_infos = self.controller.getCheckInstanceStatus()
         modelData = self.controller.getData()
-        status = check_infos.get("status", "")
+        if modelData.get("status", "") == "done":
+            status = "done"
+        else:
+            status = check_infos.get("status", "")
         if status == "":
             status = modelData.get("status", "")
         if status == "":
@@ -331,6 +335,27 @@ class CheckInstanceView(ViewElement):
     
     def resetToolCallbackLambda(self, tool_iid):
         return lambda event: self.resetToolCallback(tool_iid)
+    
+    def getAdditionalContextualCommands(self):
+        ret = {}
+        dataManager = DataManager.getInstance()
+        target_m = dataManager.get(self.controller.model.target_type, self.controller.model.target_iid)
+        if target_m is not None:
+            if hasattr(target_m, "getURL"):
+                url = target_m.getURL()
+                if url != "":
+                    ret["Open In Browser"] = self.openInBrowser
+        ret["Attack from terminal"] = self.attackOnTerminal
+        return ret
+    
+    def openInBrowser(self):
+        dataManager = DataManager.getInstance()
+        target_m = dataManager.get(self.controller.model.target_type, self.controller.model.target_iid)
+        if target_m is not None:
+            if hasattr(target_m, "getURL"):
+                url = target_m.getURL()
+                if url != "":
+                    webbrowser.open_new_tab(url)
 
     def openToolDialog(self, event, infos):
         tool_iid = infos.get("iid")
@@ -338,6 +363,9 @@ class CheckInstanceView(ViewElement):
         tool_vw = ToolView(self.appliTw, None, self.mainApp, ToolController(tool_m))
         tool_vw.openInDialog()
         self.openModifyWindow()
+
+    def onDoubleClick(self):
+        self.controller.swapStatus()
 
     def openTargetDialog(self, event):
         data = self.controller.getData()

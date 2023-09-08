@@ -163,7 +163,7 @@ class Dashboard(Module):
         self.image_stop = CTkImage(Image.open(utils.getIcon("stop.png")))
         self.image_pentest = CTkImage(Image.open(utils.getIcon("hacker.png")))
         frame_status = FormPanel(side=tk.TOP, fill=tk.X)
-        frame_status.addFormButton("Go to pentest", self.go_to_pentest, image=self.image_pentest, padx=5, side=tk.LEFT, anchor="center")
+        frame_status.addFormButton("Go to pentest", self.go_to_pentest, image=self.image_pentest, width=200, height=50, padx=5, side=tk.LEFT, font=CTkFont("Calibri", 20, 'bold', "roman", True),anchor="center")
         frame_status.addFormSeparator(orient="vertical", padx=0, fill=tk.Y, side=tk.LEFT)
         autoscan_panel = frame_status.addFormPanel(side=tk.LEFT, fill=tk.X, padx=0, pady=0, anchor="center")
         autoscan_action_panel = autoscan_panel.addFormPanel(side=tk.TOP, fill=tk.X, padx=0, pady=0, anchor="n")

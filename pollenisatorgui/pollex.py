@@ -66,7 +66,7 @@ def pollex():
         print("output should be in "+str(outputFilePath))
     queue = multiprocessing.Queue()
     queueResponse = multiprocessing.Queue()
-    returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
+    returncode = utils.execute_no_fork(comm, None, True, queue, queueResponse, cwd=tmpdirname)
     queue.put("kill")
     if len(plugin_results) == 1 and "Default" in plugin_results:
         if (verbose):

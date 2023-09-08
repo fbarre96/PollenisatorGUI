@@ -7,6 +7,7 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.simpledialog
 import tkinter.ttk as ttk
+import uuid
 from customtkinter import *
 import sys
 import os
@@ -758,8 +759,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.frameTw.columnconfigure(0, weight=1) # Weight 1 sur un layout grid, sans ça le composant ne changera pas de taille en cas de resize
         self.treevw = PentestTreeview(self, self.frameTw)
         frameContext = CTkFrame(self.frameTw)
-        self.btn_context = CTkSegmentedButton(frameContext, values=["Hosts", "Checklist"], command=self.checklistViewSwap)
-        self.btn_context.set("Check" if self.settings.is_checklist_view() else "Host")
+        self.btn_context = CTkSegmentedButton(frameContext, values=["Hosts", "Checklist"], width=200, height=45, command=self.checklistViewSwap)
+        self.btn_context.set("Check" if self.settings.is_checklist_view() else "Hosts")
         self.btn_context.pack(side="left")
         frameContext.grid(row=0, column=0)
         self.treevw.initUI()
@@ -947,10 +948,16 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def open_terminal(self, iid, title):
         self.terminals.open_terminal(iid, title)
 
+    def execute_in_terminal(self, title, commandline):
+        iid = uuid.uuid4()
+        self.terminals.open_terminal(iid, title)
+        self.terminals.launch_in_terminal(iid, commandline, use_pollex=False)
 
     def launch_in_terminal(self, iid, title, commandline):
+        if iid is None:
+            iid = uuid.uuid4()
         self.terminals.open_terminal(iid, title)
-        self.terminals.launch_in_terminal(iid, commandline)
+        self.terminals.launch_in_terminal(iid, commandline, use_pollex=True)
 
     def launch_tool_in_terminal(self, tool_model, command):
         self.terminals.open_terminal(str(tool_model.check_iid)+"|"+str(tool_model.getId()), ToolController(tool_model).getDetailedString())
@@ -1162,7 +1169,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(self, defaultextension=".json")
+            f = tkinter.filedialog.askopenfilename(parent=self, defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)
@@ -1196,7 +1203,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """
         filename = ""
         if name is None:
-            f = tkinter.filedialog.askopenfilename(self, defaultextension=".json")
+            f = tkinter.filedialog.askopenfilename(parent=self, defaultextension=".json")
             if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
             filename = str(f)

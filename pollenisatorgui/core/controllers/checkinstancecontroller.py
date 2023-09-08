@@ -49,6 +49,16 @@ class CheckInstanceController(ControllerElement):
 
     def getStatus(self):
         return self.model.getStatus()
+    
+    def swapStatus(self):
+        curr = self.getStatus() 
+        if curr == "done":
+            self.model.status = "todo"
+        elif curr == "todo":
+            self.model.status = "done"
+        else:
+            return
+        self.model.update()
 
     @property
     def target_repr(self):

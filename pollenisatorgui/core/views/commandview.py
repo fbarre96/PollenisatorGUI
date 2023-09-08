@@ -87,6 +87,9 @@ class CommandView(ViewElement):
         
         self.completeModifyWindow(addTags=False)
 
+    def getAdditionalContextualCommands(self):
+        return {"Insert command": self.openInsertWindow}
+
     def openInsertWindow(self):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new Command

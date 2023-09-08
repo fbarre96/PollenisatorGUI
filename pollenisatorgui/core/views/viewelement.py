@@ -92,6 +92,9 @@ class ViewElement(object):
                 return
         self.controller.doDelete()
 
+    def getAdditionalContextualCommands(self):
+        return {}
+
     def update(self, event=None):
         """
         Entry point to the model doUpdate function.

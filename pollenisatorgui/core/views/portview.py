@@ -102,6 +102,9 @@ class PortView(ViewElement):
         """
         self.controller.model.openInBrowser()
 
+    def getAdditionalContextualCommands(self):
+        return {"Open In Browser":self.openInBrowser}
+
     def addDefectCallback(self, _event):
         """
         Create an empty defect model and its attached view. Open this view insert window.

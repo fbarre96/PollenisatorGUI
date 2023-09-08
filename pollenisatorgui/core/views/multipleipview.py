@@ -18,3 +18,6 @@ class MultipleIpView(ViewElement):
         self.form.addFormText("IPs", r"^(?!https?://).+$",
                               "", None, side="top")
         self.completeInsertWindow()
+
+    def getAdditionalContextualCommands(self):
+        return {"Insert Ips/Hosts":self.openInsertWindow}

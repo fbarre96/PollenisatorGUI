@@ -408,7 +408,7 @@ def execute(command, timeout=None,  queue=None, queueResponse=None, cwd=None, pr
 
 
 
-def execute_old(command, timeout=None, printStdout=True, queue=None, queueResponse=None, cwd=None):
+def execute_no_fork(command, timeout=None, printStdout=True, queue=None, queueResponse=None, cwd=None):
     """
     Execute a bash command and print output
 
@@ -425,11 +425,10 @@ def execute_old(command, timeout=None, printStdout=True, queue=None, queueRespon
     """
     
     try:
-        os.setpgrp()
         time.sleep(1) #HACK Break if not there when launching fast custom tools on local host for unknown reason
 
         proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid, cwd=cwd)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, cwd=cwd)
         proc._killed = False
         signal.signal(signal.SIGINT, lambda _signum, _frame: handleProcKill(proc))
         signal.signal(signal.SIGTERM, lambda _signum, _frame: handleProcKill(proc))
@@ -706,51 +705,56 @@ def openPathForUser(path, folder_only=False):
             return False
     return True
 
-def executeInExternalTerm(command, with_bash=True, default_target=None):
+# def executeInExternalTerm(command, with_bash=True, default_target=None):
+#     from pollenisatorgui.core.components.settings import Settings
+#     settings = Settings()
+#     favorite = settings.getFavoriteTerm()
+#     if favorite is None:
+#         tk.messagebox.showerror(
+#             "Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
+#         return False
+#     if which(favorite) is not None:
+#         env = {}
+#         if default_target is not None:
+#             env["POLLENISATOR_DEFAULT_TARGET"] = default_target
+#         env = {**os.environ, **env}
+#         terms = settings.getTerms()
+#         terms_dict = {}
+#         for term in terms:
+#             terms_dict[term.split(" ")[0]] = term
+#         command_term = terms_dict.get(favorite, None)
+#         if command_term is not None:
+#             if not command_term.endswith(" "):
+#                 command_term += " "
+#             command_term += command
+#             print(command_term)
+#             subprocess.Popen(command_term, shell=True, env=env, cwd=getExportDir())
+#         else:
+#             tk.messagebox.showerror(
+#                 "Terminal settings invalid", "Check your terminal settings")
+#     else:
+#         tk.messagebox.showerror(
+#             "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
+#     return True
+
+def which_expand_alias(what):
+    res = which(what)
+    if res is not None:
+        return res
     from pollenisatorgui.core.components.settings import Settings
     settings = Settings()
-    favorite = settings.getFavoriteTerm()
-    if favorite is None:
-        tk.messagebox.showerror(
-            "Terminal settings invalid", "None of the terminals given in the settings are installed on this computer.")
-        return False
-    if which(favorite) is not None:
-        env = {}
-        if default_target is not None:
-            env["POLLENISATOR_DEFAULT_TARGET"] = default_target
-        env = {**os.environ, **env}
-        terms = settings.getTerms()
-        terms_dict = {}
-        for term in terms:
-            terms_dict[term.split(" ")[0]] = term
-        command_term = terms_dict.get(favorite, None)
-        if command_term is not None:
-            if not command_term.endswith(" "):
-                command_term += " "
-            command_term += command
-            print(command_term)
-            subprocess.Popen(command_term, shell=True, env=env, cwd=getExportDir())
-        else:
-            tk.messagebox.showerror(
-                "Terminal settings invalid", "Check your terminal settings")
-    else:
-        tk.messagebox.showerror(
-            "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
-    return True
-
-def which_expand_alias(executable):
-    res = which(executable)
-    return res
-    # TODO : which is a built in shell command so this does not work
-    # if res is not None:
-    #     return res
-    # result_code, stdout = execute("which "+str(executable), printStdout=False)
-    # if result_code == 0:
-    #     if "aliased to " in stdout:
-    #         return stdout.split("aliased to ")[1].strip()
-    #     else:
-    #         return stdout.strip()
-    # return None
+    settings.reloadLocalSettings()
+    if settings.local_settings.get("expand_aliases"):
+        terminal = settings.local_settings.get("terminal")
+        rc_file = settings.local_settings.get("rc_file")
+        proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
+        if proc.returncode == 0:
+            stdout = proc.stdout.decode("utf-8")
+            if "aliased to " in stdout:
+                return stdout.split("aliased to ")[1].strip()
+            else:
+                return stdout.strip()
+    return None
 
 def is_json(myjson):
   try:

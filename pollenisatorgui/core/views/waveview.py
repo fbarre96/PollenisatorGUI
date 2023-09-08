@@ -32,7 +32,7 @@ class WaveView(ViewElement):
         self.form.clear()
         modelData = self.controller.getData()
         top_panel = self.form.addFormPanel(grid=True)
-        top_panel.addFormLabel("Wave", modelData["wave"])
+        top_panel.addFormLabel("Scope options", modelData["wave"])
         # self.form.addFormHelper(
         #     "If you select a previously unselected command,\n it will be added to every object of its level.\nIf you unselect a previously selected command,\n it will remove only tools that are not already done.")
         # commands = Command.getList(None, APIClient.getInstance().getCurrentPentest())
@@ -53,7 +53,7 @@ class WaveView(ViewElement):
         Creates a tkinter form using Forms classes. This form aims to insert a new Wave
         """
         top_panel = self.form.addFormPanel(grid=True)
-        top_panel.addFormLabel("Wave")
+        top_panel.addFormLabel("Scope options")
         top_panel.addFormStr("Wave", r".+", "", column=1)
         # self.form.addFormHelper("Only selected commands will be launchable.")
         # commands = Command.getList(None, APIClient.getInstance().getCurrentPentest())
@@ -64,6 +64,9 @@ class WaveView(ViewElement):
         #     comms_values.append(c.getId())
         # self.form.addFormChecklist("Commands", commands_names, [], values=comms_values)
         self.completeInsertWindow()
+
+    def getAdditionalContextualCommands(self):
+        return {"Insert wave": self.openInsertWindow}
 
     def addChildrenBaseNodes(self, newNode):
         """

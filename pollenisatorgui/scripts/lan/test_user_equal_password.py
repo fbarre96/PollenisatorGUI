@@ -27,5 +27,5 @@ def main(apiclient, appli, **kwargs):
             with open(file_name, "w") as f:
                 f.write(users+"\n")
             exec += 1
-            utils.executeInExternalTerm(f"'pollex cme smb {dc_info['ip']} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success'", default_target=kwargs.get("default_target", None))
+            appli.launch_in_terminal(kwargs.get("default_target", None), "cme bruteforce", f"'cme smb {dc_info['ip']} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success'")
     return True, f"Launched {exec} cmes"
