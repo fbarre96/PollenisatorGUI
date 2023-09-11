@@ -46,9 +46,10 @@ class PollenisatorTreeview(ttk.Treeview):
         datamanager = DataManager.getInstance().attach(self)
 
     def configureTags(self):
+        self.icon_oos = utils.loadIcon("ip_oos.png")
         s = Settings()
         oos_color = "gray30" if s.is_dark_mode() else "grey"
-        self.tag_configure('OOS', background=oos_color)
+        self.tag_configure('OOS', background=oos_color, image=self.icon_oos)
         self.tag_configure('known_command', background="spring green")
         tags = Settings.getTags()
         for tag, color in tags.items():
@@ -271,7 +272,7 @@ class PollenisatorTreeview(ttk.Treeview):
         """
         self.contextualMenu.unpost()
 
-    def deleteSelected(self, _event):
+    def deleteSelected(self, _event=None):
         """
         Interface to delete a database object from an event.
         Prompt the user a confirmation window.

@@ -71,7 +71,7 @@ class FormSearchBar(Form):
             frame.pack(side=self.getKw("side", "top"), padx=self.getKw("padx", 10), pady=self.getKw("pady", 5), **self.kwargs)
         
 
-    def selectAll(self, _event):
+    def selectAll(self, _event=None):
         # select text
         self.entry.select_range(0, 'end')
         # move cursor to the end

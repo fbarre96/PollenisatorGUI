@@ -233,11 +233,9 @@ class TerminalsWidget(CTkFrame):
                 tmux_conf = os.path.join(config_location, ".tmux.conf")
                 terminal_conf = os.path.join(config_location, "shell_ressources")
                 subprocess.run("xrdb -load %s" % xterm_conf, shell=True)
-                shell_command = os.environ.get("SHELL", "/bin/bash")
-                if shutil.which("zsh") or os.environ.get("ZSH"):
-                    shell_command = "zsh"
+                shell_command = settings.local_settings.get("terminal", os.environ.get("ZSH", os.environ.get("SHELL","/bin/bash")))
                 trap_suffix = ("trap" if settings.isTrapCommand()  else "notrap")
-                if shell_command.endswith("zsh"):
+                if os.path.basename(shell_command) == "zsh":
                     terminal_conf = os.path.join(terminal_conf, "zshrc_"+trap_suffix)
                     default_command = f"ZDOTDIR={terminal_conf} {shell_command}"
                 else:

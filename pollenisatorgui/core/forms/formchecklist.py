@@ -41,7 +41,8 @@ class FormChecklist(Form):
                 cb.set(1)
             else:
                 cb.set(0)
-        self.command_check()
+        if self.command_check and callable(self.command_check):
+            self.command_check()
 
     def constructView(self, parent):
         """

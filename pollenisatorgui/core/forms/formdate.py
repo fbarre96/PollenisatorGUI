@@ -73,7 +73,7 @@ class FormDate(Form):
             datestr = datetime.datetime.strftime(dialog.rvalue, self.dateformat)
             self.val.set(datestr)
 
-    def selectAll(self, _event):
+    def selectAll(self, _event=None):
         """Callback to select all the text in the date Entry.
         Args:
             _event: mandatory but not used

@@ -123,7 +123,7 @@ class FormStr(Form):
             self.entry.pack(side=self.getKw("side", "left"), padx=self.getKw(
                 "padx", 10), pady=self.getKw("pady", 5), expand=self.getKw("expand", True), fill=self.getKw("fill", "x"))
 
-    def selectAll(self, _event):
+    def selectAll(self, _event=None):
         """Callback to select all the text in the date Entry.
         Args:
             _event: mandatory but not used

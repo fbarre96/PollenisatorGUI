@@ -136,13 +136,19 @@ class ViewElement(object):
         if(res):
             form_values = self.form.getValue()
             form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
-            res, nbErrors = self.controller.doInsert(form_values_as_dicts)
+            res, msg = self.controller.doInsert(form_values_as_dicts)
             if not res:
                 msg = "This element cannot be inserted, check for conflicts with existings elements."
                 tkinter.messagebox.showerror(
                     "Insertion failed", msg, parent=self.appliViewFrame)
                 return False, msg
             else:
+                if isinstance(msg, tuple):
+                    nbErrors = msg[0]
+                    iid = msg[1]
+                else:
+                    iid = None
+                    nbErrors = msg
                 if nbErrors > 0:
                     msg = str(len(
                         res))+" were inserted, "+str(nbErrors)+" were not to avoid conflicts or out of wave elements."
@@ -150,7 +156,7 @@ class ViewElement(object):
                         "Insertion succeeded with warnings", msg, parent=self.appliViewFrame)
                     return True, msg
                 else:
-                    return True, ""
+                    return True, str(iid)
         else:
             tkinter.messagebox.showwarning(
                 "Form not validated", msg, parent=self.appliViewFrame)
@@ -285,11 +291,13 @@ class ViewElement(object):
         Return the parent node in treeview.
         """
         return self.__class__.DbToTreeviewListId(self.controller.getParentId())
-    def openInDialog(self):
+    
+    def openInDialog(self,is_insert=False):
         """
         Open a dialog to show the tool information.
         """
-        dialog = ChildDialogGenericView(self.mainApp, "Modify", self)
+        default_title = "Modify" if not is_insert else "Insert"
+        dialog = ChildDialogGenericView(self.mainApp, default_title, self, is_insert=is_insert)
         return dialog.rvalue
     
     def updateReceived(self, obj=None, old_obj=None):

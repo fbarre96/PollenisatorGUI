@@ -1,11 +1,14 @@
 """View for ip object. Handle node in treeview and present forms to user when interacted with."""
 
 from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
+from pollenisatorgui.core.controllers.scopecontroller import ScopeController
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.models.ip import Ip
+from pollenisatorgui.core.models.scope import Scope
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.multipleipview import MultipleIpView
+from pollenisatorgui.core.views.multiplescopeview import MultipleScopeView
 from pollenisatorgui.core.views.portview import PortView
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.portcontroller import PortController
@@ -23,6 +26,17 @@ class IpView(ViewElement):
     Attributes:
         icon: icon name to show in treeview. Icon filename must be in icon directory."""
     icon = 'ip.png'
+    icon_out_of_scope = "ip_oos.png"
+    cachedClassOOSIcon  = None
+
+    def getIcon(self):
+        if not self.controller.is_in_scope():
+            from PIL import Image, ImageTk
+            if self.__class__.cachedClassOOSIcon == None:
+                path = utils.getIcon(self.__class__.icon_out_of_scope)
+                self.__class__.cachedClassOOSIcon = ImageTk.PhotoImage(Image.open(path))
+            return self.__class__.cachedClassOOSIcon
+        return super().getIcon()
 
     def openModifyWindow(self):
         """
@@ -46,7 +60,11 @@ class IpView(ViewElement):
             "Add a security defect", self.addDefectCallback, column=1)
         self.completeModifyWindow()
 
-    def addPortCallback(self, _event):
+    def openInsertWindow(self):
+        view = MultipleIpView(self.appliTw, self.appliViewFrame, self.mainApp, self.controller)
+        view.openInsertWindow()
+
+    def addPortCallback(self, _event=None):
         """
         Create an empty port model and its attached view. Open this view insert window.
 
@@ -61,15 +79,20 @@ class IpView(ViewElement):
         pv.openInsertWindow()
 
     def getAdditionalContextualCommands(self):
-        return {"New IPs/Hosts": self.addAHostCallback,  "Add a port":self.addPortCallback, "Add a defect":self.addDefectCallback,
-                "Insert command": self.openInsertWindow}
+        if self.controller.is_in_scope():
+            return {"Add IPs/Hosts": self.addAHostCallback,  "Add a port":self.addPortCallback, "Add a defect":self.addDefectCallback}
+        else:
+            return {"Add in scope": self.addToScopeCallback}
     
-    
-    def addAHostCallback(self, _event):
+    def addAHostCallback(self, _event=None):
         objView = MultipleIpView(self.appliTw, self.appliViewFrame, self.mainApp, IpController(Ip()))
         objView.openInsertWindow()
 
-    def addDefectCallback(self, _event):
+    def addToScopeCallback(self, _event=None):
+        objView = MultipleScopeView(self.appliTw, self.appliViewFrame, self.mainApp, ScopeController(Scope({"wave":"Main","scope":self.controller.model.ip})))
+        objView.openInsertWindow(check_scope=False)
+
+    def addDefectCallback(self, _event=None):
         """
         Create an empty defect model and its attached view. Open this view insert window.
 
@@ -130,7 +153,7 @@ class IpView(ViewElement):
                                          self.mainApp, IpController(ip_parent_o))
                     parent_view.addInTreeview(None, False)
             ip_node = self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
         except TclError:
             pass
         if addChildren and ip_node is not None:
@@ -146,7 +169,7 @@ class IpView(ViewElement):
         if self.mainApp.settings.is_hide_oos() and not modelData["in_scopes"]:
             self.hide("filter_oos")
         if not modelData["in_scopes"]:
-            self.appliTw.item(ip_node, tags=self.controller.getTags()+["OOS"])
+            self.appliTw.item(ip_node, tags=self.controller.getTags()+["OOS"], image=self.getIcon())
 
     def split_ip(self):
         """Split a IP address given as string into a 4-tuple of integers.
@@ -188,7 +211,8 @@ class IpView(ViewElement):
         if self.controller.model is not None:
             modelData = self.controller.getData()
             if not modelData["in_scopes"]:
-                self.appliTw.item(str(self.controller.getDbId()), tags=self.controller.getTags()+["OOS"])
+                self.controller.model.tags.append("OOS")
+                self.appliTw.item(str(self.controller.getDbId()), image=self.getIcon(), tags=self.controller.getTags()+["OOS"])
                 for module in self.mainApp.modules:
                     if callable(getattr(module["object"], "deleteIp", None)):
                         module["object"].deleteIp(modelData["ip"])
@@ -196,7 +220,7 @@ class IpView(ViewElement):
                 tags = list(self.controller.getTags())
                 if "OOS" in tags:
                     tags.remove("OOS")
-                self.appliTw.item(str(self.controller.getDbId()), tags=tags)
+                self.appliTw.item(str(self.controller.getDbId()), tags=tags, image=self.getIcon())
                 for module in self.mainApp.modules:
                     if callable(getattr(module["object"], "insertIp", None)):
                         module["object"].insertIp(modelData["ip"])

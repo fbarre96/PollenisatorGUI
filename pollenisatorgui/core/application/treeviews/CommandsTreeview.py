@@ -60,16 +60,17 @@ class CommandsTreeview(PollenisatorTreeview):
         if len(selection) == 1:
             item = super().onTreeviewSelect(event)
             if isinstance(item, str):
-                apiclient = APIClient.getInstance()
-                if str(item) == "mycommands":
-                    user = apiclient.getUser()
-                    objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"owners":[user]})))
-                    objView.openInsertWindow()
-                elif str(item) == "commands":
-                    objView = CommandView(
-                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({})))
-                    objView.openInsertWindow()
+                pass
+                # apiclient = APIClient.getInstance()
+                # if str(item) == "mycommands":
+                #     user = apiclient.getUser()
+                #     objView = CommandView(
+                #         self, self.appli.commandsViewFrame, self.appli, CommandController(Command({"owners":[user]})))
+                #     objView.openInsertWindow()
+                # elif str(item) == "commands":
+                #     objView = CommandView(
+                #         self, self.appli.commandsViewFrame, self.appli, CommandController(Command({})))
+                #     objView.openInsertWindow()
             else:
                 self.openModifyWindowOf(item)
         elif len(selection) > 1:
@@ -130,7 +131,7 @@ class CommandsTreeview(PollenisatorTreeview):
                 self, self.appli.commandsViewFrame, self.appli, CommandController(command))
             command_vw.addInTreeview()
         
-    def deleteSelected(self, _event):
+    def deleteSelected(self, _event=None):
         """
         Interface to delete a database object from an event.
         Prompt the user a confirmation window.
@@ -171,6 +172,8 @@ class CommandsTreeview(PollenisatorTreeview):
         
         self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.add_command(
+            label="Add command", command=self.addCommand)
+        self.contextualMenu.add_command(
             label="Duplicate command", command=self.duplicateCommand)
         self.contextualMenu.add_separator()
         self.contextualMenu.add_command(
@@ -184,6 +187,11 @@ class CommandsTreeview(PollenisatorTreeview):
             label="Close", command=self.closeMenu)
         super()._initContextualsMenus
         return self.contextualMenu
+    
+    def addCommand(self, _event=None):
+        objView = CommandView(
+                        self, self.appli.commandsViewFrame, self.appli, CommandController(Command({})))
+        objView.openInsertWindow()
 
     def duplicateCommand(self, _event=None):
         for selected in self.selection():

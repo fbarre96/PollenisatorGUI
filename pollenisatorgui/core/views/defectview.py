@@ -124,7 +124,7 @@ class DefectView(ViewElement):
             * a boolean to shwo success or failure
             * an empty message on success, an error message on failure
         """
-        res, msg = super().insert(_event)
+        res, msg = super().insert(_event=None)
         if res:
             apiclient = APIClient.getInstance()
             results, msg = apiclient.searchDefect(self.controller.model.title, check_api=False)
@@ -312,13 +312,13 @@ class DefectView(ViewElement):
         defects_matching = self.findDefectTemplateByTitle(title)
         self.openInChildDialog(defects_matching)
 
-    def moveDownMultiTreeview(self, _event):
+    def moveDownMultiTreeview(self, _event=None):
         for iid in self.browse_top_treevw.selection():
             item = self.browse_top_treevw.item(iid)
             self.browse_down_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
         self.browse_top_treevw.deleteItem()
 
-    def moveUpMultiTreeview(self, _event):
+    def moveUpMultiTreeview(self, _event=None):
         for iid in self.browse_down_treevw.selection():
             item = self.browse_down_treevw.item(iid)
             self.browse_top_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
@@ -486,7 +486,7 @@ class DefectView(ViewElement):
             widget.destroy()
         self.openModifyWindow()
 
-    def addAProof(self, _event):
+    def addAProof(self, _event=None):
         """Callback when add proof is clicked.
         Add proof and update window
         Args
@@ -629,7 +629,7 @@ class DefectView(ViewElement):
         defect_m = self.findDefectTemplateByTitle(self.controller.model.title)
         self.openInChildDialog(defect_m)
 
-    def importDefectTemplates(self, _event):
+    def importDefectTemplates(self, _event=None):
         filename = ""
         f = tk.filedialog.askopenfilename(defaultextension=".json")
         if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
@@ -649,7 +649,7 @@ class DefectView(ViewElement):
         self.openMultiModifyWindow(False)
         return success
     
-    def exportDefectTemplates(self, _event):
+    def exportDefectTemplates(self, _event=None):
         apiclient = APIClient.getInstance()
         res = apiclient.exportDefectTemplates(self.mainApp)
         if res is None:

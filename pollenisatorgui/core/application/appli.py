@@ -85,7 +85,7 @@ class FloatingHelpWindow(CTkToplevel):
         self.x = event.x
         self.y = event.y
 
-    def stopMove(self, _event):
+    def stopMove(self, _event=None):
         """ Floating window dragging stopped
             Args:
                 _event: Not used but mandatory
@@ -181,7 +181,7 @@ class AutocompleteEntry(CTkEntry):
         self.quit()
         self.var.set("")
 
-    def selection(self, _event):
+    def selection(self, _event=None):
         """
         Called when an autocompletion option is chosen. 
         Change entry content and close autocomplete.
@@ -195,7 +195,7 @@ class AutocompleteEntry(CTkEntry):
             self.icursor(tk.END)
             #self.changed()
 
-    def upArrow(self, _event):
+    def upArrow(self, _event=None):
         """
         Called when the up arrow is pressed. Navigate in autocompletion options
         Args:
@@ -212,7 +212,7 @@ class AutocompleteEntry(CTkEntry):
                 self.lb.selection_set(first=index)
                 self.lb.activate(index)
 
-    def downArrow(self, _event):
+    def downArrow(self, _event=None):
         """
         Called when the down arrow is pressed. Navigate in autocompletion options
         Args:
@@ -405,7 +405,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.minsize(width=400, height=400)
         self.resizable(True, True)
         self.title("Pollenisator")
-        self.geometry("1400x830")
+        self.geometry("1500x830")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.datamanager = DataManager.getInstance()
         self.initModules()
@@ -792,7 +792,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.nbk.add(self.mainPageFrame, "Main View", order=Module.HIGH_PRIORITY, image=self.main_tab_img)
         
         
-    def searchbarSelectAll(self, _event):
+    def searchbarSelectAll(self, _event=None):
         """
         Callback to select all the text in searchbar
         Args:

@@ -52,7 +52,7 @@ class ChildDialogEditCommandSettings:
         except tk.TclError:
             pass
 
-    def onOk(self, _event):
+    def onOk(self, _event=None):
         """
         Called when the user clicked the validation button. Set the rvalue attributes to the value selected and close the window.
         """

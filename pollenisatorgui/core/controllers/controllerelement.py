@@ -83,8 +83,6 @@ class ControllerElement:
         if self.model is None:
             return
         datamanager = DataManager.getInstance()
-        if str(self.model.getId()) == "64897e07a893f5520713416e":
-            pass
         res = datamanager.find("tags",{"item_id":ObjectId(self.model.getId())}, multi=False)
         if res is None:
             return []

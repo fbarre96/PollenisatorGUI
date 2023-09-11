@@ -60,13 +60,13 @@ class CommandController(ControllerElement):
         self.model.initialize(name, bin_path, plugin, 
                               text,  indb, None, timeout, owners)
         # Insert in database
-        ret, _ = self.model.addInDb()
+        ret, iid = self.model.addInDb()
         if not ret:
             # command failed to be inserted, a duplicate exists
             # return None as inserted_id and 1 error
             return None, 1
         # Fetch the instance of this self.model now that it is inserted.
-        return ret, 0  # 0 errors
+        return ret, (0, iid)  # 0 errors
 
     
     def getType(self):

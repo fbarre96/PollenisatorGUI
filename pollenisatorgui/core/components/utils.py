@@ -1,5 +1,6 @@
 """Provide useful functions"""
 import multiprocessing
+from pathlib import Path
 import select
 import sys
 import os
@@ -744,9 +745,11 @@ def which_expand_alias(what):
     from pollenisatorgui.core.components.settings import Settings
     settings = Settings()
     settings.reloadLocalSettings()
-    if settings.local_settings.get("expand_aliases"):
-        terminal = settings.local_settings.get("terminal")
-        rc_file = settings.local_settings.get("rc_file")
+    if settings.local_settings.get("rc_file", "") != "":
+        terminal = settings.local_settings.get("terminal", os.environ.get("ZSH", os.environ.get("SHELL","/bin/bash")))
+        rc_file = settings.local_settings.get("rc_file", "")
+        if rc_file == "":
+            Path.home() / "."+os.path.basename(terminal)+"rc" # rc file is not loaded automatically
         proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
         if proc.returncode == 0:
             stdout = proc.stdout.decode("utf-8")

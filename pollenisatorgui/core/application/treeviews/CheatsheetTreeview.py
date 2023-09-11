@@ -60,10 +60,11 @@ class CheatsheetTreeview(PollenisatorTreeview):
         if len(selection) == 1:
             item = super().onTreeviewSelect(event)
             if isinstance(item, str):
-                if "pentest|" not in str(item):
-                    objView = CheckItemView(
-                        self, self.viewFrame, self.appli, CheckItemController(CheckItem({"category":str(item)})))
-                    objView.openInsertWindow()
+                pass
+                # if "pentest|" not in str(item):
+                #     objView = CheckItemView(
+                #         self, self.viewFrame, self.appli, CheckItemController(CheckItem({"category":str(item)})))
+                #     objView.openInsertWindow()
             else:
                 self.openModifyWindowOf(item)
         elif len(selection) > 1:
@@ -73,6 +74,20 @@ class CheatsheetTreeview(PollenisatorTreeview):
                 widget.destroy()
             multiView.form.clear()
             multiView.openModifyWindow()
+
+    def add_check(self, _event=None):
+        item = self.contextualMenu.selection
+        if item is not None:
+            objView = self.getViewFromId(str(item))
+            if objView is None:
+                if "pentest|" not in str(item):
+                    objView = CheckItemView(
+                        self, self.viewFrame, self.appli, CheckItemController(CheckItem({"category":str(item)})))
+                    objView.openInsertWindow()
+            else:
+                new = CheckItemView(
+                        self, self.viewFrame, self.appli, CheckItemController(CheckItem({"category":str(objView.controller.getCategory())})))
+                new.openInsertWindow()
 
     def openInsertWindow(self, check_item):
         objView = CheckItemView(
@@ -129,7 +144,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
             checkitem_vw.addInTreeview(with_category=True)
 
             
-    def deleteSelected(self, _event):
+    def deleteSelected(self, _event=None):
         """
         Interface to delete a database object from an event.
         Prompt the user a confirmation window.
@@ -179,6 +194,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
         Create the contextual menu
         """
         self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
+        self.contextualMenu.add_command(label="Add new Check", command=self.add_check)
         self.contextualMenu.add_command(
             label="Apply to opened pentest", command=self.applyToPentest)
         self.contextualMenu.add_separator()
@@ -218,7 +234,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
                                    self.appli, CheckItemController(checkitem))
                     parent = None
                     try:
-                        view.addInTreeview(parent)
+                        view.addInTreeview(parent, True)
                         if view is not None:
                             view.insertReceived()
                     except tk.TclError:

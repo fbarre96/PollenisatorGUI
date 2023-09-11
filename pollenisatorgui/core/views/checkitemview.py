@@ -1,6 +1,9 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.application.dialogs import ChildDialogView
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.controllers.commandcontroller import CommandController
+from pollenisatorgui.core.views.commandview import CommandView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.tool import Tool
@@ -121,8 +124,10 @@ class CheckItemView(ViewElement):
             panel.addFormHelper(
                 "Number of parallel execution allowed for every command in this group at any given moment.", column=2)
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-            formTv.addFormSearchBar("Commands search", self.searchCallback, self.form, side=tk.TOP)
-            formTv.addFormLabel("Commands associated", side=tk.LEFT)
+            formSearchCommand = formTv.addFormPanel(side=tk.LEFT, fill=tk.Y, pady=5, padx=5)
+            formSearchCommand.addFormSearchBar("Commands search", self.searchCallback, self.form, side=tk.TOP)
+            formSearchCommand.addFormSeparator()
+            formSearchCommand.addFormButton("Create new command", self.create_command_callback, side=tk.TOP)
             commands = default.get("commands")
             if commands is None:
                 tv_commands = ["", ""]
@@ -132,7 +137,7 @@ class CheckItemView(ViewElement):
                     comm = Command.fetchObject({"_id":ObjectId(command)})
                     if comm is not None:
                         tv_commands.append((comm.name, str(command)))
-            formTv.addFormTreevw(
+            self.treeview_commands = formTv.addFormTreevw(
                 "Commands", ("Command names",), tv_commands, height=5, width=30, pady=5, fill=tk.X, side=tk.RIGHT)
         elif "script" in default.get("check_type", "manual"):
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
@@ -286,6 +291,16 @@ class CheckItemView(ViewElement):
 
         ret = [{"TITLE":command["name"], "commands":{"text":command["name"], "values":(0, str(command["_id"]))}} for command in commands]
         return ret, ""
+    
+    def create_command_callback(self, _event=None):
+        view = CommandView(self.appliTw, self.appliViewFrame, self.mainApp, CommandController(Command()))
+        result, msg = view.openInDialog(is_insert=True)
+        if result:
+            comm = Command.fetchObject({"_id":ObjectId(msg)})
+            if comm is not None:
+                self.treeview_commands.addItem("", "end", str(msg), text=comm.name, values=(0, str(comm.getId()),))
+            else:
+                tk.messagebox.showerror("Error inserting command", msg)
 
     def updateReceived(self, obj=None, old_obj=None):
         """Called when a command update is received by notification.

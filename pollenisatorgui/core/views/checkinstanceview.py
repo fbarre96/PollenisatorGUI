@@ -28,9 +28,9 @@ class CheckInstanceView(ViewElement):
     Attributes:
         icon: icon name to show in treeview. Icon filename must be in icon directory.
     """
-    done_icon = 'done_tool.png'
+    done_icon = 'checked.png'
     running_icon = 'running.png'
-    not_done_icon = 'cross.png'
+    not_done_icon = 'unchecked.png'
     icon = 'checklist.png'
 
     cached_icon = None
@@ -47,17 +47,8 @@ class CheckInstanceView(ViewElement):
         Return:
             Returns the icon representing this object.
         """
-        if check_infos is None:
-            check_infos = self.controller.getCheckInstanceStatus()
-        modelData = self.controller.getData()
-        if modelData.get("status", "") == "done":
-            status = "done"
-        else:
-            status = check_infos.get("status", "")
-        if status == "":
-            status = modelData.get("status", "")
-        if status == "":
-            status = "todo"
+        
+        status = self.getStatus(check_infos)
         iconStatus = "todo"
         if "todo" in status: # order is important as "done" is not_done but not the other way
             ui = self.__class__.not_done_icon
@@ -78,20 +69,30 @@ class CheckInstanceView(ViewElement):
 
         if cache is None:
             from PIL import Image, ImageTk
-            path = utils.getIcon(ui)
             if iconStatus == "done":
-                self.__class__.cached_done_icon = ImageTk.PhotoImage(
-                    Image.open(path))
+                self.__class__.cached_done_icon = utils.loadIcon(ui, resize=(16,16))
                 return self.__class__.cached_done_icon
             elif iconStatus == "running":
-                self.__class__.cached_running_icon = ImageTk.PhotoImage(
-                    Image.open(path))
+                self.__class__.cached_running_icon =  utils.loadIcon(ui, resize=(16,16))
                 return self.__class__.cached_running_icon
             else:
-                self.__class__.cached_not_ready_icon = ImageTk.PhotoImage(
-                    Image.open(path))
+                self.__class__.cached_not_ready_icon =  utils.loadIcon(ui, resize=(16,16))
                 return self.__class__.cached_not_ready_icon
         return cache
+
+    def getStatus(self, check_infos=None):
+        modelData = self.controller.getData()
+        if modelData.get("status", "") == "done":
+            status = "done"
+        else:
+            if check_infos is None:
+                check_infos = self.controller.getCheckInstanceStatus()
+            status = check_infos.get("status", "")
+        if status == "":
+            status = modelData.get("status", "")
+        if status == "":
+            status = "todo"
+        return status
 
     def __init__(self, appTw, appViewFrame, mainApp, controller):
         """Constructor
@@ -125,11 +126,7 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormLabel("Target", row=0, column=0)
         panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
         panel_top.addFormLabel("Status", row=0, column=2)
-        default_status = infos.get("status", "")
-        if default_status == "":
-            default_status = modelData.get("status", "")
-        if default_status == "":
-            default_status = "todo"
+        default_status = self.getStatus()
         self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
         self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=3, pady=5)
         #panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
@@ -144,10 +141,10 @@ class CheckInstanceView(ViewElement):
         self.image_reset = utils.loadIcon("reset.png")
         self.image_delete = utils.loadIcon("delete.png")
         self.image_defect = utils.loadIcon("defect.png")
-        dict_of_tools_not_done = infos.get("tools_not_done")
-        dict_of_tools_error = infos.get("tools_error")
-        dict_of_tools_running = infos.get("tools_running")
-        dict_of_tools_done = infos.get("tools_done")
+        dict_of_tools_not_done = infos.get("tools_not_done", {})
+        dict_of_tools_error = infos.get("tools_error", {})
+        dict_of_tools_running = infos.get("tools_running", {})
+        dict_of_tools_done = infos.get("tools_done", {})
         lambdas_lauch_tool_local = [self.launchToolLocalCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
         lambdas_lauch_tool_worker = [self.queueToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
         lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
@@ -256,7 +253,7 @@ class CheckInstanceView(ViewElement):
         self.upload_btn = upload_panel.addFormButton("Upload", callback=self.upload_scan_files, state="disabled", anchor=tk.N, side=tk.LEFT, pady=5)
 
         #for command, status in infos.get("tools_status", {}).items():
-        if "script" in check_m.check_type:
+        if check_m and "script" in check_m.check_type:
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
             self.textForm = formTv.addFormStr("Script", ".+", check_m.script)
@@ -266,7 +263,7 @@ class CheckInstanceView(ViewElement):
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
         panel_detail = self.form.addFormPanel(grid=True)
         panel_detail.addFormLabel("Description", row=1, column=0)
-        panel_detail.addFormText("Description", r"", default=check_m.description if check_m.description != "" else "No description", height=100, state="disabled", row=1, column=1, pady=5)
+        panel_detail.addFormText("Description", r"", default=check_m.description if check_m and check_m.description != "" else "No description", height=100, state="disabled", row=1, column=1, pady=5)
         panel_detail.addFormLabel("Notes", row=2, column=0)
         panel_detail.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
         self.completeModifyWindow(addTags=False)

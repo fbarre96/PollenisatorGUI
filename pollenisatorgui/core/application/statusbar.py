@@ -41,7 +41,7 @@ class StatusBar(CTkFrame):
         for widget in self.winfo_children():
             widget.destroy()
         #self.pack_forget()
-        lbl = CTkLabel(self, text="Shortcuts")
+        lbl = CTkLabel(self, text="Filter by tags")
         lbl.pack(side="left", padx=1)
 
         self.registeredTags = Settings.getTags(ignoreCache=True)

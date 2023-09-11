@@ -61,6 +61,9 @@ class IpController(ControllerElement):
                     total += 1
             return ret, total-accepted  # nb errors = total - accepted
 
+    def is_in_scope(self):
+        """Return true if the ip has registered at least one scope in its field 'in_scopes' , False otherwise"""
+        return bool(self.model.in_scopes)
     
     def getDefects(self):
         """Return ip assigned defects as a list of mongo fetched defects dict

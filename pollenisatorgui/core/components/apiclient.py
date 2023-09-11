@@ -71,6 +71,8 @@ def handle_api_errors(func):
             elif err.response.status_code == 500:
                 raise err
             else:
+                if isinstance(err.ret_values, tuple) and len(err.ret_values) == 1:
+                    return err.ret_values[0]
                 return err.ret_values
         return res
     return wrapper
