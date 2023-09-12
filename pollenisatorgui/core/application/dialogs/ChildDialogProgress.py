@@ -72,7 +72,6 @@ class ChildDialogProgress:
                 try:
                     self.progressbar.step()
                 except tk.TclError:
-                    print("Shutdown while loading...")
                     return
             elif self.mode == "determinate":
                 self.progressbar.step()

@@ -25,24 +25,10 @@ import docker
 from bson import ObjectId
 from pollenisatorgui.core.components.logger_config import logger
 
-try:
-    import git
-    git_available = True
-except:
-    git_available = False
 import shutil
 
 
 def start_docker(dialog, force_reinstall):
-    worker_subdir = os.path.join(utils.getMainDir(), "PollenisatorWorker")
-    if os.path.isdir(worker_subdir) and force_reinstall:
-        try:
-            shutil.rmtree(worker_subdir)
-        except:
-            pass
-    if not os.path.isdir(worker_subdir):
-        git.Git(utils.getMainDir()).clone("https://github.com/fbarre96/PollenisatorWorker.git")
-    shutil.copyfile(os.path.join(utils.getConfigFolder(), "client.cfg"), os.path.join(utils.getMainDir(), "PollenisatorWorker/config/client.cfg"))
     dialog.update(msg="Building worker docker could take a while (1~10 minutes depending on internet connection speed)...")
     try:
         client = docker.from_env()
@@ -71,7 +57,7 @@ def start_docker(dialog, force_reinstall):
         network_mode = "host"
     else:
         network_mode = None
-    container = client.containers.run(image=image[0], network_mode=network_mode, volumes={os.path.join(utils.getMainDir(), "PollenisatorWorker"):{'bind':'/home/Pollenisator', 'mode':'rw'}}, detach=True)
+    container = client.containers.run(image=image[0], network_mode=network_mode, volumes={os.path.join(utils.getConfigFolder()):{'bind':'/root/.config/pollenisator-gui/', 'mode':'rw'}}, detach=True)
     dialog.update(3, msg="Checking if worker is running")
     print(container.id)
     if container.logs() != b"":
@@ -219,23 +205,36 @@ class ScanManager:
             return tool_iid in children
         except tk.TclError:
             return False
-        
-    def is_ready_to_queue(self, tool_iid):
+
+
+    def _check_worker(self):
         foundValidWorker = False
-        apiclient = APIClient.getInstance()
+        
         if self.workers:
             for worker in self.workers:
                 if self.is_worker_valid_for_pentest(worker):
-                    foundOne = True
+                    foundValidWorker = True
                     break
         if not foundValidWorker:
             return False, "No worker available yet."
+        return True, ""
+    
+    def is_ready_to_queue(self, tool_iid):
+        apiclient = APIClient.getInstance()
+        res, msg = self._check_worker()
+        if not res:
+            return res, msg
         if self.is_already_queued(tool_iid):
             return False, "Tool already queued."
         if not apiclient.getAutoScanStatus():
             return False, "No autoscan running."
         return True, ""
-        
+    
+    def is_ready_to_run_tasks(self):
+        res, msg = self._check_worker()
+        if not res:
+            return res, msg
+        return True, ""
 
     def slider_event(self, event):
         val = self.autoscan_slider.get()
@@ -275,8 +274,7 @@ class ScanManager:
 
     def ask_start_worker(self):
         options = ["Use this computer", "Run a preconfigured Docker on server"]
-        if git_available:
-            options.append("Run a preconfigured Docker locally")
+        options.append("Run a preconfigured Docker locally")
         options.append("Cancel")
         dialog = ChildDialogQuestion(self.parent, "Register worker ?", "There is no running scanning clients. What do you want to do ?", options)
         self.parent.wait_window(dialog.app)
@@ -325,10 +323,9 @@ class ScanManager:
         pane.addFormButton("Start remote worker",  callback=self.runWorkerOnServer, side=tk.LEFT)
         pane.addFormHelper("Start a docker worker on the remote server", side=tk.LEFT)
         
-        if git_available:
-            pane = btn_pane.addFormPanel(row=2,column=0)
-            pane.addFormButton("Start worker locally", callback=self.launchDockerWorker, side=tk.LEFT)
-            pane.addFormHelper("Require git client and Docker, build the worker docker locally", side=tk.LEFT)
+        pane = btn_pane.addFormPanel(row=2,column=0)
+        pane.addFormButton("Start worker locally", callback=self.launchDockerWorker, side=tk.LEFT)
+        pane.addFormHelper("Require Docker, pull and run the worker docker locally", side=tk.LEFT)
         pane = btn_pane.addFormPanel(row=3,column=0)
         pane.addFormButton("Use this computer", callback=self.registerAsWorker, side=tk.LEFT)
         pane.addFormHelper("Use this computer as a worker", side=tk.LEFT)
@@ -384,10 +381,24 @@ class ScanManager:
         self.queueTv.heading("#0", text='Queued scans', anchor=tk.W)
         self.queueTv.column("#0", anchor=tk.W)
         self.queueTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
+        self.queueTv.bind("<Delete>", self.remove__selected_tasks)
+        clear_queue_btn = CTkButton(queuedScansFrame, text="Clear queue", command=self.clear_queue)
+        clear_queue_btn.pack(side=tk.BOTTOM, pady=2, padx=10)
         queuedScansFrame.grid(row=2, column=0, columnspan=2, sticky=tk.NSEW)
+
         ######
         parentFrame.pack(expand=1, fill=tk.BOTH)
         parentScrollableFrame.pack(expand=1, fill=tk.BOTH)
+
+    def clear_queue(self, event=None):
+        apiclient = APIClient.getInstance()
+        apiclient.clear_queue()
+
+    def remove__selected_tasks(self, _event=None):
+        items = self.queueTv.selection()
+        if items:
+            apiclient = APIClient.getInstance()
+            apiclient.sendRemoveTasks(items)
 
     def showHistory(self, event=None):
         dialog = ChildDialogScanHistory(self.parent)
@@ -495,7 +506,7 @@ class ScanManager:
     
 
     def launchDockerWorker(self, event=None):
-        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Cloning worker repository ...",  progress_mode="indeterminate", show_logs=True)
+        dialog = ChildDialogProgress(self.parent, "Starting worker docker", "Initialisation ...",  progress_mode="indeterminate", show_logs=True)
         dialog.show(4)
         x = threading.Thread(target=start_docker, args=(dialog, True))
         x.start()
@@ -525,6 +536,7 @@ class ScanManager:
             containers = client.containers.list()
             for container in containers:
                 if container.image.tags[0].startswith("algosecure/pollenisator-worker"):
+                    
                     dialog = ChildDialogProgress(self.parent, "Stopping docker", "Waiting for docker to stop", progress_mode="indeterminate")
                     dialog.show()
                     logger.debug("Stopping running worker....")
@@ -570,4 +582,3 @@ class ScanManager:
         if name not in self.workerTv.get_children():
             return False, "Worker did not boot in time, cannot add commands to wave"
         apiclient.setWorkerInclusion(name, True)
-            

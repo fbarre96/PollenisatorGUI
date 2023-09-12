@@ -370,7 +370,6 @@ class TerminalsWidget(CTkFrame):
             self.terminalTv.selection_set(str(iid)) # trigger treeview select 
 
     def create_ro_window(self, iid, title, toolController, scanManager):
-            
         tv_iid = iid+"|"+"ro"
         if tv_iid in self.pseudoTermFrames:
             self.pseudoTermFrames[tv_iid].quit()

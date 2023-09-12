@@ -860,6 +860,34 @@ class APIClient():
         else:
             return None
         
+    @handle_api_errors
+    def runTask(self, tool_iid):
+        api_url = '{0}tools/{1}/{2}/runTask'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
+        response = requests.post(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+        
+    @handle_api_errors
+    def sendRemoveTasks(self, tools_iid):
+        if isinstance(tools_iid, str):
+            tools_iid = [ObjectId(tools_iid)]
+        elif isinstance(tools_iid, ObjectId):
+            tools_iid = [tools_iid]
+        api_url = '{0}tools/{1}/removeTasks'.format(self.api_url_base, self.getCurrentPentest())
+        data = tools_iid
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+        
     @handle_api_errors  
     def getQueue(self):
         api_url = '{0}tools/{1}/getQueue'.format(self.api_url_base, self.getCurrentPentest())
@@ -870,6 +898,18 @@ class APIClient():
             raise ErrorHTTP(response)
         else:
             return None
+        
+    @handle_api_errors
+    def clear_queue(self):
+        api_url = '{0}tools/{1}/clearTasks'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.post(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
 
     @handle_api_errors
     def addCustomTool(self, port_iid, command_iid):

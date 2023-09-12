@@ -138,7 +138,7 @@ class CheckItemView(ViewElement):
                     if comm is not None:
                         tv_commands.append((comm.name, str(command)))
             self.treeview_commands = formTv.addFormTreevw(
-                "Commands", ("Command names",), tv_commands, height=5, width=30, pady=5, fill=tk.X, side=tk.RIGHT)
+                "Commands", ("Command names",), tv_commands, doubleClickBinds=[self.onCommandDoubleClick],height=5, width=30, pady=5, fill=tk.X, side=tk.RIGHT)
         elif "script" in default.get("check_type", "manual"):
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
@@ -150,6 +150,12 @@ class CheckItemView(ViewElement):
             self.controller.model.lvl = self.triggerLevelForm.getValue()
             self.reopen()
 
+    def onCommandDoubleClick(self, oldval):
+        command_o = Command.fetchObject({"name":oldval})
+        if command_o is None:
+            return
+        view = CommandView(self.appliTw, self.appliViewFrame, self.mainApp, CommandController(command_o))
+        view.openInDialog()
     def reopen(self):
         if self.is_insert_view:
             self.openInsertWindow()

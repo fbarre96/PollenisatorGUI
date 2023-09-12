@@ -50,7 +50,7 @@ import pollenisatorgui.modules
 import customtkinter
 import tkinterDnD
 from ttkwidgets import tooltips
-
+from pollenisatorgui.core.components.logger_config import logger
 from pollenisatorgui.modules.module import Module
 
 class FloatingHelpWindow(CTkToplevel):
@@ -405,7 +405,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.minsize(width=400, height=400)
         self.resizable(True, True)
         self.title("Pollenisator")
-        self.geometry("1500x830")
+        
+        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.datamanager = DataManager.getInstance()
         self.initModules()
@@ -593,6 +594,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 continue
             if notif_handler["notif_name"] is not None and notif_handler["notif_name"] != notification["action"]:
                 continue
+            
             notif_handler["handler"](notification)
     
     def subscribe_notification(self, notif_name, handler, pentest=None, collection=None, iid=None):

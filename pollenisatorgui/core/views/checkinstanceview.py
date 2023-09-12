@@ -16,7 +16,7 @@ from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.tool import Tool
 import pollenisatorgui.core.components.utils as utils
 from PIL import ImageTk, Image
-
+from pollenisatorgui.core.components.logger_config import logger
 
 from bson import ObjectId
 import os
@@ -145,8 +145,10 @@ class CheckInstanceView(ViewElement):
         dict_of_tools_error = infos.get("tools_error", {})
         dict_of_tools_running = infos.get("tools_running", {})
         dict_of_tools_done = infos.get("tools_done", {})
+        #create lambdas indirection for each button
         lambdas_lauch_tool_local = [self.launchToolLocalCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
-        lambdas_lauch_tool_worker = [self.queueToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
+        lambdas_queue_tool_worker = [self.queueToolCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
+        lambdas_launch_tool_worker = [self.launchToolWorkerCallbackLambda(iid) for iid in dict_of_tools_not_done.keys()]
         lambdas_running = [self.peekToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_running_stop = [self.stopToolCallbackLambda(iid) for iid in dict_of_tools_running.keys()]
         lambdas_done = [self.downloadToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
@@ -158,7 +160,7 @@ class CheckInstanceView(ViewElement):
         
         if dict_of_tools_not_done:
             self.form.addFormSeparator()
-            self.form.addFormLabel("Command suggestions", font_size=20, side=tk.TOP, anchor=tk.CENTER)
+            self.form.addFormLabel("Command suggestions", font_size=20, side=tk.TOP, anchor=tk.W)
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
             for tool_iid, tool_string in dict_of_tools_not_done.items():
@@ -178,9 +180,12 @@ class CheckInstanceView(ViewElement):
                 formCommands.addFormButton("Execute", lambdas_lauch_tool_local[row], row=row, column=3, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, image=self.buttonExecuteImage)
                 ready, msg = self.mainApp.scanManager.is_ready_to_queue(str(tool_iid))
                 if ready:
-                    formCommands.addFormButton("", lambdas_lauch_tool_worker[row], row=row, column=4, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
+                    formCommands.addFormButton("Queue", lambdas_queue_tool_worker[row], row=row, column=4, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
                                            state="normal" if ready else "disabled", image=self.buttonQueueImage)
-                
+                ready, msg = self.mainApp.scanManager.is_ready_to_run_tasks()
+                if ready:
+                    formCommands.addFormButton("Worker execute", lambdas_launch_tool_worker[row], row=row, column=5, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
+                                           state="normal" if ready else "disabled", image=self.buttonQueueImage)
                 row+=1
         if dict_of_tools_running:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
@@ -336,6 +341,9 @@ class CheckInstanceView(ViewElement):
     def queueToolCallbackLambda(self, tool_iid, **kwargs):
         return lambda event, kwargs: self.queueToolWorkerCallback(tool_iid, **kwargs)
 
+    def launchToolWorkerCallbackLambda(self, tool_iid, **kwargs):
+        return lambda event, kwargs: self.launchToolWorkerCallback(tool_iid, **kwargs)
+
     def peekToolCallbackLambda(self, tool_iid):
         return lambda event: self.peekToolCallback(tool_iid)
     
@@ -415,6 +423,21 @@ class CheckInstanceView(ViewElement):
             else:
                 tk.messagebox.showerror("Could not launch this tool", "Binary path is not available ({})")
             #
+
+    def launchToolWorkerCallback(self, tool_iid, **kwargs):
+        apiclient = APIClient.getInstance()
+        form_commandline = kwargs.get("formstr", None)
+        
+        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
+        self.mainApp.subscribe_notification("tool_start", self.toolStartedEvent, pentest=apiclient.getCurrentPentest(), iid=tool_iid)
+        if form_commandline is not None:
+            command_line = form_commandline.getValue()
+            tool_m.text = command_line
+            tool_m.update({"text":command_line})
+        results = apiclient.runTask(tool_iid)
+        if not results:
+            self.mainApp.unsubscribe_notification("tool_start", self.toolStartedEvent, pentest=apiclient.getCurrentPentest(), iid=tool_iid)
+      
 
     def queueToolWorkerCallback(self, tool_iid, **kwargs):
         apiclient = APIClient.getInstance()

@@ -387,6 +387,10 @@ class FormTreevw(Form):
             binding = self.doubleClickBinds[columnNb]
             if binding is None:
                 return
+            elif callable(binding):
+                newVal = binding(oldVal)
+                if newVal is None:
+                    return
             elif isinstance(binding, str):
                 dialog = ChildDialogAskText(self.tvFrame, "New value for "+self.headings[columnNb].lower(), default=oldVal, multiline=True, width=100)
                 self.tvFrame.wait_window(dialog.app)

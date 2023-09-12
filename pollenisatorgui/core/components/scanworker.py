@@ -78,7 +78,14 @@ class ScanWorker:
     def onClosing(self):
         if self.timer:
             self.timer.cancel()
-            self.deleteWorker()
+            i = 0
+            for running in self.local_scans.values():
+                running[0].terminate()
+                running[0].join()
+                break
+            self.sio.disconnect()
+            if self.timer:
+                self.timer.cancel()
 
     def launchTask(self, toolModel, checks=True, worker="", infos={}):
         apiclient = APIClient.getInstance()
