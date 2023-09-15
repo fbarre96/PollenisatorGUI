@@ -1037,8 +1037,8 @@ class APIClient():
             data = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             return True, data
         elif response.status_code >= 400:
-            raise ErrorHTTP(response, False, response.content.decode('utf-8'), "")
-        return False, response.content.decode('utf-8'), ""
+            raise ErrorHTTP(response, False, response.content.decode('utf-8'))
+        return False, response.content.decode('utf-8')
     
     @handle_api_errors
     def importToolResult(self, tool_iid, parser, local_path):

@@ -54,7 +54,7 @@ class CheckInstanceController(ControllerElement):
         curr = self.getStatus() 
         if curr == "done":
             self.model.status = "todo"
-        elif curr == "todo":
+        elif curr == "todo" or curr == "running":
             self.model.status = "done"
         else:
             return

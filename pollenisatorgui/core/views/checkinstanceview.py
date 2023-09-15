@@ -166,26 +166,27 @@ class CheckInstanceView(ViewElement):
             for tool_iid, tool_string in dict_of_tools_not_done.items():
                 apiclient = APIClient.getInstance()
                 success, data = apiclient.getCommandLine(tool_iid)
-                comm, fileext = data["comm"], data["ext"]
-                toolModel =  Tool.fetchObject({"_id":ObjectId(tool_iid)})
-                if toolModel is None:
-                    continue
-                formCommands.addFormButton(toolModel.name, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
-                form_str = None
                 if success:
-                    commandModel = datamanager.get("commands", toolModel.command_iid)
-                    form_str_bin= formCommands.addFormStr("bin_path", "", commandModel.bin_path, status="disabled", width=80, row=row, column=1)
-                    form_str= formCommands.addFormStr("commandline", "", comm, width=550, row=row, column=2)
+                    comm, fileext = data["comm"], data["ext"]
+                    toolModel =  Tool.fetchObject({"_id":ObjectId(tool_iid)})
+                    if toolModel is None:
+                        continue
+                    formCommands.addFormButton(toolModel.name, self.openToolDialog, row=row, column=0, style="link.TButton", infos={"iid":tool_iid})
+                    form_str = None
+                    if success:
+                        commandModel = datamanager.get("commands", toolModel.command_iid)
+                        form_str_bin= formCommands.addFormStr("bin_path", "", commandModel.bin_path, status="disabled", width=80, row=row, column=1)
+                        form_str= formCommands.addFormStr("commandline", "", comm, width=550, row=row, column=2)
 
-                formCommands.addFormButton("Execute", lambdas_lauch_tool_local[row], row=row, column=3, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, image=self.buttonExecuteImage)
-                ready, msg = self.mainApp.scanManager.is_ready_to_queue(str(tool_iid))
-                if ready:
-                    formCommands.addFormButton("Queue", lambdas_queue_tool_worker[row], row=row, column=4, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
-                                           state="normal" if ready else "disabled", image=self.buttonQueueImage)
-                ready, msg = self.mainApp.scanManager.is_ready_to_run_tasks()
-                if ready:
-                    formCommands.addFormButton("Worker execute", lambdas_launch_tool_worker[row], row=row, column=5, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
-                                           state="normal" if ready else "disabled", image=self.buttonQueueImage)
+                    formCommands.addFormButton("Execute", lambdas_lauch_tool_local[row], row=row, column=3, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, image=self.buttonExecuteImage)
+                    ready, msg = self.mainApp.scanManager.is_ready_to_queue(str(tool_iid))
+                    if ready:
+                        formCommands.addFormButton("Queue", lambdas_queue_tool_worker[row], row=row, column=4, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
+                                            state="normal" if ready else "disabled", image=self.buttonQueueImage)
+                    ready, msg = self.mainApp.scanManager.is_ready_to_run_tasks()
+                    if ready:
+                        formCommands.addFormButton("Worker execute", lambdas_launch_tool_worker[row], row=row, column=5, width=0, infos= {'formstr': form_str, "bin":form_str_bin}, 
+                                            state="normal" if ready else "disabled", image=self.buttonQueueImage)
                 row+=1
         if dict_of_tools_running:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)

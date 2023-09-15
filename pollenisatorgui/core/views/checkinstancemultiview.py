@@ -1,6 +1,11 @@
 """View for multi checkinstance list object. Present a form to user when interacted with."""
 
 from pollenisatorgui.core.views.viewelement import ViewElement
+from customtkinter import *
+from PIL import ImageTk, Image
+import pollenisatorgui.core.components.utils as utils
+from pollenisatorgui.core.components.settings import Settings
+import tkinter.ttk as ttk
 
 
 class CheckInstanceMultiView(ViewElement):
