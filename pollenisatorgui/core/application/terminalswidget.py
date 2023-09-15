@@ -17,6 +17,7 @@ from pollenisatorgui.core.components.logger_config import logger
 from PIL import Image, ImageTk
 
 
+
 def read_and_forward_pty_output(fd, queue=None, queueResponse=None):
     max_read_bytes = 1024 * 20
     try:
@@ -222,26 +223,32 @@ class TerminalsWidget(CTkFrame):
         if child_pid == 0:
             # child process with ✨ black magic ✨
             try:
+                logger.debug("Creating terminal...")
                 session_name = "pollenisator"
                 sessions = self.s.sessions.filter(session_name=session_name)
                 if len(sessions) > 0:
                     for session in sessions:
                         session.kill_session()
                 wid = self.wid
+                logger.debug(f"Populatig window id {wid}")
                 config_location = os.path.join(getMainDir(), "config/")
                 xterm_conf = os.path.join(config_location, ".Xresources")
                 tmux_conf = os.path.join(config_location, ".tmux.conf")
                 terminal_conf = os.path.join(config_location, "shell_ressources")
+                logger.debug(f"Trying to load xterm conf through xrdp {xterm_conf}")
                 subprocess.run("xrdb -load %s" % xterm_conf, shell=True)
                 shell_command = settings.local_settings.get("terminal", os.environ.get("ZSH", os.environ.get("SHELL","/bin/bash")))
+                logger.debug(f"shell_command found : {shell_command}")
                 trap_suffix = ("trap" if settings.isTrapCommand()  else "notrap")
+                logger.debug(f"trap_suffix found : {trap_suffix}")
                 if os.path.basename(shell_command) == "zsh":
                     terminal_conf = os.path.join(terminal_conf, "zshrc_"+trap_suffix)
                     default_command = f"ZDOTDIR={terminal_conf} {shell_command}"
                 else:
                     terminal_conf = os.path.join(terminal_conf, "bash_setupTerminalForPentest_"+trap_suffix+".sh")
                     default_command = f"{shell_command} --rcfile {terminal_conf}"
-                    
+                logger.debug(f"terminal_conf found : {terminal_conf}")
+                logger.debug(f"default_command found : {default_command}")
                 tmux_conf_new = tmux_conf+".popo"
                 with open(tmux_conf, "r") as f:
                     tmux_conf_content = f.read()
@@ -250,7 +257,7 @@ class TerminalsWidget(CTkFrame):
                         f2.write(tmux_conf_content)
                     tmux_conf = tmux_conf_new
                 command = f"xterm -into {wid} -class popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
-                
+                logger.debug(f"Lauching terminal : {command}")
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
                 signal.signal(signal.SIGINT, lambda signum,sigframe: killThisProc(proc))
                 signal.signal(signal.SIGTERM, lambda signum,sigframe: killThisProc(proc))
@@ -262,6 +269,7 @@ class TerminalsWidget(CTkFrame):
                 
                 session = self.get_session()
                 if session is not None:
+                    logger.debug(f"SUCCESS Lauching terminal : session found")
                     for i in range(3):
                         if len(session.windows.filter(window_name="shell")) > 0:
                             break
