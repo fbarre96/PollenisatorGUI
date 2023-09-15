@@ -745,20 +745,19 @@ def which_expand_alias(what):
     from pollenisatorgui.core.components.settings import Settings
     settings = Settings()
     settings.reloadLocalSettings()
-    if settings.local_settings.get("rc_file", "") != "":
-        is_there_zsh = os.environ.get("ZSH",None) is not None
-        default_shell = "zsh" if is_there_zsh else "/bin/bash"
-        terminal = settings.local_settings.get("terminal", os.environ.get("SHELL",default_shell))
-        rc_file = settings.local_settings.get("rc_file", "")
-        if rc_file == "":
-            Path.home() / "."+os.path.basename(terminal)+"rc" # rc file is not loaded automatically
-        proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
-        if proc.returncode == 0:
-            stdout = proc.stdout.decode("utf-8")
-            if "aliased to " in stdout:
-                return stdout.split("aliased to ")[1].strip()
-            else:
-                return stdout.strip()
+    is_there_zsh = os.environ.get("ZSH",None) is not None
+    default_shell = "zsh" if is_there_zsh else "/bin/bash"
+    terminal = settings.local_settings.get("terminal", os.environ.get("SHELL",default_shell))
+    rc_file = settings.local_settings.get("rc_file", "")
+    if rc_file == "":
+        Path.home() / "."+os.path.basename(terminal)+"rc" # rc file is not loaded automatically
+    proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
+    if proc.returncode == 0:
+        stdout = proc.stdout.decode("utf-8")
+        if "aliased to " in stdout:
+            return stdout.split("aliased to ")[1].strip()
+        else:
+            return stdout.strip()
     return None
 
 def is_json(myjson):
