@@ -421,7 +421,7 @@ class CheckInstanceView(ViewElement):
             if utils.which_expand_alias(bin_path):
                 self.mainApp.launch_tool_in_terminal(tool_m, bin_path+" "+command_line)
             else:
-                tk.messagebox.showerror("Could not launch this tool", "Binary path is not available ({})")
+                tk.messagebox.showerror("Could not launch this tool", f"Binary path is not available ({bin_path}), is it not installed ?")
             #
 
     def launchToolWorkerCallback(self, tool_iid, **kwargs):
