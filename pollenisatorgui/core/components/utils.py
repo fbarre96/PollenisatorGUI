@@ -25,6 +25,7 @@ from PIL import Image, ImageTk
 from ttkwidgets import tooltips
 from pollenisatorgui.core.components.logger_config import logger
 import customtkinter
+from os.path import expanduser
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -531,7 +532,6 @@ def loadCfg(cfgfile):
     return cf_infos
 
 def getConfigFolder():
-    from os.path import expanduser
     home = expanduser("~")
     config = os.path.join(home,".config/pollenisator-gui/")
     return config
@@ -750,7 +750,8 @@ def which_expand_alias(what):
     terminal = settings.local_settings.get("terminal", os.environ.get("SHELL",default_shell))
     rc_file = settings.local_settings.get("rc_file", "")
     if rc_file == "":
-        Path.home() / "."+os.path.basename(terminal)+"rc" # rc file is not loaded automatically
+        home = expanduser("~")
+        rc_file = os.path.join(home,"."+os.path.basename(terminal)+"rc") # rc file is not loaded automatically
     proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
     if proc.returncode == 0:
         stdout = proc.stdout.decode("utf-8")
