@@ -267,7 +267,8 @@ class CheckInstanceView(ViewElement):
             self.edit_icon = CTkImage(Image.open(utils.getIcon("view_doc.png")))
             formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon)
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
-        panel_detail = self.form.addFormPanel(grid=True)
+        panel_detail = self.form.addFormPanel(grid=True, fill=tk.X)
+        panel_detail.columnconfigure(1, weight=2)
         panel_detail.addFormLabel("Description", row=1, column=0)
         panel_detail.addFormText("Description", r"", default=check_m.description if check_m and check_m.description != "" else "No description", height=100, state="disabled", row=1, column=1, pady=5)
         panel_detail.addFormLabel("Notes", row=2, column=0)
@@ -419,8 +420,9 @@ class CheckInstanceView(ViewElement):
             bin_path = my_commands.get(tool_m.name)
             if bin_path is None:
                 bin_path = command_bin.getValue()
-            if utils.which_expand_alias(bin_path):
-                self.mainApp.launch_tool_in_terminal(tool_m, bin_path+" "+command_line)
+            bin_path_found = utils.which_expand_alias(bin_path)
+            if bin_path_found and bin_path_found != "":
+                self.mainApp.launch_tool_in_terminal(tool_m, bin_path_found+" "+command_line)
             else:
                 tk.messagebox.showerror("Could not launch this tool", f"Binary path is not available ({bin_path}), is it not installed ?")
             #

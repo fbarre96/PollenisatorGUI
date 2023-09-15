@@ -45,6 +45,7 @@ class FormPanel(Form):
         self.gridLayout = self.getKw("grid", False)
         self.make_uniform_column = self.getKw("make_uniform_column", None)
         self.save_row_configure = []
+        self.save_column_configure = []
         self.panel = None
 
     def constructView(self, parent):
@@ -82,6 +83,8 @@ class FormPanel(Form):
                 self.panel.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
         for rowconfigured in self.save_row_configure:
             self.panel.grid_rowconfigure(rowconfigured[0], weight=rowconfigured[1])
+        for columnconfigured in self.save_column_configure:
+            self.panel.grid_columnconfigure(columnconfigured[0], weight=columnconfigured[1])
 
     def checkForm(self):
         """
@@ -114,6 +117,9 @@ class FormPanel(Form):
 
     def rowconfigure(self, row, weight):
         self.save_row_configure.append([row, weight]) 
+
+    def columnconfigure(self, column, weight):
+        self.save_column_configure.append([column, weight]) 
 
     def getValue(self):
         """
