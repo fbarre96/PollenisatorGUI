@@ -746,7 +746,9 @@ def which_expand_alias(what):
     settings = Settings()
     settings.reloadLocalSettings()
     if settings.local_settings.get("rc_file", "") != "":
-        terminal = settings.local_settings.get("terminal", os.environ.get("ZSH", os.environ.get("SHELL","/bin/bash")))
+        is_there_zsh = os.environ.get("ZSH",None) is not None
+        default_shell = "zsh" if is_there_zsh else "/bin/bash"
+        terminal = settings.local_settings.get("terminal", os.environ.get("SHELL",default_shell))
         rc_file = settings.local_settings.get("rc_file", "")
         if rc_file == "":
             Path.home() / "."+os.path.basename(terminal)+"rc" # rc file is not loaded automatically
