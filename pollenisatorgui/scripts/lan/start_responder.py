@@ -17,5 +17,5 @@ def main(apiclient, appli, **kwargs):
       cmd = f"{responder_path} -I {dialog.rvalue} -A"
       if os.geteuid() != 0:
          cmd = "sudo "+cmd
-      appli.launch_in_terminal(kwargs.get("default_target",None), "Responder listening", cmd)
+      appli.launch_in_terminal(kwargs.get("default_target",None), "Responder listening", cmd, use_pollex=False)
    return True, f"Listening responder open"
