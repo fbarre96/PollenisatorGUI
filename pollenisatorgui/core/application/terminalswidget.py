@@ -237,7 +237,8 @@ class TerminalsWidget(CTkFrame):
                 terminal_conf = os.path.join(config_location, "shell_ressources")
                 logger.debug(f"Trying to load xterm conf through xrdp {xterm_conf}")
                 subprocess.run("xrdb -load %s" % xterm_conf, shell=True)
-                shell_command = settings.local_settings.get("terminal", os.environ.get("ZSH", os.environ.get("SHELL","/bin/bash")))
+                is_there_zsh = os.environ.get("ZSH",None) is not None
+                shell_command = settings.local_settings.get("terminal",  os.environ.get("SHELL","zsh" if is_there_zsh else "/bin/bash"))
                 logger.debug(f"shell_command found : {shell_command}")
                 trap_suffix = ("trap" if settings.isTrapCommand()  else "notrap")
                 logger.debug(f"trap_suffix found : {trap_suffix}")
