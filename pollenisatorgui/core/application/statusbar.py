@@ -51,7 +51,11 @@ class StatusBar(CTkFrame):
         datamanager = DataManager.getInstance()
         tags = datamanager.get("tags", "*")
         for tag_iid, tag_obj in tags.items():
-            for tag_name in tag_obj.tags:
+            for tag_info in tag_obj.tags:
+                if isinstance(tag_info,str):
+                    tag_name = tag_info
+                else:
+                    tag_name = tag_info[0]
                 self.tagsCount[str(tag_name)] = self.tagsCount.get(str(tag_name), 0) + 1
         for registeredTag, tag_info in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)

@@ -219,14 +219,20 @@ class CheckInstanceView(ViewElement):
                         item_no = 0
                         
                         s = ttk.Style(self.mainApp)
-                        color = registeredTags.get(tag, {}).get("color"," gray97")
+                        if isinstance(tag, str):
+                            tag_name = tag
+                            tag_color = registeredTags.get(tag_name, {}).get("color"," gray97")
+                        else:
+                            tag_name = tag[0]
+                            tag_color = tag[1]
+                            tag_severity = tag[2]
                         try: # CHECK IF COLOR IS VALID
-                            CTkLabel(self.mainApp, fg_color=color)
+                            CTkLabel(self.mainApp, fg_color=tag_color)
                         except tk.TclError as e:
                             #color incorrect
-                            color = "gray97"
-                        s.configure(""+color+".Default.TLabel", background=color, foreground="black", borderwidth=1, bordercolor="black")
-                        tool_panel.addFormLabel(tag, text=tag, side="top", padx=1, pady=0)
+                            tag_color = "gray97"
+                        s.configure(""+tag_color+".Default.TLabel", background=tag_color, foreground="black", borderwidth=1, bordercolor="black")
+                        tool_panel.addFormLabel(tag, text=tag_name, side="top", padx=1, pady=0)
                         column += 1
                         item_no += 1
                         if column == 4:
@@ -281,7 +287,7 @@ class CheckInstanceView(ViewElement):
         else:
             self.upload_btn.configure(state="disabled")
     
-    def attackOnTerminal(self, event):
+    def attackOnTerminal(self, event=None):
         #import pollenisatorgui.modules.terminal as terminal
         #terminal.Terminal.openTerminal(str(self.controller.getDbId()))
         self.mainApp.open_terminal(str(self.controller.getDbId()), self.controller.target_repr)

@@ -255,7 +255,14 @@ type == "ip" and infos.key == "ABC"
                 data["tags"] = tag.get("tags",[])
             else:
                 data["tags"] = []
-
+            research = []
+            for tag in data["tags"]:
+                if isinstance(tag, str):
+                    tag_name = tag
+                else:
+                    tag_name = tag[0]
+                research.append(tag_name)
+            data["tags"] = research
             result = self.evaluate(self.parsed, data)
             if result:
                 found_res.append(dbId)

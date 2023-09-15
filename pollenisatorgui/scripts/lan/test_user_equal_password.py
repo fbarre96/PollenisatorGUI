@@ -5,6 +5,7 @@ import os
 import shutil
 
 def main(apiclient, appli, **kwargs):
+    cme_path = utils.which_expand_alias("cme")
     if not utils.which_expand_alias("cme"):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)
@@ -27,5 +28,5 @@ def main(apiclient, appli, **kwargs):
             with open(file_name, "w") as f:
                 f.write(users+"\n")
             exec += 1
-            appli.launch_in_terminal(kwargs.get("default_target", None), "cme bruteforce", f"'cme smb {dc_info['ip']} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success'")
+            appli.launch_in_terminal(kwargs.get("default_target", None), "cme bruteforce", f"{cme_path} smb {dc_info['ip']} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success")
     return True, f"Launched {exec} cmes"

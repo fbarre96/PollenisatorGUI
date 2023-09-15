@@ -1,6 +1,8 @@
 popoxterm*faceName: dejavu sans mono
 popoxterm*faceSize: 12
 popoxterm*allowWindowOps: true
+popoxterm*selectToClipboard: true
+popoxterm*disallowedWindowOps: 20,21,SetXProp
 ! Dark mode color scheme
 ! --------------
 ! Background

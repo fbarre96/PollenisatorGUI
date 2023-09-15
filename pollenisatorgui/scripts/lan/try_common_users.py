@@ -1,3 +1,4 @@
+from bson import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 import pollenisatorgui.core.components.utils as utils
 import tempfile
@@ -31,10 +32,15 @@ users_to_test = [
 ]
 
 def main(apiclient, appli, **kwargs):
-    if not utils.which_expand_alias("cme"):
+    cme_path = utils.which_expand_alias("cme")
+    if not cme_path:
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)
-    domain = kwargs.get("domain", "")
+    domain = ""
+    if kwargs.get("target_type") == "computer":
+        computer_info =  apiclient.find("ActiveDirectory", {"type":"computer", "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
+        if computer_info is not None:
+            domain = computer_info.get("domain", "")
     if domain == "":
         dialog = ChildDialogAskText(None, "Enter domain name", multiline=False)
         dialog.app.wait_window(dialog.app)
@@ -59,5 +65,5 @@ def main(apiclient, appli, **kwargs):
         with open(file_name, "w") as f:
             f.write(users+"\n")
         exec += 1
-        appli.launch_in_terminal(kwargs.get("default_target",None), "CME try common users", f"'pollex cme smb {dc} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success'"),
+        appli.launch_in_terminal(kwargs.get("default_target",None), "CME try common users", f"{cme_path} smb {dc} -u {file_name} -p {file_name} -d {domain} --no-bruteforce --continue-on-success"),
     return True, f"Launched {exec} cmes"

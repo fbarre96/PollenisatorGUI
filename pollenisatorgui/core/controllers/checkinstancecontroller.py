@@ -51,10 +51,10 @@ class CheckInstanceController(ControllerElement):
         return self.model.getStatus()
     
     def swapStatus(self):
-        curr = self.getStatus() 
+        curr = self.getStatus()
         if curr == "done":
             self.model.status = "todo"
-        elif curr == "todo" or curr == "running":
+        elif curr == "todo" or curr == "running" or curr == "":
             self.model.status = "done"
         else:
             return

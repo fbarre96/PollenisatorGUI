@@ -305,7 +305,14 @@ class Dashboard(Module):
         tags = self.infos.get("tagged", [])
         tags_registered = Settings.getTags()
         for tag_infos in tags:
-            if tags_registered.get(tag_infos.get("name"), {}).get("level", "") != "":
-                self.treeview.addItem("", tk.END, tag_infos["_id"], text="Tag", values=(
-                    tag_infos["date"], tags_registered[tag_infos.get("name")]["level"], tag_infos["name"],  tag_infos["detailed_string"]))
+            for tag in tag_infos.get("tags", []):
+                if isinstance(tag, str):
+                    tag_name = tag
+                else:
+                    tag_name = tag[0]
+                    #tag_color = tag[1]
+                    #tag_level = tag[2]
+                if tags_registered.get(tag_name, {}).get("level", "") != "":
+                    self.treeview.addItem("", tk.END, tag_infos["_id"], text="Tag", values=(
+                        tag_infos["date"], tags_registered[tag_name]["level"], tag_name,  tag_infos["detailed_string"]))
         self.treeview.auto_resize_columns()
