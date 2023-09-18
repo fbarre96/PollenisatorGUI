@@ -193,7 +193,7 @@ class ToolView(ViewElement):
         dates_panel.addFormStr(
             "Scanner", r"", modelData["scanner_ip"], row=3, column=1)
         dates_panel.addFormLabel("Infos",  row=4)
-        dates_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100, row=4, column=1)
+        dates_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4, cls=utils.JSONEncoder), height=100, row=4, column=1)
         defect_panel = self.form.addFormPanel(grid=True)
         defect_panel.addFormButton("Create defect", self.createDefectCallback, padx=5)
         defect_panel.addFormButton("Show associated command", self.showAssociatedCommand, column=1)

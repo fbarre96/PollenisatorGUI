@@ -77,7 +77,7 @@ class PortView(ViewElement):
         top_panel.addFormText(
             "Notes", r"", modelData["notes"], None, side="top")
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100, side="left", fill="both")
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4, cls=utils.JSONEncoder), height=100, side="left", fill="both")
         # command_list = Command.fetchObjects({"lvl": "port"}, APIClient.getInstance().getCurrentPentest()) #TODO lvl change
         # command_names = ["None"]
         # self.command_names_to_iid = {}

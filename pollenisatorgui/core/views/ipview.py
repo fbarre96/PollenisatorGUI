@@ -53,7 +53,7 @@ class IpView(ViewElement):
         top_panel.addFormLabel("Notes", side="top")
         top_panel.addFormText("Notes", r"", notes, None, side="top")
         top_panel.addFormLabel("Infos", side="left")
-        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4), height=100, side="left", fill="both")
+        top_panel.addFormText("Infos", utils.is_json, json.dumps(modelData["infos"], indent=4, cls=utils.JSONEncoder), height=100, side="left", fill="both")
         buttons_panel = self.form.addFormPanel(grid=True)
         buttons_panel.addFormButton("Add a port", self.addPortCallback)
         buttons_panel.addFormButton(

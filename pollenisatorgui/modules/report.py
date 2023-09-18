@@ -223,11 +223,12 @@ class Report(Module):
         self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models)
         self.combo_word.grid(row=0, column=1)
         self.btn_template_photo = CTkImage(Image.open(utils.getIcon("download.png")))
-        btn_word_template_dl = CTkButton(templatesFrame, text="View empty template", width=40, image=self.btn_template_photo, command=self.downloadWordTemplate)
-        btn_word_template_dl.grid(row=0, column=2, sticky=tk.W)
         btn_word = CTkButton(
             templatesFrame, text="Generate", image=self.image_word, command=self.generateReportWord)
-        btn_word.grid(row=0, column=3, sticky=tk.E, padx=5)
+        btn_word.grid(row=0, column=2, sticky=tk.E, padx=5)
+        btn_word_template_dl = CTkButton(templatesFrame, text="View empty template", width=40, image=self.btn_template_photo, command=self.downloadWordTemplate)
+        btn_word_template_dl.grid(row=0, column=3, sticky=tk.W)
+        
         ### POWERPOINT EXPORT FRAME ###
         lbl = CTkLabel(templatesFrame,
                         text="Powerpoint template")
@@ -235,11 +236,12 @@ class Report(Module):
         self.combo_pptx = CTkComboBox(
             templatesFrame, values=self.pptx_models)
         self.combo_pptx.grid(row=1, column=1)
-        btn_pptx_template_dl = CTkButton(templatesFrame,text="View empty template",image=self.btn_template_photo,width=40, command=self.downloadPptxTemplate)
-        btn_pptx_template_dl.grid(row=1, column=2, sticky=tk.W)
+        
         btn_ppt = CTkButton(
             templatesFrame, text="Generate", image=self.image_ppt, command=self.generateReportPowerpoint)
-        btn_ppt.grid(row=1, column=3, sticky=tk.E, padx=5)
+        btn_ppt.grid(row=1, column=2, sticky=tk.E, padx=5)
+        btn_pptx_template_dl = CTkButton(templatesFrame,text="View empty template",image=self.btn_template_photo,width=40, command=self.downloadPptxTemplate)
+        btn_pptx_template_dl.grid(row=1, column=3, sticky=tk.W)
         templatesFrame.pack(side=tk.TOP,padx=10, pady=10, expand=1, anchor=tk.CENTER)
         officeFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)
         belowFrame.pack(side=tk.TOP, fill=tk.BOTH)

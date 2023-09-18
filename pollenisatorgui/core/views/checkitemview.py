@@ -90,8 +90,11 @@ class CheckItemView(ViewElement):
         apiclient = APIClient.getInstance()
         lvls = apiclient.getTriggerLevels()
         panel_bottom.addFormLabel("Trigger", row=0, column=0)
+        true_lvl = default.get("lvl", "port:onServiceUpdate")
+        if true_lvl.startswith("tag:"):
+            true_lvl = ":".join(true_lvl.split(":")[:2])+":str"
         self.triggerLevelForm = panel_bottom.addFormCombo(
-            "Level", lvls, default.get("lvl", "port:onServiceUpdate"),  command=lambda ev: self.triggerLevelUpdate(default.get("lvl", "port:onServiceUpdate")), width=200, row=0, column=1)
+            "Level", lvls, true_lvl,  command=lambda ev: self.triggerLevelUpdate(true_lvl), width=200, row=0, column=1)
         panel_bottom.addFormHelper(
             "When the event is triggered, \na instance for this check will be created on the triggering object", row=0, column=2)
         self.panel_trigger_options = self.form.addFormPanel(grid=True)
