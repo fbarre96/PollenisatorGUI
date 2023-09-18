@@ -114,7 +114,8 @@ class FormFile(Form):
         if f != "":
             filename = str(f)
             self.add_paths([filename])
-            self.callback()
+            if callable(self.callback):
+                self.callback()
 
     def on_click_dir(self, _event=None, parent=None):
         """Callback when '...' is clicked and modes="directory" was set.
@@ -132,7 +133,8 @@ class FormFile(Form):
         if f != "":
             filename = str(f)
             self.add_paths([filename])
-            self.callback()
+            if callable(self.callback):
+                self.callback()
 
     def getValue(self):
         """
@@ -182,8 +184,9 @@ class FormFile(Form):
                 added.append(d)
             elif os.path.isdir(d) and "directory" in self.modes:
                 added.append(d)
-        if added and self.callback and callable(self.callback):
+        if added:
             self.add_paths(added)
+        if self.callback and callable(self.callback):
             self.callback()
         
         
@@ -191,4 +194,5 @@ class FormFile(Form):
         curr = self.listbox.curselection()
         for i in curr:
             self.listbox.delete(i)
-        self.callback()
+        if callable(self.callback):
+            self.callback()

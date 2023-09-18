@@ -17,7 +17,7 @@ class Command(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}), name(""), 
-                         text(""), lvl("network"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owners=[]
+                         text(""), lvl("port:onServiceUpdate"), ports(""), safe(True), types([]), indb="pollenisator", timeout="300", owners=[]
         """
         if valuesFromDb is None:
             valuesFromDb = dict()

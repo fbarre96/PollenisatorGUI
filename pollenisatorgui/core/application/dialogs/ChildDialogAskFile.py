@@ -3,15 +3,32 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
 import tkinterDnD
+from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import pollenisatorgui.core.components.utils as utils
 
 
-class ChildDialogAskFile:
+class ChildDialogAskFile(CTk, tkinterDnD.tk.DnDWrapper):
     """
     Open a child dialog of a tkinter application to ask details about
     existing files parsing.
     """
+    def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
+        """Add the tkdnd package to the auto_path, and import it"""
+        #HACK Copied from directory with a package_dir updated
+        platform = master.tk.call("tk", "windowingsystem")
+
+        if platform == "win32":
+            folder = "windows"
+        elif platform == "x11":
+            folder = "linux"
+        elif platform == "aqua":
+            folder = "mac"
+        package_dir = os.path.join(os.path.dirname(os.path.abspath(tkinterDnD.tk.__file__)), folder)
+        master.tk.call('lappend', 'auto_path', package_dir)
+        TkDnDVersion = master.tk.call('package', 'require', 'tkdnd')
+        return TkDnDVersion
+
 
     def __init__(self, parent, info="Choose a file", default_path=""):
         """
@@ -21,13 +38,15 @@ class ChildDialogAskFile:
         Args:
             default_path: a default path to be added
         """
-        self.app = tkinterDnD.Tk()
-        utils.setStyle(self.app)
-        self.app.title(info)
-        self.app.bind("<Escape>", self.onError)
+        super().__init__()
+        self.TkDnDVersion = self._init_tkdnd()  #HACK to make work tkdnd with CTk
+        self.settings = Settings()
+        utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
+        self.title(info)
+        self.bind("<Escape>", self.onError)
         self.rvalue = None
         self.default = default_path
-        appFrame = CTkFrame(self.app)
+        appFrame = CTkFrame(self)
         self.form = FormPanel()
         self.form.addFormLabel(
             "Choose one file", info, side=tk.TOP)
@@ -42,18 +61,20 @@ class ChildDialogAskFile:
         appFrame.pack(ipadx=10, ipady=10)
 
         try:
-            self.app.wait_visibility()
-            self.app.focus_force()
-            self.app.grab_set()
-            self.app.lift()
+            self.wait_visibility()
+            self.focus_force()
+            self.grab_set()
+            self.lift()
         except tk.TclError:
             pass
-        self.app.mainloop()
-        self.app.destroy()
+        self.mainloop()
+    def quit(self):
+        super().quit()
+        self.destroy()
 
     def onError(self, _event=None):
         self.rvalue = None
-        self.app.quit()
+        self.quit()
 
     def onOk(self, _event=None):
         """
@@ -67,7 +88,7 @@ class ChildDialogAskFile:
         res, msg = self.form.checkForm()
         if not res:
             tk.messagebox.showwarning(
-                "Form not validated", msg, parent=self.app)
+                "Form not validated", msg, parent=self)
             return
         files_paths = self.fileForm.getValue()
         try:
@@ -75,8 +96,8 @@ class ChildDialogAskFile:
         except IndexError:
             self.rvalue = None
             tk.messagebox.showwarning(
-                "Form not validated", "At least one file is asked", parent=self.app)
+                "Form not validated", "At least one file is asked", parent=self)
             return
         self.rvalue = filepath
-        self.app.quit()
+        self.quit()
         return

@@ -23,12 +23,12 @@ class CheckItem(Element):
             valuesFromDb = dict()
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("title"), valuesFromDb.get("pentest_types", []), valuesFromDb.get(
-                            "lvl", "network"),
+                            "lvl", "port:onServiceUpdate"),
                         valuesFromDb.get("ports", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("max_thread", 1), valuesFromDb.get("description", ""), valuesFromDb.get("category", ""),\
             valuesFromDb.get("check_type", "manual"), valuesFromDb.get("step", 0), valuesFromDb.get("parent", None),
             valuesFromDb.get("commands", []), valuesFromDb.get("script", ""), valuesFromDb.get("defects", []), valuesFromDb.get("infos", {}))
         
-    def initialize(self, title, pentest_types=None, lvl="network", ports="", priority=0, max_thread=1, description="", category="", check_type="manual", step=0, parent=None, commands=None, script="", defects=None, infos=None):
+    def initialize(self, title, pentest_types=None, lvl="port:onServiceUpdate", ports="", priority=0, max_thread=1, description="", category="", check_type="manual", step=0, parent=None, commands=None, script="", defects=None, infos=None):
         self.title = title
         self.description = description
         self.category = category

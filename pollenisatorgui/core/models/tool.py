@@ -55,7 +55,7 @@ class Tool(Element):
             command_iid: command associated for the tool 
             name: name of the tool (should match a command name)
             wave: the target wave name of this tool (only if lvl is "wave"). Default  ""
-            scope: the scope string of the target scope of this tool (only if lvl is "network"). Default  ""
+            scope: the scope string of the target scope of this tool (only if lvl is "port:onServiceUpdate"). Default  ""
             ip: the target ip "ip" of this tool (only if lvl is "ip" or "port"). Default  ""
             port: the target port "port number" of this tool (only if lvl is "port"). Default  ""
             proto: the target port "proto" of this tool (only if lvl is "port"). Default  "tcp"

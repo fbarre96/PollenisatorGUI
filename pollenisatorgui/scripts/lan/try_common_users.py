@@ -47,6 +47,11 @@ def main(apiclient, appli, **kwargs):
         domain = dialog.rvalue
     if domain == "" or domain is None:
         return False, "No domain given"
+    dialog = ChildDialogAskText(None, "Basic users to try", users)
+    dialog.app.wait_window(dialog.app)
+    if dialog.rvalue is None:
+        return False, "Canceled"
+    users_to_test = [r.strip() for r in dialog.rvalue.split("\n")]
     dc = None
     exec = 0
     dc_info = apiclient.find("ActiveDirectory", {"type":"computer", "domain":domain, "infos.is_dc":True}, False)

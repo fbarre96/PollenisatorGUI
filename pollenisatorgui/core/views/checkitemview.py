@@ -91,18 +91,29 @@ class CheckItemView(ViewElement):
         lvls = apiclient.getTriggerLevels()
         panel_bottom.addFormLabel("Trigger", row=0, column=0)
         self.triggerLevelForm = panel_bottom.addFormCombo(
-            "Level", lvls, default.get("lvl", "network"),  command=lambda ev: self.triggerLevelUpdate(default.get("lvl", "network")), width=200, row=0, column=1)
+            "Level", lvls, default.get("lvl", "port:onServiceUpdate"),  command=lambda ev: self.triggerLevelUpdate(default.get("lvl", "port:onServiceUpdate")), width=200, row=0, column=1)
         panel_bottom.addFormHelper(
             "When the event is triggered, \na instance for this check will be created on the triggering object", row=0, column=2)
         self.panel_trigger_options = self.form.addFormPanel(grid=True)
-        if default.get("lvl","network").startswith("port"):
+        if default.get("lvl","port:onServiceUpdate").startswith("port"):
             self.panel_trigger_options.clear()
             self.panel_trigger_options.addFormLabel("Ports/Services (if level is port only)")
             self.panel_trigger_options.addFormStr(
                 "Ports/Services", r"^(\d{1,5}|[^\,]+)?(?:,(\d{1,5}|[^\,]+))*$", default.get("ports", ""), column=1)
             self.panel_trigger_options.addFormHelper(
                 "Services, ports or port ranges.\nthis list must be separated by a comma, if no protocol is specified, tcp/ will be used.\n Example: ssl/http,https,http/ssl,0-65535,443...", column=2)
-
+        if default.get("lvl", "").startswith("tag:"):
+            lvl_split = default.get("lvl", "").split(":")
+            if len(lvl_split) == 3:
+                tag_name = lvl_split[2] 
+            else:
+                tag_name = ""
+            self.panel_trigger_options.clear()
+            self.panel_trigger_options.addFormLabel("Tag name")
+            self.panel_trigger_options.addFormStr(
+                "Tag Name", r".+", tag_name, column=1)
+            self.panel_trigger_options.addFormHelper(
+                "Tag filter to trigger this check", column=2)
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Category", row=1, column=0)
         panel_bottom.addFormStr("Category", r"", default.get("category", ""), row=1, column=1)
@@ -156,6 +167,7 @@ class CheckItemView(ViewElement):
             return
         view = CommandView(self.appliTw, self.appliViewFrame, self.mainApp, CommandController(command_o))
         view.openInDialog()
+        
     def reopen(self):
         if self.is_insert_view:
             self.openInsertWindow()

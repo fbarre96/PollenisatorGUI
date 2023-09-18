@@ -960,6 +960,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             iid = uuid.uuid4()
         self.terminals.open_terminal(iid, title)
         self.terminals.launch_in_terminal(iid, commandline, use_pollex=use_pollex)
+        return iid
 
     def launch_tool_in_terminal(self, tool_model, command):
         self.terminals.open_terminal(str(tool_model.check_iid)+"|"+str(tool_model.getId()), ToolController(tool_model).getDetailedString())
