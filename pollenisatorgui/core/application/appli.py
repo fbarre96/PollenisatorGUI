@@ -1019,13 +1019,22 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         Args:
             name: not used but mandatory"""
         # get the index of the mouse click
-        import cProfile
-        profiler = cProfile.Profile()
-        profiler.enable()
-        self.nbk.select("Main View")
-        self.search("\""+name+"\" in tags")
-        profiler.disable()
-        profiler.dump_stats("profiles.stats")
+        datamanager = DataManager.getInstance()
+        taggeds = datamanager.get("tags", "*")
+        tagged_items = []
+        tagged_types = set()
+        for tagged in taggeds.values():
+            for tag in tagged.tags:
+                if not isinstance(tag, str):
+                    tag = tag[0]
+                if tag == name:
+                    tagged_items.append(tagged)
+                    tagged_types.add(tagged.item_type)
+        if "User" in tagged_types or "Computer" in tagged_types or "Share" in tagged_types:
+            print("AD stff")
+        else:
+            self.nbk.select("Main View")
+            self.search("\""+name+"\" in tags")
 
     def search(self, filter_str):
         self.nbk.select("Main View")
