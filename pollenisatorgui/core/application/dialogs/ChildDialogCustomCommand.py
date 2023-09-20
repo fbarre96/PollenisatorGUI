@@ -4,7 +4,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.components.apiclient import APIClient
-
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 class ChildDialogCustomCommand:
     """
@@ -31,12 +31,12 @@ class ChildDialogCustomCommand:
         self.parent = parent
         lbl = CTkLabel(appFrame, text="Enter the custom command Name")
         lbl.pack()
-        self.ent_customCommandName = CTkEntry(appFrame, width=50)
+        self.ent_customCommandName = PopoEntry(appFrame, width=50)
         self.ent_customCommandName.pack()
         lbl = CTkLabel(
             appFrame, text="Enter the custom command to launch")
         lbl.pack()
-        self.ent_customCommand = CTkEntry(appFrame, width=50)
+        self.ent_customCommand = PopoEntry(appFrame, width=50)
         self.ent_customCommand.pack()
         lbl2 = CTkLabel(appFrame, text="Select the parser")
         lbl2.pack()

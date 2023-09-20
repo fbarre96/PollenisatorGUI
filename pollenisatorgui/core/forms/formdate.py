@@ -8,6 +8,7 @@ from PIL import ImageTk, Image
 from customtkinter import *
 from pollenisatorgui.core.components.utils import getIconDir
 from pollenisatorgui.core.application.dialogs.ChildDialogDate import ChildDialogDate
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 class FormDate(Form):
     """
@@ -47,10 +48,9 @@ class FormDate(Form):
         self.parent = parent
         self.val = tk.StringVar()
         frame = CTkFrame(parent.panel)
-        self.entry = CTkEntry(frame, textvariable=self.val)
+        self.entry = PopoEntry(frame, textvariable=self.val)
         self.val.set(self.default)
         
-        self.entry.bind('<Control-a>', self.selectAll)
         self.entry.grid(row=0, column=0)
         datepicker = CTkLabel(frame, text="", image=FormDate.img_class)
         datepicker.grid(row=0,column=1, padx=5)
@@ -73,19 +73,7 @@ class FormDate(Form):
             datestr = datetime.datetime.strftime(dialog.rvalue, self.dateformat)
             self.val.set(datestr)
 
-    def selectAll(self, _event=None):
-        """Callback to select all the text in the date Entry.
-        Args:
-            _event: mandatory but not used
-        Returns:
-            Returns the string "break" to prevent the event to be treated by the Entry, thus inserting unwanted value.
-        """
-        # select text
-        self.entry.select_range(0, 'end')
-        # move cursor to the end
-        self.entry.icursor('end')
-        return "break"
-
+   
     def getValue(self):
         """
         Return the form value. Required for a form.

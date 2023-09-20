@@ -5,7 +5,7 @@ from pollenisatorgui.core.forms.form import Form
 import tkinter.ttk as ttk
 from customtkinter import *
 import tkinter.messagebox
-
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 class FormSearchBar(Form):
     """
@@ -44,9 +44,8 @@ class FormSearchBar(Form):
         frame = CTkFrame(parent.panel)
         lbl = CTkLabel(frame, text=self.name+" : ")
         lbl.grid(column=0, row=0)
-        self.entry = CTkEntry(frame, textvariable=self.val, width=200)
+        self.entry = PopoEntry(frame, textvariable=self.val, width=200)
         self.entry.grid(column=1, row=0)
-        self.entry.bind("<Control-a>", self.selectAll)
         self.val.set(self.default)
         
         values = []
@@ -71,13 +70,7 @@ class FormSearchBar(Form):
             frame.pack(side=self.getKw("side", "top"), padx=self.getKw("padx", 10), pady=self.getKw("pady", 5), **self.kwargs)
         
 
-    def selectAll(self, _event=None):
-        # select text
-        self.entry.select_range(0, 'end')
-        # move cursor to the end
-        self.entry.icursor('end')
-        return "break"
-    
+   
     def updateValues(self, _event=None):
         options = {}
         for form, option_name in self.options_forms:

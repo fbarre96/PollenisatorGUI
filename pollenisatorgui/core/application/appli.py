@@ -50,6 +50,7 @@ import pollenisatorgui.modules
 import customtkinter
 import tkinterDnD
 from ttkwidgets import tooltips
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 from pollenisatorgui.core.components.logger_config import logger
 from pollenisatorgui.modules.module import Module
 
@@ -105,8 +106,8 @@ class FloatingHelpWindow(CTkToplevel):
         self.geometry("+%s+%s" % (x, y))
 
 
-class AutocompleteEntry(CTkEntry):
-    """Inherit CTkEntry.
+class AutocompleteEntry(PopoEntry):
+    """Inherit PopoEntry.
     An entry with an autocompletion ability.
     Found on the internet : http://code.activestate.com/recipes/578253-an-entry-with-autocompletion-for-the-tkinter-gui/
     But a bit modified.
@@ -121,7 +122,7 @@ class AutocompleteEntry(CTkEntry):
             kwargs: 
                 * width: default to 100
         """
-        CTkEntry.__init__(self, *args, **kwargs)
+        PopoEntry.__init__(self, *args, **kwargs)
         self.width = kwargs.get("width",100)
         self.lista = set()
         self.var = self.cget("textvariable")
@@ -712,10 +713,9 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         lblSearch = CTkLabel(filterbar_frame, text="Filter bar", image=self.image_filter, compound = "left")
         lblSearch.pack(side="left", fill=tk.NONE)
         self.searchBar = AutocompleteEntry(self.settings, filterbar_frame)
-        #self.searchBar = CTkEntry(filterbar_frame, width=108)
+        #self.searchBar = PopoEntry(filterbar_frame, width=108)
         self.searchBar.bind('<Return>', self.newSearch)
         self.searchBar.bind('<KP_Enter>', self.newSearch)
-        self.searchBar.bind('<Control-a>', self.searchbarSelectAll)
         # searchBar.bind("<Button-3>", self.do_popup)
         self.searchBar.pack(side="left", fill="x", expand=True)
         self.quickSearchVal = tk.BooleanVar()
@@ -741,7 +741,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
         self.btnHelp.pack(side="left")
         filterbar_frame.pack(side=tk.TOP,fill=tk.X)
-        self.statusbar = StatusBar(searchFrame, self)
+        self.statusbar = StatusBar(searchFrame, self.statusbarClicked)
         self.statusbar.pack(side=tk.BOTTOM, fill=tk.X)
         searchFrame.pack(side="top", fill="x")
         #PANED PART
@@ -1030,12 +1030,24 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 if tag == name:
                     tagged_items.append(tagged)
                     tagged_types.add(tagged.item_type)
-        if "User" in tagged_types or "Computer" in tagged_types or "Share" in tagged_types:
-            print("AD stff")
-        else:
-            self.nbk.select("Main View")
-            self.search("\""+name+"\" in tags")
+        for module in self.modules:
+            for tagged_type in tagged_types:
+                if tagged_type.lower() in getattr(module["object"], "classes", []):
+                    if hasattr(module["object"], "statusbarClicked"):
+                        self.nbk.select(module["name"].strip())
+                        module["object"].statusbarClicked(name)
+                    return
+        # default 
+        self.nbk.select("Main View")
+        self.search("\""+name+"\" in tags")
 
+    def modelToView(self, collection, model):
+        """Return the view of a model"""
+        for module in self.modules:
+            if collection.lower() == getattr(module["object"], "coll_name", "").lower() or collection.lower() in getattr(module["object"], "classes", ""):
+                return module["object"].modelToView(collection, model)
+        return self.treevw.modelToView(collection, model)
+    
     def search(self, filter_str):
         self.nbk.select("Main View")
         self.searchMode = True

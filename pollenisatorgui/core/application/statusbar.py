@@ -12,13 +12,13 @@ class StatusBar(CTkFrame):
     """
 
     def tagClicked(self, name):
-        """A lambda to call the statusbarController.statusbarClicked with the tag name clicked
+        """A lambda to callback with the tag name clicked
         Args:
             name: the tag name clicked
         """
-        return lambda _event: self.statusbarController.statusbarClicked(name)
+        return lambda _event: self.statusbarClickedCallback(name)
 
-    def __init__(self, master, statusbarController):
+    def __init__(self, master, statusbarClickedCallback):
         """
         Constructor of the status bar
         Args:
@@ -31,7 +31,7 @@ class StatusBar(CTkFrame):
         # label = CTkLabel(self, text="Tagged")
         # label.pack(side="left")
         self.registeredTags = []
-        self.statusbarController = statusbarController
+        self.statusbarClickedCallback = statusbarClickedCallback
         self.tagsCount = {}
         self.labelsTags = {}
         self.font = CTkFont("roboto", 11)

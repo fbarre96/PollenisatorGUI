@@ -10,14 +10,19 @@ from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDi
 from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
 from pollenisatorgui.core.application.dialogs.ChildDialogAskFile import ChildDialogAskFile
 from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.modules.module import Module
+from pollenisatorgui.modules.ActiveDirectory.users import User # load it in registry
+from pollenisatorgui.modules.ActiveDirectory.computers import Computer # load it in registry
 import tempfile
 from bson import ObjectId
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
 from PIL import Image
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
+
 
 class ActiveDirectory(Module):
     """
@@ -25,7 +30,8 @@ class ActiveDirectory(Module):
     """
     iconName = "tab_AD.png"
     tabName = "Active Directory"
-    collName = "ActiveDirectory"
+    coll_name = "ActiveDirectory"
+    classes = ["user", "computer", "share"]
     order_priority = Module.HIGH_PRIORITY
     settings = Settings()
     pentest_types = ["lan"]
@@ -44,11 +50,11 @@ class ActiveDirectory(Module):
 
     @classmethod
     def getSettings(cls):
-        return cls.settings.local_settings.get(ActiveDirectory.collName, {})
+        return cls.settings.local_settings.get(ActiveDirectory.coll_name, {})
 
     @classmethod
     def saveSettings(cls, newSettings):
-        cls.settings.local_settings[ActiveDirectory.collName] = newSettings
+        cls.settings.local_settings[ActiveDirectory.coll_name] = newSettings
         cls.settings.saveLocalSettings()
 
     def open(self):
@@ -75,15 +81,15 @@ class ActiveDirectory(Module):
                                      "Refreshing infos. Please wait for a few seconds.", 200, "determinate")
         dialog.show(5)
         dialog.update(0)
-        self.users = apiclient.find(ActiveDirectory.collName, {"type": "user"}, True)
+        self.users = apiclient.find(ActiveDirectory.coll_name, {"type": "user"}, True)
         dialog.update(1)
         if self.users is None:
             self.users = []
-        self.computers = apiclient.find(ActiveDirectory.collName, {"type": "computer"}, True)
+        self.computers = apiclient.find(ActiveDirectory.coll_name, {"type": "computer"}, True)
         dialog.update(2)
         if self.computers is None:
             self.computers = []
-        self.shares = apiclient.find(ActiveDirectory.collName, {"type": "share"}, True)
+        self.shares = apiclient.find(ActiveDirectory.coll_name, {"type": "share"}, True)
         dialog.update(3)
         if self.shares is None:
             self.shares = []
@@ -111,6 +117,19 @@ class ActiveDirectory(Module):
             self.insertShare(share)
         dialog.update(4)
         dialog.destroy()
+
+    def statusbarClicked(self, tagname):
+        self.searchBar.delete(0, tk.END)
+        self.searchBar.insert(tk.END, tagname)
+        self.search()
+
+    def modelToView(self, data_type, model):
+        if data_type.lower() == "user":
+            return ChildDialogUser(self.parent, model.getData())
+        elif data_type.lower() == "computer":
+            return ChildDialogComputer(self.parent, model.getData())
+        return None
+        
 
     def mapLambda(self, c):
         if c[0].lower() in ["computer"]:
@@ -144,26 +163,42 @@ class ActiveDirectory(Module):
         settings_btn = CTkButton(parent, text="Configure this module", command=self.openConfig)
         settings_btn.pack(side="bottom")
         self.moduleFrame = CTkFrame(parent)
-        frameUsers = CTkFrame(self.moduleFrame)
+        frameSearchBar = CTkFrame(self.moduleFrame)
+        self.searchBar = PopoEntry(frameSearchBar, placeholder_text="Search")
+        self.searchBar.pack(side="left", fill=tk.X, expand=True)
+        self.searchBar.bind("<KeyRelease>", self.search)
+        frameSearchBar.pack(side="top", fill=tk.X, expand=True)
+        self.frameTreeviews = CTkFrame(self.moduleFrame)
+        frameUsers = CTkFrame(self.frameTreeviews)
         self.tvUsers = ScrollableTreeview(
-            frameUsers, ("Username", "Password", "Domain", "N° groups","Desc"), binds={"<Delete>":self.deleteUser, "<Double-Button-1>":self.userDoubleClick})
+            frameUsers, ("Username", "Password", "Domain", "N° groups","Desc", "Tags"), binds={"<Delete>":self.deleteUser, "<Double-Button-1>":self.userDoubleClick})
         self.tvUsers.pack(fill=tk.BOTH)
         addUserButton = CTkButton(frameUsers, text="Add user manually", command=self.addUsersDialog)
         addUserButton.pack(side="bottom")
-        frameComputers = CTkFrame(self.moduleFrame)
+        frameComputers = CTkFrame(self.frameTreeviews)
         self.tvComputers = ScrollableTreeview(
-            frameComputers, ("IP", "Name", "Domain", "DC", "Admin count", "User count", "OS", "Signing", "SMBv1"), binds={"<Double-Button-1>":self.computerDoubleClick})
+            frameComputers, ("IP", "Name", "Domain", "DC", "Admin count", "User count", "OS", "Signing", "SMBv1", "Tags"), binds={"<Double-Button-1>":self.computerDoubleClick})
         self.tvComputers.pack(fill=tk.BOTH)
-        frameShares = CTkFrame(self.moduleFrame)
+        frameShares = CTkFrame(self.frameTreeviews)
         self.tvShares = ScrollableTreeview(
-            frameShares, ("IP", "Share", "Flagged", "Size"))
+            frameShares, ("IP", "Share", "Flagged", "Size", "Tags"))
         self.tvShares.pack(fill=tk.BOTH)
         frameUsers.grid(row=0, column=0)
         frameComputers.grid(row=1, column=0)
         frameShares.grid(row=2, column=0)
-        self.moduleFrame.columnconfigure(0, weight=1)
-        self.moduleFrame.columnconfigure(1, weight=1)
+        self.frameTreeviews.columnconfigure(0, weight=1)
+        self.frameTreeviews.columnconfigure(1, weight=1)
+        self.frameTreeviews.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
         self.moduleFrame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+    def search(self, event=None):
+        """
+        Search in treeviews
+        """
+        search = self.searchBar.get()
+        self.tvUsers.filter(search, search, search, search, search, search, check_all=False)
+        self.tvComputers.filter(search, search, search, search, search, search, search, search, search, search, check_all=False)
+        self.tvShares.filter(search, search, search, search, search, check_all=False)
 
     def computerDoubleClick(self, event=None):
         selection = self.tvComputers.selection()
@@ -171,13 +206,17 @@ class ActiveDirectory(Module):
             self.openComputerDialog(selection[0])
 
     def openComputerDialog(self, computer_iid):
+        dialog = self.getComputerDialog(computer_iid)
+        self.parent.wait_window(dialog.app)
+
+    def getComputerDialog(self, computer_iid):
         apiclient = APIClient.getInstance()
-        computer_d = apiclient.find(ActiveDirectory.collName,
+        computer_d = apiclient.find(ActiveDirectory.coll_name,
             {"_id":ObjectId(computer_iid)}, False)
         if computer_d is None:
             return
         dialog = ChildDialogComputer(self.parent, computer_d)
-        self.parent.wait_window(dialog.app)
+        return dialog
 
     def insertUser(self, user):
         try:
@@ -185,10 +224,22 @@ class ActiveDirectory(Module):
             username = user.get("username", "")
             password = user.get("password", "")
             groups = user.get("groups", [])
+            datamanager = DataManager.getInstance()
             if groups is None:
                 groups = []
+            tagged = datamanager.find("tags", {"item_id":ObjectId(user["_id"])})
+            if tagged:
+                tagged = tagged[0]
+            tags = []
+            if tagged:
+                for tag in tagged.get("tags", []):
+                    if isinstance(tag, str):
+                        tags.append(tag)
+                    else:
+                        tags.append(tag[0])
+
             self.tvUsers.insert(
-                '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", "")))
+                '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", ""), ", ".join(tags)))
         except tk.TclError as e:
             pass
 
@@ -198,13 +249,17 @@ class ActiveDirectory(Module):
             self.openUserDialog(selection[0])
 
     def openUserDialog(self, user_iid):
+        dialog = self.getUserDialog(user_iid)
+        self.parent.wait_window(dialog.app)
+
+    def getUserDialog(self, user_iid):
         apiclient = APIClient.getInstance()
-        user_d = apiclient.find(ActiveDirectory.collName,
+        user_d = apiclient.find(ActiveDirectory.coll_name,
             {"_id":ObjectId(user_iid)}, False)
         if user_d is None:
             return
         dialog = ChildDialogUser(self.parent, user_d)
-        self.parent.wait_window(dialog.app)
+        return dialog
 
 
     def deleteUser(self, event=None):
@@ -216,7 +271,7 @@ class ActiveDirectory(Module):
                 item = self.tvUsers.item(select)
             except tk.TclError:
                 pass
-            apiclient.delete( ActiveDirectory.collName+"/users", select)
+            apiclient.delete( ActiveDirectory.coll_name+"/users", select)
             try:
                 index = users_iid.index(str(select))
                 del users_iid[index]
@@ -228,8 +283,20 @@ class ActiveDirectory(Module):
     
     def insertComputer(self, computer):
         infos = computer.get("infos",{})
+        datamanager = DataManager.getInstance()
+        tagged = datamanager.find("tags", {"item_id":ObjectId(computer["_id"])})
+        if tagged:
+            tagged = tagged[0]
+        tags = []
+        if tagged:
+            for tag in tagged.get("tags", []):
+                if isinstance(tag, str):
+                    tags.append(tag)
+                else:
+                    tags.append(tag[0])
         newValues = (computer.get("name",""), computer.get("domain", ""), infos.get("is_dc", False), len(computer.get("admins", [])), len(computer.get("users", [])), infos.get("os", ""), \
-                        infos.get("signing", ""), infos.get("smbv1", ""))
+                        infos.get("signing", ""), infos.get("smbv1", ""), ", ".join(tags))
+        
         try:
             self.tvComputers.insert(
                 '', 'end', computer["_id"], text=computer.get("ip", ""),
@@ -238,9 +305,20 @@ class ActiveDirectory(Module):
             self.tvComputers.item(computer["_id"], values=newValues) 
 
     def insertShare(self, share):
+        datamanager = DataManager.getInstance()
+        tagged = datamanager.find("tags", {"item_id":ObjectId(share["_id"])})
+        if tagged:
+            tagged = tagged[0]
+        tags = []
+        if tagged:
+            for tag in tagged.get("tags", []):
+                if isinstance(tag, str):
+                    tags.append(tag)
+                else:
+                    tags.append(tag[0])
         try:
             parentiid = self.tvShares.insert(
-                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""),))
+                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags)))
         except tk.TclError:
             parentiid = str(share["_id"])
         for file_infos in share.get("files",[]):
@@ -254,14 +332,14 @@ class ActiveDirectory(Module):
     def addUserInDb(self, domain, username, password):
         apiclient = APIClient.getInstance()
         user = {"type": "user", "username": username, "domain": domain, "password": password}
-        res = apiclient.insert( ActiveDirectory.collName+"/users", {"username": username, "domain": domain, "password": password})
+        res = apiclient.insert( ActiveDirectory.coll_name+"/users", {"username": username, "domain": domain, "password": password})
         
      
     def update_received(self, dataManager, notif, obj, old_obj):
-        if notif["collection"] != ActiveDirectory.collName:
+        if notif["collection"] != ActiveDirectory.coll_name:
             return
         apiclient = APIClient.getInstance()
-        res = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(notif["iid"])}, False)
+        res = apiclient.find(ActiveDirectory.coll_name, {"_id": ObjectId(notif["iid"])}, False)
         iid = notif["iid"]
         if notif["action"] == "insert":
             if res is None:
@@ -325,7 +403,7 @@ class ActiveDirectory(Module):
             search = {"type":"user"}
             if domain != "":
                 search["domain"] = domain 
-            res = apiclient.find(ActiveDirectory.collName, search)
+            res = apiclient.find(ActiveDirectory.coll_name, search)
             for selected_user in res:
                 username = selected_user["username"]
                 f.write(username+delim)
@@ -336,7 +414,7 @@ class ActiveDirectory(Module):
         filepath = os.path.join(fp, "computers.txt")
         with open(filepath, mode="w") as f:
             apiclient = APIClient.getInstance()
-            res = apiclient.find(ActiveDirectory.collName, {"type":"computers"})
+            res = apiclient.find(ActiveDirectory.coll_name, {"type":"computers"})
             for selected_computer in self.tvComputers.get_children():
                 computer = self.tvComputers.item(selected_computer)["text"]
                 f.write(computer+delim)
@@ -351,7 +429,7 @@ class ActiveDirectory(Module):
         ip = self.tvShares.item(parent_iid)["text"]
         item_values = self.tvShares.item(selected)["values"]
         apiclient = APIClient.getInstance()
-        share_m = apiclient.find(ActiveDirectory.collName, {"_id": ObjectId(parent_iid)}, False)
+        share_m = apiclient.find(ActiveDirectory.coll_name, {"_id": ObjectId(parent_iid)}, False)
         path = item_values[0]
         files = share_m.get("files", [])
         try:
@@ -371,7 +449,7 @@ class ActiveDirectory(Module):
         share_name = item_values[0]
         apiclient = APIClient.getInstance()
         apiclient.getCurrentPentest()
-        user_o = apiclient.find(ActiveDirectory.collName, 
+        user_o = apiclient.find(ActiveDirectory.coll_name, 
                 {"type":"user", "domain":domain, "username":user}, False)
         if user_o is None:
             tk.messagebox.showerror("user not found","User "+str(domain)+"\\"+str(user)+" was not found")

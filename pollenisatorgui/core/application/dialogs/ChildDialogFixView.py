@@ -3,6 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 import pollenisatorgui.core.components.utils as utils
 
 class ChildDialogFixView:
@@ -29,7 +30,7 @@ class ChildDialogFixView:
 
         title_lbl = CTkLabel(appFrame, text="Title")
         title_lbl.pack(side="left", padx = 3)
-        self.title_entry = CTkEntry(appFrame)
+        self.title_entry = PopoEntry(appFrame)
         self.title_entry.pack(side="left",padx = 10)
         self.title_entry.insert(0, fixModel.get("title", ""))
         execution_lbl = CTkLabel(appFrame, text="Execution")

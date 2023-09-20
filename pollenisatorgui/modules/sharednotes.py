@@ -16,7 +16,7 @@
 #     """
 #     iconName = "notes.png"
 #     tabName = "Notes"
-#     collName = "documents"
+#     coll_name = "documents"
 
 #     order_priority = Module.MEDIUM_PRIORITY
     

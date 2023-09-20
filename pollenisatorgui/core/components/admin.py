@@ -6,7 +6,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from PIL import Image, ImageTk
 import pollenisatorgui.core.components.utils as utils
-
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 
 class AdminView:
@@ -50,29 +50,29 @@ class AdminView:
         addUserFrame = CTkFrame(lblAddUsername)
         lblAddUser = CTkLabel(addUserFrame, text="Username")
         lblAddUser.grid(column=0, sticky=tk.E)
-        self.entryAddUser = CTkEntry(addUserFrame)
+        self.entryAddUser = PopoEntry(addUserFrame)
         self.entryAddUser.grid(row=0, column=1, sticky=tk.W)
         lblAddPwd = CTkLabel(addUserFrame, text="Password")
         lblAddPwd.grid(row=1, column=0, sticky=tk.E)
         self.password = tk.StringVar() 
-        entryAddPwd = CTkEntry(addUserFrame, show="*", textvariable=self.password)
+        entryAddPwd = PopoEntry(addUserFrame, show="*", textvariable=self.password)
         entryAddPwd.grid(row=1, column=1, sticky=tk.W)
         lblAddConfirmPwd = CTkLabel(addUserFrame, text="Confirm")
         lblAddConfirmPwd.grid(row=2, column=0, sticky=tk.E)
         self.confirmpassword = tk.StringVar() 
-        entryAddConfirmPwd = CTkEntry(addUserFrame, show="*", textvariable=self.confirmpassword)
+        entryAddConfirmPwd = PopoEntry(addUserFrame, show="*", textvariable=self.confirmpassword)
         entryAddConfirmPwd.grid(row=2, column=1, sticky=tk.W)
         lblName = CTkLabel(addUserFrame, text="Name")
         lblName.grid(row=3, column=0, sticky=tk.E)
-        self.name = CTkEntry(addUserFrame)
+        self.name = PopoEntry(addUserFrame)
         self.name.grid(row=3, column=1, sticky=tk.W)
         lblSurname = CTkLabel(addUserFrame, text="Surname")
         lblSurname.grid(row=4, column=0, sticky=tk.E)
-        self.surname = CTkEntry(addUserFrame)
+        self.surname = PopoEntry(addUserFrame)
         self.surname.grid(row=4, column=1, sticky=tk.W)
         lblEmail = CTkLabel(addUserFrame, text="Email")
         lblEmail.grid(row=5, column=0, sticky=tk.E)
-        self.email = CTkEntry(addUserFrame)
+        self.email = PopoEntry(addUserFrame)
         self.email.grid(row=5, column=1, sticky=tk.W)
         self.add_user_icon = CTkImage(Image.open(utils.getIcon("add_user.png")))
         btn_addUser = CTkButton(

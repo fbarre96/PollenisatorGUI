@@ -13,6 +13,7 @@ class ScrollableTreeview(CTkFrame):
         self.root = root
         self.columns = columns
         self.infos = []
+        self._save_infos = None
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(2, weight=0)
@@ -204,37 +205,76 @@ class ScrollableTreeview(CTkFrame):
         """
         self.contextualMenu.unpost()
 
-    def filter(self, *args):
-        children = list(self._detached) + list(self.treevw.get_children())
-        self._detached = set()
-        self._brut_searcher(children, *args)
+    
 
-    def _brut_searcher(self, children, *args):
+    def filter(self, *args, **kwargs):
+        if self._save_infos is not None:
+            self.infos = self._save_infos
+        if kwargs.get("reset", True):
+            children = list(self._detached) + list(self.get_children(all=True))
+            self._detached = set()
+        else:
+            children = list(self.get_children(all=True))
+        subset_indexs = self._brut_searcher(children, *args, **kwargs)
+        subset = [self.infos[i] for i in subset_indexs]
+        self._save_infos = self.infos
+        self.reset()
+        for item in self.treevw.get_children():
+            self.treevw.delete(item)
+        for t in subset:
+            self.insert(t["parent"], t["index"], t["iid"], t["text"], t["values"], t["tags"], t["image"])
+        self.resetOddTags()
+
+
+    def _brut_searcher(self, children, *args, **kwargs):
         i_r = -1
-        for item_id in children:
+        ret = []
+        for item_index, item_id in enumerate(children):
             allValid = True
+            oneValid = False
             for iarg, arg in enumerate(args):
                 if iarg == 0:
                     text = self.item(item_id)['text']
-                    condition = arg in text
                 else:
-                    obj = self.item(item_id)['values'][iarg-1]
-                    if isinstance(arg, tuple) or isinstance(arg, list):
-                        condition = arg[0](*arg[1:], obj)
-                    else:
-                        text = str(arg)
-                        condition = arg.lower() in str(obj).lower()
-                if not condition:
+                    text = self.item(item_id)['values'][iarg-1]
+                check_all = kwargs.get("check_all", True)
+                if isinstance(arg, str):
+                    is_valid = arg in str(text)
+                elif isinstance(arg, bool):
+                    is_valid = arg
+                elif isinstance(arg, list):
+                    is_valid = str(text) in arg
+                if not is_valid:
                     allValid = False
-                    break
-            if allValid:
+                    if check_all:
+                        break
+                else:
+                    oneValid = True
+                    if not check_all:
+                        break
+            if allValid and check_all:
                 i_r += 1
-                self.treevw.reattach(item_id, '', i_r)
-            else:
-                self._detached.add(item_id)
-                self.treevw.detach(item_id)
-        self.resetOddTags()
+                ret.append(item_index)
+            elif oneValid and not check_all:
+                i_r += 1
+                ret.append(item_index)
+            
+        return ret
 
+    def detach(self, item_id):
+        try:
+            self.treevw.detach(item_id)
+            self._detached.add(item_id)
+        except tk.TclError:
+            pass
+
+    def reattach(self, item_id, parent, index):
+        try:
+            self.treevw.reattach(item_id, parent, index)
+            self._detached.discard(item_id)
+        except tk.TclError:
+            pass
+    
     @classmethod
     def date_compare(cls, start, end, toCompare):
         dated = utils.stringToDate(start)
@@ -342,3 +382,5 @@ class ScrollableTreeview(CTkFrame):
         for t in toInsert:
             self._insert(t["parent"], t["index"], t["iid"], t["text"], t["values"], t["tags"], t["image"])
         self.setPaginationPanel()
+
+        

@@ -407,9 +407,14 @@ class CheckInstanceView(ViewElement):
     def openTargetDialog(self, event):
         data = self.controller.getData()
         datamanager = DataManager.getInstance()
-        ret = datamanager.get(data["target_type"], data["target_iid"])
-        view = self.appliTw.modelToView(data["target_type"], ret)
-        view.openInDialog()
+        ret = datamanager.get(data["target_type"].lower(), data["target_iid"])
+        if ret is None:
+            tk.messagebox.showerror("Error", "Target not found")
+            return
+        view = self.mainApp.modelToView(data["target_type"], ret)
+        if view:
+            if hasattr(view, "openInDialog"): # If it is not a ChildDialog already, open it
+                view.openInDialog()
         self.openModifyWindow()
 
     def launchToolLocalCallback(self, tool_iid, **kwargs):

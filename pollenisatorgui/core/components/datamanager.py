@@ -49,6 +49,7 @@ class DataManager(Subject):
                 self.data[coll.lower()][str(item.getId())] = item
 
     def get(self, collection, iid, default=None):
+        collection = collection.lower()
         if collection not in self.data.keys() and collection[:-1] in self.data.keys():
             collection = collection[:-1]
         if collection not in self.data.keys():

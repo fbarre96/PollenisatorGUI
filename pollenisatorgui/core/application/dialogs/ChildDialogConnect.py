@@ -3,6 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 from PIL import ImageTk, Image
 from io import BytesIO
 import base64
@@ -67,7 +68,7 @@ class ChildDialogConnect:
         
         lbl_hostname = CTkLabel(appFrame, text="Host : ")
         lbl_hostname.grid(row=0, column=0)
-        self.ent_hostname = CTkEntry(
+        self.ent_hostname = PopoEntry(
             appFrame, placeholder_text="127.0.0.1", validate="focusout", validatecommand=self.validateHost)
         self.ent_hostname.insert(tk.END, self.clientCfg["host"])
         self.ent_hostname.bind('<Return>', self.validateHost)
@@ -75,7 +76,7 @@ class ChildDialogConnect:
         self.ent_hostname.grid(row=0, column=1)
         lbl_port = CTkLabel(appFrame, text="Port : ")
         lbl_port.grid(row=1, column=0)
-        self.ent_port = CTkEntry(
+        self.ent_port = PopoEntry(
             appFrame, placeholder_text="5000", validate="focusout", validatecommand=self.validateHost)
         self.ent_port.insert(tk.END, self.clientCfg.get("port", 5000), )
         self.ent_port.bind('<Return>', self.validateHost)
@@ -91,13 +92,13 @@ class ChildDialogConnect:
         
         lbl_login = CTkLabel(appFrame, text="Login: ")
         lbl_login.grid(row=4, column=0)
-        self.ent_login = CTkEntry(
+        self.ent_login = PopoEntry(
             appFrame, placeholder_text="login")
         self.ent_login.grid(row=4, column=1)
         lbl_passwd = CTkLabel(appFrame, text="Password: ")
         lbl_passwd.grid(row=5, column=0)
         self.password = tk.StringVar() 
-        self.ent_passwd = CTkEntry(
+        self.ent_passwd = PopoEntry(
             appFrame, placeholder_text="password", show="*", textvariable = self.password)
         self.ent_passwd.bind('<Return>', self.onOk)
         self.ent_passwd.grid(row=5, column=1)
@@ -106,7 +107,7 @@ class ChildDialogConnect:
         cf1 = CollapsibleFrame(appFrame, text = "Advanced options", interior_padx=5, interior_pady=15)
         lbl_proxy = CTkLabel(cf1.interior, text="Proxy url : ")
         lbl_proxy.grid(row=0, column=0)
-        self.ent_proxy = CTkEntry(cf1.interior, placeholder_text="http://127.0.0.1:8080")
+        self.ent_proxy = PopoEntry(cf1.interior, placeholder_text="http://127.0.0.1:8080")
         proxies = self.clientCfg.get("proxies", "")
         if proxies != "" and str(proxies).strip() != "{}":
             self.ent_proxy.insert(tk.END, proxies)

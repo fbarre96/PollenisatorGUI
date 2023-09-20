@@ -14,7 +14,7 @@ from pollenisatorgui.core.application.scrollableframexplateform import Scrollabl
 class Cheatsheet(Module):
     iconName = "tab_cheatsheet.png"
     tabName = "Cheatsheet"
-    collName = "cheatsheet"
+    coll_name = "cheatsheet"
     order_priority = Module.LOW_PRIORITY
     pentest_types = ["all"]
 

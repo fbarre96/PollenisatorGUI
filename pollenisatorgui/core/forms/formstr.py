@@ -6,7 +6,7 @@ from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pyperclip
 import pollenisatorgui.core.components.utils as utils
-
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 class FormStr(Form):
     """
@@ -26,7 +26,7 @@ class FormStr(Form):
             regexValidation: a regex used to check the input in the checkForm function., default is ""
             default: a default value for the Entry, defauult is ""
             contextualMenu: (Opt.) a contextualMenu to open when right clicked. default is None
-            kwargs: same keyword args as you would give to CTkEntry
+            kwargs: same keyword args as you would give to PopoEntry
                     + binds:  a dictionnary of tkinter binding with shortcut as key and callback as value
         """
         super().__init__(name)
@@ -105,11 +105,10 @@ class FormStr(Form):
         Args:
             parent: parent FormPanel.
         """
-        self.entry = CTkEntry(parent.panel, placeholder_text=self.getKw("placeholder_text", None), width=self.getKw(
+        self.entry = PopoEntry(parent.panel, placeholder_text=self.getKw("placeholder_text", None), width=self.getKw(
             "width", 200), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
 
-        self.entry.bind("<Control-a>", self.selectAll)
         for bind, bind_call in self.getKw("binds", {}).items():
             self.entry.bind(bind, bind_call)
         if self.default != "" and self.default is not None:
@@ -123,18 +122,7 @@ class FormStr(Form):
             self.entry.pack(side=self.getKw("side", "left"), padx=self.getKw(
                 "padx", 10), pady=self.getKw("pady", 5), expand=self.getKw("expand", True), fill=self.getKw("fill", "x"))
 
-    def selectAll(self, _event=None):
-        """Callback to select all the text in the date Entry.
-        Args:
-            _event: mandatory but not used
-        Returns:
-            Returns the string "break" to prevent the event to be treated by the Entry, thus inserting unwanted value.
-        """
-        # select text
-        self.entry.select_range(0, 'end')
-        # move cursor to the end
-        self.entry.icursor('end')
-        return "break"
+ 
 
     def getValue(self):
         """

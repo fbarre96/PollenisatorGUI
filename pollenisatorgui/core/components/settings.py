@@ -14,7 +14,7 @@ from pollenisatorgui.core.application.scrollableframexplateform import Scrollabl
 from pollenisatorgui.core.components.apiclient import APIClient, ErrorHTTP
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.views.viewelement import ViewElement
-
+from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 class Settings:
     """
@@ -374,16 +374,16 @@ class Settings:
             self.settingsFrame, text="Pentest parameters")
         lbl_pentest_name = CTkLabel(lblframe_pentest_params, text="Pentest name")
         lbl_pentest_name.grid(row=0, column=0, sticky=tk.E)
-        self.text_pentest_name = CTkEntry(lblframe_pentest_params)
+        self.text_pentest_name = PopoEntry(lblframe_pentest_params)
         self.text_pentest_name.grid(row=0, column=1, sticky=tk.W)
         lbl_client_name = CTkLabel(lblframe_pentest_params, text="Client's name")
         lbl_client_name.grid(row=1, column=0, sticky=tk.E)
-        self.text_client_name = CTkEntry(lblframe_pentest_params)
+        self.text_client_name = PopoEntry(lblframe_pentest_params)
         self.text_client_name.grid(row=1, column=1, sticky=tk.W)
         
         lbl_mision_name = CTkLabel(lblframe_pentest_params, text="Mission name")
         lbl_mision_name.grid(row=2, column=0, sticky=tk.E)
-        self.text_mission_name = CTkEntry(lblframe_pentest_params)
+        self.text_mission_name = PopoEntry(lblframe_pentest_params)
         self.text_mission_name.grid(row=2, column=1, sticky=tk.W)
         lbl_report_lang =  CTkLabel(lblframe_pentest_params, text="Report language")
         lbl_report_lang.grid(row=3, column=0, sticky=tk.E)

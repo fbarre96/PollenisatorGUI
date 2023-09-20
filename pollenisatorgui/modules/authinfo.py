@@ -8,7 +8,7 @@
 # from pollenisatorgui.core.components.apiclient import APIClient
 # from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 # from pollenisatorgui.modules.module import Module
-
+#from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 # class AuthInfo(Module):
 #     """
@@ -16,7 +16,7 @@
 #     """
 #     iconName = "tab_auth.png"
 #     tabName = "Auth Infos"
-#     collName = "auth"
+#     coll_name = "auth"
 #     order_priority = Module.LOW_PRIORITY
 #     pentest_types = ["web"]
 
@@ -221,11 +221,11 @@
 #         self.box.grid(column=0, row=0)
 #         self.lbl_key = CTkLabel(valFrame, text="Login:")
 #         self.lbl_key.grid(row=0, column=1)
-#         self.entry_key = CTkEntry(valFrame)
+#         self.entry_key = PopoEntry(valFrame)
 #         self.entry_key.grid(row=0, column=2)
 #         self.lbl_value = CTkLabel(valFrame, text="Password:")
 #         self.lbl_value.grid(row=0, column=3)
-#         self.entry_value = CTkEntry(valFrame)
+#         self.entry_value = PopoEntry(valFrame)
 #         self.entry_value.grid(row=0, column=4)
 #         valFrame.pack(ipadx=10, ipady=5, pady=10, padx=10)
 #         self.ok_button = CTkButton(appFrame, text="OK", command=self.onOk)
