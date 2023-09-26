@@ -348,7 +348,7 @@ class ToolView(ViewElement):
                 widget.destroy()
             self.openModifyWindow()
 
-    def resetCallback(self, _event=None):
+    def resetCallback(self, reload=True,_event=None):
         """
         Callback for the reset tool stop button. Will reset the tool to a ready state. 
 
@@ -356,10 +356,8 @@ class ToolView(ViewElement):
             event: Automatically generated with a button Callback, not used.
         """
         self.controller.markAsNotDone()
-        self.form.clear()
-        for widget in self.appliViewFrame.winfo_children():
-            widget.destroy()
-        self.openModifyWindow()
+        if reload:
+            self.reopenView()
 
     @classmethod
     def DbToTreeviewListId(cls, parent_db_id):

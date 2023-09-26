@@ -49,7 +49,7 @@ def killThisProc(proc):
 class TerminalsWidget(CTkFrame):
     cachedClassIcon = None
     cachedPseudoTerminalClassIcon = None
-    icon = "tab_terminal.png"
+    icon = "terminal_small.png"
     iconPseudoTerminal = "pseudo_terminal.png"
     def __init__(self, parent,  mainApp, **kwargs):
         super().__init__(parent,  **kwargs)
@@ -137,14 +137,15 @@ class TerminalsWidget(CTkFrame):
     def onClosing(self, _signum=None, _frame=None):
         if self.child_pid is not None:
             os.kill(self.child_pid, signal.SIGTERM)
+        self.inited = False
+        self.terminalTv.delete(*self.terminalTv.get_children())
 
     @classmethod
     def getIcon(cls):
         if cls.cachedClassIcon is None:
             path = getIcon(cls.icon)
             img = Image.open(path)
-            resized_image = img.resize((16,16), Image.Resampling.LANCZOS)
-            cls.cachedClassIcon = ImageTk.PhotoImage(resized_image)
+            cls.cachedClassIcon = ImageTk.PhotoImage(img)
         return cls.cachedClassIcon
     
     @classmethod
@@ -152,8 +153,7 @@ class TerminalsWidget(CTkFrame):
         if cls.cachedPseudoTerminalClassIcon is None:
             path = getIcon(cls.iconPseudoTerminal)
             img = Image.open(path)
-            resized_image = img.resize((16,16), Image.Resampling.LANCZOS)
-            cls.cachedPseudoTerminalClassIcon = ImageTk.PhotoImage(resized_image)
+            cls.cachedPseudoTerminalClassIcon = ImageTk.PhotoImage(img)
         return cls.cachedPseudoTerminalClassIcon
     
 

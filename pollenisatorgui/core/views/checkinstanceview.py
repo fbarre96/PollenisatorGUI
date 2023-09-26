@@ -127,7 +127,7 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
         panel_top.addFormLabel("Status", row=0, column=2)
         default_status = self.getStatus()
-        self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
+        self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'terminal_small.png'))
         self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=3, pady=5)
         #panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
         
@@ -135,7 +135,7 @@ class CheckInstanceView(ViewElement):
 
         self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
         self.buttonQueueImage = CTkImage(Image.open(utils.getIconDir()+'exec_cloud.png'))
-        self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'tab_terminal.png'))
+        self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'terminal_small.png'))
         self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
         self.image_download = utils.loadIcon("download.png")
         self.image_reset = utils.loadIcon("reset.png")
@@ -499,10 +499,6 @@ class CheckInstanceView(ViewElement):
         tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
         tool_vw.delete()
 
-    def resetToolCallback(self, tool_iid):
-        tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
-        tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
-        tool_vw.resetCallback()
 
     def createDefectToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
@@ -512,7 +508,7 @@ class CheckInstanceView(ViewElement):
     def resetToolCallback(self, tool_iid):
         tool_m = Tool.fetchObject({"_id":ObjectId(tool_iid)})
         tool_vw = ToolView(self.appliTw, self.appliViewFrame, self.mainApp, ToolController(tool_m))
-        tool_vw.resetCallback()
+        tool_vw.resetCallback(reload=False)
 
     def viewScript(self, script):
         ScriptManager.openScriptForUser(script)

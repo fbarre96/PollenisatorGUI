@@ -96,8 +96,11 @@ class DataManager(Subject):
         if collection not in self.data.keys() and collection[:-1] in self.data.keys():
             collection = collection[:-1]
         if collection not in self.data.keys():
-            return 
-        del self.data[collection][str(iid)]
+            return
+        try:
+            del self.data[collection][str(iid)]
+        except KeyError:
+            pass
         
     def set(self, collection, iid, newVal):
         if collection not in self.data.keys() and collection+"s" in self.data.keys():

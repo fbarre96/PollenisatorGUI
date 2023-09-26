@@ -403,3 +403,13 @@ class FormPanel(Form):
         """
         del self.subforms
         self.subforms = []
+
+    def redraw(self):
+        """
+        Empties the panel's subforms.
+        """
+        if self.panel is None:
+            return
+        for w in self.panel.winfo_children():
+            w.destroy()
+        self.populateView(self.panel)

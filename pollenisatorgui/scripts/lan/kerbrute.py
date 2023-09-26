@@ -11,7 +11,7 @@ def main(apiclient, appli, **kwargs):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)
     ip = ""
-    if kwargs.get("target_type") == "computer":
+    if kwargs.get("target_type").lower() == "computer":
         computer_info =  apiclient.find("ActiveDirectory", {"type":"computer", "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
         if computer_info is not None:
             ip = computer_info.get("ip", "")

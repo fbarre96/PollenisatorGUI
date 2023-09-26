@@ -142,6 +142,9 @@ class FormCombo(Form):
         return self.box.winfo_rooty()
     
     def check_input(self, event):
+        if event is not None:
+            if event.keysym != "BackSpace" and event.keysym != "Delete" and (len(event.keysym) > 1 or not event.keysym.isalnum()):
+                return
         value = event.widget.get()
         if value == '':
             self.box['values'] = self.choicesList

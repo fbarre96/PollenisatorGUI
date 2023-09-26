@@ -195,6 +195,9 @@ class ActiveDirectory(Module):
         """
         Search in treeviews
         """
+        if event is not None:
+            if event.keysym != "BackSpace" and event.keysym != "Delete" and (len(event.keysym) > 1 or not event.keysym.isalnum()):
+                return
         search = self.searchBar.get()
         self.tvUsers.filter(search, search, search, search, search, search, check_all=False)
         self.tvComputers.filter(search, search, search, search, search, search, search, search, search, search, check_all=False)
@@ -630,6 +633,9 @@ class ChildDialogUser:
         panel_info.addFormLabel("Password", row=2)
         panel_info.addFormStr("Password", "", user_data.get("password", ""), status="readonly", row=2, column=1)
         panel.addFormLabel("Desc", text=f"Desc : {user_data.get('desc', '')}" , side="top")
+        if user_data.get("infos", {}).get("secrets", []):
+            panel.addFormLabel("Secrets", side="top")
+            panel.addFormTreevw("Secrets", ("Secret", ""), [(s, "") for s in user_data.get("infos", {}).get("secrets", [])], side="top")
         groups = user_data.get('groups', []) 
         if groups is None:
             groups = []

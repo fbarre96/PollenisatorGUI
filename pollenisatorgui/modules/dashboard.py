@@ -260,7 +260,7 @@ class Dashboard(Module):
         self.form = FormPanel(fill="x",pady=0)
         form_top = self.form.addFormPanel(grid=True, side="top", fill="x", pady=0, anchor="s")
         form_top.addFormLabel("Text filter", row=0, column=0, sticky="s")
-        self.str_filter = form_top.addFormStr("text_filter", placeholder="high", binds={"<Key-Return>":self.filter}, width=300, row=0, column=1, sticky="S")
+        self.str_filter = form_top.addFormStr("text_filter", placeholder="high", binds={"<KeyRelease>":self.filter}, width=300, row=0, column=1, sticky="S")
         form_bottom = self.form.addFormPanel(side="bottom", fill="x", pady=0)
         values = ["Critical", "Major", "Important", "Minor"]
         tags_registered = Settings.getTags()
@@ -286,7 +286,7 @@ class Dashboard(Module):
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
             if tv.item(item)["text"] == "Tag":
-                tag = self.datamanager.get("tags", item)
+                tag = self.datamanager.get("tags", item.split("|")[0])
                 id_to_show = tag.item_id
             else:
                 id_to_show = item
@@ -313,6 +313,6 @@ class Dashboard(Module):
                     #tag_color = tag[1]
                     #tag_level = tag[2]
                 if tags_registered.get(tag_name, {}).get("level", "") != "":
-                    self.treeview.addItem("", tk.END, tag_infos["_id"], text="Tag", values=(
+                    self.treeview.addItem("", tk.END, tag_infos["_id"]+"|"+tag_name, text="Tag", values=(
                         tag_infos["date"], tags_registered[tag_name]["level"], tag_name,  tag_infos["detailed_string"]))
         self.treeview.auto_resize_columns()

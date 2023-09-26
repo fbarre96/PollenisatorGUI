@@ -490,11 +490,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if pentests is None:
                 pentests = []
             else:
-                pentests = [x["nom"] for x in pentests][::-1]
-            if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests:
+                pentests_names = [x["nom"] for x in pentests][::-1]
+            if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests_names:
                 self.openPentest(apiclient.getCurrentPentest())
             else:
-                self.openPentestsWindow()
+                self.openPentestsWindow(pentests=pentests)
             self.initialized = True
         else:
             self.onClosing()
@@ -617,8 +617,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.notify(notification)
         self.datamanager.handleNotification(notification)
         
-    
-    
     def onClosing(self):
         """
         Close the application properly.
@@ -626,21 +624,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         if self.quitting:
             return
         self.quitting = True
-        apiclient = APIClient.getInstance()
-        apiclient.dettach(self)
-        if self.terminals is not None:
-            self.terminals.onClosing()
+        self.closePentest()
         print("Stopping application...")
         if self.sio is not None:
             self.sio.disconnect()
             self.sio.eio.disconnect()
-        if self.scanManager is not None:
-            self.scanManager.onClosing()
-        
-            
-        for module in self.modules:
-            if callable(getattr(module["object"], "onClosing", None)):
-                module["object"].onClosing()
         self.quit()
 
     def reopen(self, event=None):
@@ -730,9 +718,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
         btnSearchBar = ttk.Button(filterbar_frame, text="", image=self.search_icon, style="iconbis.TButton", tooltip="Filter elements based of complex query or only text if quicksearch is selected", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
-        image=Image.open(utils.getIcon("reset.png"))
-        img=image.resize((16, 16))
-        self.reset_icon = ImageTk.PhotoImage(img)
+        image=Image.open(utils.getIcon("reset_small.png"))
+        self.reset_icon = ImageTk.PhotoImage(image)
         btnReset = ttk.Button(filterbar_frame, image=self.reset_icon, text="",  style="iconbis.TButton", tooltip="Reset search bar filter", width=10, command=self.resetButtonClicked)
         btnReset.pack(side="left", fill="x")
         self.photo = CTkImage(Image.open(utils.getHelpIconPath()))
@@ -1277,7 +1264,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             tkinter.messagebox.showinfo("Defects templates import", "Defects templates completed")
         return success
 
-    def openPentestsWindow(self, _event=None):
+    def openPentestsWindow(self, _event=None, pentests=None):
         """
         Open Pentest dialog window
         Args:
@@ -1286,9 +1273,9 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             None if no database were selected
             datababase name otherwise
         """
-        dialog = ChildDialogPentests(self)
+        dialog = ChildDialogPentests(self, pentests)
         try:
-            dialog.wait_window()
+            dialog.wait_window(dialog)
         except tk.TclError:
             pass
         if dialog.rvalue is not None:
@@ -1311,7 +1298,23 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 tkinter.messagebox.showinfo("Forbidden", msg)
         return succeed
 
-    
+    def closePentest(self):
+        """
+        Close the current pentest and refresh the treeview.
+        """
+        apiclient = APIClient.getInstance()
+        apiclient.dettach(self)
+        if self.terminals is not None:
+            self.terminals.onClosing()
+        
+        if self.scanManager is not None:
+            self.scanManager.onClosing()
+        
+            
+        for module in self.modules:
+            if callable(getattr(module["object"], "onClosing", None)):
+                module["object"].onClosing()
+
     def openPentest(self, filename=""):
         """
         Open the given database name. Loads it in treeview.
@@ -1327,6 +1330,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         elif filename != "":
             pentestName = filename.split(".")[0].split("/")[-1]
         if pentestName is not None:
+            self.closePentest()
             first_use_detected = self.detectFirstUse()
             res = apiclient.setCurrentPentest(pentestName, first_use_detected)
             if not res:

@@ -600,8 +600,8 @@ def loadIcon(name, **kwargs):
     """
     path = getIcon(name)
     image = Image.open(path)
-    img = image.resize((16, 16))
-    return ImageTk.PhotoImage(img)
+    #img = image.resize((16, 16))
+    return ImageTk.PhotoImage(image)
 
 def getIconDir():
     """Returns:

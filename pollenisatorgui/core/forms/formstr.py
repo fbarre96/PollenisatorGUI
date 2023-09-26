@@ -105,7 +105,7 @@ class FormStr(Form):
         Args:
             parent: parent FormPanel.
         """
-        self.entry = PopoEntry(parent.panel, placeholder_text=self.getKw("placeholder_text", None), width=self.getKw(
+        self.entry = PopoEntry(parent.panel, placeholder_text=self.getKw("placeholder", self.getKw("placeholder_text", None)), width=self.getKw(
             "width", 200), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
 

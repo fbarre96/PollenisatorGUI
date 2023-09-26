@@ -35,7 +35,7 @@ class CollapsibleFrame(CTkFrame):
 
         self._collapseButton = CTkLabel(self,  text= "", image=CTkImage(self._iconOpen))
         self._collapseButton.place(in_= self._containerFrame, x=icon_x, y=-(height_of_icon//2)-5, anchor=tk.NW, bordermode="ignore")
-        self._collapseButton.bind("<Button-1>", lambda event: self.toggle())
+        self._collapseButton.bind("<Button-1>", lambda _event=None: self.toggle())
 
         if caption_builder is None:
             self._captionLabel = CTkLabel(self, anchor=tk.W, text=text)
@@ -47,7 +47,7 @@ class CollapsibleFrame(CTkFrame):
             if not isinstance(self._captionLabel, ttk.Widget):
                 raise Exception("'caption_builder' doesn't return a tkinter widget")
 
-        self.after(0, lambda: self._place_caption(caption_separation, icon_x, width_of_icon))
+        self.after(0, lambda _event=None: self._place_caption(caption_separation, icon_x, width_of_icon))
 
     def update_width(self, width=None):
         # Update could be devil
