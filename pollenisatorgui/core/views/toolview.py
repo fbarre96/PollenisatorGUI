@@ -129,7 +129,7 @@ class ToolView(ViewElement):
         apiclient = APIClient.getInstance()
         datamanager = DataManager.getInstance()
         self.image_download = CTkImage(Image.open(utils.getIcon("download.png")))
-        self.image_reset = CTkImage(Image.open(utils.getIcon("reset.png")))
+        self.image_reset = CTkImage(Image.open(utils.getIcon("reset_small.png")))
         try:
             command_d = datamanager.get("commands", modelData["command_iid"])
             if command_d is not None: # command not registered, I.E import
@@ -247,10 +247,13 @@ class ToolView(ViewElement):
         if path is not None:
             if os.path.isfile(path):
                 dialog = ChildDialogQuestion(self.appliViewFrame, "Download completed",
-                                            "The file has been downloaded.\n Would you like to open it?", answers=["Open", "Cancel"])
+                                            "The file has been downloaded.\n Would you like to open it?", answers=["Open", "Open folder", "Cancel"])
                 self.appliViewFrame.wait_window(dialog.app)
                 if dialog.rvalue == "Open":
                     utils.openPathForUser(path)
+                    return
+                elif dialog.rvalue == "Open folder":
+                    utils.openPathForUser(os.path.dirname(path))
                     return
                 else:
                     return

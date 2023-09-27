@@ -138,7 +138,7 @@ class CheckInstanceView(ViewElement):
         self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'terminal_small.png'))
         self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
         self.image_download = utils.loadIcon("download.png")
-        self.image_reset = utils.loadIcon("reset.png")
+        self.image_reset = utils.loadIcon("reset_small.png")
         self.image_delete = utils.loadIcon("delete.png")
         self.image_defect = utils.loadIcon("defect.png")
         dict_of_tools_not_done = infos.get("tools_not_done", {})
