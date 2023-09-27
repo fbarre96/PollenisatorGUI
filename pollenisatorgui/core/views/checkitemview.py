@@ -159,10 +159,7 @@ class CheckItemView(ViewElement):
             self.textForm = formTv.addFormStr("Script", ".+", default.get("script", ""))
             btn = formTv.addFormButton("Browse", lambda _event : self.browseScriptCallback(self.textForm))
 
-    def triggerLevelUpdate(self, old_value):
-        if self.triggerLevelForm.getValue() != old_value:
-            self.controller.model.lvl = self.triggerLevelForm.getValue()
-            self.reopen()
+    
 
     def onCommandDoubleClick(self, oldval):
         command_o = Command.fetchObject({"name":oldval})
@@ -182,10 +179,15 @@ class CheckItemView(ViewElement):
         form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
         self.controller.doUpdate(form_values_as_dicts, updateInDb=False)
         self.form.clear()
-        if action == "modify":
-            self.openModifyWindow()
-        else:
-            self.openInsertWindow()
+        self.reopen()
+
+    def triggerLevelUpdate(self, old_value):
+        if self.triggerLevelForm.getValue() != old_value:
+            form_values = self.form.getValue()
+            form_values_as_dicts = ViewElement.list_tuple_to_dict(form_values)
+            self.controller.doUpdate(form_values_as_dicts, updateInDb=False)
+            self.form.clear()
+            self.reopen()
 
     def browseScriptCallback(self, textForm):
         scriptManagerInst = ScriptManager()

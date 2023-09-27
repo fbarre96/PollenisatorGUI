@@ -24,7 +24,7 @@ class CheckItemController(ControllerElement):
         self.model.check_type = values.get("Check type", self.model.check_type)
         self.model.lvl = values.get("Level", self.model.lvl)
         self.model.ports = values.get("Ports/Services", self.model.ports)
-        tag_trigger = values.get("Tag Name", "")
+        tag_trigger = values.get("Tag Name", getattr(self.model, "tag_trigger", ""))
         if self.model.lvl.startswith("tag:") and tag_trigger != "":
             self.model.lvl = ":".join(self.model.lvl.split(":")[:2]) +":"+str(tag_trigger)
         self.model.priority = int(values.get("Priority", self.model.priority))
@@ -64,6 +64,9 @@ class CheckItemController(ControllerElement):
         pentest_types = [k for k,v in values["Pentest types"].items() if v]
         step = values["Step"]
         parent = values.get("Parent", None)
+        tag_trigger = values.get("Tag Name", "")
+        if lvl.startswith("tag:") and tag_trigger != "":
+            lvl = ":".join(lvl.split(":")[:2]) +":"+str(tag_trigger)
         if parent == "":
             parent = None
         commands = []
