@@ -71,13 +71,18 @@ class FormStr(Form):
             pyperclip.copy(sel)
             self.entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
 
-    def paste(self):
+    def paste(self, event=None):
         """Option of the contextual menu : Paste clipboard content to entry
         """
-        buff = pyperclip.paste()
+        if event is None:
+            buff = pyperclip.paste()
+        else:
+            buff = event.widget.clipboard_get()
         if buff:
+            self.entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
             insert_index = self.entry.index(tk.INSERT)
             self.entry.insert(insert_index, buff)
+        return "break"
 
     def popup(self, event):
         """
@@ -108,7 +113,7 @@ class FormStr(Form):
         self.entry = PopoEntry(parent.panel, placeholder_text=self.getKw("placeholder", self.getKw("placeholder_text", None)), width=self.getKw(
             "width", 200), state=self.getKw("state", "normal"), show=self.getKw("show", None))
         self._initContextualMenu(self.entry)
-
+        self.entry.bind("<<Paste>>", self.paste)
         for bind, bind_call in self.getKw("binds", {}).items():
             self.entry.bind(bind, bind_call)
         if self.default != "" and self.default is not None:

@@ -68,14 +68,23 @@ class FormText(Form):
             pyperclip.copy(self.text.get(*ranges))
             self.text.delete(*ranges)
 
-    def paste(self):
+    def paste(self, event=None):
         """Option of the contextual menu : Paste clipboard content to entry
         """
-        buff = pyperclip.paste()
+        if event is None:
+            buff = pyperclip.paste()
+        else:
+            buff = event.widget.clipboard_get()
         if buff:
+            #delete selected text
+            ranges = self.text.tag_ranges(tk.SEL)
+            if ranges:
+                self.text.delete(*ranges)
+            #insert clipboard content
             insertIndex = self.text.index(tk.INSERT)
             self.text.insert(insertIndex, self.sanitize(buff))
-
+        return "break" # break the event to prevent the default paste
+    
     def sanitize(self, string):
         """remove unwanted things in text"""
         return string.replace("\r","")
@@ -92,6 +101,7 @@ class FormText(Form):
             parent.panel, height=self.getKw("height", 200), width=self.getKw("width", 500),border_width=1, wrap="word")
         self._initContextualMenu(self.text)
         self.text.bind('<Control-a>', self.selectAll)
+        self.text.bind("<<Paste>>", self.paste)
         try:
             self.text.insert(tk.INSERT, self.sanitize(self.default))
         except tk.TclError as e:
