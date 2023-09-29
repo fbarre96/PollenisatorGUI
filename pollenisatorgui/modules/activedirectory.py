@@ -16,6 +16,7 @@ from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.modules.module import Module
 from pollenisatorgui.modules.ActiveDirectory.users import User # load it in registry
 from pollenisatorgui.modules.ActiveDirectory.computers import Computer # load it in registry
+from pollenisatorgui.modules.ActiveDirectory.shares import Share # load it in registry
 import tempfile
 from bson import ObjectId
 import pollenisatorgui.core.components.utils as utils
@@ -128,6 +129,8 @@ class ActiveDirectory(Module):
             return ChildDialogUser(self.parent, model.getData())
         elif data_type.lower() == "computer":
             return ChildDialogComputer(self.parent, model.getData())
+        elif data_type.lower() == "share":
+            return ChildDialogShare(self.parent, model.getData())
         return None
         
 
@@ -181,7 +184,7 @@ class ActiveDirectory(Module):
         self.tvComputers.pack(fill=tk.BOTH)
         frameShares = CTkFrame(self.frameTreeviews)
         self.tvShares = ScrollableTreeview(
-            frameShares, ("IP", "Share", "Flagged", "Size", "Tags"))
+            frameShares, ("IP", "Share", "Flagged", "Size", "Tags"), paginate=False)
         self.tvShares.pack(fill=tk.BOTH)
         frameUsers.grid(row=0, column=0)
         frameComputers.grid(row=1, column=0)
@@ -321,11 +324,13 @@ class ActiveDirectory(Module):
                     tags.append(tag[0])
         try:
             parentiid = self.tvShares.insert(
-                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags)))
+                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags),"",""))
         except tk.TclError:
             parentiid = str(share["_id"])
         for file_infos in share.get("files",[]):
-            toAdd = (file_infos["path"], str(file_infos["flagged"]), str(file_infos["size"]))
+            if not file_infos["flagged"]:
+                continue
+            toAdd = (file_infos["path"], str(file_infos["flagged"]), str(file_infos["size"]), "")
             try:
                 self.tvShares.insert(
                     parentiid, 'end', None, text="", values=tuple(toAdd))
@@ -711,6 +716,47 @@ class ChildDialogComputer:
         if ntds:
             panel.addFormLabel("NTDS", side="top")
             panel.addFormText("NTDS", "", "\n".join(ntds), side="top")
+        button_panel = panel.addFormPanel(side="bottom")
+        button_panel.addFormButton("Quit", self.onError, side="right")
+        panel.constructView(appFrame)
+        appFrame.pack(ipadx=10, ipady=5, expand=1)
+        try:
+            self.app.wait_visibility()
+            self.app.transient(parent)
+            self.app.grab_set()
+            self.app.focus_force()
+            self.app.lift()
+        except tk.TclError:
+            pass
+
+    def onError(self, event=None):
+        """
+        Close the dialog and set rvalue to None
+        """
+        self.rvalue = None
+        self.app.destroy()
+
+class ChildDialogShare:
+    def __init__(self, parent, share_data):
+        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app.resizable(True, True)
+        appFrame = CTkFrame(self.app)
+        self.app.title("View share info")
+        self.rvalue = None
+        self.parent = parent
+        panel = FormPanel()
+        panel_info = panel.addFormPanel(grid=True)
+        panel_info.addFormLabel("IP")
+        panel_info.addFormStr("IP", "", share_data.get("ip", ""), status="readonly", row=0, column=1)
+        panel_info.addFormLabel("Share", row=1)
+        panel_info.addFormStr("Share", "", share_data.get("share", ""), status="readonly", row=1, column=1)
+        files = share_data.get('files', []) 
+        if files is None:
+            files = []
+        defaults = []
+        for file in files:
+            defaults.append([file["path"],file["flagged"], file["size"]])
+        panel.addFormTreevw("Files", ("Path","Flagged","Size"), default_values=defaults, side="top")
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Quit", self.onError, side="right")
         panel.constructView(appFrame)

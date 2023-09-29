@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+import uuid
 from customtkinter import *
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
@@ -9,7 +10,11 @@ import pyperclip
 
 class ScrollableTreeview(Paginable):
     def __init__(self, root, columns, **kwargs):
-        super().__init__(root, self.insert_items, self.empty_treeview, self.callback_get_value, lambda: 0, height=0)
+        if not kwargs.get("paginate", True):
+            maxPerPage = -1
+        else:
+            maxPerPage = kwargs.get("maxPerPage", 10)
+        super().__init__(root, self.insert_items, self.empty_treeview, self.callback_get_value, lambda: 0, height=0, maxPerPage=maxPerPage)
         self.root = root
         self.columns = columns
         self._detached = set()
@@ -69,6 +74,8 @@ class ScrollableTreeview(Paginable):
 
     def insert(self, parent, index, iid, text="",values=(), tags=(), image=None):
         res = None
+        if iid is None:
+            iid = uuid.uuid4()
         if iid not in [x["iid"] for x in self.infos]:
             res = self.addPaginatedInfo({"parent":parent,"iid":iid, "index":index, "text":text,"values":values,"tags":tags, "image":image})
         return res

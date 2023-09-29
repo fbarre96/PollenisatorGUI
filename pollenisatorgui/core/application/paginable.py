@@ -4,9 +4,11 @@ import tkinter.ttk as ttk
 class Paginable(CTkFrame):
 
     def __init__(self, parent, callback_insert, callback_resetview, callback_get_value, callback_update_content_view, **kwargs) -> None:
-
-        super().__init__(parent, **kwargs)
         self.maxPerPage = kwargs.get("maxPerPage", 10)
+        if "maxPerPage" in kwargs:
+            del kwargs["maxPerPage"]
+        super().__init__(parent, **kwargs)
+        self.disablePagination = self.maxPerPage < 1
         self.currentPage = 0
         self.lastPage = 0
         self.pagePanel = None
@@ -26,6 +28,8 @@ class Paginable(CTkFrame):
 
     def addPaginatedInfo(self, info):
         self.infos.append(info)
+        if self.disablePagination:
+            return self.callback_insert([info])
         nbLig = len(self.infos)
         prevLastPage = self.lastPage
         self.lastPage = int(nbLig / self.maxPerPage)
@@ -41,6 +45,8 @@ class Paginable(CTkFrame):
         return res  
 
     def getShownInfos(self):
+        if self.disablePagination:
+            return self.infos
         start = self.currentPage * self.maxPerPage
         end = start + self.maxPerPage
         return self.infos[start:end]
@@ -52,6 +58,8 @@ class Paginable(CTkFrame):
         return self.infos
 
     def setPaginationPanel(self):
+        if self.disablePagination:
+            return 
         if self.pagePanel is not None:
             for widget in self.pagePanel.winfo_children():
                 widget.grid_forget()
@@ -90,6 +98,8 @@ class Paginable(CTkFrame):
         self.setPaginationPanel()
 
     def goToPage(self, p, force=False):
+        if self.disablePagination:
+            return
         if not isinstance(p, int) and not isinstance(p, str):
             p = p.widget.cget("text")
         if p == "first":

@@ -79,7 +79,10 @@ class FormStr(Form):
         else:
             buff = event.widget.clipboard_get()
         if buff:
-            self.entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            try:
+                self.entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            except tk.TclError:
+                pass
             insert_index = self.entry.index(tk.INSERT)
             self.entry.insert(insert_index, buff)
         return "break"

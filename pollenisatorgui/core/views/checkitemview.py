@@ -317,8 +317,9 @@ class CheckItemView(ViewElement):
     
     def create_command_callback(self, _event=None):
         view = CommandView(self.appliTw, self.appliViewFrame, self.mainApp, CommandController(Command()))
-        result, msg = view.openInDialog(is_insert=True)
-        if result:
+        result = view.openInDialog(is_insert=True)
+        if result is not None:
+            result, msg = result # unpack if not none
             comm = Command.fetchObject({"_id":ObjectId(msg)})
             if comm is not None:
                 self.treeview_commands.addItem("", "end", str(msg), text=comm.name, values=(0, str(comm.getId()),))
