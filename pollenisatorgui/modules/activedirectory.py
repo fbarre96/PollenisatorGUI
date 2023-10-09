@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 import os
 import re
+from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
@@ -146,9 +147,9 @@ class ActiveDirectory(Module):
         i = 0
         for command_options in s.get("commands", []):
             if command_options[0].lower() == "computer":
-                self.tvComputers.addContextMenuCommand(command_options[1], listOfLambdas[i])
+                self.tvComputers.addContextMenuCommand(command_options[1], listOfLambdas[i], replace=True)
             elif command_options[0].lower() == "share":
-                self.tvShares.addContextMenuCommand(command_options[1], listOfLambdas[i])
+                self.tvShares.addContextMenuCommand(command_options[1], listOfLambdas[i], replace=True)
             i+=1
         
 
@@ -164,8 +165,8 @@ class ActiveDirectory(Module):
         self.tkApp = tkApp
         self.treevwApp = treevw
         settings_btn = CTkButton(parent, text="Configure this module", command=self.openConfig)
-        settings_btn.pack(side="bottom")
-        self.moduleFrame = CTkFrame(parent)
+        settings_btn.pack(side="bottom", pady=5)
+        self.moduleFrame = ScrollableFrameXPlateform(parent)
         frameSearchBar = CTkFrame(self.moduleFrame)
         self.searchBar = PopoEntry(frameSearchBar, placeholder_text="Search")
         self.searchBar.pack(side="left", fill=tk.X, expand=True)
@@ -467,9 +468,13 @@ class ActiveDirectory(Module):
         command_option = command_option.replace("|username|", user)
         command_option = command_option.replace("|domain|", domain)
         command_option = command_option.replace("|password|", user_o["password"])
-        command_option = command_option.replace("|share|",share_name.replace("\\\\", "\\"))
+        command_option = command_option.replace("|share|",share_m["share"])
+        command_option = command_option.replace("|filepath|",share_name.replace("\\\\", "\\"))
+        command_option = command_option.replace("|file|",share_name.replace("\\\\", "\\").replace(share_m["share"], "",1))
+        command_option = command_option.replace("|filename|",os.path.basename(share_name.replace("\\\\", "\\").replace(share_m["share"], "",1)))
+
         command_option = command_option.replace("|ip|",ip)
-        self.tkApp.launch_in_terminal(None, "Share command", command_option)
+        self.tkApp.launch_in_terminal(None, "Share command", command_option, use_pollex=False)
 
     def userCommand(self, command_option, user):
         if user is None:
@@ -806,7 +811,10 @@ class ChildDialogConfigureADModule:
             - Share: those commands  will be available when right clicking one File in a share.
         Variables:
             - |ip|: will be replaced by the selected computer IP
-            - |share|: (Only for Share type commands) Will be replaced with the filename selected in the share table.
+            - |share|: (Only for Share type commands) Will be replaced with the share name (drive name like ADMIN$) selected in the share table.
+            - |filepath|: (Only for Share type commands) Will be replaced with the full filepath selected in the share table (like ADMIN$\\folder\path.txt).
+            - |file|: (Only for Share type commands) Will be replaced with the filepath WITHOUT THE SHARE NAME selected in the share table (like folder\path.txt).
+            - |filename|: (Only for Share type commands) Will be replaced with only the filename selected in the share table (like path.txt).
             - |username|, |domain|, |password|: will be replaced by the selected user information, or will be prompted if nothing is selected.
             - |wordlist|: will be prompted for a wordlist type of file and replaced by the filepath given
             - |ask_text:$name|: prompt for a text where name is what is asked. store it in a file and replace in command by filepath

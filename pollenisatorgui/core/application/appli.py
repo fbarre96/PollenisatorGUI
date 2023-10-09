@@ -412,6 +412,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.datamanager = DataManager.getInstance()
         self.initModules()
         apiclient = APIClient.getInstance()
+        self.topviewframe = None
         self.scanManager = ScanManager(self, self.nbk, self.treevw, apiclient.getCurrentPentest(), self.settings)
         apiclient.appli = self
         opened, errored = self.openConnectionDialog()
@@ -690,11 +691,14 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.sio.emit("test", {"pentest": APIClient.getInstance().getCurrentPentest()})
         print("TEST SENT, WAITING FOR RESPONSE")
 
+    
+
+
     def initMainView(self):
         """
         Fill the main view tab menu
         """
-        self.mainPageFrame = CTkFrame(self.nbk)
+        self.mainPageFrame = CTkFrame(self.topviewframe)
         searchFrame = CTkFrame(self.mainPageFrame, fg_color=utils.getBackgroundSecondColor())
         filterbar_frame = CTkFrame(searchFrame, fg_color="transparent")
         self.image_filter = CTkImage(Image.open(utils.getIcon("filter.png")))
@@ -734,12 +738,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         #PANED PART
         self.paned = tk.PanedWindow(self.mainPageFrame, orient="horizontal")
         #RIGHT PANE : Canvas + frame
-        self.panedRight = ttk.PanedWindow(self.paned, orient="vertical")
-        self.proxyFrameMain = CTkFrame(self.panedRight)
+        
+        self.proxyFrameMain = CTkFrame(self.paned)
         self.proxyFrameMain.rowconfigure(0, weight=1) 
         self.proxyFrameMain.columnconfigure(0, weight=1) 
         self.viewframe = ScrollableFrameXPlateform(self.proxyFrameMain)
-        self.terminals = TerminalsWidget(self.panedRight, self,  height=200)
+        
         
         #LEFT PANE : Treeview
         self.left_pane = CTkFrame(self.paned)
@@ -768,19 +772,16 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         
         self.left_pane.pack(side="left", fill=tk.BOTH, expand=True)
         self.paned.add(self.left_pane)
-        self.proxyFrameMain.pack(side="top",fill=tk.BOTH, expand=True)
-        
+        self.proxyFrameMain.pack(side="right", fill=tk.BOTH, expand=True)
         self.viewframe.pack(fill=tk.BOTH, expand=1)
-        self.terminals.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=1)
-        self.panedRight.add(self.proxyFrameMain, weight=1)
-        self.panedRight.add(self.terminals, weight=0)
-        self.paned.add(self.panedRight)
+        
+        self.paned.add(self.proxyFrameMain)
 
         self.paned.pack(fill=tk.BOTH, expand=1)
         self.mainPageFrame.pack(fill="both", expand=True)
         self.nbk.add(self.mainPageFrame, "Main View", order=Module.HIGH_PRIORITY, image=self.main_tab_img)
         
-        
+        self.nbk
     def searchbarSelectAll(self, _event=None):
         """
         Callback to select all the text in searchbar
@@ -802,7 +803,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def initCommandsView(self):
         """Populate the command tab menu view frame with cool widgets"""
-        self.commandsPageFrame = CTkFrame(self.nbk)
+        self.commandsPageFrame = CTkFrame(self.topviewframe)
         self.commandPaned = tk.PanedWindow(self.commandsPageFrame, height=800)
         self.commandsFrameTw = CTkFrame(self.commandPaned)
         self.proxyFrameCommand = CTkFrame(self.commandPaned)
@@ -873,20 +874,20 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def initSettingsView(self):
         """Add the settings view frame to the notebook widget and initialize its UI."""
-        self.settingViewFrame = CTkFrame(self.nbk)
+        self.settingViewFrame = CTkFrame(self.topviewframe)
         self.settings.initUI(self.settingViewFrame)
         self.nbk.add(self.settingViewFrame, "Settings", order=Module.LAST_PRIORITY, image=self.settings_tab_img)
 
     def initScanView(self):
         """Add the scan view frame to the notebook widget. This does not initialize it as it needs a database to be opened."""
-        self.scanViewFrame = CTkFrame(self.nbk)
+        self.scanViewFrame = CTkFrame(self.topviewframe)
         self.scanManager.initUI(self.scanViewFrame)
         self.nbk.add(self.scanViewFrame, "Scan", order=Module.HIGH_PRIORITY, image=self.scan_tab_img)
 
     def initAdminView(self):
         """Add the admin button to the notebook"""
-        self.admin = AdminView(self.nbk)
-        self.adminViewFrame = CTkFrame(self.nbk)
+        self.admin = AdminView(self.topviewframe)
+        self.adminViewFrame = CTkFrame(self.topviewframe)
         self.admin.initUI(self.adminViewFrame)
         self.nbk.add(self.adminViewFrame, "Admin", order=Module.LOW_PRIORITY, image=self.admin_tab_img)
 
@@ -904,23 +905,35 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.refreshUI()
             return
         self.nbk = ButtonNotebook(self, self.tabSwitch, self.beforeTabSwitch)
-        
-
+        self.panedTerminals = ttk.PanedWindow(self.nbk, orient="vertical")
+        self.topviewframe = CTkFrame(self.panedTerminals)
+        self.terminals = TerminalsWidget(self.panedTerminals, self,  height=200)
         
         self.initMainView()
         self.initAdminView()
         self.initCommandsView()
         self.initScanView()
         self.initSettingsView()
+
         for module in self.modules:
-            module["view"] = CTkFrame(self.nbk)
-            module["object"].initUI(module["view"], self.nbk, self.treevw, tkApp=self)
+            module["view"] = CTkFrame(self.topviewframe)
+            module["object"].initUI(module["view"], self.topviewframe, self.treevw, tkApp=self)
         for module in self.modules:
             self.nbk.add(module["view"], module["name"].strip(), order=module["object"].__class__.order_priority, image=module["img"])
+        self.terminals.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=1)
+        self.topviewframe.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        self.panedTerminals.add(self.topviewframe, weight=1)
+        self.panedTerminals.add(self.terminals, weight=0)
+        
+        self.panedTerminals.pack(fill=tk.BOTH, expand=True)
+        
 
         
         self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
+        self.terminals.open_terminal()
+
 
     def refreshUI(self):
         for widget in self.viewframe.winfo_children():
@@ -931,7 +944,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.treevw.refresh()
         self.treevw.filter_empty_nodes()
         self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
-        self.terminals.open_terminal()
         # self.nbk.select("Main View")
 
     def open_terminal(self, iid, title):
@@ -939,13 +951,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def execute_in_terminal(self, title, commandline):
         iid = uuid.uuid4()
-        self.terminals.open_terminal(iid, title)
+        self.terminals.open_terminal(iid, title, enable_trap=False)
         self.terminals.launch_in_terminal(iid, commandline, use_pollex=False)
 
     def launch_in_terminal(self, iid, title, commandline, use_pollex=True):
         if iid is None:
             iid = uuid.uuid4()
-        self.terminals.open_terminal(iid, title)
+        self.terminals.open_terminal(iid, title, enable_trap=use_pollex)
         self.terminals.launch_in_terminal(iid, commandline, use_pollex=use_pollex)
         return iid
 

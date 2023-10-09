@@ -110,10 +110,10 @@ class ScrollableTreeview(Paginable):
         except tk.TclError as e:
             pass
         try:
-            self.infos[[x["iid"] for x in self.infos].index(iid)].update(kwargs)
+            self.infos[[str(x["iid"]) for x in self.infos].index(iid)].update(kwargs)
         except ValueError as e:
             raise tk.TclError(e)
-        return self.infos[[x["iid"] for x in self.infos].index(iid)]
+        return self.infos[[str(x["iid"]) for x in self.infos].index(iid)]
         
         
     def _initContextualMenu(self, parent):
@@ -126,11 +126,12 @@ class ScrollableTreeview(Paginable):
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Close", command=self.close)
 
-    def addContextMenuCommand(self, label, command):
+        
+    def addContextMenuCommand(self, label, command, replace=False):
         found = False
         for i in range(self.contextualMenu.index('end')+1):
             labelStr = str(self.contextualMenu.entrycget(i,'label') )
-            if labelStr == label:
+            if labelStr == label and not replace:
                 found = True
                 break
         if not found:

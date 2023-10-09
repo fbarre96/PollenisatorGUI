@@ -157,9 +157,9 @@ class TerminalsWidget(CTkFrame):
         return cls.cachedPseudoTerminalClassIcon
     
 
-    def open_terminal(self, iid=None, title=""):
+    def open_terminal(self, iid=None, title="", enable_trap=True):
         if iid is not None:
-            self.create_window(iid, title)
+            self.create_window(iid, title, enable_trap=enable_trap)
         elif not self.inited:
             self.create_terminal()
             self.inited = True
@@ -173,7 +173,8 @@ class TerminalsWidget(CTkFrame):
         if not settings.isTrapCommand() and use_pollex:
             commandline = "pollex "+commandline
         if settings.isTrapCommand() and not use_pollex:
-            commandline = "donttrap "+commandline
+            commandline = commandline
+            
         if session is not None:
             window = session.windows.filter(window_name=str(iid))[0]
             self.terminalFrames[iid] = commandline
@@ -215,6 +216,8 @@ class TerminalsWidget(CTkFrame):
     def create_terminal(self):
         settings = Settings()
         settings.reloadLocalSettings()
+        self.terminalFrame.wait_visibility()
+
         self.wid = self.terminalFrame.winfo_id()
         self.s = libtmux.Server()
         (child_pid, fd) = pty.fork()
@@ -357,14 +360,14 @@ class TerminalsWidget(CTkFrame):
         
 
 
-    def create_window(self, iid, title="none"):
+    def create_window(self, iid, title="none", enable_trap=True):
         sessions = self.s.sessions.filter(session_name="pollenisator")
         if sessions:
             session = sessions[0]
             windows = session.windows.filter(window_name=str(iid))
             if iid != "shell":
                 session.set_environment("POLLENISATOR_DEFAULT_TARGET", str(iid))
-
+                session.set_environment("TRAP_FOR_POLLEX", str(enable_trap))
             if not windows:
                 window = session.new_window(attach=True, window_name=str(iid))
             else:
