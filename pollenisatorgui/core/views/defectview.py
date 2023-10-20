@@ -442,6 +442,7 @@ class DefectView(ViewElement):
         if dialog.rvalue is None:
             return
         self.formFixes.setValue(dialog.rvalue)
+        self.controller.update_fixes(dialog.rvalue)
 
     def updateRiskBox(self, _event=None):
         """Callback when ease or impact is modified.

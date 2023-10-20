@@ -26,7 +26,7 @@ class ChildDialogDefectView(ChildDialogView):
             parent: the tkinter parent view to use for this window construction.
             defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
         """
-        super().__init__(parent, title)
+        super().__init__(parent, title, scrollable=True)
         
         self.isInsert = defectModel is None
         self.multi = multi
@@ -49,6 +49,7 @@ class ChildDialogDefectView(ChildDialogView):
             else:
                 self.defect_vw.openModifyWindow(addButtons=True)
                 self.completeDialogView(False)
+        
     
     def okCallback(self, _event=None):
         """called when pressing the validating button

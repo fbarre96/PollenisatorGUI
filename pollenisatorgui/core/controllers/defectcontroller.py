@@ -42,6 +42,11 @@ class DefectController(ControllerElement):
 
         self.model.update()
 
+    def update_fixes(self,fixes):
+        """Update the fixes of the model"""
+        self.model.fixes = fixes
+        self.model.update({"fixes": fixes})
+
     def doInsert(self, values):
         """
         Insert the Defect represented by this model in the database with the given values.
@@ -83,7 +88,7 @@ class DefectController(ControllerElement):
         # Upload proof after insert on db cause we need its mongoid
         for p in proof:
             if p.strip() != "":
-                self.model.uploadProof(proof)
+                self.model.uploadProof(p)
         
         return ret, 0  # 0 erros
 
