@@ -96,14 +96,14 @@ class DefectView(ViewElement):
         topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", side="top", height=3)
         if not self.controller.isAssigned():
             topPanel = self.form.addFormPanel()
-            topPanel.addFormText("Description", r"", "Description", side="top", height=300)
+            topPanel.addFormMarkdown("Description", r"", "Description", side="top", height=300)
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = self.form.addFormPanel()
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText("Notes", r"", notes, None, side="top")
-        proofsPanel = self.form.addFormPanel()
-        proofsPanel.addFormFile("Proof", r"", text="Add proof",height=3)
+        #proofsPanel = self.form.addFormPanel()
+        #proofsPanel.addFormFile("Proof", r"", text="Add proof",height=3)
         self.form.addFormHidden("ip", modelData["ip"])
         self.form.addFormHidden("proto", modelData["proto"])
         self.form.addFormHidden("port", modelData["port"])
@@ -393,7 +393,7 @@ class DefectView(ViewElement):
             row += 1
             topPanel = globalPanel.addFormPanel()
             topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
-            topPanel.addFormText("Description", r"", modelData.get("description", "Description"), height=300, side="top")
+            topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", just_editor=True)
             topPanel.addFormButton("Edit fixes", self.openFixesWindow,  image=self.edit_image)
         else:
             topPanel.addFormHidden("Title", modelData.get("title", ""))
@@ -414,19 +414,20 @@ class DefectView(ViewElement):
                 "Notes", r"", modelData["notes"], None, side="top", height=40)
         if not self.controller.model.isTemplate:
             if modelData["proofs"]:
-                proofPanel = globalPanel.addFormPanel(grid=True)
-                i = 0
-                for proof in modelData["proofs"]:
-                    proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
-                    proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
-                        event, obj), row=i, column=1)
-                    proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
-                        event, obj), row=i, column=2, image=self.delete_image,
-                            fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
-                            border_width=1, border_color="firebrick1", hover_color="tomato")
-                    i += 1
-            proofPanel = globalPanel.addFormPanel()
-            self.formFile = proofPanel.addFormFile("Add proofs", r"", "",  height=3)
+                print("TODO PROOFS")
+                # proofPanel = globalPanel.addFormPanel(grid=True)
+                # i = 0
+                # for proof in modelData["proofs"]:
+                #     proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
+                #     proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
+                #         event, obj), row=i, column=1)
+                #     proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
+                #         event, obj), row=i, column=2, image=self.delete_image,
+                #             fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                #             border_width=1, border_color="firebrick1", hover_color="tomato")
+                #     i += 1
+            #proofPanel = globalPanel.addFormPanel()
+            #self.formFile = proofPanel.addFormFile("Add proofs", r"", "",  height=3)
         self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if not self.controller.model.isTemplate:
             actionsPan = globalPanel.addFormPanel()

@@ -587,7 +587,7 @@ def getWaitingMarkIconPath():
 def getIcon(name):
     """Returns : the path to an specified icon name
     """
-    return getIconDir() + name
+    return os.path.join(getIconDir(), os.path.basename(name))
         
 def getHelpIconPath():
     """Returns:
@@ -603,6 +603,12 @@ def loadIcon(name, **kwargs):
     image = Image.open(path)
     #img = image.resize((16, 16))
     return ImageTk.PhotoImage(image)
+
+def loadIcons(names):
+    load_icons = {}
+    for name in names:
+        load_icons[name] = loadIcon(name)
+    return load_icons
 
 def getIconDir():
     """Returns:

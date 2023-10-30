@@ -303,7 +303,7 @@ class ScanManager:
         parentFrame.columnconfigure(0, weight=1)
         parentFrame.columnconfigure(1, weight=1)
         parentFrame.rowconfigure(0, weight=1)
-        parentFrame.configure(onfiledrop=self.dropFile) 
+        parentFrame.configure(onfiledrop=self.dropFile)
         ### WORKER TREEVIEW : Which worker knows which commands
         workerScanFrame = CTkFrame(parentFrame)
         workerFrame = CTkFrame(workerScanFrame)

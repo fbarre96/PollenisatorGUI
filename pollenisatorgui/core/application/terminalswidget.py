@@ -162,6 +162,7 @@ class TerminalsWidget(CTkFrame):
             self.create_window(iid, title, enable_trap=enable_trap)
         elif not self.inited:
             self.create_terminal()
+            self.after(100, self.update_size)
             self.inited = True
         return
     

@@ -69,7 +69,7 @@ class SharedNotes(Module):
         self.parent = parent
        
         dark_mode = self.settings.is_dark_mode()
-        self.mdFrame = TkintermdFrame(parent, default_text="", tkApp=self.tkApp, just_editor=False, style_change=False, enable_preview=True)
+        self.mdFrame = TkintermdFrame(parent, default_text="", tkApp=self.tkApp, just_editor=False, style_change=False, enable_preview=True,bg_color="red")
         if dark_mode:
             self.mdFrame.load_style("material")
         else:
@@ -78,6 +78,7 @@ class SharedNotes(Module):
         self.mdFrame.text_area.bind("<<KeyRelease>>", self.on_input_change)
 
         self.mdFrame.pack(fill="both", expand=1)
+        parent.pack(fill="both", expand=1)
         #self.moduleFrame.pack(padx=10, pady=10, side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
