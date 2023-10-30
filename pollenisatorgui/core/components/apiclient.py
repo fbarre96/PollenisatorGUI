@@ -961,11 +961,12 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def getProof(self, defect_iid, filename, local_path):
+    def getProof(self, defect_iid, filename, local_dir):
         try:
-            return self._get("proof", defect_iid, filename, local_path)
+            return self._get("proof", defect_iid, filename, local_dir)
         except ErrorHTTP as e:
             raise e
+        
     
     @handle_api_errors
     def getFileName(self, filetype, attached_iid):

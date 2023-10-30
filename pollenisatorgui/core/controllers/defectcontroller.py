@@ -1,8 +1,10 @@
 """Controller for defect object. Mostly handles conversion between mongo data and python objects"""
 
 import os
+from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.controllers.controllerelement import ControllerElement
 import pollenisatorgui.core.models.defect as defect
+import re
 
 class DefectController(ControllerElement):
     """Inherits ControllerElement
@@ -32,20 +34,31 @@ class DefectController(ControllerElement):
         self.model.language = values.get("Language", self.model.language)
         self.model.notes = values.get("Notes", self.model.notes)
         self.model.fixes = values.get("Fixes", self.model.fixes)
-        proofs = values.get("Add proofs", [])
-        for val in proofs:
-            self.addAProof(val)
         self.model.infos = values.get("Infos", self.model.infos)
         for info in self.model.infos:
             self.model.infos[info] = self.model.infos[info][0]
-        # Updating
 
+        group_proofs = self.findProofsInDescription(self.model.description)
+        for group_proof in group_proofs:
+            matched = group_proof.group(0)
+            path = group_proof.group(1)
+            if path.strip() != "":
+                result_path = self.model.uploadProof(path)
+                if result_path is not None:
+                    result_path = os.path.basename(result_path)
+                    self.model.description = self.model.description.replace(matched, f"![{result_path}]({result_path})")
+        # Updating
         self.model.update()
 
     def update_fixes(self,fixes):
         """Update the fixes of the model"""
         self.model.fixes = fixes
         self.model.update({"fixes": fixes})
+
+    def findProofsInDescription(self, description):
+        regex_images = r"!\[.*\]\((.*)\)"
+        return re.finditer(regex_images, description)
+        
 
     def doInsert(self, values):
         """
@@ -74,22 +87,35 @@ class DefectController(ControllerElement):
         ip = values["ip"]
         port = values.get("port", None)
         proto = values.get("proto", None)
-        proof = values["Proof"]
-        proofs = []
+        #proof = values["Proof"]
+        #proofs = []
+        
         fixes = values["Fixes"]
         tableau_from_ease = defect.Defect.getTableRiskFromEase()
        
         if risk == "" or risk == "N/A":
             risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
         self.model.initialize(ip, port, proto, title, synthesis, description, ease,
-                              impact, risk, redactor, mtype, language, notes, None, fixes, proofs)
+                              impact, risk, redactor, mtype, language, notes, None, fixes, [])
         ret, _ = self.model.addInDb()
         # Update this instance.
         # Upload proof after insert on db cause we need its mongoid
-        for p in proof:
-            if p.strip() != "":
-                self.model.uploadProof(p)
+        group_proofs = self.findProofsInDescription(description)
+        must_update = False
+        apiclient = APIClient.getInstance()
+        for group_proof in group_proofs:
+            matched = group_proof.group(0)
+            path = group_proof.group(1)
+            if path.strip() != "":
+                result_path = self.model.uploadProof(path)
+                if result_path is not None:
+                    result_path = os.path.basename(result_path)
+                    self.model.description = self.model.description.replace(matched, f"![{result_path}]({result_path})")
+                    must_update = True
         
+        if must_update:
+            self.model.update({"description": self.model.description}) 
+
         return ret, 0  # 0 erros
 
     def addAProof(self, proof_path):
@@ -99,9 +125,9 @@ class DefectController(ControllerElement):
         """
         if proof_path.strip() == "":
             return
-        resName = self.model.uploadProof(proof_path)
-        self.model.proofs.append(resName)
-        # self.model.update()
+        result_path = self.model.uploadProof(proof_path)
+        self.model.update()
+        return result_path
 
     def getProof(self, ind):
         """Returns proof file to model defect.
@@ -111,6 +137,15 @@ class DefectController(ControllerElement):
             the local path of the downloaded proof (string)
         """
         return self.model.getProof(ind)
+    
+    def getProofWithName(self, remote_name):
+        """Returns proof file to model defect.
+        Args:
+            remote_name: the proof remote name to get
+        Returns:
+            the local path of the downloaded proof (string)
+        """
+        return self.model.getProofWithName(remote_name)
 
     def deleteProof(self, ind):
         """Delete a proof file given a proof index

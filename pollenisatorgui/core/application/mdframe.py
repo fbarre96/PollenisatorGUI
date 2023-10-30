@@ -47,6 +47,7 @@ class TkintermdFrame(CTkFrame):
         self.style_change = kwargs.get("style_change", False)
         self.enable_preview = kwargs.get("enable_preview", True)
         self.default = kwargs.get("default_text", "")
+        self.binds = kwargs.get("binds", {})
         # Toolbar.
         if not self.just_editor:
             self.root_toolbar = tk.Frame(self)
@@ -113,7 +114,11 @@ class TkintermdFrame(CTkFrame):
         self.editor_frame = ScrolledTextBox(self.editor_root_frame, undo=True)
         self.text_area = self.editor_frame.tbox
         self.text_area.register_drop_target("*")
-        self.text_area.bind('<<Drop:File>>', self.dropFile)
+        if self.binds.get("<<Drop:File>>", None) is not None:
+            self.text_area.bind('<<Drop:File>>', self.binds.get("<<Drop:File>>"))
+        else:
+            self.text_area.bind('<<Drop:File>>', self.dropFile)
+
         self.editor_frame.pack(fill="both", expand=1)
         # Tabs for the preview and export options.
         if self.enable_preview:
@@ -214,7 +219,7 @@ class TkintermdFrame(CTkFrame):
         # This function is called, when stuff is dropped into a widget
         local_paths = utils.drop_file_event_parser(event)
         for local_path in local_paths:
-            self.text_area.insert(END, f"![{local_path}]({local_path})")
+            self.text_area.insert(tk.INSERT, f"![{local_path}]({local_path})")
 
     def popup(self, event):
         """Right-click popup at mouse location within the text area only.

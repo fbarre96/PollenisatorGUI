@@ -353,6 +353,12 @@ class DefectView(ViewElement):
                 topPanel.addFormStr(
                     "Port", '', port_str, None, column=1, row=row, state="readonly")
                 row += 1
+        if not self.controller.model.isTemplate:
+            if modelData["proofs"]:
+                for i, proof in enumerate(modelData["proofs"]):
+                    proof_local_path = self.controller.getProofWithName(proof)
+                    if proof_local_path is not None:
+                        modelData["description"] = modelData["description"].replace(f"[{proof}]({proof})", f"[{proof}]({proof_local_path})")
         if not self.controller.isAssigned():
             if not self.controller.model.isTemplate:
                 topPanel.addFormSearchBar("Search Defect", APIClient.getInstance().searchDefect, globalPanel, row=row, column=1, autofocus=False)
@@ -393,7 +399,7 @@ class DefectView(ViewElement):
             row += 1
             topPanel = globalPanel.addFormPanel()
             topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
-            topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", just_editor=True)
+            self.description_form = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", just_editor=True)
             topPanel.addFormButton("Edit fixes", self.openFixesWindow,  image=self.edit_image)
         else:
             topPanel.addFormHidden("Title", modelData.get("title", ""))
@@ -412,9 +418,7 @@ class DefectView(ViewElement):
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText(
                 "Notes", r"", modelData["notes"], None, side="top", height=40)
-        if not self.controller.model.isTemplate:
-            if modelData["proofs"]:
-                print("TODO PROOFS")
+        
                 # proofPanel = globalPanel.addFormPanel(grid=True)
                 # i = 0
                 # for proof in modelData["proofs"]:

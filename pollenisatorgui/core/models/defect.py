@@ -284,8 +284,10 @@ class Defect(Element):
             the basename of the file 
         """
         apiclient = APIClient.getInstance()
-        apiclient.putProof(self._id, proof_local_path)
-        return os.path.basename(proof_local_path)
+        result = apiclient.putProof(self._id, proof_local_path)
+        if result.get("remote_path", "") != "":
+            return result.get("remote_path", "")
+        return None
 
     def getProof(self, ind):
         """Download the proof file at given proof index
@@ -301,6 +303,17 @@ class Defect(Element):
             pass
         local_path = os.path.join(local_path, self.proofs[ind])
         ret = apiclient.getProof(self._id, self.proofs[ind], local_path)
+        return ret
+    
+    def getProofWithName(self, name):
+        apiclient = APIClient.getInstance()
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        local_path = os.path.join(current_dir, "../../results", self.calcDirPath())
+        try:
+            os.makedirs(local_path)
+        except FileExistsError:
+            pass
+        ret = apiclient.getProof(self.getId(), name, local_path)
         return ret
 
     def removeProof(self, ind):

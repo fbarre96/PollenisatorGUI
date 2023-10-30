@@ -56,15 +56,12 @@ class FormMarkdown(Form):
         """
         state = self.getKw("state", "normal")
         dark_mode = self.getKw("dark_mode", False)
-        self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=False, enable_preview=self.enable_preview, height=self.getKw("height", 0))
+        self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=False,
+                                       enable_preview=self.enable_preview, height=self.getKw("height", 0), binds=self.getKw("binds", {}))
         if not dark_mode:
             self.mdFrame.load_style("material")
         else:
             self.mdFrame.load_style("stata")
-        try:
-            self.mdFrame.text_area.insert(tk.INSERT, self.sanitize(self.default))
-        except tk.TclError as e:
-            self.mdFrame.text_area.insert(tk.INSERT, "Error :\n"+str(e))
         if state == "disabled":
             self.mdFrame.text_area.configure(state="disabled")
         if parent.gridLayout:
