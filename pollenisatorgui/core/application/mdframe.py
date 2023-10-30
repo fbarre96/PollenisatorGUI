@@ -71,7 +71,7 @@ class TkintermdFrame(CTkFrame):
         self.editor_root_frame = tk.Frame(self.editor_pw)
         # Toolbar buttons
         self.editor_toolbar = tk.Frame(self.editor_root_frame)
-        self.icons = utils.loadIcons(["undo_small.png","redo_small.png", "cut_small.png", "copy_small.png", "paste_small.png", "find_small.png","bold_small.png", "italic_small.png", "strikethrough_small.png"])
+        self.icons = utils.loadIcons(["undo_small.png","redo_small.png", "cut_small.png", "copy_small.png", "paste_small.png", "find_small.png","bold_small.png", "italic_small.png", "strikethrough_small.png","image_small.png"])
         self.undo_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["undo_small.png"], command=lambda: self.text_area.event_generate("<<Undo>>"), style="icon.TButton")
         self.undo_btn.pack(side="left", padx=0, pady=0)
         self.redo_btn = ttk.Button(self.editor_toolbar, text="Redo", image=self.icons["redo_small.png"], command=lambda: self.text_area.event_generate("<<Redo>>"), style="icon.TButton")
@@ -100,14 +100,14 @@ class TkintermdFrame(CTkFrame):
         # self.checklist_btn.pack(side="left", padx=0, pady=0)
         # self.blockquote_btn = ttk.Button(self.editor_toolbar, text="Blockquote")
         # self.blockquote_btn.pack(side="left", padx=0, pady=0)
-        # self.codeblock_btn = ttk.Button(self.editor_toolbar, text="Codeblock")
-        # self.codeblock_btn.pack(side="left", padx=0, pady=0)
+        #self.codeblock_btn = ttk.Button(self.editor_toolbar, text="Codeblock", command=lambda: self.check_markdown_both_sides(("`","``","```"), constants.bold_md_ignore), style="icon.TButton")
+        #self.codeblock_btn.pack(side="left", padx=0, pady=0)
         # self.table_btn = ttk.Button(self.editor_toolbar, text="Table")
         # self.table_btn.pack(side="left", padx=0, pady=0)
         # self.link_btn = ttk.Button(self.editor_toolbar, text="Link")
         # self.link_btn.pack(side="left", padx=0, pady=0)
-        # self.image_btn = ttk.Button(self.editor_toolbar, text="Image")
-        # self.image_btn.pack(side="left", padx=0, pady=0)
+        self.image_btn =  ttk.Button(self.editor_toolbar, text="", image=self.icons["image_small.png"], command=lambda: self.add_image(), style="icon.TButton")
+        self.image_btn.pack(side="left", padx=0, pady=0)
         self.editor_toolbar.pack(side="top", fill="x")
         # Editor frame with scrollbar and text area.
         
@@ -504,6 +504,13 @@ class TkintermdFrame(CTkFrame):
         self.remove_md = str(self.cur_selection).strip(self.md_syntax[0]).strip(self.md_syntax[1])
         self.text_area.delete(index1=SEL_FIRST, index2=SEL_LAST)
         self.text_area.insert(INSERT, self.remove_md)
+        return
+
+    def add_image(self):
+        """add image to the editor."""
+        image_path = filedialog.askopenfilename(title = "Select file",filetypes = (("jpeg files","*.jpg"),("png files","*.png"),("all files","*.*")))
+        if image_path:
+            self.text_area.insert(INSERT, f"![{os.path.basename(image_path)}]({image_path})")
         return
 
     def check_markdown_both_sides(self, md_syntax, md_ignore, md_special, strikethrough=None):
