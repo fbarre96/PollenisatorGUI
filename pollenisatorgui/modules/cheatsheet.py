@@ -18,7 +18,7 @@ class Cheatsheet(Module):
     order_priority = Module.LOW_PRIORITY
     pentest_types = ["all"]
 
-    def __init__(self, parent, settings):
+    def __init__(self, parent, settings, tkApp):
         """
         Constructor
         """
@@ -27,11 +27,16 @@ class Cheatsheet(Module):
         self.parent = None
         self.infos = {}
         self.treevw = None
+        self.tkApp = tkApp
         self.style = None
         self.icons = {}
+        self.inited = False
     
-    def open(self):
+    def open(self,view, nbk, treevw):
         apiclient = APIClient.getInstance()
+        self.treevw = treevw
+        if self.inited is False:
+            self.initUI(view)
         if apiclient.getCurrentPentest() is not None:
             self.refreshUI()
         return True
@@ -56,17 +61,14 @@ class Cheatsheet(Module):
         """
         self.treevw.load()
 
-    def initUI(self, parent, nbk, treevw, tkApp):
+    def initUI(self, parent):
         """
         Initialize Dashboard widgets
         Args:
             parent: its parent widget
         """
-        if self.parent is not None:  # Already initialized
-            return
+        self.inited = True
         self.parent = parent
-        self.tkApp = tkApp
-        self.treevwApp = treevw
         self.moduleFrame = CTkFrame(parent)
         #PANED PART
         self.paned = tk.PanedWindow(self.moduleFrame, height=800)

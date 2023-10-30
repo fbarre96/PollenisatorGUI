@@ -21,7 +21,7 @@ class Dashboard(Module):
     tabName = "Dashboard"
     order_priority = Module.FIRST_PRIORITY
 
-    def __init__(self, parent, settings):
+    def __init__(self, parent, settings, tkApp):
         """
         Constructor
         """
@@ -29,12 +29,20 @@ class Dashboard(Module):
         self.timer = None
         self.mainApp = parent
         self.parent = None
+        self.parent = parent
+        
+        self.tkApp = tkApp
+        self.treevwApp = None
+        self.autoscan_slider = None
         self.settings = settings
         self.label_count_vuln = None
+        self.inited = False
 
-    def open(self):
+    def open(self, view, nbk, treevw):
         apiclient = APIClient.getInstance()
-
+        self.treevwApp = treevw
+        if self.inited is False:
+            self.initUI(view)
         if apiclient.getCurrentPentest() is not None:
             self.refreshUI()
 
@@ -73,19 +81,14 @@ class Dashboard(Module):
         self.set_cheatsheet_progression()
         self.set_results()
 
-    def initUI(self, parent, nbk, treevw, tkApp):
+    
+    def initUI(self, parent):
         """
-        Initialize Dashboard widgets
+        Build UI
         Args:
             parent: its parent widget
         """
-        if self.parent is not None:  # Already initialized
-            return
-        self.parent = parent
-        self.nbk = nbk
-        self.tkApp = tkApp
-        self.treevwApp = treevw
-        self.autoscan_slider = None
+        self.inited = True
         self.moduleFrame = CTkFrame(parent)
         vuln_frame = CTkFrame(self.moduleFrame, height=0)
         self.populate_vuln_frame(vuln_frame)

@@ -26,7 +26,7 @@ class ChildDialogDefectView(ChildDialogView):
             parent: the tkinter parent view to use for this window construction.
             defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
         """
-        super().__init__(parent, title, scrollable=True)
+        super().__init__(parent, title, scrollable=False)
         
         self.isInsert = defectModel is None
         self.multi = multi

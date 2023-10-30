@@ -172,6 +172,11 @@ class APIClient():
             return False
         if response.status_code == 200:
             saveClientConfig(config)
+            import pollenisatorgui.core.components.settings as settings
+            s = settings.Settings()
+            if self.api_url not in [x["url"] for x in s.local_settings.get("hosts", [])]:
+                s.local_settings["hosts"] = [{"url":self.api_url, "proto":http_proto,"port":port, "host":host}] + s.local_settings.get("hosts", [])
+                s.saveLocalSettings()
             self.proxies = proxies
             if token:
                 return self.setConnection(token)

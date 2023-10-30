@@ -15,5 +15,6 @@ watchdog
 python-tkdnd
 customtkinter==5.1.2
 libtmux
+tkintermd
 psutil
 neo4j

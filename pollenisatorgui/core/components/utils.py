@@ -562,7 +562,8 @@ def saveClientConfig(configDict):
     configFile = os.path.join(config_folder, "client.cfg")
     with open(configFile, mode="w") as f:
         f.write(json.dumps(configDict))
-        
+  
+
 def getValidMarkIconPath():
     """Returns:
          a validation mark icon path

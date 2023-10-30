@@ -515,7 +515,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         from pollenisatorgui.modules.module import REGISTRY
         for name, module_class in REGISTRY.items():
             if name != "Module":
-                module_obj = module_class(self, self.settings)
+                module_obj = module_class(self, self.settings, self)
                 self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIconDir()+module_obj.iconName), size=(30, 30))})
         
     def loadModulesInfos(self):
@@ -870,7 +870,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         else:
             for module in self.modules:
                 if tabName.strip().lower() == module["name"].strip().lower():
-                    module["object"].open()
+                    module["object"].open(module["view"], self.topviewframe, self.treevw)
 
     def initSettingsView(self):
         """Add the settings view frame to the notebook widget and initialize its UI."""
@@ -917,7 +917,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
         for module in self.modules:
             module["view"] = CTkFrame(self.topviewframe)
-            module["object"].initUI(module["view"], self.topviewframe, self.treevw, tkApp=self)
         for module in self.modules:
             self.nbk.add(module["view"], module["name"].strip(), order=module["object"].__class__.order_priority, image=module["img"])
         self.terminals.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=1)

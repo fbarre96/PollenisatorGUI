@@ -2,11 +2,11 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+import re
 from customtkinter import *
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 from PIL import ImageTk, Image
-from io import BytesIO
-import base64
+from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.utils import loadClientConfig, saveClientConfig, getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
 from pollenisatorgui.core.application.CollapsibleFrame import CollapsibleFrame
@@ -65,59 +65,72 @@ class ChildDialogConnect:
         self.clientCfg = loadClientConfig()
         lbl = CTkLabel(self.app, text=displayMsg)
         lbl.pack()
-        
+        settings = Settings()
+        settings.reloadLocalSettings()
+        prev_hosts = settings.local_settings.get("hosts", [])
+        row = 0
+        if len(prev_hosts) > 0:
+            CTkLabel(appFrame, text="Previous connections").grid(row=0, column=0, sticky="e")
+            box_uri = CTkComboBox(appFrame, values=[x["url"] for x in prev_hosts], state="readonly", width=300, command=self.fill_with_uri)
+            box_uri.grid(sticky="w", padx=5, row=0, column=1)
+            box_uri.set(prev_hosts[0]["url"])
+            row += 1
         lbl_hostname = CTkLabel(appFrame, text="Host : ")
-        lbl_hostname.grid(row=0, column=0)
+        lbl_hostname.grid(row=row, column=0, sticky="e")
         self.ent_hostname = PopoEntry(
-            appFrame, placeholder_text="127.0.0.1", validate="focusout", validatecommand=self.validateHost)
+            appFrame, placeholder_text="127.0.0.1", validate="focusout", width=300, validatecommand=self.validateHost)
         self.ent_hostname.insert(tk.END, self.clientCfg["host"])
         self.ent_hostname.bind('<Return>', self.validateHost)
         self.ent_hostname.bind('<KP_Enter>', self.validateHost)
-        self.ent_hostname.grid(row=0, column=1)
+        self.ent_hostname.grid(row=row, column=1, sticky="w", padx=5)
+        row += 1
         lbl_port = CTkLabel(appFrame, text="Port : ")
-        lbl_port.grid(row=1, column=0)
+        lbl_port.grid(row=row, column=0, sticky="e")
         self.ent_port = PopoEntry(
             appFrame, placeholder_text="5000", validate="focusout", validatecommand=self.validateHost)
         self.ent_port.insert(tk.END, self.clientCfg.get("port", 5000), )
         self.ent_port.bind('<Return>', self.validateHost)
         self.ent_port.bind('<KP_Enter>', self.validateHost)
-        self.ent_port.grid(row=1, column=1)
+        self.ent_port.grid(row=row, column=1, sticky="w", padx=5)
         self.img_indicator = CTkLabel(appFrame, text="",image=self.waitingIcon())
-        self.img_indicator.grid(row=1, column=2)
+        self.img_indicator.grid(row=row, column=2)
+        row += 1
+
         self.var_https = tk.IntVar()
         lbl_https = CTkLabel(appFrame, text="https: ")
-        lbl_https.grid(row=2, column=0)
+        lbl_https.grid(row=row, column=0, sticky="e")
         self.check_https = CTkSwitch(appFrame, variable=self.var_https, text="", onvalue=True, offvalue=False, command=self.validateHost)
-        self.check_https.grid(row=2, column=1)
-        
+        self.check_https.grid(row=row, column=1, sticky="w", padx=5)
+        row += 1
         lbl_login = CTkLabel(appFrame, text="Login: ")
-        lbl_login.grid(row=4, column=0)
+        lbl_login.grid(row=row, column=0, sticky="e")
         self.ent_login = PopoEntry(
-            appFrame, placeholder_text="login")
-        self.ent_login.grid(row=4, column=1)
+            appFrame, placeholder_text="login", width=300)
+        self.ent_login.grid(row=row, column=1, sticky="w", padx=5)
+        row += 1
         lbl_passwd = CTkLabel(appFrame, text="Password: ")
-        lbl_passwd.grid(row=5, column=0)
+        lbl_passwd.grid(row=row, column=0, sticky="e")
         self.password = tk.StringVar() 
         self.ent_passwd = PopoEntry(
-            appFrame, placeholder_text="password", show="*", textvariable = self.password)
+            appFrame, placeholder_text="password", show="*", width=300, textvariable = self.password)
         self.ent_passwd.bind('<Return>', self.onOk)
-        self.ent_passwd.grid(row=5, column=1)
-        appFrame.pack(ipadx=10, ipady=10)
+        self.ent_passwd.grid(row=row, column=1, sticky="w", padx=5)
+        appFrame.pack(padx=10, pady=10)
         self.ent_login.focus_set()
         cf1 = CollapsibleFrame(appFrame, text = "Advanced options", interior_padx=5, interior_pady=15)
         lbl_proxy = CTkLabel(cf1.interior, text="Proxy url : ")
-        lbl_proxy.grid(row=0, column=0)
+        lbl_proxy.grid(row=0, column=0, sticky="e")
         self.ent_proxy = PopoEntry(cf1.interior, placeholder_text="http://127.0.0.1:8080")
         proxies = self.clientCfg.get("proxies", "")
         if proxies != "" and str(proxies).strip() != "{}":
             self.ent_proxy.insert(tk.END, proxies)
             cf1.toggle()
-        self.ent_proxy.grid(row=0, column=1)
+        self.ent_proxy.grid(row=0, column=1, sticky="w", padx=5)
         self.validateHost()
 
         cf1.update_width()
 
-        cf1.grid(row=6,column=1)
+        cf1.grid(row=6,column=0, columnspan=2)
 
         self.ok_button = CTkButton(self.app, text="OK", command=self.onOk)
         self.ok_button.bind('<Return>', self.onOk)
@@ -166,6 +179,16 @@ class ChildDialogConnect:
 
     def valideLogin(self):
         pass
+
+    def fill_with_uri(self, uri):
+        regex_host = r"^(http|https)://([^:]+):(\d+)"
+        groups = re.search(regex_host,uri)
+        if groups:
+            self.ent_hostname.delete(0, tk.END)
+            self.ent_hostname.insert(0, groups.group(2))
+            self.ent_port.delete(0, tk.END)
+            self.ent_port.insert(0, groups.group(3))
+            self.var_https.set(groups.group(1) == "https")
 
     def onError(self, _event=None):
         self.rvalue = None

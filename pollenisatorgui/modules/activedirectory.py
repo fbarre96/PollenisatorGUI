@@ -38,15 +38,18 @@ class ActiveDirectory(Module):
     settings = Settings()
     pentest_types = ["lan"]
 
-    def __init__(self, parent, settings):
+    def __init__(self, parent, settings, tkApp):
         """
         Constructor
         """
         super().__init__()
         self.parent = None
         self.users = {}
+        self.treevw = None
+        self.tkApp = tkApp
         self.computers = {}
         self.shares = {}
+        self.inited = False
         
     
 
@@ -59,8 +62,11 @@ class ActiveDirectory(Module):
         cls.settings.local_settings[ActiveDirectory.coll_name] = newSettings
         cls.settings.saveLocalSettings()
 
-    def open(self):
+    def open(self, view, nbk, treevw):
         apiclient = APIClient.getInstance()
+        self.treevw = treevw
+        if self.inited is False:
+            self.initUI(view)
         if apiclient.getCurrentPentest() is not None:
             self.refreshUI()
         return True
@@ -153,17 +159,14 @@ class ActiveDirectory(Module):
             i+=1
         
 
-    def initUI(self, parent, nbk, treevw, tkApp):
+    def initUI(self, parent):
         """
         Initialize Dashboard widgets
         Args:
             parent: its parent widget
         """
-        if self.parent is not None:  # Already initialized
-            return
+        self.inited = True
         self.parent = parent
-        self.tkApp = tkApp
-        self.treevwApp = treevw
         settings_btn = CTkButton(parent, text="Configure this module", command=self.openConfig)
         settings_btn.pack(side="bottom", pady=5)
         self.moduleFrame = ScrollableFrameXPlateform(parent)

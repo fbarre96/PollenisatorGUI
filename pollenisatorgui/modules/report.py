@@ -32,13 +32,13 @@ class Report(Module):
     collNames = ["defects", "remarks"]
     order_priority = Module.HIGH_PRIORITY
     
-    def __init__(self, _parent, settings):
+    def __init__(self, _parent, settings, tkApp):
 
         """
         Constructor
         """
         super().__init__()
-        self.tkApp = None
+        self.tkApp = tkApp
         self.langs = ["en"]
         self.docx_models = []
         self.curr_lang = "en"
@@ -58,9 +58,14 @@ class Report(Module):
         self.btn_template_photo = None
         self.lastMovedTo = None
         self.movingSelection = None
+        self.inited = False
         return
 
-    def open(self):
+    def open(self, view, nbk, treevw):
+        self.nbk = nbk
+        self.treevw = treevw
+        if self.inited is False:
+            self.initUI(view)
         self.refreshUI()
         return True
 
@@ -79,16 +84,16 @@ class Report(Module):
         return
         
 
-    def initUI(self, parent, nbk, treevw, tkApp):
+    def initUI(self, parent):
         """
         Initialize window and widgets.
         """
-        if self.parent is not None:  # Already initialized
+        if self.inited:  # Already initialized
             self.reset()
             self.fillWithDefects()
             self.fillWithRemarks()
             return
-        self.tkApp = tkApp
+        self.inited = True
         self.parent = parent
         ### MAIN PAGE FRAME ###
         self.reportFrame = CTkScrollableFrame(parent)
@@ -245,7 +250,7 @@ class Report(Module):
         templatesFrame.pack(side=tk.TOP,padx=10, pady=10, expand=1, anchor=tk.CENTER)
         officeFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)
         belowFrame.pack(side=tk.TOP, fill=tk.BOTH)
-        self.paned.add(self.frameTw)
+        self.paned.add(self.frameTw, minsize=200)
         self.paned.add(belowFrame)
         self.paned.pack(fill=tk.BOTH, expand=1)
         defectLabelFrame.pack(side=tk.TOP, fill=tk.BOTH, pady=10)	

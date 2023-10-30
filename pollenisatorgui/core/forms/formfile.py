@@ -143,7 +143,9 @@ class FormFile(Form):
         Returns:
             Return the entry value as string.
         """
-        return list(self.listbox.get('@1,0', tk.END))
+        paths = self.get_paths()
+        print(paths)
+        return paths
 
     def checkForm(self):    
         """

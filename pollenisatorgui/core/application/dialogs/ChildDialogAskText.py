@@ -30,7 +30,8 @@ class ChildDialogAskText:
             self.formText = self.form.addFormText(info, "", default,
                                 side=tk.TOP, **kwargs)
         else:
-            self.formText = self.form.addFormStr(info, "", default, side=tk.TOP, **kwargs)
+            show = "*" if kwargs.get("secret") else None
+            self.formText = self.form.addFormStr(info, "", default, side=tk.TOP, show=show, **kwargs)
         btn = self.form.addFormButton("OK", self.onOk, side=tk.RIGHT)
         self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT, 
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
