@@ -17,18 +17,17 @@ class CheckItem(Element):
         """Constructor
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched command is optimal.
-                        possible keys with default values are : _id (None), parent (None), title, pentest_types=None, description="", category="", commands=None, script="", defects=None, infos=None
+                        possible keys with default values are : _id (None), parent (None), title, pentest_types=None, description="", category="", commands=None, defect_tags=None, script="",infos=None
         """
         if valuesFromDb is None:
             valuesFromDb = dict()
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
-        self.initialize(valuesFromDb.get("title"), valuesFromDb.get("pentest_types", []), valuesFromDb.get(
-                            "lvl", "port:onServiceUpdate"),
-                        valuesFromDb.get("ports", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("max_thread", 1), valuesFromDb.get("description", ""), valuesFromDb.get("category", ""),\
+        self.initialize(valuesFromDb.get("title"), valuesFromDb.get("pentest_types", []), valuesFromDb.get("lvl", "port:onServiceUpdate"),
+            valuesFromDb.get("ports", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("max_thread", 1), valuesFromDb.get("description", ""), valuesFromDb.get("category", ""),\
             valuesFromDb.get("check_type", "manual"), valuesFromDb.get("step", 0), valuesFromDb.get("parent", None),
-            valuesFromDb.get("commands", []), valuesFromDb.get("script", ""), valuesFromDb.get("defects", []), valuesFromDb.get("infos", {}))
+            valuesFromDb.get("commands", []), valuesFromDb.get("defect_tags", []), valuesFromDb.get("script", ""),  valuesFromDb.get("infos", {}))
         
-    def initialize(self, title, pentest_types=None, lvl="port:onServiceUpdate", ports="", priority=0, max_thread=1, description="", category="", check_type="manual", step=0, parent=None, commands=None, script="", defects=None, infos=None):
+    def initialize(self, title, pentest_types=None, lvl="port:onServiceUpdate", ports="", priority=0, max_thread=1, description="", category="", check_type="manual", step=0, parent=None, commands=None, defect_tags=None, script="", infos=None):
         self.title = title
         self.description = description
         self.category = category
@@ -40,9 +39,10 @@ class CheckItem(Element):
         self.max_thread = int(max_thread)
         self.priority = int(priority)
         self.commands = [] if commands is None else commands
+        self.defect_tags = [] if defect_tags is None else defect_tags
         self.script = script
         self.pentest_types = [] if pentest_types is None else pentest_types
-        self.defects = [] if defects is None else defects
+        self.defect_tags = [] if defect_tags is None else defect_tags
         self.infos = {} if infos is None else infos
         return self
 
@@ -128,7 +128,7 @@ class CheckItem(Element):
                 "priority": int(self.priority), "max_thread": int(self.max_thread),
                 "description": self.description, "category":self.category,
                 "check_type":self.check_type, "step":self.step, "parent":self.parent,
-                "commands":self.commands, "script":self.script, "defects":self.defects, "infos":self.infos}
+                "commands":self.commands, "defect_tags":self.defect_tags, "script":self.script, "infos":self.infos}
 
 
     def getDbKey(self):

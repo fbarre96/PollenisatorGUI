@@ -211,7 +211,7 @@ class IpView(ViewElement):
         if self.controller.model is not None:
             modelData = self.controller.getData()
             if not modelData["in_scopes"]:
-                self.controller.model.tags.append("OOS")
+                self.controller.addTag("OOS")
                 self.appliTw.item(str(self.controller.getDbId()), image=self.getIcon(), tags=self.controller.getTags()+["OOS"])
                 for module in self.mainApp.modules:
                     if callable(getattr(module["object"], "deleteIp", None)):

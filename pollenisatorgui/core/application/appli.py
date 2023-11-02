@@ -23,6 +23,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogToolsInstalled import C
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.application.terminalswidget import TerminalsWidget
 from pollenisatorgui.core.components.datamanager import DataManager
+from pollenisatorgui.core.components.tag import TagInfos
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.treeviews.PentestTreeview import PentestTreeview
 from pollenisatorgui.core.application.treeviews.CommandsTreeview import CommandsTreeview
@@ -1023,9 +1024,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         tagged_types = set()
         for tagged in taggeds.values():
             for tag in tagged.tags:
-                if not isinstance(tag, str):
-                    tag = tag[0]
-                if tag == name:
+                tag = TagInfos(tag)
+                if tag.name == name:
                     tagged_items.append(tagged)
                     tagged_types.add(tagged.item_type)
         for module in self.modules:

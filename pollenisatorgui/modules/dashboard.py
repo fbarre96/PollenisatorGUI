@@ -7,6 +7,7 @@ from pollenisatorgui.core.components import utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
+from pollenisatorgui.core.components.tag import TagInfos
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.modules.module import Module
 from pollenisatorgui.core.forms.formpanel import FormPanel
@@ -309,12 +310,9 @@ class Dashboard(Module):
         tags_registered = Settings.getTags()
         for tag_infos in tags:
             for tag in tag_infos.get("tags", []):
-                if isinstance(tag, str):
-                    tag_name = tag
-                else:
-                    tag_name = tag[0]
-                    #tag_color = tag[1]
-                    #tag_level = tag[2]
+                tag = TagInfos(tag)
+                tag_name = tag.name
+                
                 if tags_registered.get(tag_name, {}).get("level", "") != "":
                     self.treeview.addItem("", tk.END, tag_infos["_id"]+"|"+tag_name, text="Tag", values=(
                         tag_infos["date"], tags_registered[tag_name]["level"], tag_name,  tag_infos["detailed_string"]))

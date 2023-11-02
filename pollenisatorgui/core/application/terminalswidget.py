@@ -211,7 +211,10 @@ class TerminalsWidget(CTkFrame):
         tool_iid = iid.get("tool_iid")
         iid = str(check_iid) if tool_iid is None else str(check_iid)+"|"+str(tool_iid)
         if self.opened != str(iid):
-            self.terminalTv.item(str(iid), tags="notified")
+            try:
+                self.terminalTv.item(str(iid), tags="notified")
+            except tk.TclError: # item not found, may append if terminal is not opened
+                pass
         return
 
     def create_terminal(self):

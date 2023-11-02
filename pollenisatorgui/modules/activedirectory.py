@@ -12,6 +12,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDia
 from pollenisatorgui.core.application.dialogs.ChildDialogAskFile import ChildDialogAskFile
 from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.core.components.datamanager import DataManager
+from pollenisatorgui.core.components.tag import TagInfos
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.modules.module import Module
@@ -243,10 +244,8 @@ class ActiveDirectory(Module):
             tags = []
             if tagged:
                 for tag in tagged.get("tags", []):
-                    if isinstance(tag, str):
-                        tags.append(tag)
-                    else:
-                        tags.append(tag[0])
+                    tag = TagInfos(tag)
+                    tags.append(tag.name)
 
             self.tvUsers.insert(
                 '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", ""), ", ".join(tags)))
@@ -300,10 +299,8 @@ class ActiveDirectory(Module):
         tags = []
         if tagged:
             for tag in tagged.get("tags", []):
-                if isinstance(tag, str):
-                    tags.append(tag)
-                else:
-                    tags.append(tag[0])
+                tag = TagInfos(tag)
+                tags.append(tag.name)
         newValues = (computer.get("name",""), computer.get("domain", ""), infos.get("is_dc", False), len(computer.get("admins", [])), len(computer.get("users", [])), infos.get("os", ""), \
                         infos.get("signing", ""), infos.get("smbv1", ""), ", ".join(tags))
         
@@ -322,10 +319,8 @@ class ActiveDirectory(Module):
         tags = []
         if tagged:
             for tag in tagged.get("tags", []):
-                if isinstance(tag, str):
-                    tags.append(tag)
-                else:
-                    tags.append(tag[0])
+                tag = TagInfos(tag)
+                tags.append(tag.name)
         try:
             parentiid = self.tvShares.insert(
                         '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags),"",""))

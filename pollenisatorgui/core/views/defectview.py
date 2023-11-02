@@ -133,7 +133,7 @@ class DefectView(ViewElement):
                 self.mainApp.wait_window(dialog.app)
                 if dialog.rvalue == "Yes":
                     self.saveAsDefectTemplate()
-        return res
+        return res, msg
 
     def openMultiModifyWindow(self, addButtons=True):
         self.form.clear()

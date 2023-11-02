@@ -4,6 +4,7 @@ import re
 from bson import ObjectId
 
 from pollenisatorgui.core.components.datamanager import DataManager
+from pollenisatorgui.core.components.tag import TagInfos
 
 class Term:
     """A search term, meaning "key.name" == (value) """
@@ -257,10 +258,8 @@ type == "ip" and infos.key == "ABC"
                 data["tags"] = []
             research = []
             for tag in data["tags"]:
-                if isinstance(tag, str):
-                    tag_name = tag
-                else:
-                    tag_name = tag[0]
+                tag = TagInfos(tag)
+                tag_name = tag.name
                 research.append(tag_name)
             data["tags"] = research
             result = self.evaluate(self.parsed, data)

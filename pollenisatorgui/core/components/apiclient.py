@@ -1621,6 +1621,21 @@ class APIClient():
             raise ErrorHTTP(response, False, response.text)
         else:
             return []
+        
+    @handle_api_errors
+    def getPluginTags(self):
+        api_url = '{0}tags/getPluginTags'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            tags_per_plugin = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            tags = []
+            for plugin in tags_per_plugin:
+                tags += tags_per_plugin[plugin]
+            return tags
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return []
 
     @handle_api_errors
     def getCommandVariables(self):

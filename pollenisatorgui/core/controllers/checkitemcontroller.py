@@ -33,6 +33,8 @@ class CheckItemController(ControllerElement):
         self.model.pentest_types = [x[0] for x in values.get("Pentest types", self.model.pentest_types).items() if x[1]]
         commands_raw = values.get("Commands", [])
         self.model.commands = [str(command[-1]) for command in commands_raw if str(command[-1]) != ""]
+        defect_tags = values.get("Defects", [])
+        self.model.defect_tags = [(defect[-2], str(defect[-1])) for defect in defect_tags if str(defect[-1]) != ""]
         self.model.script = values.get("Script", "")
         if updateInDb:
             # Update in database
@@ -60,6 +62,7 @@ class CheckItemController(ControllerElement):
         max_thread = values.get("Shared threads", 1)
         category = values.get("Category", "")
         commands_raw = values.get("Commands", [])
+        defects_raw = values.get("Defects", [])
         check_type = values["Check type"]
         pentest_types = [k for k,v in values["Pentest types"].items() if v]
         step = values["Step"]
@@ -73,7 +76,11 @@ class CheckItemController(ControllerElement):
         for command in commands_raw:
             if len(command) == 3:
                 commands.append(str(command[2]))
-        self.model.initialize(title, pentest_types=pentest_types, lvl=lvl, ports=ports, priority=priority, max_thread=max_thread, description=description, category=category, check_type=check_type, step=step, parent=parent, commands=commands, script="", defects=None, infos=None)
+        defect_tags = []
+        for defect in defects_raw:
+            if len(defect) == 4:
+                defect_tags.append((defect[4],defect[3]))
+        self.model.initialize(title, pentest_types=pentest_types, lvl=lvl, ports=ports, priority=priority, max_thread=max_thread, description=description, category=category, check_type=check_type, step=step, parent=parent, commands=commands, defect_tags=defect_tags, script="",  infos=None)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:
@@ -101,7 +108,8 @@ class CheckItemController(ControllerElement):
         return self.model.category
         
     def getParent(self):
-        return self.model.parent
+        if self.model is not None:
+            return self.model.parent
 
     def actualize(self):
         """Ask the model to reload its data from database

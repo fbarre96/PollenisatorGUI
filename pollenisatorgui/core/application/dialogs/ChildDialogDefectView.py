@@ -18,7 +18,7 @@ class ChildDialogDefectView(ChildDialogView):
     """
     Open a child dialog of a tkinter application to answer a question.
     """
-    def __init__(self, parent, title, settings, defectModel=None, multi=False):
+    def __init__(self, parent, title, settings, defectModel=None, multi=False, as_template=False):
         """
         Open a child dialog of a tkinter application to choose autoscan settings.
 
@@ -30,8 +30,11 @@ class ChildDialogDefectView(ChildDialogView):
         
         self.isInsert = defectModel is None
         self.multi = multi
+        self.as_template = as_template
         if self.isInsert:
             defectModel = Defect()
+            if self.as_template:
+                defectModel.isTemplate = True
 
         self.defect_vw = DefectView(None, self.appFrame, parent,
                                     DefectController(defectModel))
@@ -57,15 +60,15 @@ class ChildDialogDefectView(ChildDialogView):
         Set rvalue to True and perform the defect update/insert if validated.
         Args:
             _event: Not used but mandatory"""
-        
+        msg = None
         if self.isInsert:
             if self.multi:
                 res = self.defect_vw.multi_insert()
             else:
-                res, _ = self.defect_vw.insert()
+                res, msg = self.defect_vw.insert()
         else:
-            res, _ = self.defect_vw.update()
+            res, msg = self.defect_vw.update()
         if res:
-            self.rvalue = True
+            self.rvalue = res, msg
             self.app.destroy()
 

@@ -1,9 +1,14 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
 from pollenisatorgui.core.application.dialogs import ChildDialogView
+from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
+from pollenisatorgui.core.application.dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.controllers.commandcontroller import CommandController
+from pollenisatorgui.core.controllers.defectcontroller import DefectController
+from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.views.commandview import CommandView
+from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.tool import Tool
@@ -158,16 +163,46 @@ class CheckItemView(ViewElement):
             formTv.addFormLabel("Script", side=tk.LEFT)
             self.textForm = formTv.addFormStr("Script", ".+", default.get("script", ""))
             btn = formTv.addFormButton("Browse", lambda _event : self.browseScriptCallback(self.textForm))
-
-    
-
+        ### form defects
+        self.formDefects = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
+        formSearchDefects = self.formDefects.addFormPanel(side=tk.LEFT, fill=tk.Y, pady=5, padx=5)
+        plugins = apiclient.getPlugins()
+        tags = set()
+        for plugin in plugins:
+            tags = tags.union(set([tag.get("name") for tag in plugin.get("tags", [])]))
+        self.possible_tags = sorted(list(tags))
+        formSearchDefects.addFormSearchBar("Defect search", self.searchDefectCallback, self.formDefects, side=tk.TOP)
+        formSearchDefects.addFormSeparator()
+        formSearchDefects.addFormButton("Create new defect template", self.create_defect_callback, side=tk.TOP)
+        defect_tags = default.get("defect_tags")
+        if defect_tags is None:
+            tv_defects = ["", "", ""]
+        else:
+            tv_defects = []
+            for tag, defect in defect_tags:
+                try:
+                    defect = ObjectId(defect)
+                except:
+                    continue
+                defect_o = Defect.getTemplateById(ObjectId(defect))
+                if defect_o is not None:
+                    tv_defects.append((defect_o.title,  tag, str(defect_o.getId())))
+        self.treeview_defects = self.formDefects.addFormTreevw(
+            "Defects", ("Defect names", "Tag association"), tv_defects, doubleClickBinds=[self.onDefectDoubleClick, self.possible_tags],height=5, width=30, pady=5, fill=tk.X, side=tk.RIGHT)
+        
     def onCommandDoubleClick(self, oldval):
         command_o = Command.fetchObject({"name":oldval})
         if command_o is None:
             return
         view = CommandView(self.appliTw, self.appliViewFrame, self.mainApp, CommandController(command_o))
         view.openInDialog()
-        
+
+    def onDefectDoubleClick(self, oldval):
+        defect_o = Defect.fetchObject({"title":oldval})
+        if defect_o is None:
+            return
+        dialog = ChildDialogDefectView(self.mainApp, "Edit defect", self.settings, defect_o)
+    
     def reopen(self):
         if self.is_insert_view:
             self.openInsertWindow()
@@ -306,6 +341,16 @@ class CheckItemView(ViewElement):
         """
         self.menuContextuel.unpost()
 
+    def searchDefectCallback(self, searchreq):
+        ret = []
+        defects_obj, defects_errors = APIClient.getInstance().searchDefect(searchreq, check_api=True)
+        if defects_obj:
+            for i, defect in enumerate(defects_obj):
+                ret.append({"TITLE": defect["title"], "defects":{"text":defect["title"], "values":("", str(defect["_id"]))}})
+        else:
+            return [], defects_errors
+        return ret, ""
+
     def searchCallback(self, searchreq):
         apiclient = APIClient.getInstance()
         commands = apiclient.findInDb("pollenisator", "commands", {"name":{'$regex':searchreq}})
@@ -325,6 +370,21 @@ class CheckItemView(ViewElement):
                 self.treeview_commands.addItem("", "end", str(msg), text=comm.name, values=(0, str(comm.getId()),))
             else:
                 tk.messagebox.showerror("Error inserting command", msg)
+
+    def create_defect_callback(self, _event=None):
+        dialog = ChildDialogDefectView(self.mainApp, "Add a security defect template", self.mainApp.settings, as_template=True)
+        try:
+            self.mainApp.wait_window(dialog.app)	
+        except tk.TclError:
+            pass
+        if dialog.rvalue:
+            res, msg = dialog.rvalue
+            defect_o = Defect.fetchObject({"_id":ObjectId(msg)})
+            if defect_o is not None:
+                self.treeview_defects.addItem("", "end", str(msg), text=defect_o.name, values=(0, str(defect_o.getId()),))
+            else:
+                tk.messagebox.showerror("Error inserting defect template", msg)
+
 
     def updateReceived(self, obj=None, old_obj=None):
         """Called when a command update is received by notification.

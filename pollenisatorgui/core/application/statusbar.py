@@ -5,6 +5,7 @@ from tkinter import ttk
 from customtkinter import *
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
+from pollenisatorgui.core.components.tag import TagInfos
 
 class StatusBar(CTkFrame):
     """StatusBar class. Show tagged numbers to user.
@@ -52,10 +53,8 @@ class StatusBar(CTkFrame):
         tags = datamanager.get("tags", "*")
         for tag_iid, tag_obj in tags.items():
             for tag_info in tag_obj.tags:
-                if isinstance(tag_info,str):
-                    tag_name = tag_info
-                else:
-                    tag_name = tag_info[0]
+                tag = TagInfos(tag_info)
+                tag_name = tag.name
                 self.tagsCount[str(tag_name)] = self.tagsCount.get(str(tag_name), 0) + 1
         for registeredTag, tag_info in self.registeredTags.items():
             self.tagsCount[registeredTag] = self.tagsCount.get(registeredTag, 0)
@@ -82,16 +81,14 @@ class StatusBar(CTkFrame):
         updated = False
         if not "hidden" in addedTags:
             for tag in addedTags:
-                if isinstance(tag, list) or isinstance(tag, tuple):
-                    tag = tag[0] # when tag is colored, it can be tuple whith (tag,color)
-                if tag in self.tagsCount:
-                    self.tagsCount[tag] += 1
+                tag = TagInfos(tag)
+                if tag.name in self.tagsCount:
+                    self.tagsCount[tag.name] += 1
                     updated = True
         for tag in removedTags:
-            if isinstance(tag, list) or isinstance(tag, tuple):
-                tag = tag[0] # when tag is colored, it can be tuple whith (tag,color)
-            if tag in self.tagsCount:
-                self.tagsCount[tag] -= 1
+            tag = TagInfos(tag)
+            if tag.name in self.tagsCount:
+                self.tagsCount[tag.name] -= 1
                 updated = True
         if updated:
             self._update()

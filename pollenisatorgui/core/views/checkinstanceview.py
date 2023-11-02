@@ -8,6 +8,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialo
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
+from pollenisatorgui.core.components.tag import TagInfos
 from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.views.checkinstancemultiview import CheckInstanceMultiView
 from pollenisatorgui.core.views.toolview import ToolView
@@ -213,26 +214,24 @@ class CheckInstanceView(ViewElement):
                 tags = ToolController(tool_m).getTags()
                 if tags:
                     for tag in tags:
+                        tag = TagInfos(tag)
                         registeredTags = Settings.getTags()
                         keys = list(registeredTags.keys())
                         column = 0
                         item_no = 0
                         
                         s = ttk.Style(self.mainApp)
-                        if isinstance(tag, str):
-                            tag_name = tag
-                            tag_color = registeredTags.get(tag_name, {}).get("color"," gray97")
+                        if tag.color is None or tag.color == "transparent":
+                            tag_color = registeredTags.get(tag.name, {}).get("color"," gray97")
                         else:
-                            tag_name = tag[0]
-                            tag_color = tag[1]
-                            tag_severity = tag[2]
+                            tag_color = tag.color
                         try: # CHECK IF COLOR IS VALID
                             CTkLabel(self.mainApp, fg_color=tag_color)
                         except tk.TclError as e:
                             #color incorrect
                             tag_color = "gray97"
                         s.configure(""+tag_color+".Default.TLabel", background=tag_color, foreground="black", borderwidth=1, bordercolor="black")
-                        tool_panel.addFormLabel(tag, text=tag_name, side="top", padx=1, pady=0)
+                        tool_panel.addFormLabel(tag, text=tag.name, side="top", padx=1, pady=0)
                         column += 1
                         item_no += 1
                         if column == 4:
