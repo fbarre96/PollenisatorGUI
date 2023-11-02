@@ -65,12 +65,12 @@ class CommandView(ViewElement):
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Name", modelData["name"], sticky=tk.NW)
         
-        panel_text = self.form.addFormPanel()
-        panel_text.addFormLabel("Command line options", side="top")
-        panel_text.addFormHelper(
-            """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|,\n |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|,\n|ip.infos.*| |port.infos.*| |tool.infos.*|""", side="right")
-        panel_text.addFormText("Command line options", r"",
-                               modelData["text"], self.menuContextuel, side="left", height=100)
+        self.panel_text = self.form.addFormPanel()
+        self.panel_text.addFormLabel("Command line options", side="top")
+        self.panel_text.addFormLabel(
+            """Do not include binary name/path\nDo not include Output file option\nRight click to insert variables like ip, scope, port....""", side="right")
+        self.panel_text.addFormText("Command line options", r"",
+                               modelData["text"], self.menuContextuel, binds={"<Button-3>": self.popup}, side="left", height=100)
         self._commonWindowForms(modelData)
         panel_bottom = self.form.addFormPanel(fill=tk.X, grid=True)
         
@@ -103,10 +103,10 @@ class CommandView(ViewElement):
         
         panel_text = self.form.addFormPanel()
         panel_text.addFormLabel("Command line options", side="top")
-        panel_text.addFormHelper(
-            """Do not include binary name/path\nDo not include Output file option\nUse variables |wave|, |scope|, |ip|, |port|, |parent_domain|, |outputDir|, |port.service|, |port.product|, |ip.infos.*| |port.infos.*|""", side="right")
+        panel_text.addFormLabel(
+            """Do not include binary name/path\nDo not include Output file option\nRight click to insert variables like ip, scope, port....""", side="right")
         panel_text.addFormText("Command line options",
-                               r"", data.get("text", ""), self.menuContextuel, side="top", height=100)
+                               r"", data.get("text", ""), self.menuContextuel, binds={"<Button-3>": self.popup}, side="top", height=100)
 
         self._commonWindowForms(self.controller.getData())
         self.completeInsertWindow()
@@ -143,20 +143,33 @@ class CommandView(ViewElement):
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
-        self.menuContextuel.add_command(
-            label="Wave id", command=self.addWaveVariable)
-        self.menuContextuel.add_command(
-            label="Network address without slash nor dots", command=self.addIpReseauDirVariable)
-        self.menuContextuel.add_command(
-            label="Network address", command=self.addIpReseauVariable)
-        self.menuContextuel.add_command(
-            label="Parent domain", command=self.addParentDomainVariable)
-        self.menuContextuel.add_command(label="Ip", command=self.addIpVariable)
-        self.menuContextuel.add_command(
-            label="Ip without dots", command=self.addIpDirVariable)
-        self.menuContextuel.add_command(
-            label="Port", command=self.addPortVariable)
+        self.menuContextuel = utils.craftMenuWithStyle(self.mainApp)
+        apiclient = APIClient.getInstance()
+        command_variables = apiclient.getCommandVariables()
+        for variable_name in command_variables:
+           self.menuContextuel.add_command(label=variable_name, command=lambda variable_name=variable_name: self.addVariable(variable_name))
+        # self.menuContextuel.add_command(
+        #     label="Wave id", command=self.addWaveVariable)
+        # self.menuContextuel.add_command(
+        #     label="Network address without slash nor dots", command=self.addIpReseauDirVariable)
+        # self.menuContextuel.add_command(
+        #     label="Network address", command=self.addIpReseauVariable)
+        # self.menuContextuel.add_command(
+        #     label="Parent domain", command=self.addParentDomainVariable)
+        # self.menuContextuel.add_command(label="Ip", command=self.addIpVariable)
+        # self.menuContextuel.add_command(
+        #     label="Ip without dots", command=self.addIpDirVariable)
+        # self.menuContextuel.add_command(
+        #     label="Port", command=self.addPortVariable)
+
+    def addVariable(self, variable):
+        """
+        insert the variable inside the a tkinter widget stored in appli widgetMenuOpen attribute.
+
+        Args:
+            variable: the variable to insert
+        """
+        self.widgetMenuOpen.insert(tk.INSERT, "|"+variable+"|")
 
     def popup(self, event):
         """
@@ -165,6 +178,7 @@ class CommandView(ViewElement):
         Args:
             event: a ttk Treeview event autofilled. Contains information on what treeview node was clicked.
         """
+        print("command view popup")
         self.widgetMenuOpen = event.widget
         self.menuContextuel.tk_popup(event.x_root, event.y_root)
         self.menuContextuel.focus_set()

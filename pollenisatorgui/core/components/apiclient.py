@@ -1623,6 +1623,17 @@ class APIClient():
             return []
 
     @handle_api_errors
+    def getCommandVariables(self):
+        api_url = '{0}getCommandVariables'.format(self.api_url_base)
+        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+            return []
+            
+    @handle_api_errors
     def getGeneralInformation(self):
         api_url = '{0}pentest/{1}'.format(self.api_url_base, self.getCurrentPentest())
         response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)

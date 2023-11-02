@@ -32,6 +32,7 @@ class FormText(Form):
         self.default = default
         self.contextualMenu = contextualMenu
         self.kwargs = kwargs
+        self.binds = self.getKw("binds",{})
         self.text = None
         self.widgetMenuOpen = None
 
@@ -41,8 +42,9 @@ class FormText(Form):
             parent: the tkinter parent widget for the contextual menu
         """
         # FIXME Add to given menu instead of Overriding given contextual menu
-        self.contextualMenu = utils.craftMenuWithStyle(parent)
-        parent.bind("<Button-3>", self.popup)
+        if self.contextualMenu is None:
+            self.contextualMenu = utils.craftMenuWithStyle(parent)
+        parent.bind("<Button-3>",self.binds.get("<Button-3>", self.popup))
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Cut", command=self.cut)
         self.contextualMenu.add_command(label="Paste", command=self.paste)
