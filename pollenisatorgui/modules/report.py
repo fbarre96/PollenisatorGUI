@@ -597,6 +597,8 @@ class Report(Module):
         """
         if defect_o is None:
             return
+        if not self.inited:
+            return
         children = self.treevw.get_children()
         indToInsert = defect_o.index
         types = defect_o.mtype

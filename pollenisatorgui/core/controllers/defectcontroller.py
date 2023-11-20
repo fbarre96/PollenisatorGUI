@@ -84,18 +84,15 @@ class DefectController(ControllerElement):
         risk = values["Risk"]
         notes = values.get("Notes", "")
         mtype = [k for k, v in mtype_dict.items() if v == 1]
-        ip = values["ip"]
-        port = values.get("port", None)
-        proto = values.get("proto", None)
-        #proof = values["Proof"]
-        #proofs = []
+        target_id = values.get("target_id", "")
+        target_type = values.get("target_type", "")
         
         fixes = values["Fixes"]
         tableau_from_ease = defect.Defect.getTableRiskFromEase()
        
         if risk == "" or risk == "N/A":
             risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
-        self.model.initialize(ip, port, proto, title, synthesis, description, ease,
+        self.model.initialize(target_id, target_type, title, synthesis, description, ease,
                               impact, risk, redactor, mtype, language, notes, None, fixes, [])
         ret, _ = self.model.addInDb()
         # Update this instance.
@@ -106,7 +103,7 @@ class DefectController(ControllerElement):
         for group_proof in group_proofs:
             matched = group_proof.group(0)
             path = group_proof.group(1)
-            if path.strip() != "":
+            if path.strip() != "" and not path.startswith("http"):
                 result_path = self.model.uploadProof(path)
                 if result_path is not None:
                     result_path = os.path.basename(result_path)
@@ -160,6 +157,13 @@ class DefectController(ControllerElement):
             bool
         """
         return self.model.isAssigned()
+    
+    def getTargetRepr(self):
+        """Returns the target representation of the defect model
+        Returns:
+            str
+        """
+        return self.model.getTargetRepr()
 
     
     def getType(self):

@@ -340,6 +340,8 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
                         child.kill()
                     parent.kill()
                     sys.exit(-1)
+                else:
+                    os.write(fd, key.encode())
             if fd:
                 timeout_sec = 0
                 (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
@@ -348,6 +350,10 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
                         errors="ignore"
                     )
                     output = output.replace("\r","")
+                    if "Y/n" in output:
+                        queue.put("Y\n")
+                    elif "y/N" in output:
+                        queue.put("N\n")
                     if printStdout:
                         print(output)
                     if queueResponse is not None:
@@ -360,7 +366,7 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
         print(e)
         return
 
-def execute(command, timeout=None,  queue=None, queueResponse=None, cwd=None, printStdout=False):
+def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, printStdout=False):
     """
     Execute a bash command and print output
 
@@ -456,6 +462,7 @@ def execute_no_fork(command, timeout=None, printStdout=True, queue=None, queueRe
             os.set_blocking(proc.stdin.fileno(), False)
             while proc.poll() is None and queue is not None and queueResponse is not None:
                 if queue is not None and queue.qsize() > 0:
+                    print("queue not empty")
                     key = queue.get()
                     proc.stdin.write(key.encode())
                     data = proc.stdout.read()

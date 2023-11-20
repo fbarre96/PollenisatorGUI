@@ -343,7 +343,7 @@ class CheckItemView(ViewElement):
 
     def searchDefectCallback(self, searchreq):
         ret = []
-        defects_obj, defects_errors = APIClient.getInstance().searchDefect(searchreq, check_api=True)
+        defects_obj, defects_errors = APIClient.getInstance().searchDefect(searchreq)#, check_api=True
         if defects_obj:
             for i, defect in enumerate(defects_obj):
                 ret.append({"TITLE": defect["title"], "defects":{"text":defect["title"], "values":("", str(defect["_id"]))}})

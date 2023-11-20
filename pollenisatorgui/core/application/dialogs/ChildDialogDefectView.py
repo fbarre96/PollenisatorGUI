@@ -18,7 +18,7 @@ class ChildDialogDefectView(ChildDialogView):
     """
     Open a child dialog of a tkinter application to answer a question.
     """
-    def __init__(self, parent, title, settings, defectModel=None, multi=False, as_template=False):
+    def __init__(self, parent, title, settings, defectModel=None, multi=False, as_template=False, force_insert=False):
         """
         Open a child dialog of a tkinter application to choose autoscan settings.
 
@@ -28,11 +28,11 @@ class ChildDialogDefectView(ChildDialogView):
         """
         super().__init__(parent, title, scrollable=True)
         
-        self.isInsert = defectModel is None
+        self.isInsert = defectModel is None or force_insert
         self.multi = multi
         self.as_template = as_template
         if self.isInsert:
-            defectModel = Defect()
+            defectModel = Defect() if defectModel is None else defectModel
             if self.as_template:
                 defectModel.isTemplate = True
 

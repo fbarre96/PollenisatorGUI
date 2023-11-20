@@ -66,6 +66,7 @@ class CheckItemController(ControllerElement):
         check_type = values["Check type"]
         pentest_types = [k for k,v in values["Pentest types"].items() if v]
         step = values["Step"]
+        script = values.get("Script", "")
         parent = values.get("Parent", None)
         tag_trigger = values.get("Tag Name", "")
         if lvl.startswith("tag:") and tag_trigger != "":
@@ -80,7 +81,7 @@ class CheckItemController(ControllerElement):
         for defect in defects_raw:
             if len(defect) == 4:
                 defect_tags.append((defect[4],defect[3]))
-        self.model.initialize(title, pentest_types=pentest_types, lvl=lvl, ports=ports, priority=priority, max_thread=max_thread, description=description, category=category, check_type=check_type, step=step, parent=parent, commands=commands, defect_tags=defect_tags, script="",  infos=None)
+        self.model.initialize(title, pentest_types=pentest_types, lvl=lvl, ports=ports, priority=priority, max_thread=max_thread, description=description, category=category, check_type=check_type, step=step, parent=parent, commands=commands, defect_tags=defect_tags, script=script,  infos=None)
         # Insert in database
         ret, _ = self.model.addInDb()
         if not ret:

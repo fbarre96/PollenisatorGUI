@@ -66,7 +66,10 @@ def pollex():
         print("output should be in "+str(outputFilePath))
     queue = multiprocessing.Queue()
     queueResponse = multiprocessing.Queue()
-    returncode = utils.execute_no_fork(comm, None, True, queue, queueResponse, cwd=tmpdirname)
+    #if comm.startswith("sudo "):
+    #    returncode = utils.execute_no_fork(comm, None, True, queue, queueResponse, cwd=tmpdirname)
+    #else:
+    returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
     queue.put("kill")
     if len(plugin_results) == 1 and "Default" in plugin_results:
         if (verbose):

@@ -60,15 +60,15 @@ class DefectView(ViewElement):
         s.setResultForm(result)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Title_lbl", text="Title")
-        topPanel.addFormStr("Title", r".+", "", column=1, width=400)
+        topPanel.addFormStr("Title", r".+", modelData.get("title", ""), column=1, width=400)
         topPanel = self.form.addFormPanel(grid=True)
         topPanel.addFormLabel("Ease")
         self.easeForm = topPanel.addFormCombo(
-            "Ease", Defect.getEases(), column=1, command=self.updateRiskBox, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Ease", Defect.getEases(), default=modelData.get("ease", ""), column=1, command=self.updateRiskBox, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", column=2)
         topPanel.addFormLabel("Impact", column=3)
         self.impactForm = topPanel.addFormCombo(
-            "Impact", Defect.getImpacts(),command=self.updateRiskBox, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            "Impact", Defect.getImpacts(), default=modelData.get("impact", ""), command=self.updateRiskBox, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", column=5)
         topPanel.addFormLabel("Risk", column=6)
         self.riskForm = topPanel.addFormCombo(
@@ -79,7 +79,7 @@ class DefectView(ViewElement):
         topPanel.addFormLabel("Redactor", row=1)
         topPanel.addFormCombo("Redactor", self.mainApp.settings.getPentesters()+["N/A"], "N/A", row=1, column=1)
         topPanel.addFormLabel("Language", row=1, column=2)
-        topPanel.addFormStr("Language", "", "en", row=1, column=3)
+        topPanel.addFormStr("Language", "", modelData.get("language","en"), row=1, column=3)
         
         chklistPanel = self.form.addFormPanel(grid=True)
         defectTypes = settings.getPentestTypes()
@@ -93,21 +93,20 @@ class DefectView(ViewElement):
         
         topPanel = self.form.addFormPanel()
         settings = self.mainApp.settings
-        topPanel.addFormText("Synthesis", r"", "Synthesis", state="readonly" if self.controller.isAssigned() else "", side="top", height=3)
+        topPanel.addFormText("Synthesis", r"", modelData.get("synthesis", "Synthesis"), state="readonly" if self.controller.isAssigned() else "", side="top", height=3)
         if not self.controller.isAssigned():
             topPanel = self.form.addFormPanel()
-            topPanel.addFormMarkdown("Description", r"", "Description", side="top", height=300)
+            topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", height=300)
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = self.form.addFormPanel()
             notesPanel.addFormLabel("Notes", side="top")
-            notesPanel.addFormText("Notes", r"", notes, None, side="top")
+            notesPanel.addFormText("Notes", r"", modelData.get("notes", notes), None, side="top")
         #proofsPanel = self.form.addFormPanel()
         #proofsPanel.addFormFile("Proof", r"", text="Add proof",height=3)
-        self.form.addFormHidden("ip", modelData["ip"])
-        self.form.addFormHidden("proto", modelData["proto"])
-        self.form.addFormHidden("port", modelData["port"])
-        self.form.addFormHidden("Fixes", [])
+        self.form.addFormHidden("target_id", modelData["target_id"])
+        self.form.addFormHidden("target_type", modelData["target_type"])
+        self.form.addFormHidden("Fixes", modelData.get("fixes", []))
         if addButtons:
             self.completeInsertWindow()
         else:
@@ -127,7 +126,7 @@ class DefectView(ViewElement):
         res, msg = super().insert(_event=None)
         if res:
             apiclient = APIClient.getInstance()
-            results, msg = apiclient.searchDefect(self.controller.model.title, check_api=False)
+            results, msg = apiclient.searchDefect(self.controller.model.title)#, check_api=False
             if results is not None and len(results) == 0:
                 dialog = ChildDialogQuestion(self.mainApp, "Create defect template", "This defect seems new. Do you want to create a defect template with this defect?")
                 self.mainApp.wait_window(dialog.app)
@@ -140,7 +139,7 @@ class DefectView(ViewElement):
         settings = self.mainApp.settings
         settings.reloadSettings()
         apiclient = APIClient.getInstance()
-        results, msg = apiclient.searchDefect("", check_api=False)
+        results, msg = apiclient.searchDefect("")#, check_api=False
         default_values = {}
         formFilter = self.form.addFormPanel(grid=True)
         lbl_filter_title = formFilter.addFormLabel("Filters")
@@ -296,7 +295,7 @@ class DefectView(ViewElement):
 
     def findDefectTemplateByTitle(self, title, multi=False):
         apiclient = APIClient.getInstance()
-        defects_matching, msg = apiclient.searchDefect(title, check_api=False)
+        defects_matching, msg = apiclient.searchDefect(title)# check_api=False
         if defects_matching is not None:
             if len(defects_matching) >= 1 and not multi:
                 return Defect(defects_matching[0])
@@ -340,19 +339,12 @@ class DefectView(ViewElement):
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
         topPanel = globalPanel.addFormPanel(grid=True)
         row = 0
-        if modelData.get("ip", "") != "":
-            topPanel.addFormLabel("IP", row=row, column=0)
+        if modelData.get("target_id", "") != "":
+            topPanel.addFormLabel("Target", row=row, column=0)
+            target = self.controller.getTargetRepr()
             topPanel.addFormStr(
-                "IP", '', modelData["ip"], None, column=1, row=row, state="readonly")
+                "Target", '', target, None, column=1, row=row, state="readonly")
             row += 1
-            if modelData.get("port", "") != "" and modelData["proto"] is not None:
-                topPanel.addFormLabel("Port", row=row, column=0)
-                port_str = modelData["proto"] + \
-                    "/" if modelData["proto"] != "tcp" else ""
-                port_str += modelData["port"]
-                topPanel.addFormStr(
-                    "Port", '', port_str, None, column=1, row=row, state="readonly")
-                row += 1
         if not self.controller.model.isTemplate:
             if modelData["proofs"]:
                 for i, proof in enumerate(modelData["proofs"]):
@@ -593,7 +585,7 @@ class DefectView(ViewElement):
                 else:
                     tk.messagebox.showerror("Multi insert error", f"Invalid defect result for : {title}. Wrong type : {result.get('type')}")
                     return False
-                d_o.initialize("", "", "", result["title"], result["synthesis"], result["description"],
+                d_o.initialize("", "", result["title"], result["synthesis"], result["description"],
                             result["ease"], result["impact"], result["risk"], "N/A", types, result["language"], "", None, result["fixes"])
                 d_o.addInDb()
             #if msg != "":

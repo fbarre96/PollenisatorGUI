@@ -115,6 +115,8 @@ class PortView(ViewElement):
         for widget in self.appliViewFrame.winfo_children():
             widget.destroy()
         modelData = self.controller.getData()
+        modelData["target_type"] = self.controller.model.__class__.__name__.lower()
+        modelData["target_id"] = self.controller.model.getId()
         dv = DefectView(self.appliTw, self.appliViewFrame,
                         self.mainApp, DefectController(Defect(modelData)))
         dv.openInsertWindow()

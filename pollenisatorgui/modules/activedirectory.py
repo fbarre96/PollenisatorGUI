@@ -179,7 +179,7 @@ class ActiveDirectory(Module):
         self.frameTreeviews = CTkFrame(self.moduleFrame)
         frameUsers = CTkFrame(self.frameTreeviews)
         self.tvUsers = ScrollableTreeview(
-            frameUsers, ("Username", "Password", "Domain", "N° groups","Desc", "Tags"), binds={"<Delete>":self.deleteUser, "<Double-Button-1>":self.userDoubleClick})
+            frameUsers, ("Username", "Password", "Domain", "N° groups","Desc", "hashNT", "Tags"), binds={"<Delete>":self.deleteUser, "<Double-Button-1>":self.userDoubleClick})
         self.tvUsers.pack(fill=tk.BOTH)
         addUserButton = CTkButton(frameUsers, text="Add user manually", command=self.addUsersDialog)
         addUserButton.pack(side="bottom")
@@ -207,7 +207,7 @@ class ActiveDirectory(Module):
             if event.keysym != "BackSpace" and event.keysym != "Delete" and (len(event.keysym) > 1 or not event.keysym.isalnum()):
                 return
         search = self.searchBar.get()
-        self.tvUsers.filter(search, search, search, search, search, search, check_all=False)
+        self.tvUsers.filter(search, search, search, search, search, search, search, check_all=False)
         self.tvComputers.filter(search, search, search, search, search, search, search, search, search, search, check_all=False)
         self.tvShares.filter(search, search, search, search, search, check_all=False)
 
@@ -248,7 +248,7 @@ class ActiveDirectory(Module):
                     tags.append(tag.name)
 
             self.tvUsers.insert(
-                '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", ""), ", ".join(tags)))
+                '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", ""), user.get("infos", {}).get("hashNT", ""),", ".join(tags)))
         except tk.TclError as e:
             pass
 
@@ -343,6 +343,8 @@ class ActiveDirectory(Module):
         
      
     def update_received(self, dataManager, notif, obj, old_obj):
+        if not self.inited:
+            return
         if notif["collection"] != ActiveDirectory.coll_name:
             return
         apiclient = APIClient.getInstance()

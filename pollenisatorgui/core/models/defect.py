@@ -21,7 +21,7 @@ class Defect(Element):
         Args:
             valueFromDb: a dict holding values to load into the object. A mongo fetched defect is optimal.
                         possible keys with default values are : _id (None), parent (None), tags([]), infos({}),
-                        ip(""), port(""), proto(""), title(""), synthesis(""), description(""), ease(""), impact(""), risk(""),
+                        target_id, target_type, title(""), synthesis(""), description(""), ease(""), impact(""), risk(""),
                         redactor("N/A"), type([]), language(""), notes(""), creation_time(None),fixes([]), proofs([]), index(None)
         """
         if valuesFromDb is None:
@@ -34,8 +34,8 @@ class Defect(Element):
             types = [types]
         else:
             types = list(types)
-        self.initialize(valuesFromDb.get("ip", ""), valuesFromDb.get("port", ""),
-                        valuesFromDb.get("proto", ""), valuesFromDb.get("title", ""), valuesFromDb.get("synthesis", ""), valuesFromDb.get("description", ""),
+        self.initialize(valuesFromDb.get("target_id", ""), valuesFromDb.get("target_type", ""),
+                         valuesFromDb.get("title", ""), valuesFromDb.get("synthesis", ""), valuesFromDb.get("description", ""),
                         valuesFromDb.get("ease", ""), valuesFromDb.get(
                             "impact", ""),
                         valuesFromDb.get(
@@ -45,12 +45,11 @@ class Defect(Element):
                         valuesFromDb.get("fixes", []), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
                         valuesFromDb.get("index", "0"))
 
-    def initialize(self, ip, port, proto, title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0"):
+    def initialize(self, target_id="", target_type="", title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0"):
         """Set values of defect
         Args:
-            ip: defect will be assigned to this IP, can be empty
-            port: defect will be assigned to this port, can be empty but requires an IP.
-            proto: protocol of the assigned port. tcp or udp.
+            target_id: defect will be assigned to this id; can be empty
+            target_type: defect will be assigned to target_id of this type
             title: a title for this defect describing what it is
             synthesis: a short summary of what this defect is about
             description: a more detailed explanation of this particular defect
@@ -78,9 +77,8 @@ class Defect(Element):
         self.mtype = mtype if mtype is not None else []
         self.language = language
         self.notes = notes
-        self.ip = ip
-        self.port = port
-        self.proto = proto
+        self.target_id = target_id
+        self.target_type = target_type
         self.infos = infos if infos is not None else {}
         self.proofs = proofs if proofs is not None else []
         self.fixes = fixes if fixes is not None else []
@@ -240,8 +238,8 @@ class Defect(Element):
             print("UPDATING TEMPLATE n update"+str(pipeline_set))
             self.updateAsTemplate(pipeline_set)
         if pipeline_set is None:
-            apiclient.update("defects", ObjectId(self._id), {"ip": self.ip, "title": self.title, "synthesis":self.synthesis, "description":self.description, "port": self.port,
-                         "proto": self.proto, "notes": self.notes, "ease": self.ease, "impact": self.impact,
+            apiclient.update("defects", ObjectId(self._id), {"target_id":self.target_id, "target_type":self.target_type, "title": self.title, "synthesis":self.synthesis, "description":self.description,
+                         "notes": self.notes, "ease": self.ease, "impact": self.impact,
                          "risk": self.risk, "redactor": self.redactor, "type": list(self.mtype), "language":self.language, "proofs": self.proofs, "fixes":self.fixes, "infos": self.infos, "index":str(self.index)})
         else:
             apiclient.update("defects", ObjectId(self._id), pipeline_set)
@@ -253,20 +251,7 @@ class Defect(Element):
         Returns:
             Returns the parent's ObjectId _id".
         """
-        try:
-            port = self.port
-        except AttributeError:
-            port = None
-        
-        datamanager = DataManager.getInstance()
-        if port is None:
-            port = ""
-        if port == "":
-            obj = datamanager.find("ips", {"ip": self.ip}, False)
-        else:
-            obj = datamanager.find(
-                "ports", {"ip": self.ip, "port": self.port, "proto": self.proto}, False)
-        return obj["_id"]
+        return self.target_id
 
     def calcDirPath(self):
         """Returns a directory path constructed for this defect.
@@ -274,14 +259,7 @@ class Defect(Element):
             path as string
         """
         apiclient = APIClient.getInstance()
-        path_calc = str(apiclient.getCurrentPentest())+"/"+str(self.ip)
-        try:
-            port = self.port
-        except AttributeError:
-            port = None
-        if port is not None:
-            path_calc += "/"+str(self.port)+"_"+str(self.proto)
-        path_calc += "/"+str(self._id)
+        path_calc = str(apiclient.getCurrentPentest())+"/"+str(self.target_id)
         return path_calc
 
     def uploadProof(self, proof_local_path):
@@ -341,6 +319,13 @@ class Defect(Element):
             Returns the defect +title.
         """
         return self.title
+    
+    def getTargetRepr(self):
+        apiclient = APIClient.getInstance()
+        result = apiclient.getDefectTargetRepr([self.getId()])
+        if result is not None:
+            return result.get(str(self.getId()), None)
+        return None
 
     def getDetailedString(self, onlyTarget=False):
         """Returns a detailed string describing for this defect.
@@ -348,31 +333,25 @@ class Defect(Element):
             the defect title. If assigned, it will be prepended with ip and (udp/)port
         """
         ret = ""
-        if self.ip is not None:
-            ret += str(self.ip)
-        if self.proto is not None and self.port is not None:
-            if self.proto != "tcp":
-                ret += ":"+self.proto+"/"+self.port
-            else:
-                ret += ":"+self.port
+        target = self.getTargetRepr()
         if onlyTarget:
-            return ret
-        ret += " "+self.__str__()
+            return target
+        ret = target+" "+self.__str__()
         return ret
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.
         Returns:
-            A dict (4 keys :"ip", "port", "proto", "title")
+            A dict (3 keys :"target_id" and "target_type" and "title")
         """
-        return {"ip": self.ip, "port": self.port, "proto": self.proto, "title": self.title}
+        return {"target_type": self.target_type, "target_id": self.target_id, "title": self.title}
 
     def isAssigned(self):
         """Returns a boolean indicating if this defect is assigned to an ip or is global.
         Returns:
             bool
         """
-        return self.ip != ""
+        return self.target_id != ""
 
     @classmethod
     def getDefectTable(cls):
@@ -385,7 +364,7 @@ class Defect(Element):
     @classmethod
     def fetchPentestObjects(cls):
         apiclient = APIClient.getInstance()
-        ds = apiclient.find(cls.coll_name, {"ip":{"$ne":""}}, True)
+        ds = apiclient.find(cls.coll_name, {"target_id":{"$ne":""}}, True)
         if ds is None:
             return None
         for d in ds:
@@ -399,5 +378,5 @@ class Defect(Element):
         """
         return {"title": self.title, "synthesis":self.synthesis, "description":self.description, "ease": self.ease, "impact": self.impact,
                 "risk": self.risk, "redactor": self.redactor, "type": self.mtype, "language":self.language, "notes": self.notes, "fixes":self.fixes,
-                "ip": self.ip, "port": self.port, "proto": self.proto,"index":self.index, "creation_time":self.creation_time,
+                "target_id": self.target_id, "target_type": self.target_type,"index":self.index, "creation_time":self.creation_time,
                 "proofs": self.proofs, "_id": self.getId(),"infos": self.infos}

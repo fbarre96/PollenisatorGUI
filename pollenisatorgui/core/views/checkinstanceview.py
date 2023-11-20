@@ -3,14 +3,18 @@
 import tkinter.ttk as ttk
 import webbrowser
 from customtkinter import *
+from pollenisatorgui.core.application.dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.application.dialogs.ChildDialogToast import ChildDialogToast
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.components.tag import TagInfos
+from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.controllers.toolcontroller import ToolController
+from pollenisatorgui.core.models.defect import Defect
 from pollenisatorgui.core.views.checkinstancemultiview import CheckInstanceMultiView
+from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.views.toolview import ToolView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
@@ -158,6 +162,7 @@ class CheckInstanceView(ViewElement):
         lambdas_defect_create = [self.createDefectCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         lambdas_reset = [self.resetToolCallbackLambda(iid) for iid in dict_of_tools_done.keys()]
         datamanager = DataManager.getInstance()
+        apiclient = APIClient.getInstance()
         
         if dict_of_tools_not_done:
             self.form.addFormSeparator()
@@ -165,7 +170,6 @@ class CheckInstanceView(ViewElement):
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
             for tool_iid, tool_string in dict_of_tools_not_done.items():
-                apiclient = APIClient.getInstance()
                 success, data = apiclient.getCommandLine(tool_iid)
                 if success:
                     comm, fileext = data["comm"], data["ext"]
@@ -258,6 +262,7 @@ class CheckInstanceView(ViewElement):
                 formCommands.addFormButton("Reset", lambdas_error_reset[row], row=row, column=2,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
+        
         upload_panel = self.form.addFormPanel(side=tk.TOP, fill=tk.X,pady=5, height=0)
         upload_panel.addFormLabel("Upload additional scan results", side=tk.LEFT, anchor=tk.N, pady=5)
         self.form_file = upload_panel.addFormFile("upload_tools", height=2, side=tk.LEFT, pady=5, command=self.mod_file_callback)
@@ -272,6 +277,18 @@ class CheckInstanceView(ViewElement):
             self.edit_icon = CTkImage(Image.open(utils.getIcon("view_doc.png")))
             formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon)
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
+        self.defect_titles = {}
+        for defect in check_m.defect_tags:
+            d = apiclient.findInDb("pollenisator", "defects", {"_id":ObjectId(defect[1])}, False)
+            if d is not None:
+                if d.get("language", "") == self.mainApp.settings.db_settings.get("lang", "en"):
+                    self.defect_titles[d.get("title")] = d
+        self.form.addFormSeparator(fill=tk.X, pady=5)
+        formDefects = self.form.addFormPanel(fill=tk.X, pady=5, grid=True)
+        formDefects.addFormLabel("Add Security defects", pady=5,row=1)
+        self.combo_defect = formDefects.addFormCombo("Defect", list(self.defect_titles.keys())+["Search other defect"], default=None, width=300, row=1, column=1)
+        formDefects.addFormButton("Confirm", callback=self.defect_add_callback, row=1, column=2)
+        self.form.addFormSeparator(fill=tk.X, pady=5)
         panel_detail = self.form.addFormPanel(grid=True, fill=tk.X)
         panel_detail.columnconfigure(1, weight=2)
         panel_detail.addFormLabel("Description", row=1, column=0)
@@ -290,6 +307,21 @@ class CheckInstanceView(ViewElement):
         #import pollenisatorgui.modules.terminal as terminal
         #terminal.Terminal.openTerminal(str(self.controller.getDbId()))
         self.mainApp.open_terminal(str(self.controller.getDbId()), self.controller.target_repr)
+
+    def defect_add_callback(self, event=None):
+        defect_title = self.combo_defect.getValue()
+        if defect_title == "Search other defect":
+            d = Defect({"target_type":self.controller.model.target_type, "target_id":self.controller.model.target_iid})
+            ChildDialogDefectView(self.mainApp, "Search defect", self.mainApp.settings, force_insert=True)
+        else:
+            defect = self.defect_titles.get(defect_title)
+            if defect is not None:
+                defect["target_type"] = self.controller.model.target_type
+                defect["target_id"] = self.controller.model.target_iid
+                
+                dv = DefectView(self.appliTw, self.appliViewFrame, self.mainApp,
+                                DefectController(Defect(defect)))
+                dv.openInsertWindow(defect.get("notes", ""))
 
     def status_change(self, event):
         status = self.form_status.getValue()

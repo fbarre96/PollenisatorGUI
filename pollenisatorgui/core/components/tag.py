@@ -1,6 +1,6 @@
 class TagInfos:
     def __init__(self, *args, **kwargs):
-        if isinstance(args[0], tuple):
+        if isinstance(args[0], tuple) or isinstance(args[0], list):
             name = args[0][0]
             color = args[0][1]
             level = args[0][2]
@@ -24,7 +24,7 @@ class TagInfos:
             level = kwargs.get("level", None)
             notes = kwargs.get("notes", None)
         else:
-            raise TypeError("Tag constructor only accepts dict, tuple, Tag or str")
+            raise TypeError("Tag constructor only accepts dict, tuple, TagInfos or str and got "+str(type(args[0])))
         if kwargs.get("color", None) is not None:
             color = kwargs.get("color", None)
         if kwargs.get("level", None) is not None:
