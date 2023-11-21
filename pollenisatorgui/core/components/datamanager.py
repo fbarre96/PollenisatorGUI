@@ -64,7 +64,7 @@ class DataManager(Subject):
         if collection not in self.data.keys():
             return None
         ret = []
-        for data_model in self.data[collection].values():
+        for data_model in list(self.data[collection].values()):
             is_match = True
             for key, val in search.items():
                 data = data_model.getData()

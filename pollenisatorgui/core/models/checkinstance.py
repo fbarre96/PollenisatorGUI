@@ -40,7 +40,7 @@ class CheckInstance(Element):
         if self.check_m is None:
             self.check_m = CheckItem.fetchObject({"_id":ObjectId(check_iid)})
         if self.check_m is None:
-            print(" Warning : Check item not found. Might have been deleted")
+            #print(" Warning : Check item not found. Might have been deleted")
             return None
         return self
 

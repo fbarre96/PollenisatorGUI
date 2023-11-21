@@ -142,7 +142,7 @@ class Tool(Element):
         self._id = iid
         return True, iid
       
-    def  getData(self):
+    def getData(self):
         """Return scope attributes as a dictionnary matching Mongo stored scopes
         Returns:
             dict with keys name, wave, scope, ip, port, proto, lvl, text, dated, datef, scanner_ip, notes, status, _id, tags and infos

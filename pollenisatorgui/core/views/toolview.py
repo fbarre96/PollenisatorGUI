@@ -394,5 +394,6 @@ class ToolView(ViewElement):
             self.appliTw.item(str(self.controller.getDbId()), text=str(
                 self.controller.getModelRepr()), image=self.getIcon())
         except tk.TclError:
-            print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
+            pass
+            #print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
         super().updateReceived()
