@@ -551,7 +551,7 @@ class CheckInstanceView(ViewElement):
         scriptmanager.executeScript(self.mainApp, script, data, parent=self.mainApp)
     
 
-    def addInTreeview(self, parentNode=None, addChildren=True, detailed=False):
+    def addInTreeview(self, parentNode=None, addChildren=True, detailed=False, refresh_status=False):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
@@ -561,7 +561,10 @@ class CheckInstanceView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         text = self.controller.target_repr if self.mainApp.settings.is_checklist_view() else str(self)
-        check_infos = self.controller.getCheckInstanceStatus()
+        if refresh_status:
+            check_infos = self.controller.getCheckInstanceStatus()
+        else:
+            check_infos = {}
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=text, tags=self.controller.getTags(), image=self.getIcon(check_infos))
@@ -636,7 +639,8 @@ class CheckInstanceView(ViewElement):
         try:
             self.appliTw.item(str(self.controller.getDbId()), image=self.getIcon())
         except tk.TclError:
-            print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
+            pass
+            #print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
         super().updateReceived()
 
     def key(self):
