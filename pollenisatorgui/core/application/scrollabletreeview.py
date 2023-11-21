@@ -202,10 +202,6 @@ class ScrollableTreeview(Paginable):
         return dated <= toCompare <= datef
 
     def column_clicked(self, col, reverse):
-        """A lambda to call the statusbarController.statusbarClicked with the tag name clicked
-        Args:
-            name: the tag name clicked
-        """
         return lambda : self.sort_column(self.treevw, col, reverse)
 
     def sort_column(self, tv, col, reverse):
