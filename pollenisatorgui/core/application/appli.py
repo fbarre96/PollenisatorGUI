@@ -1,6 +1,7 @@
 """
 Pollenisator client GUI window.
 """
+import threading
 import traceback
 import tkinter.filedialog
 import tkinter as tk
@@ -361,6 +362,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.sio = None #socketio client
         self.initialized = False
         self.settings = Settings()
+        self.notif_waiting = set()
+        self.notif_processing_timer = None
 
         utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
         self.main_tab_img = CTkImage(
@@ -421,8 +424,10 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             return
         if not opened:
             try:
-                self.wait_visibility()
+                self.wait_visibility(self.tk)
             except tk.TclError: #closed dialog
+                return
+            except AttributeError:  # closed and destroyed
                 return
             opened, errored = self.openConnectionDialog(force=True)
             if errored:
@@ -481,7 +486,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             self.sio = socketio.Client()
             @self.sio.event
             def notif(data):
-                self.handleNotif(json.loads(data, cls=utils.JSONDecoder))
+                self.handleNotif(data)
             
             @self.sio.event
             def test(data):
@@ -496,8 +501,16 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if apiclient.getCurrentPentest() != "" and apiclient.getCurrentPentest() in pentests_names:
                 self.openPentest(apiclient.getCurrentPentest())
             else:
-                self.openPentestsWindow(pentests=pentests)
+                ret = self.openPentestsWindow(pentests=pentests)
+                if ret is None:
+                    self.onClosing()
+                    try:
+                        self.destroy()
+                    except tk.TclError:
+                        pass   
+                    return False, False
             self.initialized = True
+
         else:
             self.onClosing()
             try:
@@ -535,6 +548,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             If an exception occurs in this handler thread, will print it and exit with exit code 1
         """
         try:
+            if self.quitting:
+                return
             err = traceback.format_exception(args[0], args[1], args[2])
             err = "\n".join(err)
             
@@ -616,8 +631,19 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 i+=1
 
     def handleNotif(self, notification):
-        self.notify(notification)
-        self.datamanager.handleNotification(notification)
+        self.notif_waiting.add(notification)
+        if self.notif_processing_timer is None:
+            self.notif_processing_timer = threading.Timer(1, self.notif_processing)
+            self.notif_processing_timer.start()
+
+
+    def notif_processing(self):
+        while self.notif_waiting:
+            notification = self.notif_waiting.pop()
+            notification = json.loads(notification, cls=utils.JSONDecoder)
+            self.notify(notification)
+            self.datamanager.handleNotification(notification)
+        self.notif_processing_timer = None
         
     def onClosing(self):
         """
