@@ -67,6 +67,7 @@ def consoleConnect(force=False, askPentest=True):
     abandon = False
     if force:
         apiclient.disconnect()
+    
     while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
         success = promptForConnection() is None
     if apiclient.isConnected() and askPentest:
@@ -105,13 +106,13 @@ def promptForPentest():
     apiclient = APIClient.getInstance()
     pentests = apiclient.getPentestList()
     if pentests is None:
-        pentests_names = []
+        pentests = []
     else:
-        pentests_names = [x["nom"] for x in pentests][::-1]
+        pentests.sort(key=lambda x: x["creation_date"], reverse=True)
     i = 0
     while i<=0:
-        for i_p, pentests_name in enumerate(pentests_names):
-            print(f"{i_p+1} : {pentests_name}")
+        for i_p, pentest in enumerate(pentests):
+            print(f"{i_p+1} : {pentest.get('nom', '')}")
         try:
             i = int(input("Selection (1-"+str(len(pentests))+"): "))
             if i <= 0 or i > len(pentests):
