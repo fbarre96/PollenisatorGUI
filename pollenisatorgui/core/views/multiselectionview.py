@@ -19,7 +19,7 @@ class MultiSelectionView(ViewElement):
         Args:
             name: tag name clicked
         """
-        return lambda _event: self.appliTw.setTagFromMenubar(name)
+        return lambda : self.appliTw.setTagFromMenubar(name)
 
     def openModifyWindow(self):
         """

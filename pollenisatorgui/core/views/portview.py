@@ -147,7 +147,6 @@ class PortView(ViewElement):
             nodeText = self.controller.getDetailedString()
         else:
             nodeText = str(self.controller.getModelRepr())
-
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
         try:
             self.appliTw.insert(parentNode, "end", str(

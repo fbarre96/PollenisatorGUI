@@ -362,7 +362,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.sio = None #socketio client
         self.initialized = False
         self.settings = Settings()
-        self.notif_waiting = set()
         self.notif_processing_timer = None
 
         utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
@@ -491,7 +490,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             @self.sio.event
             def test(data):
                 tk.messagebox.showinfo("test", "test socket working received data : "+str(data))
-           
+           # Event handler for client disconnection
+            @self.sio.event
+            def disconnect():
+                logger.debug(f"Client disconnected")
+                t = threading.Timer(0.5, self.reconnect)
+                t.start()
+                return True
             self.sio.connect(apiclient.api_url)
             pentests = apiclient.getPentestList()
             if pentests is None:
@@ -519,6 +524,14 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 pass
         return apiclient.isConnected(), False
     
+    def reconnect(self):
+        apiclient = APIClient.getInstance()
+        if not apiclient.isConnected() or self.quitting:
+            return
+        logger.debug("SocketIO reconnection quiitng="+str(self.quitting))
+        self.sio.connect(apiclient.api_url)
+        self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":apiclient.getCurrentPentest()})
+
     def initModules(self):
         discovered_plugins = {
             name: importlib.import_module(name)
@@ -631,19 +644,24 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 i+=1
 
     def handleNotif(self, notification):
-        self.notif_waiting.add(notification)
-        if self.notif_processing_timer is None:
-            self.notif_processing_timer = threading.Timer(1, self.notif_processing)
-            self.notif_processing_timer.start()
+        notification = json.loads(notification, cls=utils.JSONDecoder)
+        self.notify(notification)
+        self.datamanager.handleNotification(notification)
+        # self.notif_waiting.append(notification)
+        # if self.notif_processing_timer is None and not self.quitting:
+        #     self.notif_processing_timer = threading.Timer(1, self.notif_processing)
+        #     self.notif_processing_timer.start()
 
 
-    def notif_processing(self):
-        while self.notif_waiting:
-            notification = self.notif_waiting.pop()
-            notification = json.loads(notification, cls=utils.JSONDecoder)
-            self.notify(notification)
-            self.datamanager.handleNotification(notification)
-        self.notif_processing_timer = None
+    # def notif_processing(self):
+    #     notif_treatments = deepcopy(self.notif_waiting)
+    #     self.notif_waiting = []
+    #     notif_treatments.sort(key=lambda x: x["time"])
+    #     while notif_treatments:
+    #         notification = notif_treatments.pop(0)
+    #         self.datamanager.handleNotification(notification)
+    #         self.notify(notification)
+    #     self.notif_processing_timer = None
         
     def onClosing(self):
         """
@@ -970,6 +988,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.treevw.refresh()
         self.treevw.filter_empty_nodes()
         self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
+        #self.terminals.open_terminal()
         # self.nbk.select("Main View")
 
     def open_terminal(self, iid, title):
@@ -1335,13 +1354,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 tkinter.messagebox.showinfo("Forbidden", msg)
         return succeed
 
-    def closePentest(self):
+    def closePentest(self, close_terminals=True):
         """
         Close the current pentest and refresh the treeview.
         """
         apiclient = APIClient.getInstance()
         apiclient.dettach(self)
-        if self.terminals is not None:
+        if self.terminals is not None and close_terminals:
             self.terminals.onClosing()
         
         if self.scanManager is not None:
@@ -1367,7 +1386,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         elif filename != "":
             pentestName = filename.split(".")[0].split("/")[-1]
         if pentestName is not None:
-            self.closePentest()
+            self.closePentest(close_terminals=False)
             first_use_detected = self.detectFirstUse()
             res = apiclient.setCurrentPentest(pentestName, first_use_detected)
             if not res:
