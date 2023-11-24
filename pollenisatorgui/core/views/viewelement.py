@@ -39,7 +39,16 @@ class ViewElement(object):
         self.appliViewFrame = appViewFrame
         self.mainApp = mainApp
         self.controller = controller
-        self.form = FormPanel()
+        self._form = None
+
+    @property
+    def form(self):
+        """
+        Returns the form of this view. If it is not yet created, it will create it.
+        """
+        if self._form is None:
+            self._form = FormPanel()
+        return self._form
 
     @classmethod
     def getClassIcon(cls):

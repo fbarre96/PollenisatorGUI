@@ -147,6 +147,7 @@ class IpView(ViewElement):
         if parentNode is None:
             parentNode = self.getParentNode()
         ip_node = None
+        tags = self.controller.getTags()
         try:
             if isinstance(parentNode, ObjectId):
                 ip_parent_o = Ip.fetchObject({"_id": parentNode})
@@ -154,16 +155,20 @@ class IpView(ViewElement):
                     parent_view = IpView(self.appliTw, self.appliViewFrame,
                                          self.mainApp, IpController(ip_parent_o))
                     parent_view.addInTreeview(None, False)
-            ip_node = self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
-        except TclError:
-            pass
+            #FASTER than
+            # ip_node = self.appliTw.insert(parentNode, "end", str(
+            #    self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getIcon())
+            
+            ip_node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), 
+                                 "-text", str(self.controller.getModelRepr()), "-tags", tags, "-image", self.getIcon())
+        except TclError as e:
+            raise(e)
         if addChildren and ip_node is not None:
             self._insertChildrenDefects()
             self._insertChildrenChecks()
             self._insertChildrenPorts(ip_node)
         # self.appliTw.sort(parentNode)
-        if "hidden" in self.controller.getTags():
+        if "hidden" in tags:
             self.hide("tags")
         if self.mainApp.settings.is_checklist_view():
             self.hide("checklist_view")
@@ -171,7 +176,10 @@ class IpView(ViewElement):
         if self.mainApp.settings.is_hide_oos() and not modelData["in_scopes"]:
             self.hide("filter_oos")
         if not modelData["in_scopes"]:
-            self.appliTw.item(ip_node, tags=self.controller.getTags()+["OOS"], image=self.getIcon())
+            # faster than self.appliTw.item(ip_node, tags=tags+["OOS"], image=self.getIcon())
+            self.appliTw.tk.call(
+                self.appliTw._w, "item", ip_node, "-tags", tags+["OOS"], "-image", self.getIcon())
+            
 
     def split_ip(self):
         """Split a IP address given as string into a 4-tuple of integers.
