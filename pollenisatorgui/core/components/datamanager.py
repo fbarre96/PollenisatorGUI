@@ -39,11 +39,14 @@ class DataManager(Subject):
         pid = os.getpid()
         DataManager.__instances[pid] = self
 
-    def load(self, forceReload=False):
+    def load(self, collections=None, forceReload=False):
         if len(self.data) > 0 and not forceReload:
             return
         self.currentPentest = APIClient.getInstance().getCurrentPentest()
+        
         for coll, model in REGISTRY.items():
+            if collections is not None and coll.lower() not in collections:
+                continue
             self.data[coll.lower()] = {}
             datas = model.fetchPentestObjects()
             for item in datas:
