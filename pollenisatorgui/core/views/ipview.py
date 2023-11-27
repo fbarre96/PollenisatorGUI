@@ -136,6 +136,13 @@ class IpView(ViewElement):
                 self.appliTw, self.appliViewFrame, self.mainApp, port_o)
             port_vw.addInTreeview(ip_node)
 
+    def opened(self):
+        """Callback called when the view is opened"""
+        self._opened = True
+        self._insertChildrenPorts(str(self.controller.getDbId()))
+        self._insertChildrenDefects()
+        self._insertChildrenChecks()
+
     def addInTreeview(self, parentNode=None, addChildren=True):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:

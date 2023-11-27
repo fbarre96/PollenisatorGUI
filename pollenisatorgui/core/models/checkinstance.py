@@ -36,7 +36,7 @@ class CheckInstance(Element):
         self.notes = notes
         from pollenisatorgui.core.components.datamanager import DataManager
         datamanager = DataManager.getInstance()
-        self.check_m = datamanager.get("checkitems", str(check_iid), None)
+        self.check_m = datamanager.get("checkitems", str(check_iid))
         if self.check_m is None:
             self.check_m = CheckItem.fetchObject({"_id":ObjectId(check_iid)})
         if self.check_m is None:

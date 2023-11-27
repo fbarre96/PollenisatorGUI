@@ -529,7 +529,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         if not apiclient.isConnected() or self.quitting:
             return
         logger.debug("SocketIO reconnection quiitng="+str(self.quitting))
-        self.sio.connect(apiclient.api_url)
+        try:
+            self.sio.connect(apiclient.api_url)
+        except ConnectionError:
+            logger.debug("SocketIO reconnection failed")
+            t = threading.Timer(0.5, self.reconnect)
+            t.start()
+            return
         self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":apiclient.getCurrentPentest()})
 
     def initModules(self):
@@ -1392,11 +1398,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(pentestName))
                 return
-            DataManager.getInstance().load()
+            #DataManager.getInstance().load(["tag"])
             self.initUI()
+            self.settings.reloadSettings()
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
             self.sio.emit("registerForNotifications", {"token":apiclient.getToken(), "pentest":pentestName})
-            self.settings.reloadSettings()
             self.refresh_tabs()
             self.nbk.select("Dashboard")
 

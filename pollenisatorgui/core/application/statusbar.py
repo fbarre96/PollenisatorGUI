@@ -51,7 +51,7 @@ class StatusBar(CTkFrame):
         self.listOfLambdas = [self.tagClicked(keys[i]) for i in range(len(keys))]
         datamanager = DataManager.getInstance()
         tags = datamanager.get("tags", "*")
-        for tag_iid, tag_obj in tags.items():
+        for tag_obj in tags:
             for tag_info in tag_obj.tags:
                 tag = TagInfos(tag_info)
                 tag_name = tag.name

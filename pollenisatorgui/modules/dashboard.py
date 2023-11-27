@@ -300,7 +300,7 @@ class Dashboard(Module):
         self.datamanager = DataManager.getInstance()
         self.label_host_count.configure(
             text="Hosts : "+str(self.infos.get("hosts_count", 0)))
-        defects = self.datamanager.get("defects", '*', {}).values()
+        defects = self.datamanager.get("defects", '*')
         self.treeview.reset()
         for defect in defects:
             if defect.isAssigned():

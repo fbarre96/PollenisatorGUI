@@ -39,36 +39,53 @@ class DataManager(Subject):
         pid = os.getpid()
         DataManager.__instances[pid] = self
 
-    def load(self, collections=None, forceReload=False):
-        if len(self.data) > 0 and not forceReload:
-            return
-        self.currentPentest = APIClient.getInstance().getCurrentPentest()
+    # def load(self, collections=None, forceReload=False):
+    #     if len(self.data) > 0 and not forceReload:
+    #         return
+    #     self.currentPentest = APIClient.getInstance().getCurrentPentest()
         
-        for coll, model in REGISTRY.items():
-            if collections is not None and coll.lower() not in collections:
-                continue
-            self.data[coll.lower()] = {}
-            datas = model.fetchPentestObjects()
-            for item in datas:
-                self.data[coll.lower()][str(item.getId())] = item
+    #     for coll, model in REGISTRY.items():
+    #         if collections is not None and coll not in collections:
+    #             continue
+    #         self.data[coll] = {}
+    #         datas = model.fetchPentestObjects()
+    #         for item in datas:
+    #             self.data[coll][str(item.getId())] = item
 
-    def get(self, collection, iid, default=None):
+    def get(self, collection, iid):
         collection = collection.lower()
-        if collection not in self.data.keys() and collection[:-1] in self.data.keys():
+        if collection not in REGISTRY.keys() and collection[:-1] in REGISTRY.keys():
             collection = collection[:-1]
-        if collection not in self.data.keys():
-            return default
         if iid == "*":
-            return self.data[collection]
-        return self.data[collection].get(str(iid), None)
+            ret = []
+            datas = REGISTRY[collection].fetchObjects({})
+            for data in datas:
+                self.data[collection][str(data["_id"])] = data
+                ret.append(data)
+            return ret
+        return self.find(collection, {"_id": iid}, multi=False, fetch_on_none=True)
+        # collection = collection.lower()
+        # if collection not in self.data.keys() and collection[:-1] in self.data.keys():
+        #     collection = collection[:-1]
+        # if collection not in self.data.keys():
+        #     return default
+        # if iid == "*":
+        #     return self.data[collection]
+        # return self.data[collection].get(str(iid), None)
 
-    def find(self, collection, search, multi=True, fetch_on_none=False):
-        if collection not in self.data.keys() and collection[:-1] in self.data.keys():
+    def find(self, collection, search, multi=True, fetch_on_none=True):
+        collection = collection.lower()
+        
+        if collection not in REGISTRY.keys() and collection[:-1] in REGISTRY.keys():
             collection = collection[:-1]
-        if collection not in self.data.keys():
-            return None
+        if len(search) == 1:
+            if "_id" in search.keys():
+                iid = search["_id"]
+                self.data[collection].get(str(iid), None)
+        # if collection not in self.data.keys():
+        #     return None
         ret = []
-        for data_model in list(self.data[collection].values()):
+        for data_model in list(self.data.get(collection, {}).values()):
             is_match = True
             for key, val in search.items():
                 data = data_model.getData()
@@ -85,22 +102,21 @@ class DataManager(Subject):
                 if not multi:
                     return data
         if len(ret) == 0 and fetch_on_none:
-            apiclient = APIClient.getInstance()
-            datas = apiclient.findInDb(self.currentPentest, collection, search, multi)
             if multi:
+                datas = REGISTRY[collection].fetchObjects(search)
                 for data in datas:
-                    obj = self.getClass(collection)(data)
-                    self.data[collection][str(data["_id"])] = obj
-                    ret.append(obj)
+                    self.data[collection][str(data["_id"])] = data
+                    ret.append(data)
             else:
-                ret = self.getClass(collection)(datas)
+                data = REGISTRY[collection].fetchObject(search)
+                ret = data
         if not multi and not ret:
             return None
         return ret
             
     def getClass(self, class_str):
         for coll, model in REGISTRY.items():
-            if coll.lower() == class_str or coll.lower()+"s" == class_str:
+            if coll == class_str or coll+"s" == class_str:
                 return model
         raise ValueError("Class not found "+str(class_str))
 

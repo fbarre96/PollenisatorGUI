@@ -149,7 +149,7 @@ class Wave(Element):
         """
         ret = []
         datamanager = DataManager.getInstance()
-        waves = datamanager.get("waves", '*', {}).values()
+        waves = datamanager.get("waves", '*')
         for wave in waves:
             ret.append(wave["wave"])
         return ret

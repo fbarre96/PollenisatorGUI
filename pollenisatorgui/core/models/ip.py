@@ -74,7 +74,7 @@ class Ip(Element):
         """
         ret = []
         datamanager = DataManager.getInstance()
-        scopes = datamanager.get("scopes",'*',{}).values()
+        scopes = datamanager.get("scopes",'*')
        
         for scope in scopes:
             if self.fitInScope(scope.scope):

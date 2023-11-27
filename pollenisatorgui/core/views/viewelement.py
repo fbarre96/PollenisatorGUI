@@ -40,6 +40,7 @@ class ViewElement(object):
         self.mainApp = mainApp
         self.controller = controller
         self._form = None
+        self._opened = False
 
     @property
     def form(self):
@@ -83,6 +84,11 @@ class ViewElement(object):
             newNode: the newly created node we want to add children to.
         """
         # pass
+
+    def opened(self):
+        """ add childrens to this view when it is opened
+        """
+        self._opened = True
 
     def delete(self, _event=None, showWarning=True):
         """
