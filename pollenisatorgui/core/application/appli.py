@@ -1141,7 +1141,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         else:
             for module in self.modules:
                 if nbkOpenedTab.strip().lower() == module["name"].strip().lower():
-                    module["object"].open()
+                    module["object"].open(module["view"], self.topviewframe, self.treevw)
         if activeTw is not None:
             if len(activeTw.selection()) == 1:
                 setViewOn = activeTw.selection()[0]

@@ -408,7 +408,7 @@ class Settings:
         self.form_pentesters = FormPanel(side=tk.TOP, fill=tk.X, pady=5)
         self.form_pentesters.addFormSearchBar("Pentester search", self.searchCallback, self.form_pentesters, side=tk.TOP)
         self.pentesters_treevw = self.form_pentesters.addFormTreevw(
-            "Additional pentesters names", ["Additional pentesters names"], (""), height=20, width=100, pady=5, side=tk.LEFT)
+            "Additional pentesters names", ["Additional pentesters names"], (""), add_empty_row=True, height=20, width=100, pady=5, side=tk.LEFT)
         
         self.form_pentesters.constructView(form_pentesters_panel)
         form_pentesters_panel.pack(

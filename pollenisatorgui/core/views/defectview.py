@@ -2,6 +2,7 @@
 
 from tkinter import TclError
 import tkinter as tk
+from pollenisatorgui.core.application.dialogs.ChildDialogFixView import ChildDialogFixView
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.models.defect import Defect
@@ -114,7 +115,8 @@ class DefectView(ViewElement):
         #proofsPanel.addFormFile("Proof", r"", text="Add proof",height=3)
         self.form.addFormHidden("target_id", modelData["target_id"])
         self.form.addFormHidden("target_type", modelData["target_type"])
-        self.form.addFormHidden("Fixes", modelData.get("fixes", []))
+        fixes = self.form.addFormHidden("Fixes", modelData.get("fixes", []))
+        s.addResultForm(fixes, "fixes")
         if addButtons:
             self.completeInsertWindow()
         else:
@@ -216,15 +218,46 @@ class DefectView(ViewElement):
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText(
                 "Notes", r"", modelData["notes"], None, side="top", height=40)
-        self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
+        fixesPane = self.form.addFormPanel(side=tk.TOP, anchor=tk.CENTER, fill=tk.X)
+        values = []
+        for fix in modelData["fixes"]:
+            values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
+        fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
+        self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
+                                                  side=tk.RIGHT, auto_size_columns=False,
+                                                  doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
+        
+        #self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if not self.controller.model.isTemplate:
             actionsPan = self.form.addFormPanel(side=tk.TOP, anchor=tk.E)
-            actionsPan.addFormButton("Edit fixes", self.openFixesWindow, side=tk.RIGHT, image=self.edit_image)
-            actionsPan.addFormButton("Create defect template from this", self.saveAsDefectTemplate, side=tk.RIGHT )
+            #actionsPan.addFormButton("Edit fixes", self.openFixesWindow, side=tk.RIGHT, image=self.edit_image)
+            actionsPan.addFormButton("Create defect template from this", self.saveAsDefectTemplate,  image=self.edit_image, side=tk.RIGHT )
         if addButtons:
             self.completeModifyWindow(addTags=False)
         else:
             self.showForm()
+
+    def addFix(self, _event=None):
+        dialog = ChildDialogFixView(None)
+        dialog.app.wait_window(dialog.app)
+        if dialog.rvalue is None:
+            return
+        self.fix_treevw.addItem("", "end", dialog.rvalue["title"],  text=dialog.rvalue["title"], values=(dialog.rvalue["execution"], dialog.rvalue["gain"],  dialog.rvalue["synthesis"], dialog.rvalue["description"]))
+
+    def onFixDoubleClick(self, event):
+        selected = self.fix_treevw.selection()
+        if not selected:
+            return
+        selected = selected[0]
+        item = self.fix_treevw.item(selected)
+        title = item["text"]
+        fix = {"title":title, "gain": item["values"][1], "execution": item["values"][0], "synthesis": item["values"][2], "description": item["values"][3]}
+        dialog = ChildDialogFixView(None, fix)
+        dialog.app.wait_window(dialog.app)
+        if dialog.rvalue is None:
+            return
+        self.fix_treevw.item(selected, text=dialog.rvalue["title"], values=(dialog.rvalue["execution"], dialog.rvalue["gain"],  dialog.rvalue["synthesis"], dialog.rvalue["description"]))
+
 
     def insert(self, _event=None):
         """

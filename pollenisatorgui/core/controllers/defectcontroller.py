@@ -33,7 +33,14 @@ class DefectController(ControllerElement):
             self.model.mtype = mtype
         self.model.language = values.get("Language", self.model.language)
         self.model.notes = values.get("Notes", self.model.notes)
-        self.model.fixes = values.get("Fixes", self.model.fixes)
+        fixes_inserted = values.get("Fixes", None)
+        if fixes_inserted is not None:
+            self.model.fixes = []
+            for fix in fixes_inserted:
+                if fix[0].strip() == "":
+                    continue
+                self.model.fixes.append({"title": fix[0], "execution": fix[1], "gain": fix[2],
+                                          "synthesis": fix[3], "description": fix[4]})
         self.model.infos = values.get("Infos", self.model.infos)
         for info in self.model.infos:
             self.model.infos[info] = self.model.infos[info][0]

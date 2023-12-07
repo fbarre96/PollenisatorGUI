@@ -187,9 +187,9 @@ class FormTreevw(Form):
             parent: parent FormPanel.
         """
         from pollenisatorgui.core.components.settings import Settings
-
+        w = self.getKw("width", 600)
         self.tvFrame = CTkFrame(
-            parent.panel, width=self.getKw("width", 600))
+            parent.panel, width=w, height=0)
         self.treevw = ttk.Treeview(
             self.tvFrame, height=min(self.getKw("height", len(
                 self.default_values)+1), self.getKw("max_height", 10)))
@@ -214,12 +214,15 @@ class FormTreevw(Form):
         self.f = tkfont.nametofont('TkTextFont')
         columnsLen = self.recurse_insert(self.default_values)
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.headings))]
+        autoresize = self.getKw("auto_size_columns", True)
         for h_i, header in enumerate(self.headings):
             self.treevw.heading("#"+str(h_i), text=header, anchor="w", command=listOfLambdas[h_i])
-            self.treevw.column("#"+str(h_i), anchor='w',
+            if autoresize:
+                self.treevw.column("#"+str(h_i), anchor='w',
                                stretch=tk.YES, minwidth=columnsLen[h_i], width=columnsLen[h_i])
         
         emptyRowFound = False
+        add_empty_row = self.getKw("add_empty_row", False)
         children = self.treevw.get_children()
         for child in children:
             item = self.treevw.item(child)
@@ -227,7 +230,7 @@ class FormTreevw(Form):
                 emptyRowFound = True
                 break
         if self.getKw("status", "none") != "readonly":
-            if not emptyRowFound:
+            if not emptyRowFound and add_empty_row:
                 tags = ("odd") if len(children) % 2 == 1 else ()
                 self.treevw.insert('', tk.END, None, text="",
                                 values=["" for x in range(len(self.headings)-1)], tags=tags)
@@ -245,11 +248,11 @@ class FormTreevw(Form):
             self.treevw.bind(key, val)
         if parent.gridLayout:
             self.tvFrame.grid(row=self.getKw("row", 0), column=self.getKw(
-                "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "none"), expand=self.getKw("expand", True))
+                "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "none"), expand=self.getKw("expand", False))
 
         else:
-            self.tvFrame.pack(side=self.getKw("side", "top"), padx=self.getKw(
-                "padx", 10), pady=self.getKw("pady", 5), fill=self.getKw("fill", "none"), expand=self.getKw("expand", True))
+            self.tvFrame.pack(side=self.getKw("side", "top"), anchor=self.getKw("anchor", None), padx=self.getKw(
+                "padx", 10), pady=self.getKw("pady", 5), fill=self.getKw("fill", "none"), expand=self.getKw("expand", False))
         self.tvFrame.rowconfigure(0, weight=1)
         self.tvFrame.columnconfigure(0, weight=1)
 
@@ -429,8 +432,8 @@ class FormTreevw(Form):
     def selection(self):
         return self.treevw.selection()
     
-    def item(self, iid):
-        return self.treevw.item(iid)
+    def item(self, iid, **kwargs):
+        return self.treevw.item(iid, **kwargs)
 
 
     def getValue(self):
