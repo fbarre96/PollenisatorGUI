@@ -13,7 +13,7 @@ def main(apiclient, appli, **kwargs):
     APIClient.setInstance(apiclient)
     secrets = None
     if kwargs.get("target_type").lower() == "user" or kwargs.get("target_type").lower() == "computer":
-        info =  apiclient.find("ActiveDirectory", {"type":kwargs.get("target_type").lower(), "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
+        info =  apiclient.find(kwargs.get("target_type").lower()+"s", {"type":kwargs.get("target_type").lower(), "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
         if info is not None:
             secrets = info.get("infos", {}).get("secrets", [])
     if secrets is None:

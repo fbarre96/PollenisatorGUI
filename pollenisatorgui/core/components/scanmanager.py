@@ -369,9 +369,12 @@ class ScanManager:
         self.scanTv.column("#0", anchor=tk.W)
         self.scanTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.scanTv.bind("<Double-Button-1>", self.OnDoubleClick)
-
-        self.show_history = CTkButton(scansInfoFrame, text="Show history", command=self.showHistory)
-        self.show_history.pack(side=tk.BOTTOM, pady=2, padx=10)
+        panelActions = CTkFrame(scansInfoFrame)
+        refresh_button = CTkButton(panelActions, text="Refresh scans", command=self.refreshRunningScans)
+        refresh_button.pack(side=tk.LEFT, pady=2, padx=10)
+        self.show_history = CTkButton(panelActions, text="Show history", command=self.showHistory)
+        self.show_history.pack(side=tk.LEFT, pady=2, padx=10)
+        panelActions.pack(side=tk.BOTTOM, pady=2, padx=10)
         scansInfoFrame.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
         ###### QUEUED
         queuedScansFrame = CTkFrame(parentFrame)
@@ -450,10 +453,10 @@ class ScanManager:
             if notif["collection"] == "workers":
                 if self.workerTv is not None:
                     self.refreshWorkers() 
-        elif notif["collection"] == "tools" and notif["action"] == "update":
-            if dataManager.currentPentest == notif["db"]:
-                self.refreshRunningScans()
-                self.refreshQueuedScans()
+        # elif notif["collection"] == "tools" and notif["action"] == "update":
+        #     if dataManager.currentPentest == notif["db"]:
+        #         self.refreshRunningScans()
+        #         self.refreshQueuedScans()
         
 
     def OnWorkerDoubleClick(self, event):

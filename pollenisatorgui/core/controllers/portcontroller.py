@@ -1,5 +1,6 @@
 """Controller for Port object. Mostly handles conversion between mongo data and python objects"""
 
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.controllers.controllerelement import ControllerElement
 import json
 
@@ -68,7 +69,17 @@ class PortController(ControllerElement):
             list of checkInstance objects
         """
         return self.model.getChecks()
+    
+    @classmethod
+    def getDefectsForPorts(self, ports):
+        datamanager = DataManager.getInstance()
+        return datamanager.find("defect", {"target_iid": {"$in": [str(port.getId()) for port in ports]}})
 
+    @classmethod
+    def getChecksForPorts(self, ports):
+        datamanager = DataManager.getInstance()
+        return datamanager.find("checkinstance", {"target_iid": {"$in": [str(port.getId()) for port in ports]}})
+    
     def getType(self):
         """Returns a string describing the type of object
         Returns:

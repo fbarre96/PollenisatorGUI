@@ -90,15 +90,15 @@ class ActiveDirectory(Module):
                                      "Refreshing infos. Please wait for a few seconds.", 200, "determinate")
         dialog.show(5)
         dialog.update(0)
-        self.users = apiclient.find(ActiveDirectory.coll_name, {"type": "user"}, True)
+        self.users = apiclient.find("users", {"type": "user"}, True)
         dialog.update(1)
         if self.users is None:
             self.users = []
-        self.computers = apiclient.find(ActiveDirectory.coll_name, {"type": "computer"}, True)
+        self.computers = apiclient.find("computers", {"type": "computer"}, True)
         dialog.update(2)
         if self.computers is None:
             self.computers = []
-        self.shares = apiclient.find(ActiveDirectory.coll_name, {"type": "share"}, True)
+        self.shares = apiclient.find("shares", {"type": "share"}, True)
         dialog.update(3)
         if self.shares is None:
             self.shares = []
@@ -222,7 +222,7 @@ class ActiveDirectory(Module):
 
     def getComputerDialog(self, computer_iid):
         apiclient = APIClient.getInstance()
-        computer_d = apiclient.find(ActiveDirectory.coll_name,
+        computer_d = apiclient.find("computers",
             {"_id":ObjectId(computer_iid)}, False)
         if computer_d is None:
             return
@@ -263,7 +263,7 @@ class ActiveDirectory(Module):
 
     def getUserDialog(self, user_iid):
         apiclient = APIClient.getInstance()
-        user_d = apiclient.find(ActiveDirectory.coll_name,
+        user_d = apiclient.find("users",
             {"_id":ObjectId(user_iid)}, False)
         if user_d is None:
             return
@@ -345,36 +345,36 @@ class ActiveDirectory(Module):
     def update_received(self, dataManager, notif, obj, old_obj):
         if not self.inited:
             return
-        if notif["collection"] != ActiveDirectory.coll_name:
+        if notif["collection"] not in ActiveDirectory.classes:
             return
         apiclient = APIClient.getInstance()
-        res = apiclient.find(ActiveDirectory.coll_name, {"_id": ObjectId(notif["iid"])}, False)
+        res = apiclient.find(notif["collection"], {"_id": ObjectId(notif["iid"])}, False)
         iid = notif["iid"]
         if notif["action"] == "insert":
             if res is None:
                 return
-            if res["type"] == "computer":
+            if notif["collection"] == "computers":
                 self.insertComputer(res)
-            elif res["type"] == "user":
+            elif notif["collection"] == "users":
                 self.insertUser(res)
-            elif res["type"] == "share":
+            elif notif["collection"] == "shares":
                 self.insertShare(res)
         elif notif["action"] == "update":
             if res is None:
                 return
-            if res["type"] == "computer":
+            if notif["collection"] == "computers":
                 self.insertComputer(res)
-            if res["type"] == "share":
+            if notif["collection"] == "shares":
                 self.insertShare(res)
         elif notif["action"] == "delete":
             if res is None:
                 return
             try:
-                if res["type"] == "computer":
+                if notif["collection"] == "computers":
                     self.tvComputers.delete(str(iid))
-                elif res["type"] == "user":
+                elif notif["collection"] == "users":
                     self.tvUsers.delete(str(iid))
-                elif res["type"] == "share":
+                elif notif["collection"] == "shares":
                     self.tvShares.delete(str(iid))
             except tk.TclError:
                 pass
@@ -412,7 +412,7 @@ class ActiveDirectory(Module):
             search = {"type":"user"}
             if domain != "":
                 search["domain"] = domain 
-            res = apiclient.find(ActiveDirectory.coll_name, search)
+            res = apiclient.find("users", search)
             for selected_user in res:
                 username = selected_user["username"]
                 f.write(username+delim)
@@ -423,7 +423,7 @@ class ActiveDirectory(Module):
         filepath = os.path.join(fp, "computers.txt")
         with open(filepath, mode="w") as f:
             apiclient = APIClient.getInstance()
-            res = apiclient.find(ActiveDirectory.coll_name, {"type":"computers"})
+            res = apiclient.find("computers", {"type":"computers"})
             for selected_computer in self.tvComputers.get_children():
                 computer = self.tvComputers.item(selected_computer)["text"]
                 f.write(computer+delim)
@@ -438,7 +438,7 @@ class ActiveDirectory(Module):
         ip = self.tvShares.item(parent_iid)["text"]
         item_values = self.tvShares.item(selected)["values"]
         apiclient = APIClient.getInstance()
-        share_m = apiclient.find(ActiveDirectory.coll_name, {"_id": ObjectId(parent_iid)}, False)
+        share_m = apiclient.find("shares", {"_id": ObjectId(parent_iid)}, False)
         path = item_values[0]
         files = share_m.get("files", [])
         try:
@@ -458,7 +458,7 @@ class ActiveDirectory(Module):
         share_name = item_values[0]
         apiclient = APIClient.getInstance()
         apiclient.getCurrentPentest()
-        user_o = apiclient.find(ActiveDirectory.coll_name, 
+        user_o = apiclient.find("users", 
                 {"type":"user", "domain":domain, "username":user}, False)
         if user_o is None:
             tk.messagebox.showerror("user not found","User "+str(domain)+"\\"+str(user)+" was not found")

@@ -27,7 +27,7 @@ class ChildDialogDefectView(ChildDialogView):
             defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
         """
         super().__init__(parent, title, scrollable=True)
-        
+        self.app.geometry(f"{self.app.winfo_screenwidth()}x{self.app.winfo_screenheight()}")
         self.isInsert = defectModel is None or force_insert
         self.multi = multi
         self.as_template = as_template

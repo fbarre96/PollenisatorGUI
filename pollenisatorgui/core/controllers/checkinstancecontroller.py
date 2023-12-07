@@ -58,7 +58,7 @@ class CheckInstanceController(ControllerElement):
             self.model.status = "done"
         else:
             return
-        self.model.update()
+        self.model.update({"status": self.model.status})
 
     @property
     def target_repr(self):
@@ -66,7 +66,7 @@ class CheckInstanceController(ControllerElement):
             return self.model.target_repr
         reprs = APIClient.getInstance().getCheckInstanceRepr([str(self.model.getId())])
         if reprs:
-            self.model.target_repr = reprs.get(str(self.model.getId()), str(self.model))
+            self.model.target_repr = reprs.get(str(self.model.target_iid), str(self.model))
         else:
             self.model.target_repr = str(self)
         return self.model.target_repr

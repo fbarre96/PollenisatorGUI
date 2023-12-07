@@ -15,7 +15,6 @@ class CheckInstanceMultiView(ViewElement):
     def __init__(self, appliTw, appViewFrame, mainApp):
         super().__init__(appliTw, appViewFrame, mainApp, None)
 
-
     def openModifyWindow(self):
         """
         Creates a tkinter form using Forms classes. This form aims to update or perform actions on multiple different objects common properties like tags.

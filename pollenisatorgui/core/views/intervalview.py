@@ -50,7 +50,7 @@ class IntervalView(ViewElement):
     def getAdditionalContextualCommands(self):
         return {"Insert Interval":self.openInsertWindow}
 
-    def addInTreeview(self, parentNode=None, _addChildren=True):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.

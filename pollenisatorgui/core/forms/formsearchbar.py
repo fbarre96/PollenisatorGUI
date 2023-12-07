@@ -31,6 +31,7 @@ class FormSearchBar(Form):
         self.entry = None
         self.result_form = None
         self.options_forms = []
+        self.results_forms = {}
 
     def constructView(self, parent):
         """
@@ -96,30 +97,44 @@ class FormSearchBar(Form):
         if len(list_choice) == 1:
             self.postSelect()
 
+    def fillResults(self, selected):
+        for key, value in selected.items():
+            if key.lower() in self.results_forms:
+                form = self.results_forms[key.lower()]
+                if getattr(form, "addItem", None) is None:
+                    form.setValue(value)
+                else:
+                    if isinstance(value, dict):
+                        form.addItem(**value)
+
     def postSelect(self, _event=None):
         selected = self.getValue()
-        if selected != None:
-            for subform in self.panel_to_fill.subforms:
-                if getattr(subform, "subforms", None) is not None: # 1 depth max
-                    for subform_depth in subform.subforms:
-                        if getattr(subform_depth, "subforms", None) is None:
-                            if subform_depth.name.lower() in selected.keys():
-                                if subform_depth.name.lower() not in [tup[1] for tup in self.options_forms]:
-                                    if getattr(subform_depth, "addItem", None) is None:
-                                        subform_depth.setValue(selected[subform_depth.name.lower()])
-                                    else:
-                                        itemToAdd = selected[subform_depth.name.lower()]
-                                        if isinstance(itemToAdd, dict):
-                                            subform_depth.addItem(**itemToAdd)
-                else:
-                    if subform.name.lower() not in [tup[1] for tup in self.options_forms]:
-                        if subform.name.lower() in selected.keys():
-                            if getattr(subform, "addItem", None) is None:
-                                subform.setValue(selected[subform.name.lower()])
-                            else:
-                                itemToAdd = selected[subform.name.lower()]
-                                if isinstance(itemToAdd, dict):
-                                    subform.addItem(**itemToAdd)
+        if selected is None:
+            return
+        if self.results_forms:
+            self.fillResults(selected)
+            return
+        for subform in self.panel_to_fill.subforms:
+            if getattr(subform, "subforms", None) is not None: # 1 depth max
+                for subform_depth in subform.subforms:
+                    if getattr(subform_depth, "subforms", None) is None:
+                        if subform_depth.name.lower() in selected.keys():
+                            if subform_depth.name.lower() not in [tup[1] for tup in self.options_forms]:
+                                if getattr(subform_depth, "addItem", None) is None:
+                                    subform_depth.setValue(selected[subform_depth.name.lower()])
+                                else:
+                                    itemToAdd = selected[subform_depth.name.lower()]
+                                    if isinstance(itemToAdd, dict):
+                                        subform_depth.addItem(**itemToAdd)
+            else:
+                if subform.name.lower() not in [tup[1] for tup in self.options_forms]:
+                    if subform.name.lower() in selected.keys():
+                        if getattr(subform, "addItem", None) is None:
+                            subform.setValue(selected[subform.name.lower()])
+                        else:
+                            itemToAdd = selected[subform.name.lower()]
+                            if isinstance(itemToAdd, dict):
+                                subform.addItem(**itemToAdd)
 
     def getValue(self):
         """
@@ -141,6 +156,10 @@ class FormSearchBar(Form):
     def addOptionForm(self, optionForm, optionName):
         self.options_forms.append((optionForm, optionName))
         optionForm.bind('<Key-Return>', self.updateValues)
+
+    def addResultForm(self, resultForm, resultName):
+        self.results_forms[resultName.lower()] = resultForm
+        
 
     def setResultForm(self, resultForm):
         self.result_form = resultForm

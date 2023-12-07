@@ -116,7 +116,7 @@ class Port(Element):
         obj = datamanager.find("ips", {"ip":self.ip}, False)
         if obj is None:
             return None
-        return obj.get("_id")
+        return obj.getId()
 
     def __str__(self):
         """
@@ -125,7 +125,7 @@ class Port(Element):
         Returns:
             Returns the string protocole/port number.
         """
-        return self.proto+"/"+str(self.port)+" "+str(self.service)
+        return (self.proto+"/" if self.proto == "udp" else "")+str(self.port)+" "+str(self.service)
 
     def getDetailedString(self):
         """Returns a detailed string describing this port.

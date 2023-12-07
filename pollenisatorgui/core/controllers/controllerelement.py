@@ -83,10 +83,10 @@ class ControllerElement:
         if self.model is None:
             return
         datamanager = DataManager.getInstance()
-        res = datamanager.find("tags", {"item_id":ObjectId(self.model.getId())}, multi=False)
+        res = datamanager.find("tags", {"item_id":ObjectId(self.model.getId())}, multi=False, fetch_on_none=False)
         if res is None:
             return []
-        return res["tags"]
+        return res.tags
 
     def addTag(self, newTag, overrideGroupe=True):
         """Add the given tag to this object.

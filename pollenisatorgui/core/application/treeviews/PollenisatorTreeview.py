@@ -10,12 +10,18 @@ from customtkinter import *
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.filter import Filter, ParseError
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 import pollenisatorgui.core.components.utils as utils
+
+
+import cProfile
+import io
+import pstats
 
 
 class PollenisatorTreeview(ttk.Treeview):
@@ -40,6 +46,7 @@ class PollenisatorTreeview(ttk.Treeview):
         self._detached = []  # Temporary detached objects (filtered objects)
         self._moved = []  # Objects that were moved to be repositioned later
         self._hidden = []  #  Hidden objects reference
+        self._hidden_lkp = {}  # Hidden objects lookup table
         self.views = {}  # Dict of views stored in this treeview.
         self.contextualMenu = None
         self.configureTags()
@@ -113,14 +120,17 @@ class PollenisatorTreeview(ttk.Treeview):
         l = []
         try:
             for k in self.get_children(nodeToSort):
-                text_k = self.item(k)["text"]
                 view_o = self.getViewFromId(str(k))
                 if view_o is not None:
-                    l.append((k, text_k, view_o))
+                    l.append((k, view_o))
             if l:
-                l.sort(key=lambda t: t[2].key() if t[2] is not None else None)
-                for index, (iid, _, _) in enumerate(l):
-                    self.move(iid, nodeToSort, index)
+                l.sort(key=lambda t: t[1].key() if t[1] is not None else None)
+                
+                for index, (iid, _) in enumerate(l):
+                    # way faster than move is to detach reattach at the end
+                    #self.move(iid, nodeToSort, index)
+                    self.detach(iid)
+                    self.reattach(iid,nodeToSort, "end")
         except tk.TclError: # node given not found
             pass
 
@@ -340,7 +350,7 @@ class PollenisatorTreeview(ttk.Treeview):
                 widget.destroy()
         return ret
 
-    def filterTreeview(self, query, settings=None, quick_search_allowed=True):
+    def filterTreeview(self, query, settings=None, text_search_allowed=True):
         """
         Deattach objects in the treeview that does not match the query and search settings.
         Args:
@@ -355,11 +365,26 @@ class PollenisatorTreeview(ttk.Treeview):
         # Reload local settings and prepare search object.
         self.unhideAll()
         searcher = None
+        apiclient = APIClient.getInstance()
         if query.strip() != "":
+            dialog = ChildDialogProgress(self.parentFrame, "Searching ...",  msg="Querying ...", progress_mode="indeterminate")
+            dialog.show()
             try:
-                if len(query.strip().split(" ")) == 1 and quick_search_allowed: # 1 word search = quick search
+                if self.lazyload:
+                    if len(query.strip().split(" ")) == 1 and text_search_allowed:
+                        textsearch = True
+                    else:
+                        textsearch = bool(settings.local_settings.get("textsearch", False))
+                    searcher = apiclient.searchPentest(query.strip(), textonly=textsearch)
+                    dialog.update(msg="Loading in treeview ...")
+                    if searcher.get("success", True):
+                        self.doFilterTreeview(searcher, True, keep_parents=settings.local_settings.get("keep_parents", True), dialog_progress=dialog)
+                    else:
+                        tk.messagebox.showerror("Search error", searcher.get("msg", "Unknown error"))
+                        return False
+                elif len(query.strip().split(" ")) == 1 and text_search_allowed: # 1 word search = text search
                     self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
-                elif settings.local_settings.get("quicksearch", False) and quick_search_allowed:
+                elif settings.local_settings.get("textsearch", False) and text_search_allowed:
                     self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
                 else:
                     searcher = Filter(query, )
@@ -367,7 +392,8 @@ class PollenisatorTreeview(ttk.Treeview):
             except ParseError as e:
                 tk.messagebox.showerror("Search error", str(e))
                 return False
-        
+            finally:
+                dialog.destroy()
         return True
 
     def unfilterAll(self):
@@ -420,6 +446,8 @@ class PollenisatorTreeview(ttk.Treeview):
                 except tk.TclError:
                     pass
         for i in toDel[::-1]:
+            if hiddens[i][0] in self._hidden_lkp:
+                del self._hidden_lkp[hiddens[i][0]]
             del hiddens[i]
         self._hidden = hiddens[::-1]
 
@@ -455,7 +483,9 @@ class PollenisatorTreeview(ttk.Treeview):
             except tk.TclError:
                 pass
 
-    def doFilterTreeview(self, query, show_hidden=True, keep_parents=True):
+    
+
+    def doFilterTreeview(self, query, show_hidden=True, keep_parents=True, dialog_progress=None):
         """Apply the query on the treeview.
         Args:
             query: the core.Components.Search object that hold the informations
@@ -473,8 +503,100 @@ class PollenisatorTreeview(ttk.Treeview):
                     tk.messagebox.showerror("No results", "No results found")
                     return
                 self._brutSearcher(results_iid, "filter", keep_parents=keep_parents)
+            elif isinstance(query, dict):
+                total = 0
+                results_iid = set()
+                datamanager = DataManager.getInstance()
+                for value in query.values():
+                    total += len(value)
+                if total > self.lazylimit:
+                    tk.messagebox.showerror("Too many results", f"Too many results found ({total}), please refine your search")
+                    return
+                try:
+                    self.delete("search")
+                except tk.TclError:
+                    pass
+                node = self.insert("", 0, "search", text="Search results")
+                for classtype, classitems in query.items():
+                    clazz = datamanager.getClass(classtype)
+                    if classitems:
+                        obj = clazz(classitems[0])
+                        view = self.modelToView(clazz.coll_name, obj)
+                        if hasattr(view.__class__, "multiAddInTreeview"):
+                            # if dialog_progress is not None:
+                            #     dialog_progress.update(msg="Adding %s" % clazz.coll_name)
+                            view.__class__.multiAddInTreeview(self, self.appli.viewframe, self.appli, [clazz(c) for c in classitems], "search", addChildren=False, detailed=True)
+                            results_iid.update(set([str(o.get("_id")) for o in classitems]))
+                            continue
+                    count = 0
+                    size = len(classitems)
+                    for classitem in classitems:
+                        obj = clazz(classitem)
+                        view = None
+                        if obj is None:
+                            return
+                        model = obj
+                        # if dialog_progress is not None:
+                        #     dialog_progress.update(msg="Adding  %s results in treeview (%s/%s)" % clazz.coll_name, count, size)
+                        view = self.modelToView(clazz.coll_name, model)
+                        count += 1
+                        results_iid.add(str(model.getId()))
+                        try:
+                            if view is not None:
+                                view.addInTreeview(node, addChildren=False)
+                                #view.insertReceived()
+                        except tk.TclError:
+                            pass
+                    
+                if results_iid:
+                    if show_hidden:
+                        self.unhideAll()
+                if dialog_progress is not None:
+                    dialog_progress.update(msg="Filtering treeview ...")
+                self._brutSearcher(results_iid, "filter", keep_parents=keep_parents)
             else:
                 self._brutSearcher(query, "text", keep_parents=keep_parents)
+
+    # def _brutSearcher(self, query_item, search_type, parentItem='', **kwargs):
+    #     stack = [parentItem] if parentItem else list(self.get_children(''))
+    #     keep_parents = kwargs.get("keep_parents", True)
+    #     while stack:
+    #         current_item = stack.pop()
+    #         children = list(self.get_children(current_item))
+
+    #         if search_type == "filter":
+    #             is_match = current_item in query_item
+    #         else:
+    #             nodetext = self.item(current_item)["text"]
+    #             is_match = str(query_item).lower() in nodetext.lower()
+
+    #         has_child_match = any(child in stack for child in children)  # Check if any children are in the stack
+
+    #         if is_match:
+    #             self.item(current_item, open=True)
+    #             if not keep_parents:
+    #                 self._moved.append([current_item, self.parent(current_item)])
+    #                 self.move(current_item, '', 'end')
+    #             # Add children to the stack
+    #             stack.extend(children)
+    #             continue
+
+    #         if keep_parents and has_child_match:
+    #             self.item(current_item, open=True)
+    #             # Add children to the stack
+    #             stack.extend(children)
+    #             continue
+
+    #         # If no match and the item has children, add them to the stack
+    #         if children:
+    #             stack.extend(children)
+    #         else:
+    #             try:
+    #                 self._detached.append([current_item, self.parent(current_item)])
+    #                 # Detach the child
+    #                 self.detach(current_item)
+    #             except tk.TclError:
+    #                 pass
 
     def _brutSearcher(self, query_item, search_type, parentItem='', **kwargs):
         if search_type == "filter":
@@ -491,13 +613,13 @@ class PollenisatorTreeview(ttk.Treeview):
             if keep_parents and matched:
                 has_child_match = True
         if is_match:
-            self.item(parentItem, open=True)
+            #self.item(parentItem, open=True)
             if not keep_parents:
                 self._moved.append([parentItem, self.parent(parentItem)])
                 self.move(parentItem, '', 'end')
             return True
         if keep_parents and has_child_match:
-            self.item(parentItem, open=True)
+            #self.item(parentItem, open=True)
             return True
         try:
             self._detached.append([parentItem, self.parent(parentItem)])

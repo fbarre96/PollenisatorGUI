@@ -13,7 +13,7 @@ class CheckInstance(Element):
         coll_name: collection name in pollenisator or pentest database
     """
 
-    coll_name = "cheatsheet"
+    coll_name = "checkinstances"
 
     def __init__(self, valuesFromDb=None):
         """Constructor
@@ -156,7 +156,6 @@ class CheckInstance(Element):
         tools_to_add = self.getTools()
         if tools_to_add is not None:
             for tool in tools_to_add:
-                tool = Tool(tool)
                 if "done" in tool.getStatus():
                     done += 1
                     at_least_one = True

@@ -119,13 +119,40 @@ def getTextColor():
     colors = get_color_scheme(dark_mode)
     return colors.get("text")
 
+def getStrongColor():
+    """
+    Return the background color of the current style.
+    Returns:
+        the background color.
+    """
+    from pollenisatorgui.core.components.settings import Settings
+    settings = Settings()
+    dark_mode = settings.is_dark_mode()
+    colors = get_color_scheme(dark_mode)
+    return colors.get("strong")
+
+def getStrongActiveColor():
+    """
+    Return the background color of the current style.
+    Returns:
+        the background color.
+    """
+    from pollenisatorgui.core.components.settings import Settings
+    settings = Settings()
+    dark_mode = settings.is_dark_mode()
+    colors = get_color_scheme(dark_mode)
+    return colors.get("strong_active")
+
 def get_color_scheme(dark_mode=False):
-    main_color = ("#419f1e", "#2FA572")[dark_mode]
-    hover_color = ("#63c93e", "#2FC572")[dark_mode]
+    main_color = ("#5ac433", "#2FA572")[dark_mode]
+    hover_color = ("#48a825", "#2FC572")[dark_mode]
     background_color = ("gray97", "gray17")[dark_mode]
-    text_color = ("gray10", "#DCE4EE")[dark_mode]
-    second_color = ("light gray", "dim gray")[dark_mode]
-    return {"main":main_color, "hover":hover_color, "background":background_color, "text":text_color, "background_bis":second_color}
+    text_color = ("gray20", "#DCE4EE")[dark_mode]
+    second_color = ("gray89", "dim gray")[dark_mode]
+    strong_color = ('#3b75a8','#113759')[dark_mode]
+    strong_active_color = ('#061b4e','#2768a1')[dark_mode]
+    return {"main":main_color, "hover":hover_color, "background":background_color, "text":text_color, "background_bis":second_color,
+            "strong":strong_color, "strong_active":strong_active_color}
 
 def craftMenuWithStyle(menu_parent):
     """
@@ -136,10 +163,10 @@ def craftMenuWithStyle(menu_parent):
     Returns:
         the crafted menu.
     """
-
-    menu = tk.Menu(menu_parent, tearoff=0, background='#113759', foreground="white", activebackground="#061b4e", activeforeground="white")
-
+   
+    menu = tk.Menu(menu_parent, tearoff=0, background= getStrongColor(), foreground="white", activebackground= getStrongActiveColor(), activeforeground="white")
     return menu
+
 def setStyle(tkApp, dark_mode=False, _event=None):
     """
     Set the tk app style window widget style using ttk.Style
@@ -166,10 +193,10 @@ def setStyle(tkApp, dark_mode=False, _event=None):
     style.configure("Treeview", background=background_color, fieldbackground=background_color, foreground=text_color)
     #style.configure("Treeview.Item")
 
-    style.configure("TLabelframe", background=background_color,foreground="gray97",
+    style.configure("TLabelframe", background=background_color,foreground=background_color,
                     labeloutside=False, bordercolor=main_color,relief=tk.SUNKEN)
     style.configure('TLabelframe.Label', background=main_color,
-                    foreground="gray97", font=('Sans', '10', 'bold'))
+                    foreground=background_color, font=('Sans', '10', 'bold'))
     style.configure("TProgressbar",
                 background=hover_color, foreground=hover_color, troughcolor=background_color, darkcolor=hover_color, lightcolor=hover_color)
     style.configure("Important.TFrame", background=main_color)

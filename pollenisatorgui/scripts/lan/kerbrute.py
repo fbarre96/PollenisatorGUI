@@ -12,7 +12,7 @@ def main(apiclient, appli, **kwargs):
     APIClient.setInstance(apiclient)
     ip = ""
     if kwargs.get("target_type").lower() == "computer":
-        computer_info =  apiclient.find("ActiveDirectory", {"type":"computer", "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
+        computer_info =  apiclient.find("computers", {"type":"computer", "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
         if computer_info is not None:
             ip = computer_info.get("ip", "")
     if ip == "" or ip is None:

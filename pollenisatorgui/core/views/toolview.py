@@ -200,7 +200,7 @@ class ToolView(ViewElement):
 
         self.completeModifyWindow()
 
-    def addInTreeview(self, parentNode=None, _addChildren=True):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
@@ -217,12 +217,17 @@ class ToolView(ViewElement):
 
         nodeText = str(self.controller.getModelRepr())
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+        if kwargs.get("insert_parents", False) and parentNode != "" and parentNode is not None:
+            try:
+                self.appliTw.insertViewById(parentNode)
+                mustHide = False
+            except tk.TclError as e:
+                pass
         try:
             self.appliTw.insert(parentNode, "end", str(
                 self.controller.getDbId()), text=nodeText, tags=self.controller.getTags(), image=self.getIcon())
         except tk.TclError as e:
             pass
-        self.appliTw.sort(parentNode)
         if self.mainApp.settings.is_checklist_view():
             self.hide("checklist_view")
         if "hidden" in self.controller.getTags() or mustHide:

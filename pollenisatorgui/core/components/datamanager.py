@@ -1,4 +1,5 @@
 import os
+import traceback
 from bson import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.models.metaelement import REGISTRY
@@ -35,9 +36,15 @@ class DataManager(Subject):
         super().__init__()
         self._observers
         self.data = {}
-        self.currentDatabase = None
+        self.ip_index = {}
+        self.currentPentest = None
         pid = os.getpid()
         DataManager.__instances[pid] = self
+
+    def openPentest(self, pentest):
+        self.currentPentest = pentest
+        self.data = {}
+
 
     # def load(self, collections=None, forceReload=False):
     #     if len(self.data) > 0 and not forceReload:
@@ -58,9 +65,13 @@ class DataManager(Subject):
             collection = collection[:-1]
         if iid == "*":
             ret = []
-            datas = REGISTRY[collection].fetchObjects({})
+            datas = REGISTRY[collection].fetchPentestObjects()
+            if self.data.get(collection, None) is None:
+                self.data[collection] = {}
             for data in datas:
-                self.data[collection][str(data["_id"])] = data
+                self.data[collection][str(data._id)] = data
+                if collection == "ip":
+                    self.ip_index[data.ip] = data
                 ret.append(data)
             return ret
         return self.find(collection, {"_id": iid}, multi=False, fetch_on_none=True)
@@ -75,13 +86,31 @@ class DataManager(Subject):
 
     def find(self, collection, search, multi=True, fetch_on_none=True):
         collection = collection.lower()
-        
         if collection not in REGISTRY.keys() and collection[:-1] in REGISTRY.keys():
             collection = collection[:-1]
+        if collection not in self.data:
+            self.data[collection] = {}
         if len(search) == 1:
+            if "ip" in search.keys() and collection == "ip":
+                ip = search["ip"]
+                ret = self.ip_index.get(ip, None)
+                if ret is None and fetch_on_none:
+                    search = {"ip": ip}
+                    ret = REGISTRY[collection].fetchObject(search)
+                    self.data[collection][str(ret.getId())] = ret
+                    self.ip_index[ip] = ret
+                return ret
             if "_id" in search.keys():
                 iid = search["_id"]
-                self.data[collection].get(str(iid), None)
+                ret = self.data[collection].get(str(iid), None)
+                if ret is None and fetch_on_none:
+                    search = {"_id": ObjectId(iid)}
+                    if collection == "command":
+                        ret = REGISTRY[collection].fetchObject(search, self.currentPentest)
+                    else:
+                        ret = REGISTRY[collection].fetchObject(search)
+                    self.data[collection][str(ret.getId())] = ret
+                return ret
         # if collection not in self.data.keys():
         #     return None
         ret = []
@@ -98,17 +127,25 @@ class DataManager(Subject):
                     is_match = False
                     break
             if is_match:
-                ret.append(data)
+                ret.append(data_model)
                 if not multi:
-                    return data
+                    return data_model
         if len(ret) == 0 and fetch_on_none:
             if multi:
-                datas = REGISTRY[collection].fetchObjects(search)
+                if collection == "command":
+                        datas = REGISTRY[collection].fetchObjects(search, self.currentPentest)
+                else:
+                    datas = REGISTRY[collection].fetchObjects(search)
                 for data in datas:
-                    self.data[collection][str(data["_id"])] = data
+                    self.data[collection][str(data.getId())] = data
+                    if collection == "ip":
+                        self.ip_index[data.ip] = data
                     ret.append(data)
             else:
-                data = REGISTRY[collection].fetchObject(search)
+                if collection == "command":
+                    data = REGISTRY[collection].fetchObject(search, self.currentPentest)
+                else:
+                    data = REGISTRY[collection].fetchObject(search)
                 ret = data
         if not multi and not ret:
             return None
@@ -157,12 +194,11 @@ class DataManager(Subject):
             obj = None
             old_obj = None
             if notification["db"] != "pollenisator":
+                logger.debug("Notification received : "+str(notification))
                 class_name = notification["collection"]
-                if class_name == "cheatsheet":
-                    class_name = "checkinstance" # because cheatsheet in db pollenisator is CheckItem, CheckInstance otherwise
                 if class_name in self.data.keys() or class_name[:-1] in self.data.keys():
                     if notification["action"] == "update" or notification["action"] == "insert":
-                        updated_data = apiclient.findInDb(notification["db"], notification["collection"], {"_id": ObjectId(notification["iid"])}, False)
+                        updated_data = apiclient.findInDb(notification["db"], notification["collection"], {"_id": ObjectId(notification["iid"])}, False, use_cache=False)
                         obj = self.getClass(class_name)(updated_data)
                         old_obj = self.get(class_name, notification["iid"])
                         if old_obj is None:
@@ -177,12 +213,9 @@ class DataManager(Subject):
                             self.set(class_name, data["_id"], model)
                     elif notification["action"] == "delete":
                         self.remove(class_name, notification["iid"])
-                    try:
-                        data = self.get(class_name, notification["iid"])
-                    except KeyError:
-                        data = None
             self.notify(notification, obj, old_obj)
         except Exception as e:
+            traceback.print_exc()
             logger.critical("Error while handling notification : "+str(e))
     
     

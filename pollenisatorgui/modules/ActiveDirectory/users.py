@@ -1,7 +1,7 @@
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.models.element import Element
 class User(Element):
-    coll_name = "ActiveDirectory"
+    coll_name = "users"
     
     def __init__(self, valuesFromDb=None):
         if valuesFromDb is None:

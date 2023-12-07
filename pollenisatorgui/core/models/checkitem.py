@@ -11,7 +11,7 @@ class CheckItem(Element):
         coll_name: collection name in pollenisator or pentest database
     """
 
-    coll_name = "cheatsheet"
+    coll_name = "checkitems"
 
     def __init__(self, valuesFromDb=None):
         """Constructor
@@ -114,11 +114,10 @@ class CheckItem(Element):
         for d in ds:
             yield CheckItem(d)
     
-
-    def getChildren(self):
-        """Return a list of all children of this check
+    def getChecks(self):
+        """Return check instances that implements this check item
         Returns:
-            A list of CheckItem
+            list of checkInstance objects
         """
         datamanager = DataManager.getInstance()
         return datamanager.find("checkinstance", {"check_iid": str(self._id)}, multi=True)

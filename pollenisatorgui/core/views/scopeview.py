@@ -50,40 +50,50 @@ class ScopeView(ViewElement):
     def getAdditionalContextualCommands(self):
         return {"Insert Scopes":self.openInsertWindow}
 
-    def addInTreeview(self, parentNode=None, addChildren=True):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             addChildren: If False, skip the tool insert. Useful when displaying search results
         """
+        addChildren = kwargs.get("addChildren", True)
         self.appliTw.views[str(self.controller.getDbId())] = {"view":self}
 
         parentDbId = parentNode
         if parentNode is None:
             parentNode = self.getParentNode()
+        elif parentNode == "":
+            parentNode = ""
         elif 'scopes' not in parentNode:
             parentNode = ScopeView.DbToTreeviewListId(parentDbId)
-
+        if parentNode != "" and parentNode is not None and kwargs.get("insert_parents", True):
+            try:
+                parentNode = self.appliTw.insert(
+                    self.controller.getParentId(), 0, parentNode, text="Scopes", image=self.getClassIcon())
+            except TclError as e:  #  trigger if tools list node already exist
+                pass
         try:
-            parentNode = self.appliTw.insert(
-                self.controller.getParentId(), 0, parentNode, text="Scopes", image=self.getClassIcon())
-        except TclError:  #  trigger if tools list node already exist
-            pass
-        try:
-            self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
-        except:
+            node = self.appliTw.insert(parentNode, "end", str(self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
+        except TclError as e:
             pass
         if addChildren:
-            checks = self.controller.getChecks()
-            for check in checks:
-                check_o = CheckInstanceController(check)
-                check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
-                check_vw.addInTreeview(str(self.controller.getDbId()))
+            self._insertChildren()
+        elif self.appliTw.lazyload and not self.mainApp.searchMode:
+            try:
+                self.appliTw.insert(self.controller.getDbId(), "end", str(self.controller.getDbId()+"|<Empty>"), text="<Empty>")
+            except TclError as e:
+                pass
         if self.mainApp.settings.is_checklist_view():
             self.hide("checklist_view")
         if "hidden" in self.controller.getTags():
             self.hide("tags")
+
+    def _insertChildren(self):
+        checks = self.controller.getChecks()
+        for check in checks:
+            check_o = CheckInstanceController(check)
+            check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
+            check_vw.addInTreeview(str(self.controller.getDbId()))
 
     @classmethod
     def treeviewListIdToDb(cls, treeview_id):

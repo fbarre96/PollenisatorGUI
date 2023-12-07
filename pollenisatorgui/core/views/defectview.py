@@ -58,30 +58,35 @@ class DefectView(ViewElement):
         topPanel.addFormLabel("Results",row=3, column=0)
         result = topPanel.addFormCombo("Result", [""], default="", width=200, row=3, column=1)
         s.setResultForm(result)
-        topPanel = self.form.addFormPanel(grid=True)
+        data_panel = self.form.addFormPanel(side="left", height=0, fill="x")
+        topPanel = data_panel.addFormPanel(grid=True, side="top", pady=3)
         topPanel.addFormLabel("Title_lbl", text="Title")
-        topPanel.addFormStr("Title", r".+", modelData.get("title", ""), column=1, width=400)
-        topPanel = self.form.addFormPanel(grid=True)
+        title = topPanel.addFormStr("Title", r".+", modelData.get("title", ""), placeholder="Title", column=1, width=400)
+        s.addResultForm(title, "title")
+        topPanel = data_panel.addFormPanel(grid=True, side="top", pady=3)
         topPanel.addFormLabel("Ease")
         self.easeForm = topPanel.addFormCombo(
             "Ease", Defect.getEases(), default=modelData.get("ease", ""), column=1, command=self.updateRiskBox, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+        s.addResultForm(self.easeForm, "ease")
         topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", column=2)
         topPanel.addFormLabel("Impact", column=3)
         self.impactForm = topPanel.addFormCombo(
             "Impact", Defect.getImpacts(), default=modelData.get("impact", ""), command=self.updateRiskBox, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+        s.addResultForm(self.impactForm, "impact")
         topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", column=5)
         topPanel.addFormLabel("Risk", column=6)
         self.riskForm = topPanel.addFormCombo(
             "Risk", Defect.getRisks(), modelData["risk"],  column=7)
+        s.addResultForm(self.riskForm, "risk")
         topPanel.addFormHelper(
             "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", column=8)
-        topPanel = self.form.addFormPanel(grid=True)
+        topPanel = data_panel.addFormPanel(grid=True, side="top", pady=3)
         topPanel.addFormLabel("Redactor", row=1)
         topPanel.addFormCombo("Redactor", self.mainApp.settings.getPentesters()+["N/A"], "N/A", row=1, column=1)
         topPanel.addFormLabel("Language", row=1, column=2)
-        topPanel.addFormStr("Language", "", modelData.get("language","en"), row=1, column=3)
-        
-        chklistPanel = self.form.addFormPanel(grid=True)
+        lang = topPanel.addFormStr("Language", "", modelData.get("language","en"), row=1, column=3)
+        s.addResultForm(lang, "language")
+        chklistPanel = data_panel.addFormPanel( side="top", pady=3, anchor="center")
         defectTypes = settings.getPentestTypes()
         if defectTypes is not None:
             defectTypes = defectTypes.get(settings.getPentestType(), [])
@@ -89,14 +94,17 @@ class DefectView(ViewElement):
                 defectTypes = ["N/A"]
         else:
             defectTypes = ["N/A"]
-        chklistPanel.addFormChecklist("Type", defectTypes, ["N/A"])
-        
-        topPanel = self.form.addFormPanel()
+        checklist = chklistPanel.addFormChecklist("Type", defectTypes, ["N/A"], anchor="center",fill="x")
+        s.addResultForm(checklist, "type")
+        topPanel = data_panel.addFormPanel(side="top", pady=3)
         settings = self.mainApp.settings
-        topPanel.addFormText("Synthesis", r"", modelData.get("synthesis", "Synthesis"), state="readonly" if self.controller.isAssigned() else "", side="top", height=3)
+        topPanel.addFormLabel("Synthesis", side="left")
+        synthesis = topPanel.addFormText("Synthesis", r"", modelData.get("synthesis", "Synthesis"), state="readonly" if self.controller.isAssigned() else "", side="left", height=300)
+        s.addResultForm(synthesis, "synthesis")
         if not self.controller.isAssigned():
             topPanel = self.form.addFormPanel()
-            topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", height=300)
+            desc = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", fill=tk.Y)
+            s.addResultForm(desc, "description")
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = self.form.addFormPanel()
@@ -112,6 +120,111 @@ class DefectView(ViewElement):
         else:
             self.showForm()
         self.updateRiskBox()
+
+    def openModifyWindow(self, addButtons=True):
+        """
+        Creates a tkinter form using Forms classes.
+        This form aims to update or delete an existing Defect
+        Args:
+            addButtons: boolean value indicating that insertion buttons should be visible. Default to True
+        """
+        self.form.clear()
+        modelData = self.controller.getData()
+        settings = self.mainApp.settings
+        settings.reloadSettings()
+        self.delete_image = CTkImage(Image.open(utils.getIconDir()+'delete.png'))
+        self.edit_image = CTkImage(Image.open(utils.getIconDir()+'stylo.png'))
+        globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X)
+        leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
+        rightPanel = globalPanel.addFormPanel(grid=True, side=tk.RIGHT, fill=tk.NONE)
+        row = 0
+        if modelData.get("target_id", "") != "":
+            leftPanel.addFormLabel("Target", row=row, column=0)
+            target = self.controller.getTargetRepr()
+            leftPanel.addFormStr(
+                "Target", '', target, None, column=1, row=row, state="readonly")
+            row += 1
+        if not self.controller.model.isTemplate:
+            if modelData["proofs"]:
+                for i, proof in enumerate(modelData["proofs"]):
+                    proof_local_path = self.controller.getProofWithName(proof)
+                    if proof_local_path is not None:
+                        modelData["description"] = modelData["description"].replace(f"[{proof}]({proof})", f"[{proof}]({proof_local_path})")
+        if not self.controller.isAssigned():
+            # if not self.controller.model.isTemplate:
+            #     topPanel.addFormSearchBar("Search Defect", APIClient.getInstance().searchDefect, globalPanel, row=row, column=1, autofocus=False)
+            #     row += 1
+            titlePanel = leftPanel.addFormPanel(grid=True,  row=row, column=0, columnspan=2)
+            titlePanel.addFormLabel("Title_lbl", text="Title", row=0, column=0)
+            titlePanel.addFormStr(
+                "Title", ".+", modelData["title"],  width=400, row=0, column=1)
+            row += 1
+            easePanel = leftPanel.addFormPanel(grid=True,  row=row, column=0, columnspan=2)
+            easePanel.addFormLabel("Ease", row=0)
+            self.easeForm = easePanel.addFormCombo(
+                "Ease", Defect.getEases(), modelData["ease"], command=self.updateRiskBox, row=0, column=1,
+                 binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            easePanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", 
+                                    row=0, column=2)
+            easePanel.addFormLabel("Impact", row=1, column=0)
+            self.impactForm = easePanel.addFormCombo(
+                "Impact", Defect.getImpacts(), modelData["impact"], command=self.updateRiskBox,
+                 row=1, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
+            easePanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.",
+                                     row=1, column=2)
+            easePanel.addFormLabel("Risk", row=2, column=0)
+            self.riskForm = easePanel.addFormCombo(
+                "Risk", Defect.getRisks(), modelData["risk"],  row=2, column=1)
+            easePanel.addFormHelper(
+                "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.",
+                 row=2, column=2)
+            row += 1
+            chklistPanel = leftPanel.addFormPanel(grid=True,  row=row, column=0, columnspan=2)
+            defect_types = settings.getPentestTypes().get(settings.getPentestType(), [])
+            for savedType in modelData["type"]:
+                if savedType.strip() not in defect_types:
+                    defect_types.insert(0, savedType)
+            chklistPanel.addFormChecklist("Type", defect_types, modelData["type"])
+            row += 1
+            otherPanel = leftPanel.addFormPanel(grid = True,  row=row, column=0, columnspan=2)
+            pos_row = 0
+            if not self.controller.model.isTemplate:
+                otherPanel.addFormLabel("Redactor", row=pos_row)
+                otherPanel.addFormCombo("Redactor", list(set(self.mainApp.settings.getPentesters()+["N/A"]+[modelData["redactor"]])), modelData["redactor"], row=pos_row, column=1)
+                pos_row += 1
+            otherPanel.addFormLabel("Language", row=pos_row, column=0)
+            otherPanel.addFormStr("Language", "", modelData["language"], row=pos_row, column=1)
+            row += 1
+            otherPanel = leftPanel.addFormPanel( row=row, column=0, columnspan=2)
+            otherPanel.addFormLabel("Synthesis", side=tk.TOP)
+            otherPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=200, side="top")
+            self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  just_editor=True)
+        else:
+            globalPanel.addFormHidden("Title", modelData.get("title", ""))
+            globalPanel.addFormHidden("Ease", modelData.get("ease", ""))
+            globalPanel.addFormHidden("Impact", modelData.get("impact", ""))
+            globalPanel.addFormHidden("Risk", modelData.get("risk", ""))
+            types = modelData.get("type", [])
+            type_dict = dict()
+            for type in types:
+                type_dict[type] = 1
+            globalPanel.addFormHidden("Type", type_dict)
+            globalPanel.addFormHidden("Language", modelData.get("language", ""))
+            globalPanel.addFormHidden("Synthesis", modelData.get("synthesis", ""))
+            globalPanel.addFormHidden("Description", modelData.get("description", ""))
+            notesPanel = globalPanel.addFormPanel()
+            notesPanel.addFormLabel("Notes", side="top")
+            notesPanel.addFormText(
+                "Notes", r"", modelData["notes"], None, side="top", height=40)
+        self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
+        if not self.controller.model.isTemplate:
+            actionsPan = self.form.addFormPanel(side=tk.TOP, anchor=tk.E)
+            actionsPan.addFormButton("Edit fixes", self.openFixesWindow, side=tk.RIGHT, image=self.edit_image)
+            actionsPan.addFormButton("Create defect template from this", self.saveAsDefectTemplate, side=tk.RIGHT )
+        if addButtons:
+            self.completeModifyWindow(addTags=False)
+        else:
+            self.showForm()
 
     def insert(self, _event=None):
         """
@@ -323,115 +436,7 @@ class DefectView(ViewElement):
             self.browse_top_treevw.addItem("","end", iid, text=item["text"], values=item["values"])
         self.browse_down_treevw.deleteItem()
 
-    def openModifyWindow(self, addButtons=True):
-        """
-        Creates a tkinter form using Forms classes.
-        This form aims to update or delete an existing Defect
-        Args:
-            addButtons: boolean value indicating that insertion buttons should be visible. Default to True
-        """
-        self.form.clear()
-        modelData = self.controller.getData()
-        settings = self.mainApp.settings
-        settings.reloadSettings()
-        self.delete_image = CTkImage(Image.open(utils.getIconDir()+'delete.png'))
-        self.edit_image = CTkImage(Image.open(utils.getIconDir()+'stylo.png'))
-        globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
-        topPanel = globalPanel.addFormPanel(grid=True)
-        row = 0
-        if modelData.get("target_id", "") != "":
-            topPanel.addFormLabel("Target", row=row, column=0)
-            target = self.controller.getTargetRepr()
-            topPanel.addFormStr(
-                "Target", '', target, None, column=1, row=row, state="readonly")
-            row += 1
-        if not self.controller.model.isTemplate:
-            if modelData["proofs"]:
-                for i, proof in enumerate(modelData["proofs"]):
-                    proof_local_path = self.controller.getProofWithName(proof)
-                    if proof_local_path is not None:
-                        modelData["description"] = modelData["description"].replace(f"[{proof}]({proof})", f"[{proof}]({proof_local_path})")
-        if not self.controller.isAssigned():
-            if not self.controller.model.isTemplate:
-                topPanel.addFormSearchBar("Search Defect", APIClient.getInstance().searchDefect, globalPanel, row=row, column=1, autofocus=False)
-                row += 1
-            topPanel.addFormLabel("Title_lbl", text="Title", row=row, column=0)
-            topPanel.addFormStr(
-                "Title", ".+", modelData["title"],  width=400, row=row, column=1)
-            row += 1
-            topPanel = globalPanel.addFormPanel(grid=True)
-            row = 0
-            topPanel.addFormLabel("Ease", row=row)
-            self.easeForm = topPanel.addFormCombo(
-                "Ease", Defect.getEases(), modelData["ease"], command=self.updateRiskBox, row=row, column=1, binds={"<<ComboboxSelected>>": self.updateRiskBox})
-            topPanel.addFormHelper("0: Trivial to exploit, no tool required\n1: Simple technics and public tools needed to exploit\n2: public vulnerability exploit requiring security skills and/or the development of simple tools.\n3: Use of non-public exploits requiring strong skills in security and/or the development of targeted tools", row=row, column=2)
-            topPanel.addFormLabel("Impact", row=row, column=3)
-            self.impactForm = topPanel.addFormCombo(
-                "Impact", Defect.getImpacts(), modelData["impact"], command=self.updateRiskBox, row=row, column=4, binds={"<<ComboboxSelected>>": self.updateRiskBox})
-            topPanel.addFormHelper("0: No direct impact on system security\n1: Impact isolated on precise locations of pentested system security\n2: Impact restricted to a part of the system security.\n3: Global impact on the pentested system security.", row=row, column=5)
-            topPanel.addFormLabel("Risk", row=row, column=6)
-            self.riskForm = topPanel.addFormCombo(
-                "Risk", Defect.getRisks(), modelData["risk"],  row=row, column=7)
-            topPanel.addFormHelper(
-                "0: small risk that might be fixed\n1: moderate risk that need a planed fix\n2: major risk that need to be fixed quickly.\n3: critical risk that need an immediate fix or an immediate interruption.", row=row, column=8)
-            row += 1
-            chklistPanel = globalPanel.addFormPanel(grid=True)
-            defect_types = settings.getPentestTypes().get(settings.getPentestType(), [])
-            for savedType in modelData["type"]:
-                if savedType.strip() not in defect_types:
-                    defect_types.insert(0, savedType)
-            chklistPanel.addFormChecklist("Type", defect_types, modelData["type"])
-            topPanel = globalPanel.addFormPanel(grid = True)
-            row=0
-            if not self.controller.model.isTemplate:
-                topPanel.addFormLabel("Redactor", row=row)
-                topPanel.addFormCombo("Redactor", list(set(self.mainApp.settings.getPentesters()+["N/A"]+[modelData["redactor"]])), modelData["redactor"], row=row, column=1)
-            topPanel.addFormLabel("Language", row=row, column=2)
-            topPanel.addFormStr("Language", "", modelData["language"], row=row, column=3)
-            row += 1
-            topPanel = globalPanel.addFormPanel()
-            topPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=40, side="top")
-            self.description_form = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", just_editor=True)
-            topPanel.addFormButton("Edit fixes", self.openFixesWindow,  image=self.edit_image)
-        else:
-            topPanel.addFormHidden("Title", modelData.get("title", ""))
-            topPanel.addFormHidden("Ease", modelData.get("ease", ""))
-            topPanel.addFormHidden("Impact", modelData.get("impact", ""))
-            topPanel.addFormHidden("Risk", modelData.get("risk", ""))
-            types = modelData.get("type", [])
-            type_dict = dict()
-            for type in types:
-                type_dict[type] = 1
-            topPanel.addFormHidden("Type", type_dict)
-            topPanel.addFormHidden("Language", modelData.get("language", ""))
-            topPanel.addFormHidden("Synthesis", modelData.get("synthesis", ""))
-            topPanel.addFormHidden("Description", modelData.get("description", ""))
-            notesPanel = globalPanel.addFormPanel()
-            notesPanel.addFormLabel("Notes", side="top")
-            notesPanel.addFormText(
-                "Notes", r"", modelData["notes"], None, side="top", height=40)
-        
-                # proofPanel = globalPanel.addFormPanel(grid=True)
-                # i = 0
-                # for proof in modelData["proofs"]:
-                #     proofPanel.addFormLabel("Proof "+str(i), proof, row=i, column=0)
-                #     proofPanel.addFormButton("View", lambda event, obj=i: self.viewProof(
-                #         event, obj), row=i, column=1)
-                #     proofPanel.addFormButton("Delete", lambda event, obj=i: self.deleteProof(
-                #         event, obj), row=i, column=2, image=self.delete_image,
-                #             fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
-                #             border_width=1, border_color="firebrick1", hover_color="tomato")
-                #     i += 1
-            #proofPanel = globalPanel.addFormPanel()
-            #self.formFile = proofPanel.addFormFile("Add proofs", r"", "",  height=3)
-        self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
-        if not self.controller.model.isTemplate:
-            actionsPan = globalPanel.addFormPanel()
-            actionsPan.addFormButton("Create defect template from this", self.saveAsDefectTemplate)
-        if addButtons:
-            self.completeModifyWindow(addTags=False)
-        else:
-            self.showForm()
+    
 
     def openFixesWindow(self, _event=None):
         dialog = ChildDialogFixes(None, self)
@@ -512,7 +517,7 @@ class DefectView(ViewElement):
                 if callable(getattr(module["object"], "removeItem", None)):
                     module["object"].removeItem(iid)
 
-    def addInTreeview(self, parentNode=None, _addChildren=True):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.

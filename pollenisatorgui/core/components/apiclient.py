@@ -94,6 +94,8 @@ class APIClient():
         """ Set singleton for current pid"""
         pid = os.getpid()
         APIClient.__instances[pid] = apiclient
+    
+   
 
     def searchDefect(self, searchTerms, **kwargs):
         api_url = '{0}report/search'.format(self.api_url_base)
@@ -473,8 +475,7 @@ class APIClient():
         apiclient = APIClient.getInstance()
         pentest = apiclient.getCurrentPentest()
         pipeline = {} if pipeline is None else pipeline
-        pentest = apiclient.getCurrentPentest()
-        api_url = '{0}find/{1}/cheatsheet'.format(self.api_url_base, pentest)
+        api_url = '{0}find/{1}/checkinstances'.format(self.api_url_base, pentest)
         data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder))}
         data["many"] = many
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=self.proxies, verify=False)
@@ -572,10 +573,10 @@ class APIClient():
 
 
     @handle_api_errors    
-    def findInDb(self, pentest, collection, pipeline=None, multi=True):
+    def findInDb(self, pentest, collection, pipeline=None, multi=True, use_cache=True):
         pipeline = {} if pipeline is None else pipeline
         api_url = '{0}find/{1}/{2}'.format(self.api_url_base, pentest, collection)
-        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder)), "many":multi}
+        data = {"pipeline":(json.dumps(pipeline, cls=JSONEncoder)), "many":multi, "use_cache":use_cache}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder),  proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1705,4 +1706,23 @@ class APIClient():
         else:
             return None
         
-    
+    @handle_api_errors
+    def searchTaggedBy(self, tag_name):
+        api_url = '{0}tags/{1}/getTaggedBy/{2}'.format(self.api_url_base, self.getCurrentPentest(), tag_name)
+        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, False, response.text)
+        else:
+             return {"success":False, "msg":"Unexpected server response "+str(response.status_code)+"\n"+response.text}
+        
+    @handle_api_errors
+    def searchPentest(self, stringQuery, textonly=False):
+        api_url = '{0}search/{1}'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.get(api_url, params={"s":stringQuery,"textonly":textonly}, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res_obj
+        else:
+            return {"success":False, "msg":"Unexpected server response "+str(response.status_code)+"\n"+response.text}

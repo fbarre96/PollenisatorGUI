@@ -85,12 +85,13 @@ class WaveView(ViewElement):
             self.controller.getDbId()), text="Scopes", image=ScopeView.getClassIcon())
         return d, s
 
-    def addInTreeview(self, parentNode=None, addChildren=True):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             addChildren: If False: skip interval, tools and scope insert. Useful when displaying search results.
         """
+        addChildren = kwargs.get("addChildren", True)
         self.appliTw.views[str(self.controller.getDbId())] = {
             "view": self, 'parent': ''}
         if parentNode is None:

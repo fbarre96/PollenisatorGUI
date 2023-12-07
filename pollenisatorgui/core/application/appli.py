@@ -13,7 +13,6 @@ from customtkinter import *
 import sys
 import os
 from tkinter import TclError
-import datetime
 import json
 import re
 from PIL import ImageTk, Image
@@ -132,7 +131,7 @@ class AutocompleteEntry(PopoEntry):
             self.var = tk.StringVar()
             self.configure(textvariable=self.var)
         self.var.trace('w', self.changed)
-        
+        self.bind("<Tab>", self.selection)
         self.bind("<Right>", self.selection)
         self.bind("<Up>", self.upArrow)
         self.bind("<Down>", self.downArrow)
@@ -196,7 +195,10 @@ class AutocompleteEntry(PopoEntry):
             self.lb.destroy()
             self.lb_up = False
             self.icursor(tk.END)
+            self.focus_set()
+            self.focus()
             #self.changed()
+            return 'break'
 
     def upArrow(self, _event=None):
         """
@@ -254,8 +256,7 @@ def iter_namespace(ns_pkg):
 class ButtonNotebook(CTkFrame):
     def __init__(self, parent, callbackSwitch, closeCallbackSwitch):
         super().__init__(parent)
-        style = ttk.Style()
-        self.frameButtons = CTkFrame(self, fg_color=('#113759'))
+        self.frameButtons = CTkFrame(self, fg_color=utils.getStrongColor())
         self.callbackSwitch = callbackSwitch
         self.closeCallbackSwitch = closeCallbackSwitch
         self.tabs = {}
@@ -268,7 +269,7 @@ class ButtonNotebook(CTkFrame):
         if name not in self.tabs:
             self.tabs[name] = {"widget":widget, "image":image, "order": order, "name":name}
             widget.pack_forget()
-            btn = CTkButton(self.frameButtons, text=name, image=image,  fg_color='#113759' , hover_color=('#061b4e'), compound=tk.TOP)
+            btn = CTkButton(self.frameButtons, text=name, image=image,  fg_color=utils.getStrongColor() , hover_color=utils.getStrongActiveColor(), compound=tk.TOP)
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
             self.redraw()
@@ -307,11 +308,11 @@ class ButtonNotebook(CTkFrame):
             return
         if self.current:
             self.tabs[self.current]["widget"].pack_forget()
-            self.btns[self.current].configure(fg_color="#113759")
+            self.btns[self.current].configure(fg_color=utils.getStrongColor())
 
             self.closeCallbackSwitch(self.current, name)
         self.current = name
-        self.btns[name].configure(fg_color="#061b4e")
+        self.btns[name].configure(fg_color=utils.getStrongActiveColor())
         self.tabs[name]["widget"].pack(side="right", expand=True, anchor="center", fill=tk.BOTH)
         self.callbackSwitch(name)
 
@@ -320,7 +321,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "2.6.*"
+    version_compatible = "2.7.*"
 
     
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
@@ -761,21 +762,21 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.searchBar.bind('<KP_Enter>', self.newSearch)
         # searchBar.bind("<Button-3>", self.do_popup)
         self.searchBar.pack(side="left", fill="x", expand=True)
-        self.quickSearchVal = tk.BooleanVar()
-        self.quickSearchVal.set(self.settings.local_settings.get("quicksearch", False))
+        self.textSearchVal = tk.BooleanVar()
+        self.textSearchVal.set(self.settings.local_settings.get("textsearch", False))
         
-        checkbox_quick_search = CTkSwitch(filterbar_frame, text="Quick search", variable=self.quickSearchVal, command=self.quickSearchChanged)
-        checkbox_quick_search.pack(side="left", padx=5)
+        checkbox_text_search = CTkSwitch(filterbar_frame, text="Text search", variable=self.textSearchVal, command=self.textSearchChanged)
+        checkbox_text_search.pack(side="left", padx=5)
         self.keep_parents_val = tk.BooleanVar()
         self.keep_parents_val.set(self.settings.local_settings.get("keep_parents", True))
         checkbox_keep_parent = CTkSwitch(filterbar_frame, text="Keep parents", variable=self.keep_parents_val, command=self.keepParentsChanged)
         checkbox_keep_parent.pack(side="left", padx=5)
         self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
-        btnSearchBar = ttk.Button(filterbar_frame, text="", image=self.search_icon, style="iconbis.TButton", tooltip="Filter elements based of complex query or only text if quicksearch is selected", width=10, command=self.newSearch)
+        btnSearchBar = ttk.Button(filterbar_frame, text="", image=self.search_icon, style="iconbis.TButton", tooltip="Filter elements based of complex query or only text if textsearch is selected", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
         image=Image.open(utils.getIcon("reset_small.png"))
         self.reset_icon = ImageTk.PhotoImage(image)
-        btnReset = ttk.Button(filterbar_frame, image=self.reset_icon, text="",  style="iconbis.TButton", tooltip="Reset search bar filter", width=10, command=self.resetButtonClicked)
+        btnReset = ttk.Button(filterbar_frame, image=self.reset_icon, text="",  style="iconbis.TButton", tooltip="Reset search bar filter", width=10, command=self.endSearch)
         btnReset.pack(side="left", fill="x")
         self.photo = CTkImage(Image.open(utils.getHelpIconPath()))
         self.helpFrame = None
@@ -850,7 +851,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         settings.local_settings["checklist_view"] = is_checklist_view
         settings.saveLocalSettings()
         self.treevw.checklistViewSwap()
-
 
     def initCommandsView(self):
         """Populate the command tab menu view frame with cool widgets"""
@@ -1022,12 +1022,12 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def open_any_terminal(self, iid, title, tool_controller, scanManager):
         self.terminals.open_any_terminal(iid, title, tool_controller, scanManager)
         
-    def quickSearchChanged(self, event=None):
-        """Called when the quick search bar is modified. Change settings
+    def textSearchChanged(self, event=None):
+        """Called when the textual search bar is modified. Change settings
         Args:
             event: not used but mandatory
         """
-        self.settings.local_settings["quicksearch"] = int(self.quickSearchVal.get())
+        self.settings.local_settings["textsearch"] = int(self.textSearchVal.get())
         self.settings.saveLocalSettings()
 
     def keepParentsChanged(self, event=None):
@@ -1038,17 +1038,18 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.settings.local_settings["keep_parents"] = int(self.keep_parents_val.get())
         self.settings.saveLocalSettings()
     
-    def newSearch(self, _event=None, histo=True, quick_search_allowed=True):
+    def newSearch(self, _event=None, histo=True, text_search_allowed=True):
         """Called when the searchbar is validated (click on search button or enter key pressed).
         Perform a filter on the main treeview.
         Args:
             _event: not used but mandatory"""
+        self.searchMode = True
         filterStr = self.searchBar.get()
         if filterStr.strip() == "":
-            self.resetButtonClicked()
+            self.endSearch()
             return
         self.settings.reloadSettings()
-        success = self.treevw.filterTreeview(filterStr, self.settings, quick_search_allowed)
+        success = self.treevw.filterTreeview(filterStr, self.settings, text_search_allowed)
         self.searchMode = (success and filterStr.strip() != "")
         if success:
             if histo:
@@ -1073,7 +1074,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         taggeds = datamanager.get("tags", "*")
         tagged_items = []
         tagged_types = set()
-        for tagged in taggeds.values():
+        for tagged in taggeds:
             for tag in tagged.tags:
                 tag = TagInfos(tag)
                 if tag.name == name:
@@ -1088,7 +1089,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                     return
         # default 
         self.nbk.select("Main View")
-        self.search("\""+name+"\" in tags")
+        self.searchTaggedBy(name)
 
     def modelToView(self, collection, model):
         """Return the view of a model"""
@@ -1099,12 +1100,20 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     
     def search(self, filter_str):
         self.nbk.select("Main View")
-        self.searchMode = True
+        
         self.searchBar.delete(0, tk.END)
         self.searchBar.insert(tk.END, filter_str)
-        self.newSearch(histo=False, quick_search_allowed=False)
+        self.newSearch(histo=False, text_search_allowed=False)
 
-    def resetButtonClicked(self):
+    def searchTaggedBy(self, tag_name):
+        self.nbk.select("Main View")
+        apiclient = APIClient.getInstance()
+        searcher = apiclient.searchTaggedBy(tag_name)
+        if searcher.get("success", True):
+            self.searchMode = True
+            self.treevw.doFilterTreeview(searcher, True, keep_parents=self.settings.local_settings.get("keep_parents", True))
+            
+    def endSearch(self):
         """
         Called when the reset button of the status bar is clicked.
         """
@@ -1398,7 +1407,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             if not res:
                 tk.messagebox.showerror("Connection failed", "Could not connect to "+str(pentestName))
                 return
-            #DataManager.getInstance().load(["tag"])
+            DataManager.getInstance().openPentest(pentestName)
             self.initUI()
             self.settings.reloadSettings()
             self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))

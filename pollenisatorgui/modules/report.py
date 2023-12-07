@@ -649,7 +649,6 @@ class Report(Module):
                 self.paned_remarks.paneconfigure(self.remarkframeTw, height=(currentHeight)*self.rowHeight + self.pane_base_height)
 
     def generateReportPowerpoint(self):
-       
         apiclient = APIClient.getInstance()
         toExport = apiclient.getCurrentPentest()
         if toExport != "":

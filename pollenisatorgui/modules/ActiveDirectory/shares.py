@@ -2,7 +2,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.models.element import Element
 
 class Share(Element):
-    coll_name = "ActiveDirectory"
+    coll_name = "shares"
 
     def __init__(self, valuesFromDb=None):
         if valuesFromDb is None:

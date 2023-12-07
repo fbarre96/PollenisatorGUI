@@ -6,6 +6,7 @@ from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.views.defectview import DefectView
+from pollenisatorgui.core.controllers.portcontroller import PortController
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 import tkinter as tk
 import json
@@ -134,13 +135,50 @@ class PortView(ViewElement):
         if command_iid is not None:
             self.controller.addCustomTool(command_iid)
 
-    def addInTreeview(self, parentNode=None, addChildren=True):
+    def _insertChildren(self):
+        defects = self.controller.getDefects()
+        for defect in defects:
+            defect_o = DefectController(Defect(defect))
+            defect_vw = DefectView(
+                self.appliTw, self.appliViewFrame, self.mainApp, defect_o)
+            defect_vw.addInTreeview(str(self.controller.getDbId()), addChildren=False)
+
+        checks = self.controller.getChecks()
+        for check in checks:
+            check_o = CheckInstanceController(check)
+            check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
+            check_vw.addInTreeview(str(self.controller.getDbId()), addChildren=False)
+
+    @classmethod
+    def multiAddInTreeview(self, appliTw, appliViewFrame, mainApp, ports, parent, **kwargs):
+        for port in ports:
+            port_o = PortController(port)
+            port_vw = PortView(
+                appliTw, appliViewFrame, mainApp, port_o)
+            port_vw.addInTreeview(parent, addChildren=False, detailed=kwargs.get("detailed", False))
+        if kwargs.get("addChildren", True):
+            checks = PortController.getChecksForPorts(ports)
+            defects = PortController.getDefectsForPorts(ports)
+            for check in checks:
+                check_o = CheckInstanceController(check)
+                check_vw = CheckInstanceView(appliTw, appliViewFrame, mainApp, check_o)
+                check_vw.addInTreeview(None, addChildren=False)
+            for defect in defects:
+                defect_o = DefectController(Defect(defect))
+                defect_vw = DefectView(
+                    appliTw, appliViewFrame, mainApp, defect_o)
+                defect_vw.addInTreeview(None, addChildren=False)
+                
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             addChildren: If False, skip the tool and defects insert. Useful when displaying search results
         """
-        if parentNode is None:
+        addChildren = kwargs.get("addChildren", True)
+        if kwargs.get("detailed", False):
+            nodeText = self.controller.getDetailedString()
+        elif parentNode is None:
             parentNode = self.getParentNode()
             nodeText = str(self.controller.getModelRepr())
         elif parentNode == '':
@@ -148,29 +186,21 @@ class PortView(ViewElement):
         else:
             nodeText = str(self.controller.getModelRepr())
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
+        tags = self.controller.getTags()
         try:
-            self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=nodeText, tags=self.controller.getTags(), image=self.getClassIcon())
+             #CALLING TK CALL IS FASTER than
+            # self.appliTw.insert(parentNode, "end", str(
+            #     self.controller.getDbId()), text=nodeText, tags=self.controller.getTags(), image=self.getClassIcon())
+            port_node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), 
+                                 "-text", str(nodeText), "-tags", tags, "-image", self.getClassIcon())
+        
         except tk.TclError:
             pass
         if addChildren:
-            defects = self.controller.getDefects()
-            for defect in defects:
-                defect_o = DefectController(Defect(defect))
-                defect_vw = DefectView(
-                    self.appliTw, self.appliViewFrame, self.mainApp, defect_o)
-                defect_vw.addInTreeview(str(self.controller.getDbId()))
-
-            checks = self.controller.getChecks()
-            for check in checks:
-                check_o = CheckInstanceController(check)
-                check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
-                check_vw.addInTreeview(str(self.controller.getDbId()))
-        
-        self.appliTw.sort(parentNode)
+            self._insertChildren()
         if self.mainApp.settings.is_checklist_view():
             self.hide("checklist_view")
-        if "hidden" in self.controller.getTags():
+        if "hidden" in tags:
             self.hide("tags")
 
     def key(self):

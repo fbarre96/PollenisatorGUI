@@ -90,9 +90,6 @@ class CheckItemController(ControllerElement):
             return None, 1
         # Fetch the instance of this self.model now that it is inserted.
         return ret, 0  # 0 errors
-
-    def getChildren(self):
-        return self.model.getChildren()        
     
     def isAuto(self):
         """Return True if this command is an auto command"""
@@ -104,7 +101,13 @@ class CheckItemController(ControllerElement):
             "checkitem" """
         return "checkitem"
 
-
+    def getChecks(self):
+        """Return check instances that implements this check item
+        Returns:
+            list of checkInstance objects
+        """
+        return self.model.getChecks()
+    
     def getCategory(self):
         return self.model.category
         

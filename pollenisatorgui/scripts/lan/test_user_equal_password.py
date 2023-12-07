@@ -9,7 +9,7 @@ def main(apiclient, appli, **kwargs):
     if not utils.which_expand_alias("cme"):
         return False, "binary 'cme' is not in the PATH."
     APIClient.setInstance(apiclient)
-    unk_users = apiclient.find("ActiveDirectory", {"type":"user", "password":""})
+    unk_users = apiclient.find("users", {"type":"user", "password":""})
     users_to_test = set()
     domains = set()
     for user in unk_users:
@@ -18,7 +18,7 @@ def main(apiclient, appli, **kwargs):
     dcs = {}
     exec = 0
     for domain in domains:
-        dc_info = apiclient.find("ActiveDirectory", {"type":"computer", "domain":domain, "infos.is_dc":True}, False)
+        dc_info = apiclient.find("computers", {"type":"computer", "domain":domain, "infos.is_dc":True}, False)
         if dc_info is None:
             continue
         temp_folder = tempfile.gettempdir() 

@@ -248,7 +248,12 @@ class Tool(Element):
             Returns the parent's ObjectId _id". or None if a type error occurs
         """
         try:
-            if self.check_iid is not None:
+            if self.check_iid == "":
+                datamanager = DataManager.getInstance()
+                wave_o = datamanager.find("waves", {"wave": self.wave}, False)
+                if wave_o is not None:
+                    return str(wave_o.getId())
+            elif self.check_iid is not None:
                 return str(self.check_iid)
             return None
         except TypeError:

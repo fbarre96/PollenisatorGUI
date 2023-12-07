@@ -3,7 +3,7 @@ from pollenisatorgui.core.models.element import Element
 from pollenisatorgui.modules.ActiveDirectory.computer_infos import ComputerInfos
 
 class Computer(Element):
-    coll_name = "ActiveDirectory"
+    coll_name = "computers"
 
     @property
     def infos(self):

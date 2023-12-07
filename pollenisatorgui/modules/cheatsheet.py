@@ -34,8 +34,8 @@ class Cheatsheet(Module):
     
     def open(self,view, nbk, treevw):
         apiclient = APIClient.getInstance()
-        self.treevw = treevw
         if self.inited is False:
+            self.treevw = treevw
             self.initUI(view)
         if apiclient.getCurrentPentest() is not None:
             self.refreshUI()
@@ -106,7 +106,7 @@ class Cheatsheet(Module):
         """
         apiclient = APIClient.getInstance()
         selected = self.treevw.selection()
-        apiclient.bulkDelete({"cheatsheet":selected}) 
+        apiclient.bulkDelete({"checkitems":selected}) 
 
     def createCheck(self, event=None):
         self.treevw.openInsertWindow(CheckItem())

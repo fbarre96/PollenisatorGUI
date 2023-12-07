@@ -214,7 +214,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
         collection = notif["collection"]
         action = notif["action"]
         iid = notif["iid"]
-        if collection != "cheatsheet":
+        if collection != "checkitems":
             return
         # Delete
         apiclient = APIClient.getInstance()
@@ -226,7 +226,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
 
         # Insert
         if action == "insert":
-            if collection == "cheatsheet":
+            if collection == "checkitems":
                 checkitem = CheckItem.fetchObject({"_id":ObjectId(iid)})
                
                 if checkitem is not None:
@@ -234,7 +234,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
                                    self.appli, CheckItemController(checkitem))
                     parent = None
                     try:
-                        view.addInTreeview(parent, True)
+                        view.addInTreeview(parent, addChildren=True)
                         if view is not None:
                             view.insertReceived()
                     except tk.TclError:

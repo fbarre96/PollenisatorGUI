@@ -20,7 +20,7 @@ def mark_as_owned(uri, users, username, password):
 
 def main(apiclient, appli, **kwargs):
     APIClient.setInstance(apiclient)
-    users = apiclient.find("ActiveDirectory", {"type":"user", "password":{"$ne":""}}, True)
+    users = apiclient.find("users", {"type":"user", "password":{"$ne":""}}, True)
     if users is None or not users:
         return False, "No owned users found"
     dialog = ChildDialogAskText(appli, "Bloodhound uri:", "bolt://localhost:7687", False)

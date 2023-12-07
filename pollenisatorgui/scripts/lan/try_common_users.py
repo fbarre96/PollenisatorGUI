@@ -38,7 +38,7 @@ def main(apiclient, appli, **kwargs):
     APIClient.setInstance(apiclient)
     domain = ""
     if kwargs.get("target_type") == "computer":
-        computer_info =  apiclient.find("ActiveDirectory", {"type":"computer", "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
+        computer_info =  apiclient.find("computers", {"type":"computer", "_id":ObjectId(kwargs.get("target_iid", ""))}, False)
         if computer_info is not None:
             domain = computer_info.get("domain", "")
     if domain == "":
@@ -54,7 +54,7 @@ def main(apiclient, appli, **kwargs):
     users_to_test = [r.strip() for r in dialog.rvalue.split("\n")]
     dc = None
     exec = 0
-    dc_info = apiclient.find("ActiveDirectory", {"type":"computer", "domain":domain, "infos.is_dc":True}, False)
+    dc_info = apiclient.find("computers", {"type":"computer", "domain":domain, "infos.is_dc":True}, False)
     if dc_info is None:
         dialog = ChildDialogAskText(None, "DC not known, give me IP if you know it", multiline=False)
         dialog.app.wait_window(dialog.app)

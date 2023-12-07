@@ -1,5 +1,6 @@
 """View for ip object. Handle node in treeview and present forms to user when interacted with."""
 
+from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
 from pollenisatorgui.core.controllers.scopecontroller import ScopeController
 from pollenisatorgui.core.models.port import Port
@@ -116,8 +117,9 @@ class IpView(ViewElement):
             defect_o = DefectController(Defect(defect))
             defect_vw = DefectView(
                 self.appliTw, self.appliViewFrame, self.mainApp, defect_o)
-            defect_vw.addInTreeview(str(self.controller.getDbId()))
-
+            defect_vw.addInTreeview(str(self.controller.getDbId()), addChildren=False)
+        return defects
+    
     def _insertChildrenChecks(self):
         """Create a tools list node and insert every children tools in database as ToolView under this node"""
         checks = self.controller.getChecks()
@@ -125,30 +127,26 @@ class IpView(ViewElement):
             check_o = CheckInstanceController(check)
             check_vw = CheckInstanceView(
                 self.appliTw, self.appliViewFrame, self.mainApp, check_o)
-            check_vw.addInTreeview(str(self.controller.getDbId()))
-
+            check_vw.addInTreeview(str(self.controller.getDbId()), addChildren=False)
+        return checks
+    
     def _insertChildrenPorts(self, ip_node):
         """Insert every children port in database as DefectView under this node directly"""
         ports = self.controller.getPorts()
-        for port in ports:
-            port_o = PortController(Port(port))
-            port_vw = PortView(
-                self.appliTw, self.appliViewFrame, self.mainApp, port_o)
-            port_vw.addInTreeview(ip_node)
-
-    def opened(self):
-        """Callback called when the view is opened"""
-        self._opened = True
+        PortView.multiAddInTreeview(self.appliTw, self.appliViewFrame, self.mainApp, ports, ip_node)
+    
+    def _insertChildren(self):
         self._insertChildrenPorts(str(self.controller.getDbId()))
         self._insertChildrenDefects()
         self._insertChildrenChecks()
 
-    def addInTreeview(self, parentNode=None, addChildren=True):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
             _addChildren: not used here
         """
+        addChildren = kwargs.get("addChildren", True)
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
 
         if parentNode is None:
@@ -161,19 +159,22 @@ class IpView(ViewElement):
                 if ip_parent_o is not None:
                     parent_view = IpView(self.appliTw, self.appliViewFrame,
                                          self.mainApp, IpController(ip_parent_o))
-                    parent_view.addInTreeview(None, False)
-            #FASTER than
-            # ip_node = self.appliTw.insert(parentNode, "end", str(
-            #    self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getIcon())
-            
+                    parent_view.addInTreeview(None, addChildren=False)
+            #CALLING TK CALL IS FASTER than
+            #ip_node = self.appliTw.insert(parentNode, "end", str(
+            #   self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=tags, image=self.getIcon())
             ip_node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), 
                                  "-text", str(self.controller.getModelRepr()), "-tags", tags, "-image", self.getIcon())
         except TclError as e:
-            raise(e)
+            pass
         if addChildren and ip_node is not None:
-            self._insertChildrenDefects()
-            self._insertChildrenChecks()
-            self._insertChildrenPorts(ip_node)
+            self._insertChildren()
+        elif not addChildren and self.appliTw.lazyload and not self.mainApp.searchMode:
+            try:
+                self.appliTw.tk.call(self.appliTw._w, "insert", ip_node, "end", "-id", str(self.controller.getDbId())+"|<Empty>", 
+                                 "-text", "<Empty>")
+            except TclError as e:
+                pass
         # self.appliTw.sort(parentNode)
         if "hidden" in tags:
             self.hide("tags")
@@ -183,7 +184,8 @@ class IpView(ViewElement):
         if self.mainApp.settings.is_hide_oos() and not modelData["in_scopes"]:
             self.hide("filter_oos")
         if not modelData["in_scopes"]:
-            # faster than self.appliTw.item(ip_node, tags=tags+["OOS"], image=self.getIcon())
+            # calling tk.call faster than 
+            #self.appliTw.item(ip_node, tags=tags+["OOS"], image=self.getIcon())
             self.appliTw.tk.call(
                 self.appliTw._w, "item", ip_node, "-tags", tags+["OOS"], "-image", self.getIcon())
             

@@ -165,7 +165,9 @@ class Scope(Element):
         """
         datamanager = DataManager.getInstance()
         res = datamanager.find("waves", {"wave": self.wave}, False)
-        return res["_id"]
+        if res is None:
+            return None
+        return res.getId()
 
     def __str__(self):
         """

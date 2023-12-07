@@ -24,7 +24,8 @@ class ViewElement(object):
     """
     icon = 'undefined.png'
     cachedClassIcon = None
-    
+    loadingicon = 'loading.png'
+    cachedloadingicon = None
     multiview_class = None
 
     def __init__(self, appTw, appViewFrame, mainApp, controller):
@@ -60,11 +61,24 @@ class ViewElement(object):
             Returns the ImageTk.PhotoImage icon representing this class .
         """
         from PIL import Image, ImageTk
-        if cls.cachedClassIcon == None:
+        if cls.cachedClassIcon is None:
             path = utils.getIcon(cls.icon)
             cls.cachedClassIcon = ImageTk.PhotoImage(Image.open(path))
         return cls.cachedClassIcon
     
+    @classmethod
+    def getLoadingIcon(cls):
+        """
+        Load the class icon in cache if it is not yet done, and returns it
+
+        Return:
+            Returns the ImageTk.PhotoImage icon representing this class .
+        """
+        from PIL import Image, ImageTk
+        if cls.cachedloadingicon is None:
+            path = utils.getIcon(cls.loadingicon)
+            cls.cachedloadingicon = ImageTk.PhotoImage(Image.open(path))
+        return cls.cachedloadingicon
 
     def getIcon(self):
         """
@@ -86,10 +100,21 @@ class ViewElement(object):
         # pass
 
     def opened(self):
-        """ add childrens to this view when it is opened
-        """
+        """Callback called when the view is opened"""
+        if self._opened:
+            return
         self._opened = True
-
+        try:
+            icon = self.appliTw.item(str(self.controller.getDbId()))["image"]
+            self.appliTw.item(str(self.controller.getDbId()), image=ViewElement.getLoadingIcon())
+            self.appliTw.update()
+            self.appliTw.delete(str(self.controller.getDbId())+"|<Empty>")
+        except tk.TclError as e:
+            pass
+        self._insertChildren()
+        self.appliTw.item(str(self.controller.getDbId()), image=icon)
+        self.appliTw.update()
+        
     def delete(self, _event=None, showWarning=True):
         """
         Entry point to the model doDelete function.
@@ -136,6 +161,9 @@ class ViewElement(object):
             tkinter.messagebox.showwarning(
                 "Form not validated", msg, parent=self.appliViewFrame)
             return False, msg
+        
+    def _insertChildren(self):
+        return
 
     def insert(self, _event=None):
         """

@@ -141,9 +141,9 @@ class Filter:
         """
         # pylint: disable=anomalous-backslash-in-string
         return """
-In Quick Search mode, results are text based only.
+In Text Search mode, results are text based only.
 
-In Advanced mode (not quick search), filters are used
+In Advanced mode (not text search), filters are used
 
 Search examples in match (python type condition):
 
@@ -161,6 +161,7 @@ type == "tool" and "done" in status
 type == "tool" and "done" not in status
 type == "tool" and "ready" in status
 type == "ip" and infos.key == "ABC"
+port == 443
 """
     def __init__(self, query="", exactMatch=True):
         """Constructor

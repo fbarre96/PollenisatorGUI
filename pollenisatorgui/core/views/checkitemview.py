@@ -1,17 +1,15 @@
 """View for checkitem object. Handle node in treeview and present forms to user when interacted with."""
 
-from pollenisatorgui.core.application.dialogs import ChildDialogView
-from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogDefectView import ChildDialogDefectView
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
 from pollenisatorgui.core.controllers.commandcontroller import CommandController
-from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.models.defect import Defect
+from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 from pollenisatorgui.core.views.commandview import CommandView
-from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.views.viewelement import ViewElement
+from pollenisatorgui.core.views.multitodocheckinstanceview import MultiTodoCheckInstanceView
 from pollenisatorgui.core.components.settings import Settings
-from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemController
 from pollenisatorgui.core.models.checkitem import CheckItem
@@ -44,6 +42,7 @@ class CheckItemView(ViewElement):
         self.menuContextuel = None
         self.widgetMenuOpen = None
         self.checktypeForm = None
+        self._limit_childrens = 25
         super().__init__(appTw, appViewFrame, mainApp, controller)
 
     def getIcon(self):
@@ -271,25 +270,67 @@ class CheckItemView(ViewElement):
         self._commonWindowForms(data, action="insert")
         self.completeInsertWindow()
 
+    def _insertChildren(self):
+        checks = self.controller.getChecks()
+        if len(checks) > self._limit_childrens:
+            checks_done = {}
+            checks_running = {}
+            checks_not_done = {}
+            for check in checks:
+                if check.getStatus() == "done":
+                    checks_done[check.getId()] = check
+                elif check.getStatus() == "running":
+                    checks_running[check.getId()] = check
+                else:
+                    checks_not_done[check.getId()] = check
+            title = str(checks[0])
+            #self.appliTw.insert(self.parent, 'end', text=f"{title} (todo {len(self.checks)})", image=CheckInstanceView.getIcon({"status":"todo"}))
+            #self.appliTw.insert(self.parent, 'end', text=f"{title}(running {len(self.checks)})",  image=CheckInstanceView.getIcon({"status":"running"}))
+            #self.appliTw.insert(self.parent, 'end', text=f"{title}(done {len(self.checks)})",  image=CheckInstanceView.getIcon({"status":"done"}))
+            checks_vw = MultiTodoCheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, checks_not_done, self.controller.getDbId())
+            checks_vw.addInTreeview(title)
+            return
+        
+        for check in checks:
+            check_o = CheckInstanceController(check)
+            check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
+            check_vw.addInTreeview(str(self.controller.getDbId()), addChildren=False)
 
-    def addInTreeview(self, parentNode=None, with_category=False):
+
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
         """
+        with_category = kwargs.get("with_category", False)
+        addChildren = kwargs.get("addChildren", False)
+        count_children = kwargs.get("count_children", -1)
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-
+        tags = self.controller.getTags()
         if parentNode is None:
             parentNode = self.getParentNode(with_category)
         try:
-            self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
-        except tk.TclError:
+            text = str(self.controller.getModelRepr())
+            if count_children > 0:
+                text += f" ({count_children})"
+            #FASTER THAN self.appliTw.insert(parentNode, "end", str(
+            #    self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
+            node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), 
+                                 "-text", text, "-tags", tags, "-image", self.getIcon())
+        except tk.TclError as e:
             pass
+        if not addChildren and getattr(self.appliTw, "lazyload", False) and not self.mainApp.searchMode:
+            try:
+                self.appliTw.tk.call(self.appliTw._w, "insert", str(self.controller.getDbId()), "end", "-id", str(self.controller.getDbId())+"|<Empty>", 
+                                 "-text","<Empty>")
+            except tk.TclError as e:
+                pass
+        elif addChildren:
+            self._insertChildren()
         if hasattr(self.appliTw, "hide"):
             if not self.mainApp.settings.is_checklist_view():
                 self.hide("checklist_view")
-            if "hidden" in self.controller.getTags():
+            if "hidden" in tags:
                 self.hide("tags")
             if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
                 self.hide("filter_manual")

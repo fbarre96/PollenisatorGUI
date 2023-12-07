@@ -11,7 +11,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 
 def main(apiclient, appli, **kwargs):
     APIClient.setInstance(apiclient)
-    smb_signing_list = apiclient.find("ActiveDirectory", {"infos.signing":"False"}, True)
+    smb_signing_list = apiclient.find("computers", {"infos.signing":"False"}, True)
     export_dir = utils.getExportDir()
     file_name = os.path.join(export_dir, "relay_list.lst")
     with open(file_name, "w") as f:

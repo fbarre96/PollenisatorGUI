@@ -10,6 +10,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
 from pollenisatorgui.core.components.tag import TagInfos
+from pollenisatorgui.core.controllers.checkinstancecontroller import CheckInstanceController
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.models.defect import Defect
@@ -22,10 +23,10 @@ from pollenisatorgui.core.models.tool import Tool
 import pollenisatorgui.core.components.utils as utils
 from PIL import ImageTk, Image
 from pollenisatorgui.core.components.logger_config import logger
-
 from bson import ObjectId
 import os
 import tkinter as tk
+
 
 class CheckInstanceView(ViewElement):
     """
@@ -45,6 +46,33 @@ class CheckInstanceView(ViewElement):
 
     multiview_class = CheckInstanceMultiView
 
+    @classmethod
+    def getStatusIcon(cls, status):
+        if "todo" in status: # order is important as "done" is not_done but not the other way
+            ui = cls.not_done_icon
+            cache = cls.cached_not_ready_icon
+            iconStatus = "not_done"
+        elif "running" in status:
+            ui = cls.running_icon
+            cache = cls.cached_running_icon
+            iconStatus = "running"
+        else:
+            cache = cls.cached_done_icon
+            ui = cls.done_icon
+            iconStatus = "done"
+        if cache is None:
+            from PIL import Image, ImageTk
+            if iconStatus == "done":
+                cls.cached_done_icon = utils.loadIcon(ui, resize=(16,16))
+                return cls.cached_done_icon
+            elif iconStatus == "running":
+                cls.cached_running_icon =  utils.loadIcon(ui, resize=(16,16))
+                return cls.cached_running_icon
+            else:
+                cls.cached_not_ready_icon =  utils.loadIcon(ui, resize=(16,16))
+                return cls.cached_not_ready_icon
+        return cache
+
     def getIcon(self, check_infos=None):
         """
         Load the object icon in cache if it is not yet done, and returns it
@@ -53,9 +81,9 @@ class CheckInstanceView(ViewElement):
             Returns the icon representing this object.
         """
         
-        status = self.getStatus(check_infos)
+        status = self.controller.getStatus()
         iconStatus = "todo"
-        if "todo" in status: # order is important as "done" is not_done but not the other way
+        if "todo" in status or "" == status: # order is important as "done" is not_done but not the other way
             ui = self.__class__.not_done_icon
             cache = self.__class__.cached_not_ready_icon
             iconStatus = "not_done"
@@ -63,7 +91,7 @@ class CheckInstanceView(ViewElement):
             ui = self.__class__.running_icon
             cache = self.__class__.cached_running_icon
             iconStatus = "running"
-        else:
+        elif "done" in status:
             cache = self.__class__.cached_done_icon
             ui = self.__class__.done_icon
             iconStatus = "done"
@@ -118,6 +146,7 @@ class CheckInstanceView(ViewElement):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
+       
         self.form.clear()
         infos = self.controller.getCheckInstanceInfo()
         modelData = self.controller.getData()
@@ -131,7 +160,7 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormLabel("Target", row=0, column=0)
         panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
         panel_top.addFormLabel("Status", row=0, column=2)
-        default_status = self.getStatus()
+        default_status = self.getStatus(infos)
         self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'terminal_small.png'))
         self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=3, pady=5)
         #panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
@@ -296,7 +325,7 @@ class CheckInstanceView(ViewElement):
         panel_detail.addFormLabel("Notes", row=2, column=0)
         panel_detail.addFormText("Notes", r"", default=modelData.get("notes", ""), row=2, column=1, pady=5)
         self.completeModifyWindow(addTags=False)
-
+        
     def mod_file_callback(self):
         if self.form_file.get_paths():
             self.upload_btn.configure(state="normal")
@@ -550,24 +579,46 @@ class CheckInstanceView(ViewElement):
         scriptmanager = ScriptManager()
         scriptmanager.executeScript(self.mainApp, script, data, parent=self.mainApp)
     
+    @classmethod
+    def multiAddInTreeview(self, appliTw, appliViewFrame, mainApp, checkinstances, parent, **kwargs):
+        ids = [str(checkinstance.getId()) for checkinstance in checkinstances]
+        apiclient = APIClient.getInstance()
+        targets_repr = apiclient.getCheckInstanceRepr(ids)
+        for checkinstance in checkinstances:
+            checkinstance_o = CheckInstanceController(checkinstance)
+            checkinstance_o.target_repr = targets_repr.get(str(checkinstance_o.model.target_iid), "Target not found")
+            checkinstance_vw = CheckInstanceView(
+                appliTw, appliViewFrame, mainApp, checkinstance_o)
+            checkinstance_vw.addInTreeview(parent, addChildren=False, detailed=True)
+        
 
-    def addInTreeview(self, parentNode=None, addChildren=True, detailed=False, refresh_status=False):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
         """
+        addChildren = kwargs.get("addChildren", True)
+        refresh_status = kwargs.get("refresh_status", False)
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-
         if parentNode is None:
             parentNode = self.getParentNode()
-        text = self.controller.target_repr if self.mainApp.settings.is_checklist_view() else str(self)
+        if kwargs.get("detailed", False):
+            text = self.controller.target_repr + " - " +str(self)
+        else:
+            text = self.controller.target_repr if self.mainApp.settings.is_checklist_view()  else str(self)
         if refresh_status:
             check_infos = self.controller.getCheckInstanceStatus()
         else:
             check_infos = {}
+        if kwargs.get("insert_parents", False) and parentNode != "" and parentNode is not None:
+            try:
+                self.appliTw.insertViewById(parentNode)
+            except tk.TclError as e:
+                pass
         try:
-            self.appliTw.insert(parentNode, "end", str(
-                self.controller.getDbId()), text=text, tags=self.controller.getTags(), image=self.getIcon(check_infos))
+            self.appliTw.tk.call(self.appliTw, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), "-text", text, "-tags", self.controller.getTags(), "-image",self.getIcon(check_infos))
+            # ABOVE IS FASTER self.appliTw.insert(parentNode, "end", str(
+            #     self.controller.getDbId()), text=text, tags=self.controller.getTags(), image=self.getIcon(check_infos))
         except tk.TclError as e:
             pass
         # if addChildren:
@@ -638,7 +689,9 @@ class CheckInstanceView(ViewElement):
         """
         try:
             self.appliTw.item(str(self.controller.getDbId()), image=self.getIcon())
-        except tk.TclError:
+            self.appliTw.update()
+        except tk.TclError as e:
+            print(e)
             pass
             #print("WARNING: Update received for a non existing tool "+str(self.controller.getModelRepr()))
         super().updateReceived()

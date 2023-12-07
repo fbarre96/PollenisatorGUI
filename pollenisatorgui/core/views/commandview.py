@@ -111,7 +111,7 @@ class CommandView(ViewElement):
         self._commonWindowForms(self.controller.getData())
         self.completeInsertWindow()
 
-    def addInTreeview(self, parentNode=None):
+    def addInTreeview(self, parentNode=None, **kwargs):
         """Add this view in treeview. Also stores infos in application treeview.
         Args:
             parentNode: if None, will calculate the parent. If setted, forces the node to be inserted inside given parentNode.
