@@ -50,7 +50,7 @@ class TkintermdFrame(CTkFrame):
         self.binds = kwargs.get("binds", {})
         # Toolbar.
         if not self.just_editor:
-            self.root_toolbar = tk.Frame(self)
+            self.root_toolbar = CTkFrame(self)
             self.open_btn = ttk.Button(self.root_toolbar, text="Open", command=self.open_md_file)
             self.open_btn.pack(side="left", padx=0, pady=0)
             self.save_as_btn = ttk.Button(self.root_toolbar, text="Save As", command=self.save_as_md_file)

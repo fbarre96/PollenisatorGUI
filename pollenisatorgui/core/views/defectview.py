@@ -104,7 +104,7 @@ class DefectView(ViewElement):
         s.addResultForm(synthesis, "synthesis")
         if not self.controller.isAssigned():
             topPanel = self.form.addFormPanel()
-            desc = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", fill=tk.Y)
+            desc = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", fill=tk.BOTH)
             s.addResultForm(desc, "description")
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
@@ -131,6 +131,7 @@ class DefectView(ViewElement):
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
         self.form.clear()
+        self.form.kwargs["padx"] = 0
         modelData = self.controller.getData()
         settings = self.mainApp.settings
         settings.reloadSettings()
@@ -138,7 +139,7 @@ class DefectView(ViewElement):
         self.edit_image = CTkImage(Image.open(utils.getIconDir()+'stylo.png'))
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X)
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
-        rightPanel = globalPanel.addFormPanel(grid=True, side=tk.RIGHT, fill=tk.NONE)
+        rightPanel = globalPanel.addFormPanel(grid=True, side=tk.RIGHT, fill=tk.NONE, padx=1)
         row = 0
         if modelData.get("target_id", "") != "":
             leftPanel.addFormLabel("Target", row=row, column=0)

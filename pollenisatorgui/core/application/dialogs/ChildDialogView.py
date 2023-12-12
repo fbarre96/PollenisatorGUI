@@ -38,11 +38,11 @@ class ChildDialogView:
             ok_button.bind('<Button-1>', self.okCallback)
             cancel_button = CTkButton(self.appFrame, text="Cancel", fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
-            cancel_button.pack(side="right", padx=5, pady=10, ipadx=10)
+            cancel_button.pack(side="right", padx=5, pady=10, ipadx=3)
             cancel_button.bind('<Button-1>', self.cancel)
-        self.appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
+        self.appFrame.pack(fill=tk.BOTH, ipady=3, expand=True)
         self.app.update()
-        # self.appFrame.pack(fill=tk.X, ipady=10, ipadx=10, expand=True) this break the canvas drawing with scrollbar
+        # self.appFrame.pack(fill=tk.X, ipady=10, ipadx=3, expand=True) this break the canvas drawing with scrollbar
         try:
             self.app.wait_visibility()
             self.app.transient(self.parent)
