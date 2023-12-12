@@ -40,25 +40,27 @@ class FormCollapsbilePanel(FormPanel):
         self.populateView(parent)
 
     def populateView(self, parent):
-        if self.make_uniform_column is not None:
-            self.makeUniformColumn(self.make_uniform_column)
-        
-        for form in self.subforms:
-            form.constructView(self)
-        self.panel_frame.update_width()
-        if isinstance(parent, FormPanel):  # Panel is a subpanel
-            if parent.gridLayout:
+        try:
+            if self.make_uniform_column is not None:
+                self.makeUniformColumn(self.make_uniform_column)
+            
+            for form in self.subforms:
+                form.constructView(self)
+            self.panel_frame.update_width()
+            if isinstance(parent, FormPanel):  # Panel is a subpanel
+                if parent.gridLayout:
 
-                self.panel_frame.grid(column=self.getKw(
-                    "column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.NSEW), **self.kwargs)
-            else:
-                self.panel_frame.pack(fill=self.getKw("fill", "both"), side=self.getKw(
-                    "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10),  **self.kwargs)
-        else:  # Master panel, packing
-            is_grid = "row" in self.kwargs or "column" in self.kwargs
-            if not is_grid:
-                self.panel_frame.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
-            else:
-                self.panel_frame.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
-    
-        
+                    self.panel_frame.grid(column=self.getKw(
+                        "column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.NSEW), **self.kwargs)
+                else:
+                    self.panel_frame.pack(fill=self.getKw("fill", "both"), side=self.getKw(
+                        "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10),  **self.kwargs)
+            else:  # Master panel, packing
+                is_grid = "row" in self.kwargs or "column" in self.kwargs
+                if not is_grid:
+                    self.panel_frame.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
+                else:
+                    self.panel_frame.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
+        except Exception as e:
+            raise Exception("Error while populating view of panel named '" + self.name + "' : " + str(e))
+            

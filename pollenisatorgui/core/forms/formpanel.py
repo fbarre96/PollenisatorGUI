@@ -40,7 +40,7 @@ class FormPanel(Form):
         """
         Constructor for a panel.
         """
-        super().__init__("panel")
+        super().__init__("main panel")
         self.subforms = []
         self.kwargs = kwargs
         self.gridLayout = self.getKw("grid", False)
@@ -62,30 +62,33 @@ class FormPanel(Form):
         self.populateView(parent)
 
     def populateView(self, parent):
-        if self.make_uniform_column is not None:
-            self.makeUniformColumn(self.make_uniform_column)
-        
-        for form in self.subforms:
-            form.constructView(self)
-        if isinstance(parent, FormPanel):  # Panel is a subpanel
-            if parent.gridLayout:
-                # self.panel.grid_rowconfigure(0, weight=1)
-                # self.panel.grid_columnconfigure(0, weight=1)
-                self.panel.grid(column=self.getKw(
-                    "column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.NSEW), **self.kwargs)
-            else:
-                self.panel.pack(fill=self.getKw("fill", "both"), side=self.getKw(
-                    "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), expand=True, **self.kwargs)
-        else:  # Master panel, packing
-            is_grid = "row" in self.kwargs or "column" in self.kwargs
-            if not is_grid:
-                self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
-            else:
-                self.panel.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
-        for rowconfigured in self.save_row_configure:
-            self.panel.grid_rowconfigure(rowconfigured[0], weight=rowconfigured[1])
-        for columnconfigured in self.save_column_configure:
-            self.panel.grid_columnconfigure(columnconfigured[0], weight=columnconfigured[1])
+        try:
+            if self.make_uniform_column is not None:
+                self.makeUniformColumn(self.make_uniform_column)
+            
+            for form in self.subforms:
+                form.constructView(self)
+            if isinstance(parent, FormPanel):  # Panel is a subpanel
+                if parent.gridLayout:
+                    # self.panel.grid_rowconfigure(0, weight=1)
+                    # self.panel.grid_columnconfigure(0, weight=1)
+                    self.panel.grid(column=self.getKw(
+                        "column", 0), row=self.getKw("row", 0), sticky=self.getKw("sticky", tk.NSEW), **self.kwargs)
+                else:
+                    self.panel.pack(fill=self.getKw("fill", "both"), side=self.getKw(
+                        "side", "top"), pady=self.getKw("pady", 5), padx=self.getKw("padx", 10), expand=True, **self.kwargs)
+            else:  # Master panel, packing
+                is_grid = "row" in self.kwargs or "column" in self.kwargs
+                if not is_grid:
+                    self.panel.pack(fill=self.getKw("fill", "both"), side="top", pady=self.getKw("pady", 5), padx=self.getKw("padx", 30), expand=True)
+                else:
+                    self.panel.grid(sticky=self.getKw("sticky", tk.NSEW), row=self.getKw("row", 0), column=self.getKw("column", 0), pady=self.getKw("pady", 5), padx=self.getKw("padx", 30))
+            for rowconfigured in self.save_row_configure:
+                self.panel.grid_rowconfigure(rowconfigured[0], weight=rowconfigured[1])
+            for columnconfigured in self.save_column_configure:
+                self.panel.grid_columnconfigure(columnconfigured[0], weight=columnconfigured[1])
+        except Exception as e:
+            raise Exception("Error while populating view of panel named '" + self.name + "' : " + str(e))
 
     def checkForm(self):
         """

@@ -207,6 +207,7 @@ class Defect(Element):
         base["fixes"] = self.fixes
         base["proofs"] = self.proofs
         base["notes"] = self.notes
+        base["fixes"] = self.fixes
         if self.index is not None:
             base["index"] = str(self.index)
         res, id = apiclient.insert("defects", base)

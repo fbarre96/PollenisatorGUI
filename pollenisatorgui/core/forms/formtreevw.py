@@ -353,6 +353,10 @@ class FormTreevw(Form):
         self.treevw.insert(parent, insertPos, iid, **kwargs)
         self.resetOddTags()
 
+    def setValue(self, values):
+        self.reset()
+        self.recurse_insert(values)
+
     def auto_resize_columns(self):
         columnsLen = [self.f.measure(str(x)) for x in self.headings]    
         for children in self.treevw.get_children():

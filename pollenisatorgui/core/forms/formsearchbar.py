@@ -100,13 +100,18 @@ class FormSearchBar(Form):
     def fillResults(self, selected):
         for key, value in selected.items():
             if key.lower() in self.results_forms:
-                form = self.results_forms[key.lower()]
-                if getattr(form, "addItem", None) is None:
-                    form.setValue(value)
+                resultform = self.results_forms[key.lower()]
+                form = resultform.get("form")
+                callback = resultform.get("fill_callback")
+                if callback is not None:
+                    callback(form, value)
                 else:
-                    if isinstance(value, dict):
-                        form.addItem(**value)
-
+                    if getattr(form, "addItem", None) is None:
+                        form.setValue(value)
+                    else:
+                        if isinstance(value, dict):
+                            form.addItem(**value)
+                    
     def postSelect(self, _event=None):
         selected = self.getValue()
         if selected is None:
@@ -157,9 +162,8 @@ class FormSearchBar(Form):
         self.options_forms.append((optionForm, optionName))
         optionForm.bind('<Key-Return>', self.updateValues)
 
-    def addResultForm(self, resultForm, resultName):
-        self.results_forms[resultName.lower()] = resultForm
+    def addResultForm(self, resultForm, resultName, **kwargs):
+        self.results_forms[resultName.lower()] = {"form":resultForm, "fill_callback":kwargs.get("fill_callback", None)}
         
-
     def setResultForm(self, resultForm):
         self.result_form = resultForm

@@ -93,8 +93,14 @@ class DefectController(ControllerElement):
         mtype = [k for k, v in mtype_dict.items() if v == 1]
         target_id = values.get("target_id", "")
         target_type = values.get("target_type", "")
-        
-        fixes = values["Fixes"]
+        fixes = []
+        fixes_inserted = values.get("Fixes", None)
+        if fixes_inserted is not None:
+            for fix in fixes_inserted:
+                if fix[0].strip() == "":
+                    continue
+                fixes.append({"title": fix[0], "execution": fix[1], "gain": fix[2],
+                                          "synthesis": fix[3], "description": fix[4]})
         tableau_from_ease = defect.Defect.getTableRiskFromEase()
        
         if risk == "" or risk == "N/A":

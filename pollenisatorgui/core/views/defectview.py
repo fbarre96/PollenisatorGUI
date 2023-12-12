@@ -43,13 +43,16 @@ class DefectView(ViewElement):
             notes: default notes to be written in notes text input. Default is ""
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
+        self.form.kwargs["padx"] = 0
         settings = self.mainApp.settings
         settings.reloadSettings()
         apiclient = APIClient.getInstance()
         modelData = self.controller.getData()
-        topPanel = self.form.addFormPanel(grid=True)
-        s = topPanel.addFormSearchBar("Search Defect", self.searchCallback, self.form, row=0, column=0)
-        topPanel = self.form.addFormPanel(grid=True)
+        fullPanel = self.form.addFormPanel(grid=True)
+        leftPanel = fullPanel.addFormPanel(column=0)
+        rightPanel = fullPanel.addFormPanel(column=1, padx=1)
+        s = leftPanel.addFormSearchBar("Search Defect", self.searchCallback, self.form, anchor="w")
+        topPanel = leftPanel.addFormPanel(grid=True)
         topPanel.addFormLabel("Search Language",row=1, column=0)
         lang = topPanel.addFormCombo("Lang", apiclient.getLangList(), default=settings.db_settings.get("lang", "en"), width=100, row=1, column=1)
         topPanel.addFormLabel("Only defect for type",row=2, column=0)
@@ -59,7 +62,7 @@ class DefectView(ViewElement):
         topPanel.addFormLabel("Results",row=3, column=0)
         result = topPanel.addFormCombo("Result", [""], default="", width=200, row=3, column=1)
         s.setResultForm(result)
-        data_panel = self.form.addFormPanel(side="left", height=0, fill="x")
+        data_panel = leftPanel.addFormPanel(side="left", height=0, fill="x")
         topPanel = data_panel.addFormPanel(grid=True, side="top", pady=3)
         topPanel.addFormLabel("Title_lbl", text="Title")
         title = topPanel.addFormStr("Title", r".+", modelData.get("title", ""), placeholder="Title", column=1, width=400)
@@ -103,25 +106,38 @@ class DefectView(ViewElement):
         synthesis = topPanel.addFormText("Synthesis", r"", modelData.get("synthesis", "Synthesis"), state="readonly" if self.controller.isAssigned() else "", side="left", height=300)
         s.addResultForm(synthesis, "synthesis")
         if not self.controller.isAssigned():
-            topPanel = self.form.addFormPanel()
+            topPanel = rightPanel.addFormPanel()
             desc = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", fill=tk.BOTH)
             s.addResultForm(desc, "description")
+            fixesPane = rightPanel.addFormPanel(side=tk.TOP, anchor=tk.CENTER, fill=tk.X)
+            values = []
+            for fix in modelData.get("fixes", []):
+                values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
+            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
+            self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
+                                                    side=tk.RIGHT, auto_size_columns=False,
+                                                    doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
+            s.addResultForm(self.fix_treevw, "fixes", fill_callback=self.fillFixes)
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
-            notesPanel = self.form.addFormPanel()
+            notesPanel = rightPanel.addFormPanel()
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText("Notes", r"", modelData.get("notes", notes), None, side="top")
-        #proofsPanel = self.form.addFormPanel()
-        #proofsPanel.addFormFile("Proof", r"", text="Add proof",height=3)
+            self.form.addFormHidden("fixes", modelData.get("fixes", {}))
         self.form.addFormHidden("target_id", modelData["target_id"])
         self.form.addFormHidden("target_type", modelData["target_type"])
-        fixes = self.form.addFormHidden("Fixes", modelData.get("fixes", []))
-        s.addResultForm(fixes, "fixes")
         if addButtons:
             self.completeInsertWindow()
         else:
             self.showForm()
         self.updateRiskBox()
+
+    def fillFixes(self, fix_form, fixes):
+        fix_form.reset()
+        values = []
+        for fix in fixes:
+            values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
+        fix_form.recurse_insert(values)
 
     def openModifyWindow(self, addButtons=True):
         """
