@@ -21,7 +21,7 @@ class MultiSelectionView(ViewElement):
         """
         return lambda : self.appliTw.setTagFromMenubar(name)
 
-    def openModifyWindow(self):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to update or perform actions on multiple different objects common properties like tags.
         """

@@ -230,10 +230,22 @@ class CheckItemView(ViewElement):
         liste = scriptManagerInst.rvalue
         textForm.setValue(", ".join(liste))
         
-    def openModifyWindow(self):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
+        if kwargs.get("treevw") == "cheatsheet":
+            self.openModifyWindowFromCheasheet()
+            return
+        else:
+            self.openModifyWindowFromPentestView()
+            return
+        
+    def openModifyWindowFromPentestView(self):
+        self.is_insert_view = False
+        self.completeModifyWindow(editable=False, addTags=False)
+
+    def openModifyWindowFromCheasheet(self):
         self.is_insert_view = False
         self.form.clear()
         modelData = self.controller.getData()

@@ -104,7 +104,7 @@ class CommandsTreeview(PollenisatorTreeview):
                 widget.destroy()
             objView.form.clear()
             self.openedViewFrameId = str(dbId)
-            objView.openModifyWindow()
+            objView.openModifyWindow(treevw="commands")
 
     def load(self, _searchModel=None):
         """

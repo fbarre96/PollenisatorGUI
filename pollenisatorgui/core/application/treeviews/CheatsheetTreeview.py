@@ -116,7 +116,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
                 widget.destroy()
             objView.form.clear()
             self.openedViewFrameId = str(dbId)
-            objView.openModifyWindow()
+            objView.openModifyWindow(treevw="cheatsheet")
 
     def load(self, _searchModel=None):
         """

@@ -81,7 +81,7 @@ class ChildDialogAutoScanParams(CTkToplevel):
         title = self.str_filter_category_title.getValue()
         prio = self.str_filter_priority.getValue()
         command = self.str_filter_command.getValue()
-        self.autoScanTv.filter(command, category, title, (lambda prio, toCompare: int(toCompare)<=int(prio) if prio != "" else True, prio))
+        self.autoScanTv.filter(command, category, title, (lambda prio, toCompare: int(toCompare)<=int(prio) if prio != "" else True, prio), check_case=False)
 
     def initUI(self, frame):
         form = FormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
@@ -97,7 +97,7 @@ class ChildDialogAutoScanParams(CTkToplevel):
         form.constructView(frame)
         self.check_box_all = CTkCheckBox(frame, text="All", command=self.check_all)
         self.check_box_all.pack(padx=10,pady=10,side=tk.TOP)
-        self.autoScanTv = CheckboxScrollableTreeview(frame, ("Command", 'Category', 'Category title', 'Priority'), height=25, sort_keys=(None, None, None, int))
+        self.autoScanTv = CheckboxScrollableTreeview(frame, ("Command", 'Category', 'Category title', 'Priority'), maxPerPage=25, height=25, sort_keys=(None, None, None, int))
         self.autoScanTv.pack(fill=tk.BOTH, expand="yes", padx=10, side=tk.BOTTOM)
         self.refreshUI()
 

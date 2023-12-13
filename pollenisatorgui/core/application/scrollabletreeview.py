@@ -20,7 +20,7 @@ class ScrollableTreeview(Paginable):
         self._detached = set()
         self.sort_keys = kwargs.get("sort_keys", None)
         self.content_view = self.getContentView()
-        self.treevw = ttk.Treeview(self.content_view, style=kwargs.get("style",None), height=kwargs.get("height", 10))
+        self.treevw = ttk.Treeview(self.content_view, style=kwargs.get("style",None), height=max(kwargs.get("height", 10), maxPerPage))
         self.treevw['columns'] = columns
         settings = Settings()
         self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())

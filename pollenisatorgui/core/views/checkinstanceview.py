@@ -142,7 +142,7 @@ class CheckInstanceView(ViewElement):
 
     
             
-    def openModifyWindow(self):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """

@@ -248,11 +248,11 @@ class FormTreevw(Form):
             self.treevw.bind(key, val)
         if parent.gridLayout:
             self.tvFrame.grid(row=self.getKw("row", 0), column=self.getKw(
-                "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "none"), expand=self.getKw("expand", False))
+                "column", 0), sticky=self.getKw("sticky", tk.NSEW), fill=self.getKw("fill", "both"), expand=self.getKw("expand", False))
 
         else:
             self.tvFrame.pack(side=self.getKw("side", "top"), anchor=self.getKw("anchor", None), padx=self.getKw(
-                "padx", 10), pady=self.getKw("pady", 5), fill=self.getKw("fill", "none"), expand=self.getKw("expand", False))
+                "padx", 10), pady=self.getKw("pady", 5), fill=self.getKw("fill", "both"), expand=self.getKw("expand", False))
         self.tvFrame.rowconfigure(0, weight=1)
         self.tvFrame.columnconfigure(0, weight=1)
 

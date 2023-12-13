@@ -498,6 +498,34 @@ class APIClient():
             raise ErrorHTTP(response)
         else:
             return None
+        
+    @handle_api_errors
+    def multiChangeStatus(self, iids, toStatus):
+        apiclient = APIClient.getInstance()
+        pentest = apiclient.getCurrentPentest()
+        api_url = '{0}cheatsheet/{1}/multiChangeOfStatus'.format(self.api_url_base, pentest)
+        data = {"iids":iids, "status":toStatus}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
+
+    @handle_api_errors
+    def queueCheckInstances(self, iids, priority=0):
+        apiclient = APIClient.getInstance()
+        pentest = apiclient.getCurrentPentest()
+        api_url = '{0}cheatsheet/{1}/queueCheckInstances'.format(self.api_url_base, pentest)
+        data = {"iids":iids, "priority":priority}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
     
     @handle_api_errors
     def updateCheckItem(self, iid, updatePipeline):

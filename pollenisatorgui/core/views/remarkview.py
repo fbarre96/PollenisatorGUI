@@ -84,12 +84,12 @@ class RemarkView(ViewElement):
         bot = topPanel.addFormPanel(grid=True,row=1)
         bot.addFormText("Description", r".+", "description")
         s.panel_to_fill = topPanel
-        if addButtons:
+        if kwargs.get("addButtons", True):
             self.completeInsertWindow()
         else:
             self.showForm()
 
-    def openModifyWindow(self, addButtons=True):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes.
         This form aims to update or delete an existing Defect
@@ -112,7 +112,7 @@ class RemarkView(ViewElement):
         topPanel.addFormStr(
             "Title", r".+", modelData["title"], column=2)
         topPanel.addFormText("Description", r".+", modelData["description"], row=2,column=2)
-        if addButtons:
+        if kwargs.get("addButtons", True):
             self.completeModifyWindow()
         else:
             self.showForm()

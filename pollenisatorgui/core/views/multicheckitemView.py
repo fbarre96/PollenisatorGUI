@@ -10,7 +10,7 @@ class MultiCheckItemView(ViewElement):
     def __init__(self, appliTw, appViewFrame, mainApp):
         super().__init__(appliTw, appViewFrame, mainApp, None)
 
-    def openModifyWindow(self):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to manipulate many commands
         """

@@ -194,7 +194,6 @@ class DataManager(Subject):
             obj = None
             old_obj = None
             if notification["db"] != "pollenisator":
-                logger.debug("Notification received : "+str(notification))
                 class_name = notification["collection"]
                 if class_name in self.data.keys() or class_name[:-1] in self.data.keys():
                     if notification["action"] == "update" or notification["action"] == "insert":

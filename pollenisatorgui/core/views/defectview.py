@@ -126,7 +126,7 @@ class DefectView(ViewElement):
             self.form.addFormHidden("fixes", modelData.get("fixes", {}))
         self.form.addFormHidden("target_id", modelData["target_id"])
         self.form.addFormHidden("target_type", modelData["target_type"])
-        if addButtons:
+        if kwargs.get("addButtons", True):
             self.completeInsertWindow()
         else:
             self.showForm()
@@ -139,7 +139,7 @@ class DefectView(ViewElement):
             values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
         fix_form.recurse_insert(values)
 
-    def openModifyWindow(self, addButtons=True):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes.
         This form aims to update or delete an existing Defect
@@ -249,7 +249,7 @@ class DefectView(ViewElement):
             actionsPan = self.form.addFormPanel(side=tk.TOP, anchor=tk.E)
             #actionsPan.addFormButton("Edit fixes", self.openFixesWindow, side=tk.RIGHT, image=self.edit_image)
             actionsPan.addFormButton("Create defect template from this", self.saveAsDefectTemplate,  image=self.edit_image, side=tk.RIGHT )
-        if addButtons:
+        if kwargs.get("addButtons", True):
             self.completeModifyWindow(addTags=False)
         else:
             self.showForm()
@@ -340,7 +340,7 @@ class DefectView(ViewElement):
         self.export_image = CTkImage(Image.open(utils.getIcon("download.png")))
         panel_action.addFormButton("Import", self.importDefectTemplates, image=self.import_image)
         panel_action.addFormButton("Export", self.exportDefectTemplates, image=self.export_image)
-        if addButtons:
+        if kwargs.get("addButtons", True):
             self.completeModifyWindow()
         else:
             self.showForm()
@@ -397,7 +397,7 @@ class DefectView(ViewElement):
         default_values = {}
         self.browse_down_treevw = self.form.addFormTreevw("Defects", ("Title", "Risk"),
                             default_values, side="bottom", fill="both", width=500, height=8, status="readonly")
-        if addButtons:
+        if kwargs.get("addButtons", True):
             self.completeInsertWindow()
         else:
             self.showForm()

@@ -32,7 +32,7 @@ class ChildDialogView:
         self.rvalue = None
         
     def completeDialogView(self, addButtons=True):
-        if addButtons:
+        if kwargs.get("addButtons", True):
             ok_button = CTkButton(self.appFrame, text="OK")
             ok_button.pack(side="right", padx=5, pady=10)
             ok_button.bind('<Button-1>', self.okCallback)

@@ -52,7 +52,7 @@ class CommandView(ViewElement):
             "The tool will cancel itself when this duration in second is reached to be run again later.", column=2, row=row)
         row += 1
 
-    def openModifyWindow(self):
+    def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
         """
