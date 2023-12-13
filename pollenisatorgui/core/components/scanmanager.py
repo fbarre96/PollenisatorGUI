@@ -80,12 +80,11 @@ class ScanManager:
         self.workerTv = None
         self.linkTw = linkedTreeview
         self.scan_worker = ScanWorker(self.settings)
-        path = utils.getIconDir()
-        self.tool_icon = tk.PhotoImage(file=path+"tool.png")
-        self.nok_icon = tk.PhotoImage(file=path+"cross.png")
-        self.waiting_icon = tk.PhotoImage(file=path+"waiting.png")
-        self.ok_icon = tk.PhotoImage(file=path+"done_tool.png")
-        self.running_icon = tk.PhotoImage(file=path+"running.png")
+        self.tool_icon = tk.PhotoImage(file=utils.getIcon("tool.png"))
+        self.nok_icon = tk.PhotoImage(file=utils.getIcon("cross.png"))
+        self.waiting_icon = tk.PhotoImage(file=utils.getIcon("waiting.png"))
+        self.ok_icon = tk.PhotoImage(file=utils.getIcon("done_tool.png"))
+        self.running_icon = tk.PhotoImage(file=utils.getIcon("running.png"))
         DataManager.getInstance().attach(self)
 
     def startAutoscan(self):

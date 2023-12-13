@@ -161,16 +161,16 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
         panel_top.addFormLabel("Status", row=0, column=2)
         default_status = self.getStatus(infos)
-        self.image_terminal = CTkImage(Image.open(utils.getIconDir()+'terminal_small.png'))
+        self.image_terminal = CTkImage(Image.open(utils.getIcon('terminal_small.png')))
         self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=3, pady=5)
         #panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
         
         #if "commands" in check_m.check_type:
 
-        self.buttonExecuteImage = CTkImage(Image.open(utils.getIconDir()+'execute.png'))
-        self.buttonQueueImage = CTkImage(Image.open(utils.getIconDir()+'exec_cloud.png'))
-        self.buttonRunImage = CTkImage(Image.open(utils.getIconDir()+'terminal_small.png'))
-        self.buttonDownloadImage = CTkImage(Image.open(utils.getIconDir()+'download.png'))
+        self.buttonExecuteImage = CTkImage(Image.open(utils.getIcon('execute.png')))
+        self.buttonQueueImage = CTkImage(Image.open(utils.getIcon('exec_cloud.png')))
+        self.buttonRunImage = CTkImage(Image.open(utils.getIcon('terminal_small.png')))
+        self.buttonDownloadImage = CTkImage(Image.open(utils.getIcon("download.png")))
         self.image_download = utils.loadIcon("download.png")
         self.image_reset = utils.loadIcon("reset_small.png")
         self.image_delete = utils.loadIcon("delete.png")

@@ -367,15 +367,15 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
         utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
         self.main_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_main.png"), size=(30, 30))
+            Image.open(utils.getIcon("tab_main.png")), size=(30, 30))
         self.commands_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_commands.png"), size=(30, 30))
+            Image.open(utils.getIcon("tab_commands.png")), size=(30, 30))
         self.scan_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_scan.png"), size=(30, 30))
+            Image.open(utils.getIcon("tab_scan.png")), size=(30, 30))
         self.settings_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_settings.png"), size=(30, 30))
+            Image.open(utils.getIcon("tab_settings.png")), size=(30, 30))
         self.admin_tab_img = CTkImage(
-            Image.open(utils.getIconDir()+"tab_admin.png"), size=(30, 30))
+            Image.open(utils.getIcon("tab_admin.png")), size=(30, 30))
         # HISTORY : Main view and command where historically in the same view;
         # This results in lots of widget here with a confusing naming style
         #### core components (Tab menu on the left objects)####
@@ -403,7 +403,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
-        dir_path = utils.getIconDir() +"favicon.png"
+        dir_path = utils.getIcon("favicon.png")
         img = tk.PhotoImage(file=dir_path)
         self.resizable(True, True)
         self.iconphoto(True, img)
@@ -550,7 +550,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         for name, module_class in REGISTRY.items():
             if name != "Module":
                 module_obj = module_class(self, self.settings, self)
-                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIconDir()+module_obj.iconName), size=(30, 30))})
+                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIcon(module_obj.iconName)), size=(30, 30))})
         
     def loadModulesInfos(self):
         for module in self.modules:

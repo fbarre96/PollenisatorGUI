@@ -116,8 +116,8 @@ class ChildDialogFixes:
         ### OFFICE EXPORT FRAME ###
         belowFrame = CTkFrame(self.paned)
         frameBtn = CTkFrame(belowFrame)
-        self.buttonUpImage = CTkImage(Image.open(utils.getIconDir()+'up-arrow.png'))
-        self.buttonDownImage = CTkImage(Image.open(utils.getIconDir()+'down-arrow.png'))
+        self.buttonUpImage = CTkImage(Image.open(utils.getIcon('up-arrow.png')))
+        self.buttonDownImage = CTkImage(Image.open(utils.getIcon('down-arrow.png')))
         # use self.buttonPhoto
         btn_down = CTkButton(frameBtn, image=self.buttonDownImage, text="",command=self.bDown)
         btn_down.pack(side="left", anchor="center")

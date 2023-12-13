@@ -151,8 +151,8 @@ class DefectView(ViewElement):
         modelData = self.controller.getData()
         settings = self.mainApp.settings
         settings.reloadSettings()
-        self.delete_image = CTkImage(Image.open(utils.getIconDir()+'delete.png'))
-        self.edit_image = CTkImage(Image.open(utils.getIconDir()+'stylo.png'))
+        self.delete_image = CTkImage(Image.open(utils.getIcon('delete.png')))
+        self.edit_image = CTkImage(Image.open(utils.getIconDir('stylo.png')))
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X)
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
         rightPanel = globalPanel.addFormPanel(grid=True, side=tk.RIGHT, fill=tk.NONE, padx=1)
@@ -388,8 +388,8 @@ class DefectView(ViewElement):
                                 default_values, side="top", fill="both", width=500, height=8, status="readonly", 
                                 binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
             
-        self.buttonUpImage = CTkImage(Image.open(utils.getIconDir()+'up-arrow.png'))
-        self.buttonDownImage = CTkImage(Image.open(utils.getIconDir()+'down-arrow.png'))
+        self.buttonUpImage = CTkImage(Image.open(utils.getIcon('up-arrow.png')))
+        self.buttonDownImage = CTkImage(Image.open(utils.getIcon('down-arrow.png')))
         # use self.buttonPhoto
         buttonPan = self.form.addFormPanel(side="top", anchor="center", fill="none")
         btn_down = buttonPan.addFormButton("Add to report", self.moveDownMultiTreeview, side="left", anchor="center", image=self.buttonDownImage)

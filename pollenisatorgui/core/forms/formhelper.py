@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 from PIL import ImageTk, Image
-from pollenisatorgui.core.components.utils import getIconDir
+from pollenisatorgui.core.components.utils import getIcon
 
 
 class FormHelper(Form):
@@ -30,7 +30,7 @@ class FormHelper(Form):
         """
         super().__init__(name)
         FormHelper.img_class = CTkImage(
-            Image.open(getIconDir()+"help.png"))
+            Image.open(getIcon("help.png")))
         self.text = text
         self.kwargs = kwargs
         self.lbl = None

@@ -36,7 +36,7 @@ class FormDate(Form):
         self.kwargs = kwargs
         self.entry = None
         FormDate.img_class = CTkImage(
-            Image.open(getIconDir()+"date.png"))
+            Image.open(getIcon("date.png")))
 
     def constructView(self, parent):
         """

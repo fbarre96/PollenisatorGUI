@@ -27,6 +27,10 @@ from pollenisatorgui.core.components.logger_config import logger
 import customtkinter
 from os.path import expanduser
 
+settings = None
+
+
+
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
@@ -54,6 +58,15 @@ class JSONDecoder(json.JSONDecoder):
                     dct[k] = ObjectId(v.split('ObjectId|')[1])
         return dct
 
+def cacheSettings():
+    """
+    Cache the settings in a file.
+    """
+    global settings
+    if settings is None:
+        from pollenisatorgui.core.components.settings import Settings
+        settings = Settings()
+    return settings
 
 def loadPlugin(pluginName):
     """
@@ -94,15 +107,13 @@ def getBackgroundColor():
     Returns:
         the background color.
     """
-    from pollenisatorgui.core.components.settings import Settings
-    settings = Settings()
+    settings = cacheSettings()
     dark_mode = settings.is_dark_mode()
     colors = get_color_scheme(dark_mode)
     return colors.get("background")
 
 def getBackgroundSecondColor():
-    from pollenisatorgui.core.components.settings import Settings
-    settings = Settings()
+    settings = cacheSettings()
     dark_mode = settings.is_dark_mode()
     colors = get_color_scheme(dark_mode)
     return colors.get("background_bis")
@@ -113,8 +124,7 @@ def getTextColor():
     Returns:
         the background color.
     """
-    from pollenisatorgui.core.components.settings import Settings
-    settings = Settings()
+    settings = cacheSettings()
     dark_mode = settings.is_dark_mode()
     colors = get_color_scheme(dark_mode)
     return colors.get("text")
@@ -125,8 +135,7 @@ def getStrongColor():
     Returns:
         the background color.
     """
-    from pollenisatorgui.core.components.settings import Settings
-    settings = Settings()
+    settings = cacheSettings()
     dark_mode = settings.is_dark_mode()
     colors = get_color_scheme(dark_mode)
     return colors.get("strong")
@@ -137,8 +146,7 @@ def getStrongActiveColor():
     Returns:
         the background color.
     """
-    from pollenisatorgui.core.components.settings import Settings
-    settings = Settings()
+    settings = cacheSettings()
     dark_mode = settings.is_dark_mode()
     colors = get_color_scheme(dark_mode)
     return colors.get("strong_active")
@@ -621,7 +629,11 @@ def getWaitingMarkIconPath():
 def getIcon(name):
     """Returns : the path to an specified icon name
     """
-    return os.path.join(getIconDir(), os.path.basename(name))
+    settings = cacheSettings()
+    if settings.is_dark_mode():
+        return os.path.join(getIconDir(), "dark", os.path.basename(name))
+    else:
+        return os.path.join(getIconDir(), "light", os.path.basename(name))
         
 def getHelpIconPath():
     """Returns:
@@ -649,7 +661,7 @@ def getIconDir():
         the icon directory path
     """
     p = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), "../../theme/icon/")
+        os.path.realpath(__file__)), "../../theme/")
     return p
 
 def getLocalDir():
@@ -783,8 +795,7 @@ def which_expand_alias(what):
     res = which(what)
     if res is not None:
         return res
-    from pollenisatorgui.core.components.settings import Settings
-    settings = Settings()
+    settings = cacheSettings()
     settings.reloadLocalSettings()
     is_there_zsh = os.environ.get("ZSH",None) is not None
     default_shell = "zsh" if is_there_zsh else "/bin/bash"
