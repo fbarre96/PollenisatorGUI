@@ -19,7 +19,7 @@ class MultiCheckItemView(ViewElement):
         # top_panel.addFormButton("Add to my commands", self.addSelectedToMyCommands)
         # top_panel.addFormButton("Add to Worker commands", self.addSelectedToWorkerCommands)
         # top_panel.addFormButton("Remove selection from my commands", self.removeSelectedFromMyCommands)
-        top_panel.addFormButton("Delete", self.appliTw.deleteSelected,  image=self.delete_image,
+        top_panel.addFormButton("Delete", self.appliTw.deleteSelected, 
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         self.showForm()

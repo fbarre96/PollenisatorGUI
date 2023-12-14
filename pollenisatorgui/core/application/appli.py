@@ -1184,7 +1184,9 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         for plugin in plugins:
             if plugin["plugin"] == "Default":
                 continue
-            bin_path = self.settings.local_settings.get("my_commands", {}).get(plugin["plugin"])
+            my_commands = self.settings.local_settings.get("my_commands", {})
+            my_commands = {} if my_commands is None else my_commands
+            bin_path = my_commands.get(plugin["plugin"])
             if bin_path is None or bin_path == "" or utils.which_expand_alias(bin_path):
                 default_bin_names = plugin["default_bin_names"]
                 found_matching = False
@@ -1192,6 +1194,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                     if utils.which_expand_alias(default_bin_name):
                         plugin["bin_path"] = default_bin_name
                         bin_path = default_bin_name
+                        my_commands[plugin["plugin"]] = default_bin_name
                         results["successes"].append({"title":"Success", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is valid. ({bin_path})."})
                         found_matching = True
                         break
@@ -1199,6 +1202,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                     results["failures"].append({"title":"Invalid binary path", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is not recognized. ({bin_path})."})
             else:
                 results["successes"].append({"title":"Success", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is valid. ({bin_path})."})
+        self.settings.local_settings["my_commands"] = my_commands
+        self.settings.saveLocalSettings()
         return results
     
 

@@ -209,14 +209,17 @@ def main():
     except tk.TclError:
         pass
     try:
-        app.destroy()
-        print("Destroying app window")
-    except tk.TclError:
-        pass
-    if gc is not None:
-        gc.kill_now = True
-    event_obj.set()
-    app.onClosing()
-
+        try:
+            app.destroy()
+            print("Destroying app window")
+        except tk.TclError:
+            pass
+        if gc is not None:
+            gc.kill_now = True
+        event_obj.set()
+        app.onClosing()
+    except Exception as e:
+        print("Error while closing app")
+        print(e)
 if __name__ == '__main__':
     main()

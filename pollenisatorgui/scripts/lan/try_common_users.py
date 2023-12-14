@@ -7,7 +7,8 @@ from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDia
 
 import shutil
 
-users_to_test = [
+def main(apiclient, appli, **kwargs):
+    users_to_test = [
     "test",
     "admin",
     "backup",
@@ -30,8 +31,6 @@ users_to_test = [
     "glpiadmin",
     "adminglpi",
 ]
-
-def main(apiclient, appli, **kwargs):
     cme_path = utils.which_expand_alias("cme")
     if not cme_path:
         return False, "binary 'cme' is not in the PATH."
@@ -47,7 +46,7 @@ def main(apiclient, appli, **kwargs):
         domain = dialog.rvalue
     if domain == "" or domain is None:
         return False, "No domain given"
-    dialog = ChildDialogAskText(None, "Basic users to try", users)
+    dialog = ChildDialogAskText(None, "Basic users to try", "\n".join(users_to_test))
     dialog.app.wait_window(dialog.app)
     if dialog.rvalue is None:
         return False, "Canceled"

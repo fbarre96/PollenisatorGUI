@@ -82,7 +82,7 @@ class ChildDialogToolsInstalled(CTkToplevel):
     def reloadUI(self):
         for widget in self.mainFrame.winfo_children():
             widget.destroy()
-        self.tv = ScrollableTreeview(self.mainFrame,('Plugin name','Local command Configured'), height=25)
+        self.tv = ScrollableTreeview(self.mainFrame,('Plugin name','Local command Configured'), height=25, maxPerPage=25)
         self.tv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.BOTH, expand=1)
         self.tv.bind("<Double-Button-1>", self.OnDoubleClick)
         for tool_result in self.tools_results.get("failures", []):
