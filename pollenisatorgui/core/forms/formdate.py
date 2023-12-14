@@ -6,7 +6,7 @@ import datetime as datetime
 from pollenisatorgui.core.forms.form import Form
 from PIL import ImageTk, Image
 from customtkinter import *
-from pollenisatorgui.core.components.utils import getIconDir
+from pollenisatorgui.core.components.utils import getIcon
 from pollenisatorgui.core.application.dialogs.ChildDialogDate import ChildDialogDate
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
