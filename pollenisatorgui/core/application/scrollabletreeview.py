@@ -6,6 +6,7 @@ import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.application.paginable import Paginable
 import pyperclip
+from collections import OrderedDict
 
 
 class ScrollableTreeview(Paginable):
@@ -73,12 +74,12 @@ class ScrollableTreeview(Paginable):
     def bind(self, event_name, func):
         self.treevw.bind(event_name, func)
 
-    def insert(self, parent, index, iid, text="",values=(), tags=(), image=None):
+    def insert(self, parent, index, iid, text="",values=(), tags=(), image=None, auto_update_pagination=True):
         res = None
         if iid is None:
             iid = uuid.uuid4()
-        if iid not in [x["iid"] for x in self.infos]:
-            res = self.addPaginatedInfo({"parent":parent,"iid":iid, "index":index, "text":text,"values":values,"tags":tags, "image":image})
+        if str(iid) not in self.infos:
+            res = self.addPaginatedInfo({"parent":parent,"iid":iid, "index":index, "text":text,"values":values,"tags":tags, "image":image}, auto_update_pagination=auto_update_pagination)
         return res
     
     def insert_items(self, items):
@@ -112,10 +113,10 @@ class ScrollableTreeview(Paginable):
         except tk.TclError as e:
             pass
         try:
-            self.infos[[str(x["iid"]) for x in self.infos].index(iid)].update(kwargs)
+            self.infos[str(iid)].update(kwargs)
         except ValueError as e:
             raise tk.TclError(e)
-        return self.infos[[str(x["iid"]) for x in self.infos].index(iid)]
+        return self.infos[str(iid)]
         
         
     def _initContextualMenu(self, parent):
@@ -223,7 +224,7 @@ class ScrollableTreeview(Paginable):
         """Reset the treeview values (delete all lines)"""
         for item in self.treevw.get_children():
             self.treevw.delete(item)
-        self.infos = []
+        self.infos = OrderedDict()
         self._detached = set()
         self.resetPagination()
 
@@ -248,8 +249,7 @@ class ScrollableTreeview(Paginable):
                 if item["text"].strip() != "":
                     self.treevw.delete(selected)
                     try:
-                        ind = [x["iid"] for x in self.infos].index(selected)
-                        del self.infos[ind]
+                        del self.infos[selected]
                     except ValueError as e:
                         pass
             except tk.TclError:
@@ -261,7 +261,7 @@ class ScrollableTreeview(Paginable):
     
     def get_children(self, all=False):
         if all:
-            return [x["iid"] for x in self.infos]
+            return list(self.infos.keys())
         return self.treevw.get_children()
     
     def identify(self, *args, **kwargs):

@@ -1,4 +1,6 @@
 """ActiveDirectory module"""
+import cProfile, pstats, io
+from pstats import SortKey
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
@@ -102,6 +104,11 @@ class ActiveDirectory(Module):
         dialog.update(3)
         if self.shares is None:
             self.shares = []
+        dialog.update(4)
+        self.tags = {}
+        find_tags = apiclient.find("tags", {"item_type": {"$in":["computers","users","shares"]}}, True)
+        for tag in find_tags:
+            self.tags[str(tag.get("item_id"))] = tag
         dialog.destroy()
             
     def displayData(self):
@@ -117,13 +124,17 @@ class ActiveDirectory(Module):
         self.tvShares.reset()
         dialog.update(1)
         for i,user in enumerate(self.users):
-            self.insertUser(user)
+            self.insertUser(user,  auto_update_pagination=False)
+        self.tvUsers.setPaginationPanel()
         dialog.update(2)
         for i,computer in enumerate(self.computers):
-            self.insertComputer(computer)
+            self.insertComputer(computer, auto_update_pagination=False)
+        self.tvComputers.setPaginationPanel()
+        
         dialog.update(3)
         for i,share in enumerate(self.shares):
-            self.insertShare(share)
+            self.insertShare(share, auto_update_pagination=False)
+        self.tvShares.setPaginationPanel()
         dialog.update(4)
         dialog.destroy()
 
@@ -229,7 +240,7 @@ class ActiveDirectory(Module):
         dialog = ChildDialogComputer(self.parent, computer_d)
         return dialog
 
-    def insertUser(self, user):
+    def insertUser(self, user, auto_update_pagination=True):
         try:
             domain = user.get("domain", "")
             username = user.get("username", "")
@@ -238,17 +249,9 @@ class ActiveDirectory(Module):
             datamanager = DataManager.getInstance()
             if groups is None:
                 groups = []
-            tagged = datamanager.find("tags", {"item_id":ObjectId(user["_id"])})
-            if tagged:
-                tagged = tagged[0]
-            tags = []
-            if tagged:
-                for tag in tagged.get("tags", []):
-                    tag = TagInfos(tag)
-                    tags.append(tag.name)
-
-            self.tvUsers.insert(
-                '', 'end', user["_id"], text=username, values=(password, domain, str(len(groups)), user.get("description", ""), user.get("infos", {}).get("hashNT", ""),", ".join(tags)))
+            tags = self.tags.get(str(user["_id"]), [])
+            self.tvUsers.insert('', 'end', user["_id"], text=username, 
+                                values=(password, domain, str(len(groups)), user.get("description", ""), user.get("infos", {}).get("hashNT", ""),", ".join(tags)), auto_update_pagination=auto_update_pagination)
         except tk.TclError as e:
             pass
 
@@ -290,40 +293,24 @@ class ActiveDirectory(Module):
 
             self.tvUsers.delete(select)
     
-    def insertComputer(self, computer):
+    def insertComputer(self, computer, auto_update_pagination=True):
         infos = computer.get("infos",{})
-        datamanager = DataManager.getInstance()
-        tagged = datamanager.find("tags", {"item_id":ObjectId(computer["_id"])})
-        if tagged:
-            tagged = tagged[0]
-        tags = []
-        if tagged:
-            for tag in tagged.get("tags", []):
-                tag = TagInfos(tag)
-                tags.append(tag.name)
+        tags = self.tags.get(str(computer["_id"]), [])
         newValues = (computer.get("name",""), computer.get("domain", ""), infos.get("is_dc", False), len(computer.get("admins", [])), len(computer.get("users", [])), infos.get("os", ""), \
                         infos.get("signing", ""), infos.get("smbv1", ""), ", ".join(tags))
         
         try:
             self.tvComputers.insert(
                 '', 'end', computer["_id"], text=computer.get("ip", ""),
-                values=newValues)
+                values=newValues, auto_update_pagination=auto_update_pagination)
         except tk.TclError:
             self.tvComputers.item(computer["_id"], values=newValues) 
 
-    def insertShare(self, share):
-        datamanager = DataManager.getInstance()
-        tagged = datamanager.find("tags", {"item_id":ObjectId(share["_id"])})
-        if tagged:
-            tagged = tagged[0]
-        tags = []
-        if tagged:
-            for tag in tagged.get("tags", []):
-                tag = TagInfos(tag)
-                tags.append(tag.name)
+    def insertShare(self, share, auto_update_pagination=True):
+        tags = self.tags.get(str(share["_id"]), [])
         try:
             parentiid = self.tvShares.insert(
-                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags),"",""))
+                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags),"",""), auto_update_pagination=auto_update_pagination)
         except tk.TclError:
             parentiid = str(share["_id"])
         for file_infos in share.get("files",[]):
@@ -332,7 +319,7 @@ class ActiveDirectory(Module):
             toAdd = (file_infos["path"], str(file_infos["flagged"]), str(file_infos["size"]), "")
             try:
                 self.tvShares.insert(
-                    parentiid, 'end', None, text="", values=tuple(toAdd))
+                    parentiid, 'end', None, text="", values=tuple(toAdd), auto_update_pagination=auto_update_pagination)
             except tk.TclError:
                 pass
 

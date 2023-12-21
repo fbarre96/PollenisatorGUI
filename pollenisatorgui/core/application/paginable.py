@@ -1,5 +1,7 @@
+from collections import OrderedDict
 from customtkinter import *
 import tkinter.ttk as ttk
+
 
 class Paginable(CTkFrame):
 
@@ -12,7 +14,7 @@ class Paginable(CTkFrame):
         self.currentPage = 0
         self.lastPage = 0
         self.pagePanel = None
-        self.infos = []
+        self.infos = OrderedDict()
         self._save_infos = None
         self.contentview = CTkFrame(self, height=0)
         self.contentview.grid(row=0, column=0, sticky="nsew")
@@ -26,14 +28,16 @@ class Paginable(CTkFrame):
         self.callback_resetview = callback_resetview
         self.update_contentview = callback_update_content_view
 
-    def addPaginatedInfo(self, info):
-        self.infos.append(info)
+    def addPaginatedInfo(self, info, auto_update_pagination=True):
+        if "iid" not in info:
+            raise ValueError("iid key not found in info")
+        self.infos[str(info["iid"])] = info
         if self.disablePagination:
             return self.callback_insert([info])
         nbLig = len(self.infos)
         prevLastPage = self.lastPage
         self.lastPage = int(nbLig / self.maxPerPage)
-        if prevLastPage != self.lastPage:
+        if prevLastPage != self.lastPage and self.currentPage +5 < self.lastPage and auto_update_pagination:
             self.setPaginationPanel()
         if int(nbLig % self.maxPerPage) == 0:
             self.lastPage -= 1
@@ -46,16 +50,17 @@ class Paginable(CTkFrame):
 
     def getShownInfos(self):
         if self.disablePagination:
-            return self.infos
+            return self.infos.values()
         start = self.currentPage * self.maxPerPage
         end = start + self.maxPerPage
-        return self.infos[start:end]
+        keys = list(self.infos.keys())[start:end]
+        return [self.infos[key] for key in keys]
     
     def getContentView(self):
         return self.contentview
     
     def getInfos(self):
-        return self.infos
+        return self.infos.values()
 
     def setPaginationPanel(self):
         if self.disablePagination:
@@ -131,25 +136,24 @@ class Paginable(CTkFrame):
     def filter(self, *args, **kwargs):
         if self._save_infos is not None:
             self.infos = self._save_infos
-        subset_indexs = self._brut_searcher(self.infos, *args, **kwargs)
-        subset = [self.infos[i] for i in subset_indexs]
+        subset_items = self._brut_searcher(self.infos, *args, **kwargs)
         self._save_infos = self.infos
-        self.infos = []
+        self.infos = OrderedDict()
         self.reset_contentview()
-        for item in subset:
-            self.addPaginatedInfo(item)
+        for item in subset_items:
+            self.addPaginatedInfo(self._save_infos[item], auto_update_pagination=False)
         self.setPaginationPanel()
         self.update_contentview()
 
-    def _brut_searcher(self, children, *args, **kwargs):
+    def _brut_searcher(self, infos, *args, **kwargs):
         i_r = -1
         ret = []
         check_case = kwargs.get("check_case", True)
-        for item_index, item in enumerate(children):
+        for info_iid, info_value in infos.items():
             allValid = True
             oneValid = False
             for iarg, arg in enumerate(args):
-                text = self.callback_get_value(item, iarg)
+                text = self.callback_get_value(info_value, iarg)
                 check_all = kwargs.get("check_all", True)
                 if isinstance(arg, str):
                     if not check_case:
@@ -171,10 +175,10 @@ class Paginable(CTkFrame):
                         break
             if allValid and check_all:
                 i_r += 1
-                ret.append(item_index)
+                ret.append(info_iid)
             elif oneValid and not check_all:
                 i_r += 1
-                ret.append(item_index)
+                ret.append(info_iid)
             
         return ret
         
