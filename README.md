@@ -3,23 +3,34 @@
  
 
 ## INSTALL ##
-### Package required 
 
-#### Ubuntu
+### SCRIPT
+
+```
+git clone https://github.com/fbarre96/PollenisatorGUI
+cd PollenisatorGUI
+./install.sh
+```
+
+### MANUAL 
+
+#### Package required 
+
+##### Ubuntu
 ```
 sudo apt-get install git python3-pil python3-pil.imagetk python3-tk tmux xterm xdotool x11-xserver-utils pipx
 ```
 
-#### Archlinux
+##### Archlinux
 ```
 pacman -S python tk git tmux xterm xdotool x11-xserver-utils python-pipx
 ```
 
-### Additional optional packages
+##### Additional optional packages
 
 Docker can be installed to fire-up a scan worker. Otherwise, your computer can be used if you have pentest tools installed (additional configuration may be required).
 
-### Installation :
+#### Installation :
 
 ```
 git clone https://github.com/fbarre96/PollenisatorGUI
