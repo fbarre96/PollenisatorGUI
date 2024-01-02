@@ -3,6 +3,7 @@ from pollenisatorgui.core.application.dialogs.ChildDialogAutoScanParams import C
 from pollenisatorgui.core.application.dialogs.ChildDialogScanHistory import ChildDialogScanHistory
 from pollenisatorgui.core.application.dialogs.ChildDialogToolsInstalled import ChildDialogToolsInstalled
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
+from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 import tkinter as tk
@@ -160,9 +161,10 @@ class ScanManager:
             check = mapping.get(str(queued_scan["check_iid"]), None)
             group_name = "" if check is None else check.check_m.title
             try:
-                self.queueTv.insert('','end', str(queued_scan["_id"]), text=group_name, values=(queued_scan["name"], queued_scan["text"]), image=self.waiting_icon)
+                self.queueTv.insert('','end', str(queued_scan["_id"]), text=group_name, values=(queued_scan["name"], queued_scan["text"]), image=self.waiting_icon, auto_update_pagination=False)
             except tk.TclError:
                 pass
+        self.queueTv.setPaginationPanel()
 
     def is_worker_valid_for_pentest(self, worker_data):
         apiclient = APIClient.getInstance()
@@ -218,15 +220,16 @@ class ScanManager:
             return False, "No worker available yet."
         return True, ""
     
-    def is_ready_to_queue(self, tool_iid):
+    def is_ready_to_queue(self, tool_iid=None):
         apiclient = APIClient.getInstance()
         res, msg = self._check_worker()
         if not res:
             return res, msg
-        if self.is_already_queued(tool_iid):
-            return False, "Tool already queued."
         if not apiclient.getAutoScanStatus():
             return False, "No autoscan running."
+        if tool_iid is not None:
+            if self.is_already_queued(tool_iid):
+                return False, "Tool already queued."
         return True, ""
     
     def is_ready_to_run_tasks(self):
@@ -378,10 +381,7 @@ class ScanManager:
         ###### QUEUED
         queuedScansFrame = CTkFrame(parentFrame)
         
-        self.queueTv = ttk.Treeview(queuedScansFrame)
-        self.queueTv['columns'] = ("Check type", 'Tool', 'options')
-        self.queueTv.heading("#0", text='Queued scans', anchor=tk.W)
-        self.queueTv.column("#0", anchor=tk.W)
+        self.queueTv = ScrollableTreeview(queuedScansFrame,  ("Check type", 'Tool', 'options'))
         self.queueTv.pack(side=tk.TOP, padx=10, pady=10, fill=tk.X)
         self.queueTv.bind("<Delete>", self.remove__selected_tasks)
         clear_queue_btn = CTkButton(queuedScansFrame, text="Clear queue", command=self.clear_queue)

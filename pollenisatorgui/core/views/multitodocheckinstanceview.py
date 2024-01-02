@@ -1,11 +1,13 @@
 """View for multi checkinstance list object. Present a form to user when interacted with."""
 
+from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
 from customtkinter import *
 from PIL import ImageTk, Image
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
 import tkinter.ttk as ttk
+import tkinter as tk
 
 
 class MultiTodoCheckInstanceView(ViewElement):
@@ -23,13 +25,22 @@ class MultiTodoCheckInstanceView(ViewElement):
         self.appliTw.views[iid] = {"view": self}
         self.appliTw.insert(self.parent, "end", iid,text=f"{title} TODO ({len(self.checks)})", image=CheckInstanceView.getStatusIcon("todo"))
 
+    def queueAll(self, _event=None):
+        apiclient = APIClient.getInstance()
+        apiclient.queueCheckInstances([str(c) for c in self.checks])
+
     def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to update or perform actions on multiple different objects common properties like tags.
         """
         self.form.clear()
-        top_panel = self.form.addFormPanel()
-        top_panel.addFormButton()
+        top_panel = self.form.addFormPanel(fill=tk.NONE)
+        ready, msg = self.mainApp.scanManager.is_ready_to_queue()
+        self.buttonQueueImage = CTkImage(Image.open(utils.getIcon('exec_cloud.png')))
+        top_panel.addFormButton("Queue all", self.queueAll, state="normal" if ready else "disabled", image=self.buttonQueueImage)
+        if not ready:
+            top_panel.addFormLabel(msg)
+        top_panel = self.form.addFormPanel(fill=tk.NONE)
         top_panel.addFormButton("Export", self.appliTw.exportSelection)
         self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
         #top_panel.addFormButton("Custom Command", self.appliTw.customCommand)
