@@ -16,6 +16,7 @@ from pygments.formatters.html import HtmlFormatter
 from pygments.token import Generic
 from pygments.lexer import bygroups
 from pygments.styles import get_style_by_name, get_all_styles
+from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
 from pollenisatorgui.core.components import utils
 
 class TkintermdFrame(CTkFrame):
@@ -45,18 +46,19 @@ class TkintermdFrame(CTkFrame):
         self.just_editor = kwargs.get("just_editor", False)
         self.style_change = kwargs.get("style_change", False)
         self.enable_preview = kwargs.get("enable_preview", True)
+        self.enable_maximize = kwargs.get("enable_maximize", True)
         self.default = kwargs.get("default_text", "")
         self.binds = kwargs.get("binds", {})
         # Toolbar.
         if not self.just_editor or self.style_change:
             self.root_toolbar = CTkFrame(self)
-            self.open_btn = ttk.Button(self.root_toolbar, text="Open", command=self.open_md_file)
+            self.open_btn = ttk.Button(self.root_toolbar, text="Open", command=self.open_md_file, tooltip="Open Markdown file")
             self.open_btn.pack(side="left", padx=0, pady=0)
-            self.save_as_btn = ttk.Button(self.root_toolbar, text="Save As", command=self.save_as_md_file)
+            self.save_as_btn = ttk.Button(self.root_toolbar, text="Save As", command=self.save_as_md_file, tooltip="Save Markdown file as...")
             self.save_as_btn.pack(side="left", padx=0, pady=0)
-            self.save_btn = ttk.Button(self.root_toolbar, text="Save", command=self.save_md_file)
+            self.save_btn = ttk.Button(self.root_toolbar, text="Save", command=self.save_md_file, tooltip="Save Markdown file")
             self.save_btn.pack(side="left", padx=0, pady=0)
-            self.export_as_btn = ttk.Button(self.root_toolbar, text="Export HTML", command=self.save_as_html_file)
+            self.export_as_btn = ttk.Button(self.root_toolbar, text="Export HTML", command=self.save_as_html_file, tooltip="Export HTML file as...")
             self.export_as_btn.pack(side="left", padx=0, pady=0)
             # Button to choose pygments style for editor, preview and HTML.
             if self.style_change:
@@ -70,24 +72,27 @@ class TkintermdFrame(CTkFrame):
         self.editor_root_frame = tk.Frame(self.editor_pw)
         # Toolbar buttons
         self.editor_toolbar = tk.Frame(self.editor_root_frame)
-        self.icons = utils.loadIcons(["undo_small.png","redo_small.png", "cut_small.png", "copy_small.png", "paste_small.png", "find_small.png","bold_small.png", "italic_small.png", "strikethrough_small.png","image_small.png"])
-        self.undo_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["undo_small.png"], command=lambda: self.text_area.event_generate("<<Undo>>"), style="icon.TButton")
+        self.icons = utils.loadIcons(["maximize.png", "undo_small.png","redo_small.png", "cut_small.png", "copy_small.png", "paste_small.png", "find_small.png","bold_small.png", "italic_small.png", "strikethrough_small.png","image_small.png"])
+        if self.enable_maximize:
+            self.maximize_btn = ttk.Button(self.editor_toolbar, text="Maximize", image=self.icons["maximize.png"], command=self.maximize, style="icon.TButton", tooltip="Maximize editor")
+            self.maximize_btn.pack(side="left", padx=0, pady=0)
+        self.undo_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["undo_small.png"], command=lambda: self.text_area.event_generate("<<Undo>>"), style="icon.TButton", tooltip="Undo last action (Ctrl+z)")
         self.undo_btn.pack(side="left", padx=0, pady=0)
-        self.redo_btn = ttk.Button(self.editor_toolbar, text="Redo", image=self.icons["redo_small.png"], command=lambda: self.text_area.event_generate("<<Redo>>"), style="icon.TButton")
+        self.redo_btn = ttk.Button(self.editor_toolbar, text="Redo", image=self.icons["redo_small.png"], command=lambda: self.text_area.event_generate("<<Redo>>"), style="icon.TButton", tooltip="Redo last undo (Ctrl+Shift+z)")
         self.redo_btn.pack(side="left", padx=0, pady=0)
-        self.cut_btn = ttk.Button(self.editor_toolbar, text="Cut", image=self.icons["cut_small.png"], command=lambda: self.text_area.event_generate("<<Cut>>"), style="icon.TButton")
+        self.cut_btn = ttk.Button(self.editor_toolbar, text="Cut", image=self.icons["cut_small.png"], command=lambda: self.text_area.event_generate("<<Cut>>"), style="icon.TButton", tooltip="Cut selected text (ctrl+x)")
         self.cut_btn.pack(side="left", padx=0, pady=0)
-        self.copy_btn = ttk.Button(self.editor_toolbar, text="Copy", image=self.icons["copy_small.png"], command=lambda: self.text_area.event_generate("<<Copy>>"), style="icon.TButton")
+        self.copy_btn = ttk.Button(self.editor_toolbar, text="Copy", image=self.icons["copy_small.png"], command=lambda: self.text_area.event_generate("<<Copy>>"), style="icon.TButton", tooltip="Copy selected text (ctrl+c)")
         self.copy_btn.pack(side="left", padx=0, pady=0)
-        self.paste_btn = ttk.Button(self.editor_toolbar, text="Paste", image=self.icons["paste_small.png"], command=lambda: self.text_area.event_generate("<<Paste>>"), style="icon.TButton")
+        self.paste_btn = ttk.Button(self.editor_toolbar, text="Paste", image=self.icons["paste_small.png"], command=lambda: self.text_area.event_generate("<<Paste>>"), style="icon.TButton", tooltip="Paste selected text (ctrl+v)")
         self.paste_btn.pack(side="left", padx=0, pady=0)
-        self.find_btn = ttk.Button(self.editor_toolbar, text="Find", image=self.icons["find_small.png"], command=self.find, style="icon.TButton")
+        self.find_btn = ttk.Button(self.editor_toolbar, text="Find", image=self.icons["find_small.png"], command=self.find, style="icon.TButton", tooltip='Find text (ctrl+f)')
         self.find_btn.pack(side="left", padx=0, pady=0)
-        self.bold_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["bold_small.png"], width=16,  command=lambda: self.check_markdown_both_sides(constants.bold_md_syntax, constants.bold_md_ignore, constants.bold_md_special), style="icon.TButton")
+        self.bold_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["bold_small.png"], width=16,  command=lambda: self.check_markdown_both_sides(constants.bold_md_syntax, constants.bold_md_ignore, constants.bold_md_special), style="icon.TButton", tooltip='Bold selected text (ctrl+b)')
         self.bold_btn.pack(side="left", padx=0, pady=0)
-        self.italic_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["italic_small.png"], command=lambda: self.check_markdown_both_sides(constants.italic_md_syntax, constants.italic_md_ignore, constants.italic_md_special), style="icon.TButton")
+        self.italic_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["italic_small.png"], command=lambda: self.check_markdown_both_sides(constants.italic_md_syntax, constants.italic_md_ignore, constants.italic_md_special), style="icon.TButton", tooltip='Italicize selected text (ctrl+i)')
         self.italic_btn.pack(side="left", padx=0, pady=0)
-        self.strikethrough_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["strikethrough_small.png"], command=lambda: self.check_markdown_both_sides(constants.strikethrough_md_syntax, constants.strikethrough_md_ignore, md_special=None, strikethrough=True), style="icon.TButton")
+        self.strikethrough_btn = ttk.Button(self.editor_toolbar, text="", image=self.icons["strikethrough_small.png"], command=lambda: self.check_markdown_both_sides(constants.strikethrough_md_syntax, constants.strikethrough_md_ignore, md_special=None, strikethrough=True), style="icon.TButton", tooltip='Strikethrough selected text (ctrl+t)')
         self.strikethrough_btn.pack(side="left", padx=0, pady=0)
         # self.heading_btn = ttk.Button(self.editor_toolbar, text="Heading")
         # self.heading_btn.pack(side="left", padx=0, pady=0)
@@ -105,7 +110,7 @@ class TkintermdFrame(CTkFrame):
         # self.table_btn.pack(side="left", padx=0, pady=0)
         # self.link_btn = ttk.Button(self.editor_toolbar, text="Link")
         # self.link_btn.pack(side="left", padx=0, pady=0)
-        self.image_btn =  ttk.Button(self.editor_toolbar, text="", image=self.icons["image_small.png"], command=lambda: self.add_image(), style="icon.TButton")
+        self.image_btn =  ttk.Button(self.editor_toolbar, text="", image=self.icons["image_small.png"], command=lambda: self.add_image(), style="icon.TButton", tooltip='Add image (you can also drag&drop inside the editor)')
         self.image_btn.pack(side="left", padx=0, pady=0)
         self.editor_toolbar.pack(side="top", fill="x")
         # Editor frame with scrollbar and text area.
@@ -269,6 +274,18 @@ class TkintermdFrame(CTkFrame):
         self.text_area.tag_add(SEL, "1.0", END)
         self.text_area.mark_set(0.0, END)
         self.text_area.see(INSERT)
+
+    def maximize(self, *args, **kwargs):
+        """Maximize the editor window.
+        
+        - Maximizes the editor window.
+        """
+        dialog = ChildDialogAskText(self, "Markdown Editor", self.text_area.get("1.0", END), multiline=True, markdown=True, fullscreen=True, save_on_close=True)
+        self.wait_window(dialog.app)
+        text = dialog.rvalue
+        if text is not None:
+            self.text_area.delete("1.0", END)
+            self.text_area.insert("1.0", text)
 
     def find(self, *args):
         """Simple search dialog for within the editor window.

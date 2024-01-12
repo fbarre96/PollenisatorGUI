@@ -39,6 +39,7 @@ class FormMarkdown(Form):
         self.just_editor = self.getKw("just_editor", False)
         self.enable_preview = self.getKw("enable_preview", True)
         self.style_change = self.getKw("style_change", False)
+        self.allow_maximize = self.getKw("allow_maximize", True)
 
     def close(self):
         """Option of the contextual menu : Close the contextual menu by doing nothing
@@ -59,7 +60,8 @@ class FormMarkdown(Form):
         state = self.getKw("state", "normal")
         dark_mode = self.getKw("dark_mode", False)
         self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=self.style_change,
-                                       enable_preview=self.enable_preview,height=self.getKw("height", 0), binds=self.getKw("binds", {}))
+                                       enable_preview=self.enable_preview,height=self.getKw("height", 0), binds=self.getKw("binds", {}),
+                                       enable_maximize=self.allow_maximize)
         from pollenisatorgui.core.components.settings import Settings
         s = Settings()
         if dark_mode:

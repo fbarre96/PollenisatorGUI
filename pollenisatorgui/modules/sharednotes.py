@@ -69,7 +69,7 @@ class SharedNotes(Module):
         self.parent = parent
        
         dark_mode = self.settings.is_dark_mode()
-        self.mdFrame = TkintermdFrame(parent, default_text="", tkApp=self.tkApp, just_editor=False, style_change=False, enable_preview=True,bg_color="red")
+        self.mdFrame = TkintermdFrame(parent, default_text="", tkApp=self.tkApp, just_editor=False, style_change=False, enable_preview=True)
         if dark_mode:
             self.mdFrame.load_style("material")
         else:

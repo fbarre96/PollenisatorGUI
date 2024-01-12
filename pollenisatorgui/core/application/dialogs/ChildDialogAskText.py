@@ -10,7 +10,7 @@ class ChildDialogAskText:
     Open a child dialog of a tkinter application to ask a text area.
     """
 
-    def __init__(self, parent, info="Input text", default='' ,multiline=True, **kwargs):
+    def __init__(self, parent, info="Input text", default='' , multiline=True, **kwargs):
         """
         Open a child dialog of a tkinter application to ask details about
         existing files parsing.
@@ -20,15 +20,35 @@ class ChildDialogAskText:
         """
         from pollenisatorgui.core.forms.formpanel import FormPanel
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        fullscreen = False
+        if kwargs.get("fullscreen", False):
+            w, h = utils.get_screen_size_where_widget(parent)
+            fullscreen = True
+            self.app.geometry(f"{w}x{h}")
+            del kwargs["fullscreen"]
         self.app.title(info)
         self.rvalue = None
+        is_markdown = False
+        if "markdown" in kwargs:
+            is_markdown = kwargs.get("markdown", True)
+            del kwargs["markdown"]
+        self.save_on_close = False
+        if "save_on_close" in kwargs:
+            self.save_on_close = kwargs.get("save_on_close", True)
+            del kwargs["save_on_close"]
+        self.save_on_close = kwargs.get("save_on_close", True)
         appFrame = CTkFrame(self.app)
-        self.form = FormPanel()
-        self.form.addFormLabel(
-            "Input text", text=info, side=tk.TOP)
-        if multiline:
-            self.formText = self.form.addFormText(info, "", default,
-                                side=tk.TOP, **kwargs)
+        self.form = FormPanel(fill=tk.BOTH, expand=1)
+        if not is_markdown:
+            self.form.addFormLabel(
+                "Input text", text=info, side=tk.TOP)
+        if multiline or is_markdown:
+            if is_markdown:
+                self.formText = self.form.addFormMarkdown(info, "", default,
+                                side=tk.TOP, fill=tk.BOTH, expand=1, just_editor=True, allow_maximize=not fullscreen, **kwargs)
+            else:
+                self.formText = self.form.addFormText(info, "", default,
+                                side=tk.TOP, fill=tk.BOTH, expand=1,**kwargs)
         else:
             show = "*" if kwargs.get("secret") else None
             self.formText = self.form.addFormStr(info, "", default, side=tk.TOP, show=show, **kwargs)
@@ -38,10 +58,10 @@ class ChildDialogAskText:
                                border_width=1, border_color="firebrick1", hover_color="tomato")
 
         self.form.constructView(appFrame)
-        if not multiline:
+        if not (multiline or is_markdown):
             self.app.bind("<Return>", self.onOk)
-        self.app.bind("<Escape>", self.onError)
-        appFrame.pack(ipadx=10, ipady=10)
+        self.app.bind("<Escape>", self.onClose)
+        appFrame.pack(ipadx=10, ipady=10, fill=tk.BOTH, expand=1)
 
         try:
             self.app.wait_visibility()
@@ -51,6 +71,12 @@ class ChildDialogAskText:
         except tk.TclError:
             pass
         self.formText.setFocus()
+
+    def onClose(self, _event=None):
+        if self.save_on_close:
+            self.onOk()
+        else:
+            self.onError()
 
     def onError(self, _event=None):
         self.rvalue = None
