@@ -178,10 +178,12 @@ class TkintermdFrame(CTkFrame):
 
         # Set Pygments syntax highlighting style.
         self.lexer = Lexer()
-        self.syntax_highlighting_tags = self.load_style("stata")
+        self.syntax_highlighting_tags = self.load_style("stata-dark")
         # self.syntax_highlighting_tags = self.load_style("material")
         # Default markdown string.
         default_text = self.default
+        default_text = default_text.replace("\t", "    ")
+        default_text = default_text.replace("\r", "")
         self.text_area.insert(0.0, default_text)
         self.template_top = constants.default_template_top
         self.template_middle = constants.default_template_middle
