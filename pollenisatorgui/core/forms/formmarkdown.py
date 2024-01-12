@@ -6,7 +6,6 @@ from pollenisatorgui.core.application.mdframe import TkintermdFrame
 from tkinter.constants import *
 from pollenisatorgui.core.forms.form import Form
 import pollenisatorgui.core.components.utils as utils
-from pollenisatorgui.core.components.settings import Settings
 
 
 class FormMarkdown(Form):
@@ -61,11 +60,12 @@ class FormMarkdown(Form):
         dark_mode = self.getKw("dark_mode", False)
         self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=self.style_change,
                                        enable_preview=self.enable_preview,height=self.getKw("height", 0), binds=self.getKw("binds", {}))
+        from pollenisatorgui.core.components.settings import Settings
         s = Settings()
         if dark_mode:
             editor_style = s.local_settings.get("editor_dark_theme", "material")
         else:
-            editor_style = s.local_settings.get("editor_light_style"," tango")
+            editor_style = s.local_settings.get("editor_light_style","stata-light")
         self.mdFrame.load_style(editor_style)
         if state == "disabled":
             self.mdFrame.text_area.configure(state="disabled")
