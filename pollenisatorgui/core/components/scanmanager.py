@@ -12,6 +12,7 @@ from customtkinter import *
 import threading
 import time
 from pollenisatorgui.core.components.scanworker import ScanWorker
+from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.models.tool import Tool
 from pollenisatorgui.core.application.dialogs.ChildDialogFileParser import ChildDialogFileParser
@@ -418,9 +419,19 @@ class ScanManager:
         if self.scanTv is not None:
             tv = event.widget
             item = tv.identify("item", event.x, event.y)
-            self.nbk.select("Main View")
-            self.mainApp.search("id == \""+str(item)+"\"")
+        self.openInTerminalView(item)
+        self.openInMainView(item)
+
+    def openInMainView(self, item):
+        self.nbk.select("Main View")
+        self.mainApp.search("id == \""+str(item)+"\"")
     
+    def openInTerminalView(self, item):
+        datamanager = DataManager.getInstance()
+        tool = datamanager.get("tools", str(item))
+        if tool:
+            tool_controller = ToolController(tool)
+            self.mainApp.open_any_terminal(str(tool.check_iid)+"|"+str(tool_controller.getDbId()), tool_controller.getDetailedString(), tool_controller, self)
     
     def stopAutoscan(self):
         """
