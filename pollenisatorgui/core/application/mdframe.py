@@ -49,6 +49,7 @@ class TkintermdFrame(CTkFrame):
         self.enable_maximize = kwargs.get("enable_maximize", True)
         self.default = kwargs.get("default_text", "")
         self.binds = kwargs.get("binds", {})
+        self.font_size = kwargs.get("font_size", 12)
         # Toolbar.
         if not self.just_editor or self.style_change:
             self.root_toolbar = CTkFrame(self)
@@ -112,10 +113,16 @@ class TkintermdFrame(CTkFrame):
         # self.link_btn.pack(side="left", padx=0, pady=0)
         self.image_btn =  ttk.Button(self.editor_toolbar, text="", image=self.icons["image_small.png"], command=lambda: self.add_image(), style="icon.TButton", tooltip='Add image (you can also drag&drop inside the editor)')
         self.image_btn.pack(side="left", padx=0, pady=0)
+        self.font_size_label = ttk.Label(self.editor_toolbar, text="Font size:")
+        self.font_size_label.pack(side="left", padx=0, pady=0)
+        self.font_size_combo = ttk.Combobox(self.editor_toolbar, values=list(range(6,64,2)), width=3)
+        self.font_size_combo.set(self.font_size)
+        self.font_size_combo.pack(side="left", padx=0, pady=0)
+        self.font_size_combo.bind("<<ComboboxSelected>>", self.on_font_size_change)
         self.editor_toolbar.pack(side="top", fill="x")
         # Editor frame with scrollbar and text area.
         
-        self.editor_frame = ScrolledTextBox(self.editor_root_frame, undo=True, wrap=tk.WORD)
+        self.editor_frame = ScrolledTextBox(self.editor_root_frame, undo=True, wrap=tk.WORD, font=("Times New Roman", self.font_size))
         self.text_area = self.editor_frame.tbox
         self.text_area.register_drop_target("*")
         if self.binds.get("<<Drop:File>>", None) is not None:
@@ -221,6 +228,17 @@ class TkintermdFrame(CTkFrame):
         # # This links the scrollbars but is currently causing issues. 
         # Changing the settings to make the scrolling work
         # self.preview_document.html['yscrollcommand'] = self.on_mousewheel
+
+    def on_font_size_change(self, event=None):
+        """Changes the font size of the text area.
+        
+        - Queries and changes the font size of the text area.
+        """
+        font_size = int(self.font_size_combo.get())
+        self.font_size = font_size
+        self.load_style(self.stylename)
+        scale_factor = font_size/12.0
+        self.preview_document.set_fontscale(scale_factor)
 
     def dropFile(self, event):
         # This function is called, when stuff is dropped into a widget
@@ -423,6 +441,7 @@ class TkintermdFrame(CTkFrame):
         self.text_area.edit_modified(0) # resets the text widget to generate another event when another change occours
 
     def load_style(self, stylename):
+        self.stylename = stylename
         return self.do_load_style(stylename)
 
     def do_load_style(self, stylename):
@@ -444,7 +463,7 @@ class TkintermdFrame(CTkFrame):
                 kwargs['foreground'] = '#' + fg
             if bg:
                 kwargs['background'] = '#' + bg
-            font = ('Monospace', 10) + tuple(key for key in ('bold', 'italic') if opts[key])
+            font = ('Monospace', self.font_size) + tuple(key for key in ('bold', 'italic') if opts[key])
             kwargs['font'] = font
             kwargs['underline'] = opts['underline']
             self.text_area.tag_configure(str(token), **kwargs)
@@ -456,13 +475,13 @@ class TkintermdFrame(CTkFrame):
                         selectbackground=self.style.highlight_color,
                         insertbackground=self.text_area.tag_cget("Token.Text", "foreground") or 'black',
                         )
-        self.text_area.tag_configure(str(Generic.StrongEmph), font=('Monospace', 10, 'bold', 'italic'))
+        self.text_area.tag_configure(str(Generic.StrongEmph), font=('Monospace', self.font_size, 'bold', 'italic'))
         self.export_options_text_area.configure(bg=self.style.background_color or 'white',
                         fg=self.export_options_text_area.tag_cget("Token.Text", "foreground") or 'black',
                         selectbackground=self.style.highlight_color,
                         insertbackground=self.text_area.tag_cget("Token.Text", "foreground") or 'black',
                         )
-        # self.export_options_text_area.tag_configure(str(Generic.StrongEmph), font=('Monospace', 10, 'bold', 'italic'))
+        # self.export_options_text_area.tag_configure(str(Generic.StrongEmph), font=('Monospace', self.font_size, 'bold', 'italic'))
         self.syntax_highlighting_tags.append(str(Generic.StrongEmph))
         self.formatter = HtmlFormatter()
         self.pygments = self.formatter.get_style_defs(".highlight")
