@@ -959,14 +959,15 @@ class APIClient():
     @handle_api_errors
     def putProof(self, defect_iid, local_path):
         api_url = '{0}files/{1}/upload/proof/{2}'.format(self.api_url_base, self.getCurrentPentest(), defect_iid)
-        with open(local_path,mode='rb') as f:
-            h = self.headers.copy()
-            h.pop("Content-Type", None)
-            response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, headers=h, proxies=self.proxies, verify=False)
-            if response.status_code == 200:
-                return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            elif response.status_code >= 400:
-                raise ErrorHTTP(response)
+        if os.path.exists(local_path) and os.path.isfile(local_path):
+            with open(local_path,mode='rb') as f:
+                h = self.headers.copy()
+                h.pop("Content-Type", None)
+                response = requests.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, headers=h, proxies=self.proxies, verify=False)
+                if response.status_code == 200:
+                    return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+                elif response.status_code >= 400:
+                    raise ErrorHTTP(response)
         return None
 
     @handle_api_errors

@@ -63,7 +63,7 @@ class DefectController(ControllerElement):
         self.model.update({"fixes": fixes})
 
     def findProofsInDescription(self, description):
-        regex_images = r"!\[.*\]\((.*)\)"
+        regex_images = r"!\[.*\]\(((?!http).*)\)"
         return re.finditer(regex_images, description)
         
 
