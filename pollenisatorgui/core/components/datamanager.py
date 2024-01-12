@@ -109,6 +109,8 @@ class DataManager(Subject):
                         ret = REGISTRY[collection].fetchObject(search, self.currentPentest)
                     else:
                         ret = REGISTRY[collection].fetchObject(search)
+                    if ret is None:
+                        return None
                     self.data[collection][str(ret.getId())] = ret
                 return ret
         # if collection not in self.data.keys():
