@@ -16,7 +16,7 @@ from pygments.formatters.html import HtmlFormatter
 from pygments.token import Generic
 from pygments.lexer import bygroups
 from pygments.styles import get_style_by_name, get_all_styles
-
+from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components import utils
 
 class TkintermdFrame(CTkFrame):
@@ -165,6 +165,10 @@ class TkintermdFrame(CTkFrame):
                 try:
                     # test them for compatability
                     self.load_style(style_name)
+                    settings = Settings()
+                    editor_key_style = "editor_dark_style" if settings.is_dark_mode() else "editor_light_style"
+                    settings.local_settings[editor_key_style] = style_name
+                    settings.save_local_settings()
                 except Exception as E:
                     #self.logger.exception(f"WARNING: style {style_name} failed ({E}), removing from style menu.")
                     continue # don't add them to the menu
