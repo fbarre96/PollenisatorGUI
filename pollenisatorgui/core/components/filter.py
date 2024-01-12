@@ -254,7 +254,7 @@ port == 443
             data["type"] = dtype
             tag = datamanager.find("tags", {"item_id":ObjectId(dbId)}, multi=False)
             if tag is not None:
-                data["tags"] = tag.get("tags",[])
+                data["tags"] = tag.tags
             else:
                 data["tags"] = []
             research = []
