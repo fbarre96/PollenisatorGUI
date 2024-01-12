@@ -69,7 +69,10 @@ def pollex():
     #if comm.startswith("sudo "):
     #    returncode = utils.execute_no_fork(comm, None, True, queue, queueResponse, cwd=tmpdirname)
     #else:
-    returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
+    try:
+        returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt")
     queue.put("kill")
     if len(plugin_results) == 1 and "Default" in plugin_results:
         if (verbose):
