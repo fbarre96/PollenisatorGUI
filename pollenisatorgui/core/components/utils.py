@@ -26,7 +26,7 @@ from ttkwidgets import tooltips
 from pollenisatorgui.core.components.logger_config import logger
 import customtkinter
 from os.path import expanduser
-
+import screeninfo
 settings = None
 
 
@@ -537,6 +537,25 @@ def execute_no_fork(command, timeout=None, printStdout=True, queue=None, queueRe
     except KeyboardInterrupt as e:
         raise e
 
+
+def get_screen_size_where_widget(widget):
+    """
+    Get the screen size of the current terminal
+
+    Returns:
+        Return the screen size as a tuple (width, height)
+    """
+    monitors = screeninfo.get_monitors()
+    monitor = None
+    if widget is not None:
+        x = widget.winfo_x()
+        y = widget.winfo_y()
+        for m in reversed(monitors):
+            if m.x <= x <= m.width + m.x and m.y <= y <= m.height + m.y:
+                monitor = m
+    if monitor is None:
+        monitor = monitors[0]
+    return monitor.width,  monitor.height
 
 def performLookUp(domain):
     """

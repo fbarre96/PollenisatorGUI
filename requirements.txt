@@ -18,4 +18,5 @@ libtmux
 tkintermd
 psutil
 neo4j
+screeninfo
 pygments
