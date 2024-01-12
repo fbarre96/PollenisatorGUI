@@ -18,3 +18,4 @@ libtmux
 tkintermd
 psutil
 neo4j
+pygments
