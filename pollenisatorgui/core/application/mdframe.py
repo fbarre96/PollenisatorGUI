@@ -110,7 +110,7 @@ class TkintermdFrame(CTkFrame):
         self.editor_toolbar.pack(side="top", fill="x")
         # Editor frame with scrollbar and text area.
         
-        self.editor_frame = ScrolledTextBox(self.editor_root_frame, undo=True)
+        self.editor_frame = ScrolledTextBox(self.editor_root_frame, undo=True, wrap=tk.WORD)
         self.text_area = self.editor_frame.tbox
         self.text_area.register_drop_target("*")
         if self.binds.get("<<Drop:File>>", None) is not None:
