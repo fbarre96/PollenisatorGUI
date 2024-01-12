@@ -580,7 +580,6 @@ class ChildDialogAddUsers:
         b = button_panel.addFormButton("Cancel", self.onError, side="right", 
                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
-        b.configure(style="Close.Titlebar.TButton")
         panel.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=5)
         try:
