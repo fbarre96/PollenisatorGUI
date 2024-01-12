@@ -214,9 +214,13 @@ class ScrollableTreeview(Paginable):
         if sort_key is None:
             sort_key = str
         if col == "#0":
-            self.infos.sort(key=lambda info: sort_key(info["text"]), reverse=reverse)
+            sorted_values = sorted(self.infos.values(), key=lambda info: sort_key(info["text"]), reverse=reverse)
         else:
-            self.infos.sort(key=lambda info: sort_key(str(info["values"][int(col[1:])-1])), reverse=reverse)
+            sorted_values = sorted(self.infos.values(), key=lambda info: sort_key(str(info["values"][int(col[1:])-1])), reverse=reverse)
+        new_infos = OrderedDict()
+        for info in sorted_values:
+            new_infos[info["iid"]] = info
+        self.infos = new_infos
         tv.heading(col, command=self.column_clicked(col, not reverse))
         self.goToPage("first", force=True)
 
