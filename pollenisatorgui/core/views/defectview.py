@@ -297,7 +297,7 @@ class DefectView(ViewElement):
                     self.saveAsDefectTemplate()
         return res, msg
 
-    def openMultiModifyWindow(self, addButtons=True):
+    def openMultiModifyWindow(self, **kwargs):
         self.form.clear()
         settings = self.mainApp.settings
         settings.reloadSettings()

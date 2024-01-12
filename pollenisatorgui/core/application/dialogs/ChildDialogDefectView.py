@@ -52,8 +52,8 @@ class ChildDialogDefectView(ChildDialogView):
                 self.defect_vw.openMultiModifyWindow(addButtons=False)
                 self.completeDialogView(addButtons=True)
             else:
-                self.defect_vw.openModifyWindow(addButtons=True)
-                self.completeDialogView(addButtons=False)
+                self.defect_vw.openModifyWindow(addButtons=False)
+                self.completeDialogView(addButtons=True)
         
     
     def okCallback(self, _event=None):
