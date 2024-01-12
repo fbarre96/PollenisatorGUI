@@ -73,7 +73,7 @@ class SharedNotes(Module):
         if dark_mode:
             self.mdFrame.load_style("material")
         else:
-            self.mdFrame.load_style("stata")
+            self.mdFrame.load_style("stata-dark")
         self.sv = StringVar()
         self.mdFrame.text_area.bind("<<KeyRelease>>", self.on_input_change)
 

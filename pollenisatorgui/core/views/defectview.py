@@ -36,7 +36,7 @@ class DefectView(ViewElement):
         self.impactForm = None
         self.riskForm = None
 
-    def openInsertWindow(self, notes="", addButtons=True):
+    def openInsertWindow(self, notes="", **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new Defect
         Args:
@@ -152,7 +152,7 @@ class DefectView(ViewElement):
         settings = self.mainApp.settings
         settings.reloadSettings()
         self.delete_image = CTkImage(Image.open(utils.getIcon('delete.png')))
-        self.edit_image = CTkImage(Image.open(utils.getIconDir('stylo.png')))
+        self.edit_image = CTkImage(Image.open(utils.getIcon('stylo.png')))
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X)
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
         rightPanel = globalPanel.addFormPanel(grid=True, side=tk.RIGHT, fill=tk.NONE, padx=1)
@@ -346,7 +346,7 @@ class DefectView(ViewElement):
             self.showForm()
         self.filter()
 
-    def openMultiInsertWindow(self, addButtons=True):
+    def openMultiInsertWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to insert many Defects
         Args:
@@ -628,9 +628,11 @@ class DefectView(ViewElement):
 
     def multi_insert(self):
         values = self.browse_down_treevw.getValue()
+        errors = []
+        msg = ""
         for title in values:
             results, msg = APIClient.getInstance().searchDefect(title)
-            if results is not None:
+            if results is not None and results:
                 result = results[0]
                 d_o = Defect()
                 if isinstance(result.get("type"), str):
@@ -643,9 +645,14 @@ class DefectView(ViewElement):
                 d_o.initialize("", "", result["title"], result["synthesis"], result["description"],
                             result["ease"], result["impact"], result["risk"], "N/A", types, result["language"], "", None, result["fixes"])
                 d_o.addInDb()
-            #if msg != "":
+            else:
+                errors.append(title)
+        if errors:
+            msg = "Could not find the following defects in the knowledge db : \n"
+            msg +=", ".join(errors)
             #    tk.messagebox.showerror("Could not search defect from knowledge db", msg)
-        return True
+            return False, msg
+        return True, "Success"
 
     def insertReceived(self):
         """Called when a defect insertion is received by notification.

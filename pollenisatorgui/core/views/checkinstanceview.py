@@ -413,25 +413,25 @@ class CheckInstanceView(ViewElement):
         return lambda event, kwargs: self.launchToolWorkerCallback(tool_iid, **kwargs)
 
     def peekToolCallbackLambda(self, tool_iid):
-        return lambda event: self.peekToolCallback(tool_iid)
+        return lambda event=None: self.peekToolCallback(tool_iid)
     
     def stopToolCallbackLambda(self, tool_iid):
-        return lambda event: self.stopToolCallback(tool_iid)
+        return lambda event=None: self.stopToolCallback(tool_iid)
 
     def downloadToolCallbackLambda(self, tool_iid):
-        return lambda event: self.downloadToolCallback(tool_iid)
+        return lambda event=None: self.downloadToolCallback(tool_iid)
     
     def deleteToolCallbackLambda(self, tool_iid):
-        return lambda event: self.deleteToolCallback(tool_iid)
+        return lambda event=None: self.deleteToolCallback(tool_iid)
     
     def createDefectCallbackLambda(self, tool_iid):
-        return lambda event: self.createDefectToolCallback(tool_iid)
+        return lambda _event=None: self.createDefectToolCallback(tool_iid)
     
     def resetToolCallbackLambda(self, tool_iid):
-        return lambda event: self.resetToolCallback(tool_iid)
+        return lambda event=None: self.resetToolCallback(tool_iid)
     
     def resetToolCallbackLambda(self, tool_iid):
-        return lambda event: self.resetToolCallback(tool_iid)
+        return lambda event=None: self.resetToolCallback(tool_iid)
     
     def getAdditionalContextualCommands(self):
         ret = {}

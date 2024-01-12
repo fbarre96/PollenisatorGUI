@@ -60,7 +60,7 @@ class RemarkView(ViewElement):
                 remarks_obj[i]["TITLE"] = remark["title"]
         return remarks_obj, remarks_errors
     
-    def openInsertWindow(self,  addButtons=True):
+    def openInsertWindow(self,  **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to insert a new Remark
         Args:
