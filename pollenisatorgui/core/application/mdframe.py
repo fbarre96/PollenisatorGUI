@@ -49,7 +49,7 @@ class TkintermdFrame(CTkFrame):
         self.default = kwargs.get("default_text", "")
         self.binds = kwargs.get("binds", {})
         # Toolbar.
-        if not self.just_editor:
+        if not self.just_editor or self.style_change:
             self.root_toolbar = CTkFrame(self)
             self.open_btn = ttk.Button(self.root_toolbar, text="Open", command=self.open_md_file)
             self.open_btn.pack(side="left", padx=0, pady=0)

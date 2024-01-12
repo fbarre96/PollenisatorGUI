@@ -217,7 +217,7 @@ class DefectView(ViewElement):
             otherPanel = leftPanel.addFormPanel( row=row, column=0, columnspan=2)
             otherPanel.addFormLabel("Synthesis", side=tk.TOP)
             otherPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=200, side="top")
-            self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  just_editor=True)
+            self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  style_change=True, just_editor=True)
         else:
             globalPanel.addFormHidden("Title", modelData.get("title", ""))
             globalPanel.addFormHidden("Ease", modelData.get("ease", ""))

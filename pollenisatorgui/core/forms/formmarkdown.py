@@ -37,6 +37,7 @@ class FormMarkdown(Form):
         self.widgetMenuOpen = None
         self.just_editor = self.getKw("just_editor", False)
         self.enable_preview = self.getKw("enable_preview", True)
+        self.style_change = self.getKw("style_change", False)
 
     def close(self):
         """Option of the contextual menu : Close the contextual menu by doing nothing
@@ -56,7 +57,7 @@ class FormMarkdown(Form):
         """
         state = self.getKw("state", "normal")
         dark_mode = self.getKw("dark_mode", False)
-        self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=False,
+        self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=self.style_change,
                                        enable_preview=self.enable_preview,height=self.getKw("height", 0), binds=self.getKw("binds", {}))
         if dark_mode:
             self.mdFrame.load_style("material")
