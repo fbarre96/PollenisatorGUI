@@ -153,9 +153,9 @@ class DefectView(ViewElement):
         settings.reloadSettings()
         self.delete_image = CTkImage(Image.open(utils.getIcon('delete.png')))
         self.edit_image = CTkImage(Image.open(utils.getIcon('stylo.png')))
-        globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.X)
+        globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.BOTH)
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
-        rightPanel = globalPanel.addFormPanel(grid=True, side=tk.RIGHT, fill=tk.NONE, padx=1)
+        rightPanel = globalPanel.addFormPanel(grid=False, side=tk.RIGHT, fill=tk.BOTH, padx=1)
         row = 0
         if modelData.get("target_id", "") != "":
             leftPanel.addFormLabel("Target", row=row, column=0)
@@ -216,8 +216,19 @@ class DefectView(ViewElement):
             row += 1
             otherPanel = leftPanel.addFormPanel( row=row, column=0, columnspan=2)
             otherPanel.addFormLabel("Synthesis", side=tk.TOP)
-            otherPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  height=200, side="top")
-            self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  style_change=True, just_editor=True)
+            otherPanel.addFormText("Synthesis", r"", modelData.get("synthesis","Synthesis"), state="readonly" if self.controller.isAssigned() else "",  side="top", fill=tk.NONE)
+            row += 1
+            fixesPane = leftPanel.addFormPanel(row=row, column=0, columnspan=2)
+            fixesPane.addFormLabel("Fixes", side=tk.TOP)
+            values = []
+            for fix in modelData["fixes"]:
+                values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
+            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
+            self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
+                                                    side=tk.RIGHT, auto_size_columns=False,
+                                                    doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
+        
+            self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  style_change=True, just_editor=True, fill=tk.BOTH, expand=True)
         else:
             globalPanel.addFormHidden("Title", modelData.get("title", ""))
             globalPanel.addFormHidden("Ease", modelData.get("ease", ""))
@@ -235,15 +246,16 @@ class DefectView(ViewElement):
             notesPanel.addFormLabel("Notes", side="top")
             notesPanel.addFormText(
                 "Notes", r"", modelData["notes"], None, side="top", height=40)
-        fixesPane = self.form.addFormPanel(side=tk.TOP, anchor=tk.CENTER, fill=tk.X)
-        values = []
-        for fix in modelData["fixes"]:
-            values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
-        fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
-        self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
-                                                  side=tk.RIGHT, auto_size_columns=False,
-                                                  doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
-        
+            
+            fixesPane = self.form.addFormPanel(side=tk.TOP, anchor=tk.CENTER, fill=tk.X)
+            values = []
+            for fix in modelData["fixes"]:
+                values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
+            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
+            self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
+                                                    side=tk.RIGHT, auto_size_columns=False,
+                                                    doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
+            
         #self.formFixes = globalPanel.addFormHidden("Fixes", modelData["fixes"])
         if not self.controller.model.isTemplate:
             actionsPan = self.form.addFormPanel(side=tk.TOP, anchor=tk.E)
