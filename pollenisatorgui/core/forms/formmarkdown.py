@@ -61,7 +61,7 @@ class FormMarkdown(Form):
         if dark_mode:
             self.mdFrame.load_style("material")
         else:
-            self.mdFrame.load_style("stata")
+            self.mdFrame.load_style("stata-light")
         if state == "disabled":
             self.mdFrame.text_area.configure(state="disabled")
         if parent.gridLayout:
