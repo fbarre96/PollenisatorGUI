@@ -428,6 +428,7 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
         try:
             proc = subprocess.run(
                 command, shell=True, cwd=cwd, timeout=timeout, preexec_fn=os.setsid)
+            print("finished command "+str(command))
         except subprocess.TimeoutExpired:
             sys.exit(-1)
         except Exception as e:
