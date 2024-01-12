@@ -25,7 +25,7 @@ class ChildDialogToolView(ChildDialogView):
         self.tool_vw = toolView
         self.tool_vw.appliViewFrame = self.appFrame
         self.tool_vw.openModifyWindow()
-        self.completeDialogView(False)
+        self.completeDialogView(addButtons=False)
 
    
 

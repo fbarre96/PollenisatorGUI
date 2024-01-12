@@ -34,7 +34,7 @@ class ChildDialogGenericView(ChildDialogView):
             self.view.openInsertWindow()
         else:
             self.view.openModifyWindow()
-        self.completeDialogView(False)
+        self.completeDialogView(addButtons=False)
 
     def deleteProxy(self, *args, **kwargs):
         self.viewdelete(*args, **kwargs)
