@@ -155,7 +155,7 @@ class DefectView(ViewElement):
         self.edit_image = CTkImage(Image.open(utils.getIcon('stylo.png')))
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.BOTH)
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
-        rightPanel = globalPanel.addFormPanel(grid=False, side=tk.RIGHT, fill=tk.BOTH, padx=1)
+        rightPanel = globalPanel.addFormPanel(grid=False, side=tk.RIGHT, fill=tk.BOTH, padx=5)
         row = 0
         if modelData.get("target_id", "") != "":
             leftPanel.addFormLabel("Target", row=row, column=0)
@@ -223,8 +223,8 @@ class DefectView(ViewElement):
             values = []
             for fix in modelData["fixes"]:
                 values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
-            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
-            self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
+            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT,width=10)
+            self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, padx=1, height=3, max_height=5, anchor=tk.CENTER, 
                                                     side=tk.RIGHT, auto_size_columns=False,
                                                     doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
         
