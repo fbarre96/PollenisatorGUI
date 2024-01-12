@@ -410,8 +410,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.minsize(width=400, height=400)
         self.resizable(True, True)
         self.title("Pollenisator")
-        
-        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
+        w, h = utils.get_screen_size_where_widget(self)
+        self.geometry(f"{w}x{h}")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.datamanager = DataManager.getInstance()
         self.initModules()
