@@ -51,7 +51,7 @@ class Report(Module):
         self.rowHeight = 0
         self.pane_base_height = 31
         self.style = None
-        self.treevw = None
+        self.defect_treevw = None
         self.drag_toast = None
         self.combo_word = None
         self.combo_pptx = None
@@ -63,7 +63,7 @@ class Report(Module):
 
     def open(self, view, nbk, treevw):
         self.nbk = nbk
-        self.treevw = treevw
+        self.main_app_treevw = treevw
         if self.inited is False:
             self.initUI(view)
         self.refreshUI()
@@ -496,11 +496,14 @@ class Report(Module):
         except:
             self.addDefect(defect_m)
             return
-        columnEase = self.treevw['columns'].index("ease")
-        columnImpact = self.treevw['columns'].index("impact")
-        columnRisk = self.treevw['columns'].index("risk")
-        columnType = self.treevw['columns'].index("type")
-        columnRedactor = self.treevw['columns'].index("redactor")
+        try:
+            columnEase = self.treevw['columns'].index("ease")
+            columnImpact = self.treevw['columns'].index("impact")
+            columnRisk = self.treevw['columns'].index("risk")
+            columnType = self.treevw['columns'].index("type")
+            columnRedactor = self.treevw['columns'].index("redactor")
+        except :
+            return
         oldValues = self.treevw.item(defect_m.getId())["values"]
         oldRisk = oldValues[columnRisk]
         newRisk = defect_m.risk
