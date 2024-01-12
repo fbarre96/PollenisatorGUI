@@ -62,7 +62,7 @@ class PseudoTermFrame(CTkFrame):
             traceback.print_exc()
             self.timer.cancel()
             return False
-        self.timer = threading.Timer(1, self.getProgress)
+        self.timer = threading.Timer(0.2, self.getProgress)
         self.timer.start()
         #self.sio.emit("remoteInteractionGet", {"name":apiclient.getUser(), "db": apiclient.getCurrentPentest(),"id":str(self.toolController.getDbId())})
         return True
