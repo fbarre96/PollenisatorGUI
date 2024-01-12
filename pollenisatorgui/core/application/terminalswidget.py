@@ -75,6 +75,8 @@ class TerminalsWidget(CTkFrame):
         self.contextualMenu.add_command(
             label="Close term", command=self.closeTerm)
         self.contextualMenu.add_command(
+            label="Close all terms", command=self.closeAllTerms)
+        self.contextualMenu.add_command(
             label="(Exit)", command= lambda: 0)# do nothing
         self.terminalTv.bind("<Button-3>", self.doPopup)
         self.terminalTv.column('#0', minwidth=50, width=80, stretch=tk.YES)
@@ -335,6 +337,30 @@ class TerminalsWidget(CTkFrame):
                     window = windows[0]
                     window.select_window()
         self.opened = iid
+
+
+    def closeAllTerms(self):
+        for iid in self.terminalTv.get_children():
+            if iid == "shell":
+                continue
+            if iid.endswith("|ro"):
+                if iid in self.pseudoTermFrames:
+                    self.pseudoTermFrames[iid].quit()
+                self.terminalTv.selection_set("shell")
+                self.pseudoTermFrames[iid].destroy()
+                del self.pseudoTermFrames[iid]
+            else:
+                sessions = self.s.sessions.filter(session_name="pollenisator")
+                if sessions:
+                    session = sessions[0]
+                    windows = session.windows.filter(window_name=str(iid))
+                    if windows:
+                        window = windows[0]
+                        window.kill_window()
+                    del self.terminalFrames[iid]
+        self.terminalTv.delete(*self.terminalTv.get_children())
+        self.terminalTv.insert("", "end", "shell", text="shell", image=TerminalsWidget.getIcon())
+        self.terminalTv.selection_set("shell")
             
     def closeTerm(self):
         if self.contextualMenu.selection is None:
