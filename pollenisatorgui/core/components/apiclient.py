@@ -1303,6 +1303,18 @@ class APIClient():
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
             return response.status_code == 200
+        
+    @handle_api_errors
+    def findDefectTemplateById(self, iid):
+        api_url = '{0}report/DefectTemplates/find'.format(self.api_url_base)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"_id":ObjectId(iid)}, cls=JSONEncoder),  proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            res = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            return res
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        else:
+            return None
 
     @handle_api_errors
     def insertAsTemplate(self, data):

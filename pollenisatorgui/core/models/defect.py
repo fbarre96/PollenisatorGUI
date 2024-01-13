@@ -98,7 +98,7 @@ class Defect(Element):
     @classmethod
     def getTemplateById(cls, iid):
         apiclient = APIClient.getInstance()
-        res = apiclient.findInDb("pollenisator", cls.coll_name, {"_id": ObjectId(iid)}, False)
+        res = apiclient.findDefectTemplateById(ObjectId(iid))
         if res is None:
             return None
         return Defect(res)
