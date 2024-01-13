@@ -102,14 +102,13 @@ class DefectView(ViewElement):
         s.addResultForm(checklist, "type")
         topPanel = data_panel.addFormPanel(side="top", pady=3)
         settings = self.mainApp.settings
-        topPanel.addFormLabel("Synthesis", side="left")
-        synthesis = topPanel.addFormText("Synthesis", r"", modelData.get("synthesis", "Synthesis"), state="readonly" if self.controller.isAssigned() else "", side="left", height=300)
+        topPanel.addFormLabel("Synthesis", side="top")
+        synthesis = topPanel.addFormText("Synthesis", r"", modelData.get("synthesis", "Synthesis"), state="readonly" if self.controller.isAssigned() else "", side="left", height=200)
         s.addResultForm(synthesis, "synthesis")
         if not self.controller.isAssigned():
-            topPanel = rightPanel.addFormPanel()
-            desc = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", fill=tk.BOTH)
-            s.addResultForm(desc, "description")
-            fixesPane = rightPanel.addFormPanel(side=tk.TOP, anchor=tk.CENTER, fill=tk.X)
+            topPanel = data_panel.addFormPanel(side="top", pady=3)
+            topPanel.addFormLabel("Fixes", side="top")
+            fixesPane = topPanel.addFormPanel(side=tk.TOP, fill=tk.X)
             values = []
             for fix in modelData.get("fixes", []):
                 values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
@@ -118,6 +117,10 @@ class DefectView(ViewElement):
                                                     side=tk.RIGHT, auto_size_columns=False,
                                                     doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
             s.addResultForm(self.fix_treevw, "fixes", fill_callback=self.fillFixes)
+            topPanel = rightPanel.addFormPanel()
+            desc = topPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"), side="top", fill=tk.BOTH)
+            s.addResultForm(desc, "description")
+            
         else:
             topPanel.addFormHidden("Description", modelData.get("description", ""))
             notesPanel = rightPanel.addFormPanel()
@@ -251,7 +254,7 @@ class DefectView(ViewElement):
             values = []
             for fix in modelData["fixes"]:
                 values.append((fix["title"], fix["execution"], fix["gain"], fix["synthesis"], fix["description"]))
-            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT)
+            fixesPane.addFormButton("Add fix", self.addFix, side=tk.RIGHT, width=10)
             self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, height=3, max_height=5, anchor=tk.CENTER, 
                                                     side=tk.RIGHT, auto_size_columns=False,
                                                     doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])

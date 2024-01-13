@@ -43,17 +43,17 @@ class ChildDialogDefectView(ChildDialogView):
         if self.isInsert:
             if multi:
                 self.defect_vw.openMultiInsertWindow(addButtons=False)
-                self.completeDialogView(addButtons=True)
+                self.completeDialogView(addButtons=True, text_ok="Insert")
             else:
-                self.defect_vw.openInsertWindow(addButtons=True)
-                self.completeDialogView(addButtons=False)
+                self.defect_vw.openInsertWindow(addButtons=False)
+                self.completeDialogView(addButtons=True, text_ok="Insert")
         else:
             if multi:
                 self.defect_vw.openMultiModifyWindow(addButtons=False)
-                self.completeDialogView(addButtons=True)
+                self.completeDialogView(addButtons=True, text_ok="Update")
             else:
                 self.defect_vw.openModifyWindow(addButtons=False)
-                self.completeDialogView(addButtons=True)
+                self.completeDialogView(addButtons=True, text_ok="Update")
         
     
     def okCallback(self, _event=None):
