@@ -9,6 +9,7 @@ import os
 import threading
 from PIL import ImageTk, Image
 from bson.objectid import ObjectId
+from pollenisatorgui.core.components.logger_config import logger
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.defect import Defect
@@ -580,6 +581,7 @@ class Report(Module):
         for child in children:	
             title = self.remarks_treevw.item(child)["text"]	
             if title == remark_o.title:	
+                already_inserted = True
                 break	
         if not already_inserted:	
             try:	
@@ -695,6 +697,8 @@ class Report(Module):
         utils.openPathForUser(path, folder_only=True)
 
     def update_received(self, dataManager, notif, obj, old_obj):
+        if notif["collection"] == "remarks":
+            obj = Remark.fetchObject({"_id":notif["iid"]})
         if obj is None:
             return
         
@@ -706,7 +710,8 @@ class Report(Module):
             return
         # insert ou update
         if notif["collection"] == "remarks":
-            self.addRemark(Remark.fetchObject({"_id":ObjectId(notif["iid"])}))
+            logger.debug("Received remark notification : "+str(notif))
+            self.addRemark(obj)
         elif notif["collection"] == "defects":
             self.updateDefectInTreevw(obj)
       
