@@ -426,9 +426,10 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
     (child_pid, fd) = pty.fork()
     if child_pid == 0:
         try:
+            logger.debug("execute command "+str(command))
             proc = subprocess.run(
                 command, shell=True, cwd=cwd, timeout=timeout, preexec_fn=os.setsid)
-            print("finished command "+str(command))
+            logger.debug("finished command "+str(command))
         except subprocess.TimeoutExpired:
             sys.exit(-1)
         except Exception as e:
@@ -440,8 +441,12 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
         
         p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout])
         p.start()
+        logger.debug(f"Utils execute: wait join of read loop")
         p.join()
+        logger.debug(f"Utils execute: end of wait join of read loop")
+    logger.debug(f"Utils execute: waitpid {child_pid}")
     info = os.waitpid(child_pid, 0)
+    logger.debug(f"Utils execute: end of waitpid {child_pid}")
     if os.WIFEXITED(info[1]):
         returncode = os.WEXITSTATUS(info[1])
     else:
