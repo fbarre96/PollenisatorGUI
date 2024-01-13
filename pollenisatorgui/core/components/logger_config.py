@@ -1,8 +1,12 @@
 import logging
 import sys
+formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+                              "%Y-%m-%d %H:%M:%S")
 logging.basicConfig(filename='error.log', encoding='utf-8', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(stream=sys.stdout)
+handler.setFormatter(formatter)
+
 logger.addHandler(handler)
 
 def handle_exception(exc_type, exc_value, exc_traceback):
