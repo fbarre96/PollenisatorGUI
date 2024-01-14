@@ -498,7 +498,11 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 t = threading.Timer(0.5, self.reconnect)
                 t.start()
                 return True
-            self.sio.connect(apiclient.api_url)
+            try:
+                self.sio.connect(apiclient.api_url)
+            except RuntimeError:
+                # tryto reconnect
+                self.sio.connect(apiclient.api_url)
             pentests = apiclient.getPentestList()
             if pentests is None:
                 pentests = []
@@ -991,6 +995,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         
         self.left_pane.update()
         self.after(50, lambda: self.paned.paneconfigure(self.left_pane, height=self.left_pane.winfo_reqheight()))
+        
         self.treevw.refresh()
         self.treevw.filter_empty_nodes()
         self.statusbar.refreshTags(Settings.getTags(ignoreCache=True))
