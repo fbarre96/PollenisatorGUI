@@ -99,6 +99,8 @@ def pollex():
     if not atLeastOne:
         notes = b""
         while not queueResponse.empty():
-            notes += queueResponse.get()
+            q = queueResponse.get()
+            if isinstance(q, str):
+                notes += q.encode()
         apiclient.setToolStatus(default_target.get("tool_iid"), ["error"], error+"\nSTDOUT:\n"+notes.decode())
     shutil.rmtree(tmpdirname)
