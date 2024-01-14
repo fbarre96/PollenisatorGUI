@@ -112,7 +112,10 @@ class ViewElement(object):
         except tk.TclError as e:
             pass
         self._insertChildren()
-        self.appliTw.item(str(self.controller.getDbId()), image=icon)
+        try:
+            self.appliTw.item(str(self.controller.getDbId()), image=icon)
+        except tk.TclError:
+            pass
         self.appliTw.update()
         
     def delete(self, _event=None, showWarning=True):

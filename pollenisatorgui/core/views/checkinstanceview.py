@@ -650,14 +650,23 @@ class CheckInstanceView(ViewElement):
             return the saved command_node node inside the Appli class.
         """
         if self.mainApp.settings.is_checklist_view():
-            return str(self.controller.model.check_iid)
-            
+            res = self._insertParentNode()
+            return res
         else:
             parent = self.controller.getTarget()
             if parent is not None and parent != "":
                 return parent
         return None
 
+    def _insertParentNode(self):
+        datamanager = DataManager.getInstance()
+        checkitem = datamanager.get("checkitems", self.controller.model.check_iid)
+        if checkitem is not None:
+            view = self.mainApp.modelToView("checkitem", checkitem)
+            if view:
+                view.addInTreeview()
+        return str(self.controller.model.check_iid)
+    
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
         self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
