@@ -205,11 +205,15 @@ class DataManager(Subject):
                         if old_obj is None:
                             notification["action"] = "insert"
                         self.set(class_name, notification["iid"], obj)
-                    elif notification["action"] == "insert_many":
+                    elif notification["action"] == "insert_many" or notification["action"] == "update_many":
                         updated_data = apiclient.findInDb(notification["db"], notification["collection"], {"_id": {"$in":notification["iid"]}}, True)
                         obj = []
                         for data in updated_data:
-                            model = self.getClass(class_name)(data)
+                            try:
+                                model = self.getClass(class_name)(data)
+                            except Exception as e:
+                                logger.error("Error while creating model : "+str(e))
+                                continue
                             obj.append(model)
                             self.set(class_name, data["_id"], model)
                     elif notification["action"] == "delete":
