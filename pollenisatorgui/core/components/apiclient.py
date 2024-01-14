@@ -1749,8 +1749,8 @@ class APIClient():
         
     @handle_api_errors
     def searchTaggedBy(self, tag_name):
-        api_url = '{0}tags/{1}/getTaggedBy/{2}'.format(self.api_url_base, self.getCurrentPentest(), tag_name)
-        response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        api_url = '{0}tags/{1}/getTaggedBy'.format(self.api_url_base, self.getCurrentPentest())
+        response = requests.get(api_url, params={"tag_name":tag_name}, headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
