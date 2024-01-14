@@ -28,6 +28,8 @@ class Defect(Element):
             valuesFromDb = {}
         self.proofs = []
         self.isTemplate = False
+        if isinstance(valuesFromDb, Defect):
+            return self
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         types = valuesFromDb.get("type", [])
         if isinstance(types, str):
