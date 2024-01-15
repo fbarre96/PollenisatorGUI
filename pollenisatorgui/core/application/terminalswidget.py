@@ -12,30 +12,30 @@ from customtkinter import *
 import libtmux
 from pollenisatorgui.core.application.pseudotermframe import PseudoTermFrame
 from pollenisatorgui.core.components.settings import Settings
-from pollenisatorgui.core.components.utils import getMainDir, getIcon, craftMenuWithStyle
+from pollenisatorgui.core.components.utils import getMainDir, getIcon, craftMenuWithStyle, read_and_forward_pty_output
 from pollenisatorgui.core.components.logger_config import logger
 from PIL import Image, ImageTk
 
 
 
-def read_and_forward_pty_output(fd, queue=None, queueResponse=None):
-    max_read_bytes = 1024 * 20
-    try:
-        while True:
-            time.sleep(0.01)
-            if fd:
-                timeout_sec = 0
-                (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
-                if not queue.empty():
-                    command = queue.get()
-                    os.write(fd, command.encode())
-                if data_ready:
-                    output = os.read(fd, max_read_bytes).decode(
-                        errors="ignore"
-                    )
-                    queueResponse.put(output.replace("\r",""))
-    except Exception as e:
-        pass
+# def read_and_forward_pty_output(fd, queue=None, queueResponse=None):
+#     max_read_bytes = 1024 * 20
+#     try:
+#         while True:
+#             time.sleep(0.01)
+#             if fd:
+#                 timeout_sec = 0
+#                 (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
+#                 if not queue.empty():
+#                     command = queue.get()
+#                     os.write(fd, command.encode())
+#                 if data_ready:
+#                     output = os.read(fd, max_read_bytes).decode(
+#                         errors="ignore"
+#                     )
+#                     queueResponse.put(output.replace("\r",""))
+#     except Exception as e:
+#         pass
 
 def killThisProc(proc):
     try:
@@ -304,7 +304,7 @@ class TerminalsWidget(CTkFrame):
             
             queue = multiprocessing.Queue()
             queueResponse = multiprocessing.Queue()
-            p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, queue, queueResponse])
+            p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, False])
             p.start()
             self.terminalFrame.bind("<Configure>", self.update_size)
             self.update_size()

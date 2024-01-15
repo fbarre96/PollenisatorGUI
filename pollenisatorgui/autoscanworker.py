@@ -20,7 +20,7 @@ event_obj = threading.Event()
 
 
 def sendKill(queue):
-    queue.put("kill")
+    queue.put("kill", block=False)
 
 def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCommand=False, setTimer=False, infos={}, logger_given=None, worker_name=""):
     """

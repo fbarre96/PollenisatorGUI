@@ -1,19 +1,24 @@
 import sys
 import shlex
 import multiprocessing
+from pollenisatorgui.core.components.logger_config import logger
 
 def pollex():
-    """Send a command to execute for pollenisator-gui running instance
-    """
-    verbose = False
     if len(sys.argv) <= 1:
         print("Usage : pollex [-v] <command to execute>")
         sys.exit(1)
+    verbose = False
     if sys.argv[1] == "-v":
         verbose = True
         execCmd = shlex.join(sys.argv[2:])
     else:
         execCmd = shlex.join(sys.argv[1:])
+    pollex_exec(execCmd, verbose)
+
+def pollex_exec(execCmd, verbose=False):
+    """Send a command to execute for pollenisator-gui running instance
+    """
+    
     bin_name = shlex.split(execCmd)[0]
     if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code", "cd", "ls","pwd", "cat", "export"]:
         sys.exit(-1)
@@ -72,8 +77,10 @@ def pollex():
     try:
         returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
     except KeyboardInterrupt:
-        print("KeyboardInterrupt")
-    queue.put("kill")
+        logger.debug("pollex KeyboardInterrupt for comm "+str(comm))
+    except Exception as e:
+        logger.debug("pollex Exception for comm "+str(comm)+" "+str(e))
+    queue.put("kill", block=False)
     if len(plugin_results) == 1 and "Default" in plugin_results:
         if (verbose):
             print("INFO : Only default plugin found")
@@ -81,6 +88,7 @@ def pollex():
         if str(response).strip().lower() == "n":
             shutil.rmtree(tmpdirname)
             return
+    logger.debug("pollex detect plugins "+str(plugin_results))
     atLeastOne = False
     error = ""
     for plugin,ext in plugin_results.items():
@@ -99,8 +107,9 @@ def pollex():
     if not atLeastOne:
         notes = b""
         while not queueResponse.empty():
-            q = queueResponse.get()
-            if isinstance(q, str):
-                notes += q.encode()
+            q = queueResponse.get(block=False)
+            if q:
+                if isinstance(q, str):
+                    notes += q.encode()
         apiclient.setToolStatus(default_target.get("tool_iid"), ["error"], error+"\nSTDOUT:\n"+notes.decode())
     shutil.rmtree(tmpdirname)

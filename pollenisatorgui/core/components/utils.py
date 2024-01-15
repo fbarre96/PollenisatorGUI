@@ -361,45 +361,74 @@ def handleProcKill(proc):
     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     proc._killed = True
 
+def check_pid(pid):        
+    """ Check For the existence of a unix pid. """
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
 
 def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout):
     max_read_bytes = 1024 * 20
-    try:
-        while True:
-            time.sleep(0.01)
-            if queue is not None and queue.qsize() > 0:
-                key = queue.get()
-                if key == "kill":
-                    parent = psutil.Process(child_pid)
-                    for child in parent.children(recursive=True):
-                        child.kill()
-                    parent.kill()
-                    sys.exit(-1)
-                else:
+    continue_reading = True
+    while continue_reading:
+        time.sleep(0.01)
+        pid_exists = check_pid(child_pid)
+        if not pid_exists:
+            logger.debug(f"Utils execute: read_and_forward_pty_output: child_pid {child_pid} does not exist")
+            sys.exit(0)
+        if queue is not None and queue.qsize() > 0:
+            key = queue.get(block=False)
+            if key == "kill":
+                parent = psutil.Process(child_pid)
+                for child in parent.children(recursive=True):
+                    child.kill()
+                parent.kill()
+                logger.debug(f"Utils execute: read_and_forward_pty_output: child_pid {child_pid} killed")
+                break
+            else:
+                try:
                     os.write(fd, key.encode())
-            if fd:
-                timeout_sec = 0
-                (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
-                if data_ready:
+                except OSError:
+                    pass
+        if fd:
+            timeout_sec = 0
+            (data_ready, _, _) = select.select([fd], [], [], 0.5)
+            if data_ready:
+                try:
                     output = os.read(fd, max_read_bytes).decode(
                         errors="ignore"
                     )
+                
                     output = output.replace("\r","")
                     if "Y/n" in output:
-                        queue.put("Y\n")
+                        queue.put("Y\n", block=False)
                     elif "y/N" in output:
-                        queue.put("N\n")
+                        queue.put("N\n", block=False)
                     if printStdout:
                         print(output)
                     if queueResponse is not None:
-                        queueResponse.put(output)
-    except OSError as e:
-        # occurs when the subprocess is over, os.read fails with OSError: [Errno 5] Input/output error
-        
-        return
-    except Exception as e:
-        print(e)
-        return
+                        queueResponse.put(output, block=False)
+                except OSError:
+                    break
+    if fd:
+        os.close(fd)
+    if queue:
+        while queue.qsize() > 0:
+            queue.get(block=False)
+        queue.close()
+        queue.join_thread()
+    if queueResponse:
+        while queueResponse.qsize() > 0:
+            queueResponse.get(block=False)
+        queueResponse.close()
+        queueResponse.join_thread()
+    continue_reading = False
+    logger.debug("read_and_forward_pty_output: finally")
+    
+    return
 
 def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, printStdout=False):
     """
@@ -430,28 +459,33 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
             proc = subprocess.run(
                 command, shell=True, cwd=cwd, timeout=timeout, preexec_fn=os.setsid)
             logger.debug("finished command "+str(command))
+            sys.exit(0)
         except subprocess.TimeoutExpired:
+            logger.debug("Timeout expired for command "+str(command))
             sys.exit(-1)
         except Exception as e:
-            print(e)
+            logger.debug("Exception occured for command "+str(command))
             sys.exit(1)
         finally:
+            logger.debug("Exit finally for command "+str(command))
             sys.exit(0)
     else:
         
         p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout])
         p.start()
-        logger.debug(f"Utils execute: wait join of read loop")
+        logger.debug(f"Utils execute: wait join of read loop {child_pid} process is {p.pid}")
         p.join()
-        logger.debug(f"Utils execute: end of wait join of read loop")
+        logger.debug(f"Utils execute: end of wait join of read loop {child_pid}")
     logger.debug(f"Utils execute: waitpid {child_pid}")
     info = os.waitpid(child_pid, 0)
     logger.debug(f"Utils execute: end of waitpid {child_pid}")
-    if os.WIFEXITED(info[1]):
-        returncode = os.WEXITSTATUS(info[1])
-    else:
-        returncode = -1
-   
+    try:
+        if os.WIFEXITED(info[1]):
+            returncode = os.WEXITSTATUS(info[1])
+        else:
+            returncode = -1
+    except Exception as e:
+        return -1
     return returncode
 
 
@@ -504,14 +538,16 @@ def execute_no_fork(command, timeout=None, printStdout=True, queue=None, queueRe
             while proc.poll() is None and queue is not None and queueResponse is not None:
                 if queue is not None and queue.qsize() > 0:
                     print("queue not empty")
-                    key = queue.get()
+                    key = queue.get(block=False)
+                    if not key:
+                        continue
                     proc.stdin.write(key.encode())
                     data = proc.stdout.read()
-                    queueResponse.put(data)
+                    queueResponse.put(data, block=False)
                     time.sleep(3)
             stdout, stderr = proc.communicate(None, timeout)
             if queueResponse is not None:
-                queueResponse.put(stdout)
+                queueResponse.put(stdout, block=False)
             if proc._killed:
                 logger.debug(f"Utils execute: command killed command:{command}")
                 if timer is not None:
