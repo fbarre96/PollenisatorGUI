@@ -197,7 +197,6 @@ def main():
 |   (_)||(/,[ )|_) (_] | (_)[  
                                
 """)
-   
     event_obj.clear() 
     gc = None
     app = Appli()
