@@ -56,9 +56,9 @@ class FormPanel(Form):
             parent: parent view or parent FormPanel.
         """
         if isinstance(parent, FormPanel):  # Panel is a subpanel
-            self.panel = CTkFrame(parent.panel, fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
+            self.panel = CTkFrame(parent.panel,fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
         else:
-            self.panel = CTkFrame(parent,  fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
+            self.panel = CTkFrame(parent, fg_color=self.getKw("fg_color", None), height=self.getKw("height", 0))
         self.populateView(parent)
 
     def populateView(self, parent):

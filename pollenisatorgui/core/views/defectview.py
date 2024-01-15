@@ -150,6 +150,8 @@ class DefectView(ViewElement):
             addButtons: boolean value indicating that insertion buttons should be visible. Default to True
         """
         self.form.clear()
+        self.form.kwargs["fill"] = "both"
+        self.form.kwargs["expand"] = True
         self.form.kwargs["padx"] = 0
         modelData = self.controller.getData()
         settings = self.mainApp.settings
