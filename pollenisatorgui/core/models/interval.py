@@ -131,6 +131,13 @@ class Interval(Element):
             a datetime object.
         """
         return Interval._translateDateString(self.datef)
+    
+    def getStartingDate(self):
+        """Returns the starting date and time of this interval
+        Returns:
+            a datetime object.
+        """
+        return Interval._translateDateString(self.dated)
 
     def getDbKey(self):
         """Return a dict from model to use as unique composed key.

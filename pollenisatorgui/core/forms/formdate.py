@@ -56,7 +56,10 @@ class FormDate(Form):
         datepicker.grid(row=0,column=1, padx=5)
         datepicker.bind("<Button-1>", self.showDatePicker)
         for bind, bind_call in self.getKw("binds", {}).items():
-            self.entry.bind(bind, bind_call)
+            if bind == "<<OnDateModified>>":
+                self.val.trace("w", bind_call)
+            else:
+                self.entry.bind(bind, bind_call)
         if parent.gridLayout:
             frame.grid(row=self.getKw("row", 0), column=self.getKw("column", 0), sticky=self.getKw("sticky", tk.W), **self.kwargs)
         else:
