@@ -72,7 +72,9 @@ class ChildDialogAutoScanParams(CTkToplevel):
         Args:
             _event: Not used but mandatory"""
         
-        self.rvalue = self.autoScanTv.get_checked_children()
+        self.rvalue = {}
+        self.rvalue["commands"] = self.autoScanTv.get_checked_children()
+        self.rvalue["autoqueue"] = self.switch_auto_queue.get()
         self.destroy()
 
 
@@ -99,6 +101,8 @@ class ChildDialogAutoScanParams(CTkToplevel):
         self.check_box_all.pack(padx=10,pady=10,side=tk.TOP)
         self.autoScanTv = CheckboxScrollableTreeview(frame, ("Command", 'Category', 'Category title', 'Priority'), maxPerPage=25, height=25, sort_keys=(None, None, None, int), autoresize=False)
         self.autoScanTv.pack(fill=tk.BOTH, expand="yes", padx=10, side=tk.BOTTOM, anchor=tk.CENTER)
+        self.switch_auto_queue = CTkSwitch(frame, text="Continously queue selected command(s)")
+        self.switch_auto_queue.pack(padx=10,pady=10,side=tk.BOTTOM)
         self.refreshUI()
 
     def check_all(self):

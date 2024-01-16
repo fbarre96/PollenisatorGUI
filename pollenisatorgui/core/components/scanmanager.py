@@ -111,7 +111,7 @@ class ScanManager:
             if not answer:
                 return False
         self.btn_autoscan.configure(text="Stop Scanning", command=self.stopAutoscan)
-        apiclient.sendStartAutoScan(command_iids=params)
+        apiclient.sendStartAutoScan(command_iids=params["commands"], autoqueue=params["autoqueue"])
         return True
     
     def stop(self):

@@ -1148,9 +1148,11 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def sendStartAutoScan(self, command_iids=[]):
+    def sendStartAutoScan(self, command_iids=None, autoqueue=False):
+        if command_iids is None:
+            command_iids = []
         api_url = '{0}autoscan/{1}/start'.format(self.api_url_base, self.getCurrentPentest())
-        data = {"command_iids":command_iids}
+        data = {"command_iids":command_iids, "autoqueue":bool(autoqueue)}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
