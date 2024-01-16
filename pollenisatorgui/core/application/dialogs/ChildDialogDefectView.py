@@ -9,7 +9,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.models.defect import Defect
-from pollenisatorgui.core.components.utils import get_screen_size_where_widget
+from pollenisatorgui.core.components.utils import get_screen_where_widget
 
 class DummyMainApp:
     def __init__(self, settings):
@@ -28,8 +28,8 @@ class ChildDialogDefectView(ChildDialogView):
             defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
         """
         super().__init__(parent, title, scrollable=False)
-        w,h = get_screen_size_where_widget(self.app)
-        self.app.geometry(f"{w}x{h}")
+        monitor = get_screen_where_widget(self.app)
+        self.app.geometry(f"{monitor.width}x{monitor.height}+{monitor.x}+{monitor.y}")
         self.isInsert = defectModel is None or force_insert
         self.multi = multi
         self.as_template = as_template

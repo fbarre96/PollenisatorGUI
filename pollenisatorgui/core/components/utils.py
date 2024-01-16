@@ -579,7 +579,7 @@ def execute_no_fork(command, timeout=None, printStdout=True, queue=None, queueRe
         raise e
 
 
-def get_screen_size_where_widget(widget):
+def get_screen_where_widget(widget):
     """
     Get the screen size of the current terminal
 
@@ -589,14 +589,14 @@ def get_screen_size_where_widget(widget):
     monitors = screeninfo.get_monitors()
     monitor = None
     if widget is not None:
-        x = widget.winfo_x()
-        y = widget.winfo_y()
+        x = widget.winfo_rootx()
+        y = widget.winfo_rooty()
         for m in reversed(monitors):
             if m.x <= x <= m.width + m.x and m.y <= y <= m.height + m.y:
                 monitor = m
     if monitor is None:
         monitor = monitors[0]
-    return monitor.width,  monitor.height
+    return monitor
 
 def performLookUp(domain):
     """

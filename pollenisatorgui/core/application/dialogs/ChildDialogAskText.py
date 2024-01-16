@@ -22,9 +22,9 @@ class ChildDialogAskText:
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         fullscreen = False
         if kwargs.get("fullscreen", False):
-            w, h = utils.get_screen_size_where_widget(parent)
             fullscreen = True
-            self.app.geometry(f"{w}x{h}")
+            monitor = utils.get_screen_where_widget(parent)
+            self.app.geometry(f"{monitor.width}x{monitor.height}+{monitor.x}+{monitor.y}")
             del kwargs["fullscreen"]
         self.app.title(info)
         self.rvalue = None
