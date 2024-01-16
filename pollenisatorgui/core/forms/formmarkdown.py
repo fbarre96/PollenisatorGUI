@@ -60,7 +60,7 @@ class FormMarkdown(Form):
         state = self.getKw("state", "normal")
         dark_mode = self.getKw("dark_mode", False)
         self.mdFrame = TkintermdFrame(parent.panel, default_text=self.default, just_editor=self.just_editor, style_change=self.style_change,
-                                       enable_preview=self.enable_preview,height=self.getKw("height", 0), binds=self.getKw("binds", {}),
+                                       enable_preview=self.enable_preview, height=self.getKw("height", 0), binds=self.getKw("binds", {}),
                                        enable_maximize=self.allow_maximize)
         from pollenisatorgui.core.components.settings import Settings
         s = Settings()
@@ -76,7 +76,7 @@ class FormMarkdown(Form):
                 "column", 0), sticky=self.getKw("sticky", tk.EW), **self.kwargs)
         else:
             self.mdFrame.pack(side=self.getKw("side", "left"), padx=self.getKw(
-                "padx", 10), pady=self.getKw("pady", 5), expand=self.getKw("expand", True), fill=self.getKw("fill", "both"), **self.kwargs)
+                "padx", 10), pady=self.getKw("pady", 5), expand=self.getKw("expand", True), fill=self.getKw("fill", tk.NONE), **self.kwargs)
 
     
     def getValue(self):

@@ -41,7 +41,7 @@ class TkintermdFrame(CTkFrame):
     
     """
     def __init__(self, master, **kwargs):
-        super().__init__(master,  height=0) 
+        super().__init__(master,  height=kwargs.get("height", 400))
         #self.logger = log.create_logger()
         self.just_editor = kwargs.get("just_editor", False)
         self.style_change = kwargs.get("style_change", False)
@@ -68,7 +68,7 @@ class TkintermdFrame(CTkFrame):
             self.root_toolbar.pack(side="top", fill="x")
 
         # Creating the widgets
-        self.editor_pw = tk.PanedWindow(self, orient="horizontal")
+        self.editor_pw = tk.PanedWindow(self, orient="horizontal", height=kwargs.get("height", 400))
         # Root editor frame
         self.editor_root_frame = tk.Frame(self.editor_pw)
         # Toolbar buttons
