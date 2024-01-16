@@ -133,6 +133,8 @@ class FormPanel(Form):
         """
         res = []
         for form in self.subforms:
+            if isinstance(form, FormLabel) or isinstance(form, FormButton) or isinstance(form, FormSeparator):
+                continue
             val = form.getValue()
             if val is not None:
                 if isinstance(form, FormPanel):
@@ -140,6 +142,20 @@ class FormPanel(Form):
                 else:
                     res.append((form.name, val))
         return res
+
+    def setValues(self, dict_of_infos):
+        """
+        Set the form value recursively. 
+        Args:
+            dict_of_infos: a dictionnary with key = subform's name and value = subform's value.
+        """
+        for form in self.subforms:
+            if isinstance(form, FormLabel) or isinstance(form, FormButton) or isinstance(form, FormSeparator):
+                continue
+            if form.name in dict_of_infos:
+                form.setValue(dict_of_infos[form.name])
+            if isinstance(form, FormPanel):
+                form.setValues(dict_of_infos)
 
     def addFormTreevw(self, name, headers,
                       default_values=None, **kwargs):
