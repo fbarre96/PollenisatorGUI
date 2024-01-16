@@ -1363,9 +1363,10 @@ class APIClient():
         return None
  
     @handle_api_errors
-    def generateReport(self, templateName, clientName, contractName, mainRedac, lang):
+    def generateReport(self, templateName, clientName, contractName, mainRedac, lang, additional_context):
         api_url = '{0}report/{1}/generate'.format(self.api_url_base, self.getCurrentPentest())
-        response = requests.get(api_url, headers=self.headers, params={"templateName":templateName,"mainRedactor":mainRedac, "lang":lang}, proxies=self.proxies, verify=False)
+        data = {"templateName":templateName,"mainRedactor":mainRedac, "lang":lang, "additional_context":additional_context}
+        response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             timestr = datetime.now().strftime("%Y%m")
             ext = os.path.splitext(templateName)[-1]

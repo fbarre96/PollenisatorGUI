@@ -661,7 +661,7 @@ class Report(Module):
             dialog = ChildDialogInfo(
                 self.parent, "PowerPoint Report", "Creating report . Please wait.")
             dialog.show()
-            x = threading.Thread(target=generateReport, args=(dialog, modele_pptx, self.mainRedac, self.curr_lang))
+            x = threading.Thread(target=generateReport, args=(self.tkApp, dialog, modele_pptx, self.mainRedac, self.curr_lang))
             x.start()
 
     def generateReportWord(self):
@@ -676,7 +676,7 @@ class Report(Module):
             dialog = ChildDialogInfo(
                 self.parent, "Word Report", "Creating report . Please wait.")
             dialog.show()
-            x = threading.Thread(target=generateReport, args=(dialog, modele_docx,  self.mainRedac, self.curr_lang))
+            x = threading.Thread(target=generateReport, args=(self.tkApp, dialog, modele_docx,  self.mainRedac, self.curr_lang))
             x.start()
             
 
@@ -718,11 +718,17 @@ class Report(Module):
         
 
 
-def generateReport(dialog, modele, mainRedac, curr_lang):
+def generateReport(tkApp, dialog, modele, mainRedac, curr_lang):
     apiclient = APIClient.getInstance()
     settings = Settings()
     settings._reloadDbSettings()
-    res, msg = apiclient.generateReport(modele, settings.getClientName(), settings.getMissionName(), mainRedac, curr_lang)
+    additional_context = {}
+    for module in tkApp.modules:
+        if callable(getattr(module["object"], "onGenerateReport", None)):
+                result = module["object"].onGenerateReport()
+                if result.get("additional_context") is not None:
+                    additional_context = {**result.get("additional_context", {}), **additional_context}
+    res, msg = apiclient.generateReport(modele, settings.getClientName(), settings.getMissionName(), mainRedac, curr_lang, additional_context)
     dialog.destroy()
     if not res:
         tkinter.messagebox.showerror(
