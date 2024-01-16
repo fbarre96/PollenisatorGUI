@@ -615,8 +615,11 @@ class CheckInstanceView(ViewElement):
                 self.appliTw.insertViewById(parentNode)
             except tk.TclError as e:
                 pass
+        tags = kwargs.get("tags", None)
+        if tags is None:
+            tags = self.controller.getTags()
         try:
-            self.appliTw.tk.call(self.appliTw, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), "-text", text, "-tags", self.controller.getTags(), "-image",self.getIcon(check_infos))
+            self.appliTw.tk.call(self.appliTw, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), "-text", text, "-tags", tags, "-image",self.getIcon(check_infos))
             # ABOVE IS FASTER self.appliTw.insert(parentNode, "end", str(
             #     self.controller.getDbId()), text=text, tags=self.controller.getTags(), image=self.getIcon(check_infos))
         except tk.TclError as e:
@@ -635,7 +638,7 @@ class CheckInstanceView(ViewElement):
         if status == "":
             status = "todo"
     
-        if "hidden" in self.controller.getTags():
+        if "hidden" in tags:
             self.hide("tags")
         if  (status != "todo" and self.mainApp.settings.is_show_only_todo()):
             self.hide("filter_todo")
@@ -664,7 +667,7 @@ class CheckInstanceView(ViewElement):
         if checkitem is not None:
             view = self.mainApp.modelToView("checkitem", checkitem)
             if view:
-                view.addInTreeview()
+                view.addInTreeview(tags=[])
         return str(self.controller.model.check_iid)
     
     def _initContextualMenu(self):

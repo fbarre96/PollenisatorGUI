@@ -318,7 +318,6 @@ class CheckItemView(ViewElement):
         addChildren = kwargs.get("addChildren", False)
         count_children = kwargs.get("count_children", -1)
         self.appliTw.views[str(self.controller.getDbId())] = {"view": self}
-        tags = self.controller.getTags()
         if parentNode is None:
             parentNode = self.getParentNode(with_category)
         try:
@@ -328,7 +327,7 @@ class CheckItemView(ViewElement):
             #FASTER THAN self.appliTw.insert(parentNode, "end", str(
             #    self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
             node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), 
-                                 "-text", text, "-tags", tags, "-image", self.getIcon())
+                                 "-text", text, "-image", self.getIcon())
         except tk.TclError as e:
             pass
         if not addChildren and getattr(self.appliTw, "lazyload", False) and not self.mainApp.searchMode:
@@ -342,8 +341,6 @@ class CheckItemView(ViewElement):
         if hasattr(self.appliTw, "hide"):
             if not self.mainApp.settings.is_checklist_view():
                 self.hide("checklist_view")
-            if "hidden" in tags:
-                self.hide("tags")
             if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
                 self.hide("filter_manual")
             
@@ -358,7 +355,7 @@ class CheckItemView(ViewElement):
         if with_category:
             category = self.controller.getCategory()
             try:
-                self.appliTw.insert("", "end", category, text=self.controller.getCategory(), tags=self.controller.getTags(), image=self.__class__.getClassIcon())
+                self.appliTw.insert("", "end", category, text=self.controller.getCategory(),  image=self.__class__.getClassIcon())
             except tk.TclError:
                 pass
             if hasattr(self.appliTw, "hide") and not self.mainApp.settings.is_checklist_view():
