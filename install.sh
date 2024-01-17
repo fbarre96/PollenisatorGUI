@@ -11,7 +11,7 @@ install_packages() {
     case "$os_type" in
         "debian" | "ubuntu")
             sudo apt-get update
-            sudo apt-get install -y git python3-pil python3-pil.imagetk python3-tk tmux xterm xdotool x11-xserver-utils pipx
+            sudo apt-get install -y git python3-pil python3-pil.imagetk python3-tk tk-dev tmux xterm xdotool x11-xserver-utils pipx 
             ;;
         "archlinux")
             sudo pacman -Syu
