@@ -35,7 +35,7 @@ test_tkinter () {
 install_python_with_pyenv () {
     local pythonversion
     pythonversion=$(python3 --version | cut -d' ' -f2)
-    env PYTHON_CONFIGURE_OPTS="--enable-shared --with-tcltk-includes=/usr/include/tcl --with-tcltk-libs=\"/usr/lib/tcl8.6 /usr/lib/tk8.6\"" pyenv install "$pythonversion"
+    env PYTHON_CONFIGURE_OPTS="--enable-shared --with-tcltk-includes=/usr/include/tcl --with-tcltk-libs=\"/usr/lib/tcl8.6 /usr/lib/tk8.6\"" pyenv install --verbose "$pythonversion"
     pyenv global "$pythonversion"
 }
 
