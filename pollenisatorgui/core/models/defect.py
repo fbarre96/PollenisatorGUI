@@ -27,6 +27,7 @@ class Defect(Element):
         if valuesFromDb is None:
             valuesFromDb = {}
         if isinstance(valuesFromDb, Defect):
+            self = valuesFromDb
             return None
         self.proofs = []
         self.isTemplate = False

@@ -504,6 +504,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 # tryto reconnect
                 self.sio.connect(apiclient.api_url)
             pentests = apiclient.getPentestList()
+            self._initMenuBar()
+
             if pentests is None:
                 pentests = []
             else:
@@ -513,12 +515,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             else:
                 ret = self.openPentestsWindow(pentests=pentests)
                 if ret is None:
-                    self.onClosing()
-                    try:
-                        self.destroy()
-                    except tk.TclError:
-                        pass   
-                    return False, False
+                    pass
+                    # self.onClosing()
+                    # try:
+                    #     self.destroy()
+                    # except tk.TclError:
+                    #     pass   
+                    # return False, False
             self.initialized = True
 
         else:
@@ -984,7 +987,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         
 
         
-        self._initMenuBar()
         self.nbk.pack(fill=tk.BOTH, expand=1)
         self.terminals.open_terminal()
 

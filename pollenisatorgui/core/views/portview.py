@@ -138,7 +138,9 @@ class PortView(ViewElement):
     def _insertChildren(self):
         defects = self.controller.getDefects()
         for defect in defects:
-            defect_o = DefectController(Defect(defect))
+            if isinstance(defect, dict):
+                defect = Defect(defect)
+            defect_o = DefectController(defect)
             defect_vw = DefectView(
                 self.appliTw, self.appliViewFrame, self.mainApp, defect_o)
             defect_vw.addInTreeview(str(self.controller.getDbId()), addChildren=False)
