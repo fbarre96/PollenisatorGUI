@@ -59,6 +59,7 @@ if ! command_exists "pipx"; then
     echo "Installing pipx..."
     python3 -m ensurepip --user
     python3 -m pip install --user pipx
+    python3 -m pipx ensurepath
 fi
 
 # Install your application using pipx

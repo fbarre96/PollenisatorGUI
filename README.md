@@ -52,3 +52,15 @@ Once in your PATH, execute it:
 pollenisator-gui
 ```
 
+
+### Troubleshoot
+
+#### _tkinter.TclError: no display name and no $DISPLAY environment variable
+
+If you are on a native UNIX-like systme, try:
+`export DISPLAY=:0.0`
+
+#### pollenisator-gui command not found
+
+`pipx ensurepath` then log out and relog in
+
