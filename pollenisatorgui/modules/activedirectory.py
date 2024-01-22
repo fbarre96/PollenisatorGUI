@@ -36,7 +36,7 @@ class ActiveDirectory(Module):
     iconName = "tab_AD.png"
     tabName = "Active Directory"
     coll_name = "ActiveDirectory"
-    classes = ["user", "computer", "share"]
+    classes = ["users", "computers", "shares"]
     order_priority = Module.HIGH_PRIORITY
     settings = Settings()
     pentest_types = ["lan"]
@@ -248,9 +248,11 @@ class ActiveDirectory(Module):
             datamanager = DataManager.getInstance()
             if groups is None:
                 groups = []
-            tags = self.tags.get(str(user["_id"]), [])
+            user_tags = self.tags.get(str(user["_id"]), {})
+            tags_info = user_tags.get("tags", [])
+            tags_names = [tag.get("name", "") for tag in tags_info if tag.get("name", "") != ""]
             self.tvUsers.insert('', 'end', user["_id"], text=username, 
-                                values=(password, domain, str(len(groups)), user.get("description", ""), user.get("infos", {}).get("hashNT", ""),", ".join(tags)), auto_update_pagination=auto_update_pagination)
+                                values=(password, domain, str(len(groups)), user.get("description", ""), user.get("infos", {}).get("hashNT", ""),", ".join(tags_names)), auto_update_pagination=auto_update_pagination)
         except tk.TclError as e:
             pass
 
@@ -294,9 +296,11 @@ class ActiveDirectory(Module):
     
     def insertComputer(self, computer, auto_update_pagination=True):
         infos = computer.get("infos",{})
-        tags = self.tags.get(str(computer["_id"]), [])
+        computer_tags = self.tags.get(str(computer["_id"]), {})
+        tags_info = computer_tags.get("tags", [])
+        tags_names = [tag.get("name", "") for tag in tags_info if tag.get("name", "") != ""]
         newValues = (computer.get("name",""), computer.get("domain", ""), infos.get("is_dc", False), len(computer.get("admins", [])), len(computer.get("users", [])), infos.get("os", ""), \
-                        infos.get("signing", ""), infos.get("smbv1", ""), ", ".join(tags))
+                        infos.get("signing", ""), infos.get("smbv1", ""), ", ".join(tags_names))
         
         try:
             self.tvComputers.insert(
@@ -306,10 +310,12 @@ class ActiveDirectory(Module):
             self.tvComputers.item(computer["_id"], values=newValues) 
 
     def insertShare(self, share, auto_update_pagination=True):
-        tags = self.tags.get(str(share["_id"]), [])
+        share_tags = self.tags.get(str(share["_id"]), {})
+        tags_info = share_tags.get("tags", [])
+        tags_names = [tag.get("name", "") for tag in tags_info if tag.get("name", "") != ""]
         try:
             parentiid = self.tvShares.insert(
-                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags),"",""), auto_update_pagination=auto_update_pagination)
+                        '', 'end', share["_id"], text=share.get("ip", ""), values=(share.get("share", ""), ", ".join(tags_names),"",""), auto_update_pagination=auto_update_pagination)
         except tk.TclError:
             parentiid = str(share["_id"])
         for file_infos in share.get("files",[]):
