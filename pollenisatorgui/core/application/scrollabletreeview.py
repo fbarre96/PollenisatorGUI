@@ -97,6 +97,7 @@ class ScrollableTreeview(Paginable):
             res = self.treevw.insert(parent, index, iid, text=text, values=values, tags=tags, **kwargs)
         except tk.TclError as e:
             return None
+            
         if self.autoresize:
             self.columnsLen[0] = max(self.columnsLen[0], self.f.measure(text))
             self.treevw.column("#0", anchor='w',
@@ -105,6 +106,8 @@ class ScrollableTreeview(Paginable):
                 self.columnsLen[i+1] = min(1000, max(self.columnsLen[i+1], self.f.measure(str(val))))
                 self.treevw.column("#"+str(i+1), anchor='w',
                                 stretch=tk.YES, minwidth=self.columnsLen[i+1], width=self.columnsLen[i+1])
+            self.treevw.grid_forget()
+            self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         self.resetOddTags()
         return res
 
