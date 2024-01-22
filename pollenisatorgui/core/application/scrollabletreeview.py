@@ -29,12 +29,19 @@ class ScrollableTreeview(Paginable):
         self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())
         lbl = CTkLabel(self)
         self.f = tk.font.Font(lbl, "Sans", bold=True, size=10)
+        width = kwargs.get("width", None)
+        if width is not None:
+            w_per_column = width // len(self.columns)
         self.columnsLen = [self.f.measure(column) for column in self.columns]
         listOfLambdas = [self.column_clicked("#"+str(i), False) for i in range(len(self.columns))]
         for h_i, header in enumerate(self.columns):
             self.treevw.heading("#"+str(h_i), text=header, anchor="w", command=listOfLambdas[h_i])
-            self.treevw.column("#"+str(h_i), anchor='w',
-                               stretch=tk.YES, minwidth=self.columnsLen[h_i]) # ,width=self.columnsLen[h_i]
+            if width is not None:
+                self.treevw.column("#"+str(h_i), anchor='w',
+                                   stretch=tk.YES, minwidth=w_per_column, width=w_per_column)
+            else:
+                self.treevw.column("#"+str(h_i), anchor='w',
+                               stretch=tk.YES, minwidth=self.columnsLen[h_i])
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         for bindName, callback in kwargs.get("binds", {}).items():
             self.treevw.bind(bindName, callback)
@@ -106,8 +113,8 @@ class ScrollableTreeview(Paginable):
                 self.columnsLen[i+1] = min(1000, max(self.columnsLen[i+1], self.f.measure(str(val))))
                 self.treevw.column("#"+str(i+1), anchor='w',
                                 stretch=tk.YES, minwidth=self.columnsLen[i+1], width=self.columnsLen[i+1])
-            self.treevw.grid_forget()
-            self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
+            # self.treevw.grid_forget()
+            # self.treevw.grid(row=0, column=0, sticky=tk.NSEW) # TODO : DO BETTER FOR redraw...
         self.resetOddTags()
         return res
 

@@ -196,7 +196,7 @@ class ActiveDirectory(Module):
         addUserButton.pack(side="bottom")
         frameComputers = CTkFrame(self.frameTreeviews)
         self.tvComputers = ScrollableTreeview(
-            frameComputers, ("IP", "Name", "Domain", "DC", "Admin count", "User count", "OS", "Signing", "SMBv1", "Tags"), binds={"<Double-Button-1>":self.computerDoubleClick})
+            frameComputers, ("IP", "Name", "Domain", "DC", "Admin count", "User count", "OS", "Signing", "SMBv1", "Tags"), width=parent.winfo_width()-100, binds={"<Double-Button-1>":self.computerDoubleClick})
         self.tvComputers.pack(fill=tk.BOTH)
         frameShares = CTkFrame(self.frameTreeviews)
         self.tvShares = ScrollableTreeview(
@@ -206,7 +206,6 @@ class ActiveDirectory(Module):
         frameComputers.grid(row=1, column=0)
         frameShares.grid(row=2, column=0)
         self.frameTreeviews.columnconfigure(0, weight=1)
-        self.frameTreeviews.columnconfigure(1, weight=1)
         self.frameTreeviews.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
         self.moduleFrame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
