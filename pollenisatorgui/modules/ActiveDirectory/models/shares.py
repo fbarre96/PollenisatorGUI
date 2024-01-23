@@ -1,4 +1,5 @@
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 
 class Share(Element):
@@ -7,6 +8,7 @@ class Share(Element):
     def __init__(self, valuesFromDb=None):
         if valuesFromDb is None:
             valuesFromDb = {}
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("_id"),  valuesFromDb.get("ip"),
             valuesFromDb.get("share"),  valuesFromDb.get("files"), valuesFromDb.get("infos"))
 
@@ -30,10 +32,31 @@ class Share(Element):
             for f in files:
                 self.files.append(f)
         return self
+    
+    def __str__(self):
+        """
+        Get a string representation of a defect.
+
+        Returns:
+            Returns the defect +title.
+        """
+        return f"{self.ip}\\{self.share} ({str(len(self.files))})"
 
     def getData(self):
         return {"_id": self._id, "ip":self.ip, "share": self.share,  "files":[f for f in self.files], "infos":self.infos}
 
+    def _getParentId(self):
+        """
+        Return the mongo ObjectId _id of the first parent of this object. For a share it is the ip.
+
+        Returns:
+            Returns the parent share ip's ObjectId _id".
+        """
+        datamanager = DataManager.getInstance()
+        obj = datamanager.find("ips", {"ip":self.ip}, False)
+        if obj is None:
+            return None
+        return obj.getId()
 
     @classmethod
     def fetchObjects(cls, pipeline):

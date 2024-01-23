@@ -1,9 +1,11 @@
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
-from pollenisatorgui.modules.ActiveDirectory.computer_infos import ComputerInfos
+from pollenisatorgui.modules.ActiveDirectory.models.computer_infos import ComputerInfos
 
 class Computer(Element):
     coll_name = "computers"
+    classes = ["computer"]
 
     @property
     def infos(self):
@@ -29,6 +31,7 @@ class Computer(Element):
     def __init__(self, valuesFromDb=None):
         if valuesFromDb is None:
             valuesFromDb = {}
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("_id"),  valuesFromDb.get("name"), valuesFromDb.get("ip"), \
              valuesFromDb.get("domain"),  valuesFromDb.get("admins"),  valuesFromDb.get("users"), valuesFromDb.get("infos"))
 
@@ -71,6 +74,18 @@ class Computer(Element):
         return {"_id": self._id, "name":self.name, "ip":self.ip, "domain":self.domain,
             "admins":self.admins, "users": self.users, "infos":self.infos.getData()}
 
+    def _getParentId(self):
+        """
+        Return the mongo ObjectId _id of the first parent of this object. For a port it is the ip.
+
+        Returns:
+            Returns the parent ip's ObjectId _id".
+        """
+        datamanager = DataManager.getInstance()
+        obj = datamanager.find("ips", {"ip":self.ip}, False)
+        if obj is None:
+            return None
+        return obj.getId()
     
     @classmethod
     def fetchObjects(cls, pipeline):

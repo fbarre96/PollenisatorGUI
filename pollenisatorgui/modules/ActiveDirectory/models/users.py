@@ -1,4 +1,5 @@
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
 class User(Element):
     coll_name = "users"
@@ -6,6 +7,7 @@ class User(Element):
     def __init__(self, valuesFromDb=None):
         if valuesFromDb is None:
             valuesFromDb = {}
+        super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None),  valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("_id"), valuesFromDb.get("domain"), valuesFromDb.get("username"), valuesFromDb.get("password"),
             valuesFromDb.get("groups"), valuesFromDb.get("description"), valuesFromDb.get("infos", {}))
 
@@ -83,3 +85,12 @@ class User(Element):
     @classmethod
     def fetchPentestObjects(cls):
         return [x for x in User.fetchObjects({})]
+    
+    def _getParentId(self):
+        """
+        Return the mongo ObjectId _id of the first parent of this object. For a port it is the ip.
+
+        Returns:
+            Returns the parent ip's ObjectId _id".
+        """
+        return self.domain

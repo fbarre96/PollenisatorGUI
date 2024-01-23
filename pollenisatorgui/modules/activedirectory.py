@@ -6,6 +6,11 @@ import tkinter.ttk as ttk
 from customtkinter import *
 import os
 import re
+
+from pollenisatorgui.modules.ActiveDirectory.controllers.sharecontroller import ShareController
+
+from pollenisatorgui.modules.ActiveDirectory.controllers.computercontroller import ComputerController
+from pollenisatorgui.modules.ActiveDirectory.views.shareview import ShareView
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
@@ -17,10 +22,14 @@ from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.tag import TagInfos
 from pollenisatorgui.core.models.port import Port
 from pollenisatorgui.core.forms.formpanel import FormPanel
+from pollenisatorgui.modules.ActiveDirectory.controllers.computercontroller import ComputerController
+from pollenisatorgui.modules.ActiveDirectory.controllers.usercontroller import UserController
+from pollenisatorgui.modules.ActiveDirectory.views.computerview import ComputerView
+from pollenisatorgui.modules.ActiveDirectory.views.userview import UserView
 from pollenisatorgui.modules.module import Module
-from pollenisatorgui.modules.ActiveDirectory.users import User # load it in registry
-from pollenisatorgui.modules.ActiveDirectory.computers import Computer # load it in registry
-from pollenisatorgui.modules.ActiveDirectory.shares import Share # load it in registry
+from pollenisatorgui.modules.ActiveDirectory.models.users import User # load it in registry
+from pollenisatorgui.modules.ActiveDirectory.models.computers import Computer # load it in registry
+from pollenisatorgui.modules.ActiveDirectory.models.shares import Share # load it in registry
 import tempfile
 from bson import ObjectId
 import pollenisatorgui.core.components.utils as utils
@@ -73,6 +82,30 @@ class ActiveDirectory(Module):
         if apiclient.getCurrentPentest() is not None:
             self.refreshUI()
         return True
+    
+    def onTreeviewLoad(self, checklistview, lazyload):
+        """
+        Called when the treeview is loaded
+        """
+        datamanager = DataManager.getInstance()
+        if not checklistview and not lazyload:
+            computers = list(datamanager.get("computers", '*'))
+            for computer in computers:
+                computer_o = ComputerController(computer)
+                computer_vw = ComputerView(self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, computer_o)
+                computer_vw.addInTreeview(None, addChildren=False)
+            shares = list(datamanager.get("shares", '*'))
+            for share in shares:
+                share_o = ShareController(share)
+                share_vw = ShareView(self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, share_o)
+                share_vw.addInTreeview(None, addChildren=False)
+        if not checklistview:
+            users = list(datamanager.get("users", '*'))
+            for user in users:
+                user_o = UserController(user)
+                user_vw = UserView(self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, user_o)
+                user_vw.addInTreeview(None, addChildren=False)
+            
 
     def refreshUI(self):
         """
@@ -144,20 +177,19 @@ class ActiveDirectory(Module):
         self.search()
 
     def modelToView(self, data_type, model):
-        if data_type.lower() == "user":
-            return ChildDialogUser(self.parent, model.getData())
-        elif data_type.lower() == "computer":
-            return ChildDialogComputer(self.parent, model.getData())
-        elif data_type.lower() == "share":
-            return ChildDialogShare(self.parent, model.getData())
+        if data_type.lower() == "users":
+            return UserView(self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, UserController(model))
+        elif data_type.lower() == "computers":
+            return ComputerView(self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, ComputerController(model))
+        elif data_type.lower() == "shares":
+            return ShareView(self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, ShareController(model))
         return None
-        
 
-    def mapLambda(self, c):
+    def mapLambda(self, c, treeview=None, model=None):
         if c[0].lower() in ["computer"]:
-            return lambda : self.computerCommand(c[2])
+            return lambda : self.computerCommand(c[2], treeview=treeview, model=model)
         elif c[0].lower() == "share":
-            return lambda : self.shareCommand(c[2])
+            return lambda : self.shareCommand(c[2], treeview=treeview, model=model)
 
     def reloadSettings(self):
         s = self.getSettings()
@@ -170,6 +202,16 @@ class ActiveDirectory(Module):
                 self.tvShares.addContextMenuCommand(command_options[1], listOfLambdas[i], replace=True)
             i+=1
         
+    def getAdditionalContextualCommands(self, type, treeview, view):
+        s = self.getSettings()
+        listOfLambdas = [self.mapLambda(c, treeview, view.controller.model) for c in s.get("commands", [])]
+        i = 0
+        ret = {}
+        for command_options in s.get("commands", []):
+            if command_options[0].lower() == type.lower():
+                ret[command_options[1]] = listOfLambdas[i]
+            i+=1
+        return ret
 
     def initUI(self, parent):
         """
@@ -227,8 +269,7 @@ class ActiveDirectory(Module):
             self.openComputerDialog(selection[0])
 
     def openComputerDialog(self, computer_iid):
-        dialog = self.getComputerDialog(computer_iid)
-        self.parent.wait_window(dialog.app)
+        self.getComputerDialog(computer_iid)
 
     def getComputerDialog(self, computer_iid):
         apiclient = APIClient.getInstance()
@@ -236,8 +277,8 @@ class ActiveDirectory(Module):
             {"_id":ObjectId(computer_iid)}, False)
         if computer_d is None:
             return
-        dialog = ChildDialogComputer(self.parent, computer_d)
-        return dialog
+        cw = ComputerView(self.treevw, None, self.tkApp, ComputerController(Computer(computer_d)))
+        cw.openInDialog(False)
 
     def insertUser(self, user, auto_update_pagination=True):
         try:
@@ -262,8 +303,7 @@ class ActiveDirectory(Module):
             self.openUserDialog(selection[0])
 
     def openUserDialog(self, user_iid):
-        dialog = self.getUserDialog(user_iid)
-        self.parent.wait_window(dialog.app)
+        self.getUserDialog(user_iid)
 
     def getUserDialog(self, user_iid):
         apiclient = APIClient.getInstance()
@@ -271,9 +311,8 @@ class ActiveDirectory(Module):
             {"_id":ObjectId(user_iid)}, False)
         if user_d is None:
             return
-        dialog = ChildDialogUser(self.parent, user_d)
-        return dialog
-
+        user_vw = UserView(self.treevw, None, self.tkApp, UserController(User(user_d)))
+        user_vw.openInDialog(False)
 
     def deleteUser(self, event=None):
         apiclient = APIClient.getInstance() 
@@ -422,16 +461,27 @@ class ActiveDirectory(Module):
         return filepath
 
 
-    def shareCommand(self, command_option):
-        selected = self.tvShares.selection()[0]
-        parent_iid = self.tvShares.parent(selected)
-        if not parent_iid: # file in share
+    def shareCommand(self, command_option, treeview=None, model=None):
+        if treeview is None:
+            treeview = self.tvShares
+        selected = treeview.selection()[0]
+        if model is None:
+            parent_iid = treeview.parent(selected)
+            if not parent_iid: # file in share
+                return
+            ip = treeview.item(parent_iid)["text"]
+            apiclient = APIClient.getInstance()
+            share_m = apiclient.find("shares", {"_id": ObjectId(parent_iid)}, False)
+            path = item_values[0]
+        else:
+            ip = model.ip
+            share_m = model.getData()
+            path = treeview.item(selected)["text"]
+
+        item_values = treeview.item(selected)["values"]
+        if share_m is None:
             return
-        ip = self.tvShares.item(parent_iid)["text"]
-        item_values = self.tvShares.item(selected)["values"]
-        apiclient = APIClient.getInstance()
-        share_m = apiclient.find("shares", {"_id": ObjectId(parent_iid)}, False)
-        path = item_values[0]
+        
         files = share_m.get("files", [])
         try:
             path_index = [x["path"] for x in files].index(path)
@@ -497,7 +547,7 @@ class ActiveDirectory(Module):
             command_option = command_option.replace("|password|", user[2])
         self.tkApp.launch_in_terminal(None, "user command", command_option)
 
-    def computerCommand(self, command_option, ips=None, user=None):
+    def computerCommand(self, command_option, ips=None, user=None, treeview=None, model=None):
         if ips is None:
             ips = []
             selection = self.tvComputers.selection()
@@ -559,6 +609,23 @@ class ActiveDirectory(Module):
         self.parent.wait_window(dialog.app)
         return dialog.rvalue == "Yes"
              
+    def _insertChildren(self, coll_name, parent_data):
+        """Insert every children defect in database as DefectView under this node"""
+        if coll_name == "ips":
+            apiclient = APIClient.getInstance()
+            computers = apiclient.find("computers", {"ip": parent_data.get("ip")})
+            for computer in computers:
+                computer_o = ComputerController(Computer(computer))
+                computer_vw = ComputerView(
+                    self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, computer_o)
+                computer_vw.addInTreeview(str(parent_data.get("_id")), addChildren=False)
+            shares = apiclient.find("shares", {"ip": parent_data.get("ip")})
+            for share in shares:
+                share_o = ShareController(Share(share))
+                share_vw = ShareView(
+                    self.tkApp.treevw, self.tkApp.viewframe, self.tkApp, share_o)
+                share_vw.addInTreeview(str(parent_data.get("_id")), addChildren=False)
+            return computers
 
 class ChildDialogAddUsers:
     def __init__(self, parent, displayMsg="Add AD users"):
@@ -602,128 +669,6 @@ class ChildDialogAddUsers:
         # send the data to the parent
         self.rvalue = self.formtext.getValue().split("\n")
         self.app.destroy()
-
-    def onError(self, event=None):
-        """
-        Close the dialog and set rvalue to None
-        """
-        self.rvalue = None
-        self.app.destroy()
-
-class ChildDialogUser:
-    def __init__(self, parent, user_data):
-        """
-        Open a child dialog of a tkinter application to ask a combobox option.
-
-        Args:
-            parent: the tkinter parent view to use for this window construction.
-            user_data: user from database
-        """
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
-        self.app.resizable(True, True)
-        appFrame = CTkFrame(self.app)
-        self.app.title("View user info")
-        self.rvalue = None
-        self.parent = parent
-        panel = FormPanel()
-        panel_info = panel.addFormPanel(grid=True)
-        panel_info.addFormLabel("Domain")
-        panel_info.addFormStr("Domain", "", user_data.get("domain", ""), status="readonly", row=0, column=1)
-        panel_info.addFormLabel("Username", row=1)
-        panel_info.addFormStr("Username", "", user_data.get("username", ""), status="readonly", row=1, column=1)
-        panel_info.addFormLabel("Password", row=2)
-        panel_info.addFormStr("Password", "", user_data.get("password", ""), status="readonly", row=2, column=1)
-        panel.addFormLabel("Desc", text=f"Desc : {user_data.get('desc', '')}" , side="top")
-        if user_data.get("infos", {}).get("secrets", []):
-            panel.addFormLabel("Secrets", side="top")
-            panel.addFormTreevw("Secrets", ("Secret", ""), [(s, "") for s in user_data.get("infos", {}).get("secrets", [])], side="top")
-        groups = user_data.get('groups', []) 
-        if groups is None:
-            groups = []
-        panel.addFormTreevw("Groups", ("Group",), [ [x] for x in groups], side="top")
-        button_panel = panel.addFormPanel(side="bottom")
-        button_panel.addFormButton("Quit", self.onError, side="right")
-        panel.constructView(appFrame)
-        appFrame.pack(ipadx=10, ipady=5, expand=1)
-        try:
-            self.app.wait_visibility()
-            self.app.transient(parent)
-            self.app.grab_set()
-            self.app.focus_force()
-            self.app.lift()
-        except tk.TclError:
-            pass
-
-    def onError(self, event=None):
-        """
-        Close the dialog and set rvalue to None
-        """
-        self.rvalue = None
-        self.app.destroy()
-
-class ChildDialogComputer:
-    @staticmethod
-    def remove_control_chars(s):
-        import itertools
-        control_chars = ''.join(map(chr, itertools.chain(range(0x00,0x20), range(0x7f,0xa0))))
-        control_char_re = re.compile('[%s]' % re.escape(control_chars))
-        return control_char_re.sub('', s)
-        
-    def __init__(self, parent, computer_data):
-        """
-        Open a child dialog of a tkinter application to ask a combobox option.
-
-        Args:
-            parent: the tkinter parent view to use for this window construction.
-            computer_data: computer from database
-        """
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
-        self.app.resizable(True, True)
-        appFrame = CTkFrame(self.app)
-        self.app.title("View user info")
-        self.rvalue = None
-        self.parent = parent
-        panel = FormPanel()
-        panel_info = panel.addFormPanel(grid=True)
-        panel_info.addFormLabel("IP")
-        panel_info.addFormStr("IP", "", computer_data.get("ip", ""), status="readonly", row=0, column=1)
-        panel_info.addFormLabel("Name", column=2)
-        panel_info.addFormStr("Name", "", computer_data.get("name", ""), status="readonly", column=3)
-        row = 1
-        for info_name, val in computer_data.get("infos", {}).items():
-            panel_info.addFormLabel(info_name, row=row)
-            panel_info.addFormStr(info_name, "", val, status="readonly", row=row, column=1)
-            row += 1
-        apiclient = APIClient.getInstance()
-        res = apiclient.getComputerUsers(str(computer_data["_id"]))
-        if res is  None:
-            res = {}
-        users_data = [(d["domain"], d["username"], d["password"]) for d in res.get("users", [])]
-        admins_data = [(d["domain"], d["username"], d["password"]) for d in res.get("admins",[])]
-        panel.addFormLabel("Users", side="top")
-        panel.addFormTreevw("Users", ("Domain", "Username", "Password"), users_data, side="top")
-        
-        panel.addFormLabel("Admins", side="top")
-        panel.addFormTreevw("Admins", ("Domain", "Username", "Password"), admins_data, side="top")
-        if computer_data.get("secrets", []):
-            panel.addFormLabel("Secrets", side="top")
-            panel.addFormTreevw("Secrets", ("Secret", ""), [(s, "") for s in computer_data.get("infos", {}).get("secrets", [])], side="top")
-        ntds = computer_data.get("ntds", [])
-        if ntds:
-            panel.addFormLabel("NTDS", side="top")
-            panel.addFormText("NTDS", "", "\n".join(ntds), side="top")
-        button_panel = panel.addFormPanel(side="bottom")
-        button_panel.addFormButton("Quit", self.onError, side="right")
-        panel.constructView(appFrame)
-        appFrame.pack(ipadx=10, ipady=5, expand=1)
-        try:
-            self.app.wait_visibility()
-            self.app.transient(parent)
-            self.app.grab_set()
-            self.app.focus_force()
-            self.app.lift()
-        except tk.TclError:
-            pass
 
     def onError(self, event=None):
         """
