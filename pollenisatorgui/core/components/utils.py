@@ -370,7 +370,7 @@ def check_pid(pid):
     else:
         return True
 
-def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout, keepresponse):
+def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout):
     max_read_bytes = 1024 * 20
     continue_reading = True
     while continue_reading:
@@ -416,15 +416,14 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
         queue.close()
         queue.join_thread()
     if queueResponse:
-        if not keepresponse:
-            while queueResponse.qsize() > 0:
-                queueResponse.get(block=False)
-            queueResponse.close()
-            queueResponse.join_thread()
+        while queueResponse.qsize() > 0:
+            queueResponse.get(block=False)
+        queueResponse.close()
+        queueResponse.join_thread()
     continue_reading = False
     return
 
-def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, printStdout=False, keepresponse=False):
+def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, printStdout=False):
     """
     Execute a bash command and print output
 
@@ -465,7 +464,7 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
             sys.exit(0)
     else:
         
-        p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout, keepresponse])
+        p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout])
         p.start()
         p.join()
     info = os.waitpid(child_pid, 0)
