@@ -521,7 +521,7 @@ class PollenisatorTreeview(ttk.Treeview):
                     clazz = datamanager.getClass(classtype)
                     if classitems:
                         obj = clazz(classitems[0])
-                        view = self.modelToView(clazz.coll_name, obj)
+                        view = self.appli.modelToView(clazz.coll_name, obj)
                         if hasattr(view.__class__, "multiAddInTreeview"):
                             # if dialog_progress is not None:
                             #     dialog_progress.update(msg="Adding %s" % clazz.coll_name)
@@ -538,7 +538,7 @@ class PollenisatorTreeview(ttk.Treeview):
                         model = obj
                         # if dialog_progress is not None:
                         #     dialog_progress.update(msg="Adding  %s results in treeview (%s/%s)" % clazz.coll_name, count, size)
-                        view = self.modelToView(clazz.coll_name, model)
+                        view = self.appli.modelToView(clazz.coll_name, model)
                         count += 1
                         results_iid.add(str(model.getId()))
                         try:

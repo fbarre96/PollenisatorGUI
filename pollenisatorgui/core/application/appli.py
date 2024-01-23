@@ -1100,6 +1100,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
     def modelToView(self, collection, model):
         """Return the view of a model"""
+        if collection.lower()[-1] != "s":
+            collection = collection.lower() + "s"
         for module in self.modules:
             if collection.lower() == getattr(module["object"], "coll_name", "").lower() or collection.lower() in getattr(module["object"], "classes", ""):
                 return module["object"].modelToView(collection, model)

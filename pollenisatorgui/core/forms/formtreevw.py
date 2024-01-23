@@ -58,6 +58,18 @@ class FormTreevw(Form):
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Close", command=self.close)
 
+    def addContextMenuCommand(self, label, command, replace=False):
+        found = False
+        if self.contextualMenu is None:
+            self._initContextualMenu(self.treevw)
+        for i in range(self.contextualMenu.index('end')+1):
+            labelStr = str(self.contextualMenu.entrycget(i,'label') )
+            if labelStr == label and not replace:
+                found = True
+                break
+        if not found:
+            self.contextualMenu.add_command(label=label, command=command)
+
     def close(self):
         """Option of the contextual menu : Close the contextual menu by doing nothing
         """
@@ -190,20 +202,22 @@ class FormTreevw(Form):
         w = self.getKw("width", 600)
         self.tvFrame = CTkFrame(
             parent.panel, width=w, height=0)
-        self.treevw = ttk.Treeview(
-            self.tvFrame, height=min(self.getKw("height", len(
-                self.default_values)+1), self.getKw("max_height", 10)))
+        h = self.getKw("height", len(self.default_values)+1)
+        mh = self.getKw("max_height", 10)
+        self.treevw = ttk.Treeview(self.tvFrame, height=min(h, mh))
         settings = Settings()
         font = tkfont.nametofont('TkTextFont')
         self.treevw.tag_configure("even", background=utils.getBackgroundColor(), font=tkfont.nametofont('TkTextFont'))
         self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor(), font=tkfont.nametofont('TkTextFont'))
         self.scbVSel = CTkScrollbar(self.tvFrame,
                                      orientation=tk.VERTICAL,
-                                     command=self.treevw.yview)
+                                     command=self.treevw.yview, height=0)
         scbHSel = CTkScrollbar(
             self.tvFrame, orientation=tk.HORIZONTAL, command=self.treevw.xview)
         self.treevw.configure(yscrollcommand=self.scbVSel.set)
         self.treevw.configure(xscrollcommand=scbHSel.set)
+        self.tvFrame.rowconfigure(0, weight=1)
+        self.tvFrame.columnconfigure(0, weight=1)
 
         self.treevw.grid(row=0, column=0, sticky=tk.NSEW)
         self.scbVSel.grid(row=0, column=1, sticky=tk.NS)
@@ -242,7 +256,7 @@ class FormTreevw(Form):
             self.treevw.bind("<ButtonPress-1>",self.dragStart)
             self.treevw.bind("<ButtonRelease-1>",self.dragRelease, add='+')
             self.treevw.bind("<B1-Motion>",self.dragMove, add='+')
-            self._initContextualMenu(self.treevw)
+        self._initContextualMenu(self.treevw)
         binds = self.getKw("binds", {})
         for key, val in binds.items():
             self.treevw.bind(key, val)
@@ -253,9 +267,7 @@ class FormTreevw(Form):
         else:
             self.tvFrame.pack(side=self.getKw("side", "top"), anchor=self.getKw("anchor", None), padx=self.getKw(
                 "padx", 10), pady=self.getKw("pady", 5), fill=self.getKw("fill", "both"), expand=self.getKw("expand", False))
-        self.tvFrame.rowconfigure(0, weight=1)
-        self.tvFrame.columnconfigure(0, weight=1)
-
+        
     def column_clicked(self, col, reverse):
         """A lambda to call the statusbarController.statusbarClicked with the tag name clicked
         Args:

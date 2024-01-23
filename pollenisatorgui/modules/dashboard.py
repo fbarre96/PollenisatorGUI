@@ -275,7 +275,7 @@ class Dashboard(Module):
         self.severity_btns = check_panel.addFormChecklist("Severity", list(values), command=self.filter)
 
         self.treeview = form_bottom.addFormTreevw(
-            "results", ("Result type", "Time", "Severity", "Title", "Target"), binds={"<Double-Button-1>": self.on_result_double_click},status="readonly", fill="x", side="top", expand=True)  
+            "results", ("Result type", "Time", "Severity", "Title", "Target"), binds={"<Double-Button-1>": self.on_result_double_click},status="readonly", height=10, fill="x", side="top", expand=True)  
         self.form.constructView(frame)
         
     def filter(self, event=None):

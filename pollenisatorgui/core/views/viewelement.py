@@ -112,6 +112,9 @@ class ViewElement(object):
         except tk.TclError as e:
             pass
         self._insertChildren()
+        for module in self.mainApp.modules:
+            if hasattr(module["object"], "_insertChildren"):
+                module["object"]._insertChildren(self.controller.model.coll_name, self.controller.getData())
         try:
             self.appliTw.item(str(self.controller.getDbId()), image=icon)
         except tk.TclError:
