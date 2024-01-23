@@ -41,7 +41,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
     """
     import logging
     import sys
-    logging.basicConfig(filename='error.log', encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(filename='error.log', encoding='utf-8', level=logging.INFO)
     logger = logging.getLogger(__name__)
     handler = logging.StreamHandler(stream=sys.stdout)
     logger.addHandler(handler)
