@@ -46,8 +46,8 @@ def main(apiclient, appli, **kwargs):
     responder_conf = ""
     if utils.which_expand_alias("locate"):
         output = multiprocessing.Queue()
-        resp = subprocess.run("locate Responder.conf", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = resp.communicate()
+        resp = subprocess.run("locate Responder.conf", capture_output=True, text=True, shell=True)
+        stdout = resp.stdout
         if stdout.strip() == "":
             file = tk.filedialog.askopenfilename(title="Locate responder conf file please:", filetypes=[('Config Files', '*.conf')])
             if file:
