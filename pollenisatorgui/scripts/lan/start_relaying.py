@@ -55,7 +55,7 @@ def main(apiclient, appli, **kwargs):
             else:
                 return False, "Responder conf not given"
         else:
-            dialog = ChildDialogCombo(None, resp.split("\n"), displayMsg="Choose your responder config file", width=200)
+            dialog = ChildDialogCombo(None, stdout.split("\n"), displayMsg="Choose your responder config file", width=200)
             dialog.app.wait_window(dialog.app)
             if dialog.rvalue is not None:
                 responder_conf = dialog.rvalue.strip()
