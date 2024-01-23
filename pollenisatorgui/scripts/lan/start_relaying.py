@@ -1,4 +1,5 @@
 import multiprocessing
+import subprocess
 
 import psutil
 from pollenisatorgui.core.components.logger_config import logger
@@ -45,8 +46,9 @@ def main(apiclient, appli, **kwargs):
     responder_conf = ""
     if utils.which_expand_alias("locate"):
         output = multiprocessing.Queue()
-        resp = os.system("locate Responder.conf")
-        if resp is None or resp.strip() == "":
+        resp = subprocess.run("locate Responder.conf", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        stdout, stderr = resp.communicate()
+        if stdout.strip() == "":
             file = tk.filedialog.askopenfilename(title="Locate responder conf file please:", filetypes=[('Config Files', '*.conf')])
             if file:
                 responder_conf = file
