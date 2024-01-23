@@ -47,7 +47,7 @@ def main(apiclient, appli, **kwargs):
             stdout += output_line
         output.close()
         if stdout is None or stdout.strip() == "":
-            file = tk.filedialog.askopenfilename(title="Locate responder conf file please",filetypes=[('Config Files', '*.conf')])
+            file = tk.filedialog.askopenfilename(title="Locate responder conf file please:", filetypes=[('Config Files', '*.conf')])
             if file:
                 responder_conf = file
             else:
