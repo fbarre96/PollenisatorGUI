@@ -61,7 +61,7 @@ def main(apiclient, appli, **kwargs):
                 responder_conf = dialog.rvalue.strip()
                 if os.geteuid() != 0:
                     cmd = "sudo "+cmd
-                cmd = 'sed -i -E "s/(HTTP|SMB) = On/\1 = Off/gm" '+str(responder_conf)
+                cmd = 'sed -i -E "s/(HTTP|SMB) = On/\\1 = Off/gm" '+str(responder_conf)
                 appli.launch_in_terminal(None, "sed for responder", cmd, use_pollex=False)
     addrs = psutil.net_if_addrs()
     dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
