@@ -304,7 +304,7 @@ class TerminalsWidget(CTkFrame):
             
             queue = multiprocessing.Queue()
             queueResponse = multiprocessing.Queue()
-            p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, False])
+            p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, False, False])
             p.start()
             self.terminalFrame.bind("<Configure>", self.update_size)
             self.update_size()

