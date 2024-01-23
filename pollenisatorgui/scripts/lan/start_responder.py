@@ -7,12 +7,18 @@ import os
 
 
 def main(apiclient, appli, **kwargs):
+   responder_path = utils.which_expand_alias("responder")
+   if responder_path is None:
+      responder_path = utils.which_expand_alias("Responder.py")
+   if responder_path is None:
+      responder_path = utils.which_expand_alias("responder.py")
+   if responder_path is None:
+      return False, "Responder not found, create an alias or install it. (responder, Responder.py, responder.py were tested)"
    APIClient.setInstance(apiclient)
    addrs = psutil.net_if_addrs()
    print(addrs.keys())
    dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
    dialog.app.wait_window(dialog.app)
-   responder_path = utils.which_expand_alias("responder")
    if dialog.rvalue is not None:
       cmd = f"{responder_path} -I {dialog.rvalue} -A"
       if os.geteuid() != 0:
