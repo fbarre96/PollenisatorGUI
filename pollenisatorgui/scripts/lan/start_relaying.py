@@ -13,6 +13,13 @@ from pollenisatorgui.core.components.apiclient import APIClient
 
 
 def main(apiclient, appli, **kwargs):
+    responder_path = utils.which_expand_alias("responder")
+    if responder_path is None:
+        responder_path = utils.which_expand_alias("Responder.py")
+    if responder_path is None:
+        responder_path = utils.which_expand_alias("responder.py")
+    if responder_path is None:
+        return False, "Responder not found, create an alias or install it. (responder, Responder.py, responder.py were tested)"
     APIClient.setInstance(apiclient)
     smb_signing_list = apiclient.find("computers", {"infos.signing":"False"}, True)
     export_dir = utils.getExportDir()
@@ -66,7 +73,7 @@ def main(apiclient, appli, **kwargs):
     dialog.app.wait_window(dialog.app)
     if dialog.rvalue is None:
         return False, "No ethernet device chosen"
-    cmd = f"responder -I {dialog.rvalue} -dvw --lm --disable-ess"
+    cmd = f"{responder_path} -I {dialog.rvalue} -dvw --lm --disable-ess"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
     appli.launch_in_terminal(None, "responder", cmd, use_pollex=False)
