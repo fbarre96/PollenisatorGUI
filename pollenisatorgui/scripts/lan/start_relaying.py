@@ -45,22 +45,15 @@ def main(apiclient, appli, **kwargs):
     responder_conf = ""
     if utils.which_expand_alias("locate"):
         output = multiprocessing.Queue()
-        res_code = utils.execute_no_fork("locate Responder.conf", None, queueResponse=output, printStdout=False)
-        stdout = "" 
-        while not output.empty():
-            output_line = output.get()
-            if isinstance(output_line, bytes):
-                output_line = output_line.decode("utf-8")
-            stdout += output_line
-        output.close()
-        if stdout is None or stdout.strip() == "":
+        resp = os.system("locate Responder.conf")
+        if resp is None or resp.strip() == "":
             file = tk.filedialog.askopenfilename(title="Locate responder conf file please:", filetypes=[('Config Files', '*.conf')])
             if file:
                 responder_conf = file
             else:
                 return False, "Responder conf not given"
         else:
-            dialog = ChildDialogCombo(None, stdout.split("\n"), displayMsg="Choose your responder config file", width=200)
+            dialog = ChildDialogCombo(None, resp.split("\n"), displayMsg="Choose your responder config file", width=200)
             dialog.app.wait_window(dialog.app)
             if dialog.rvalue is not None:
                 responder_conf = dialog.rvalue.strip()
