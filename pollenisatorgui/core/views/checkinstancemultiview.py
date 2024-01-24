@@ -65,7 +65,7 @@ class CheckInstanceMultiView(ViewElement):
         selected = self.appliTw.selection()
         if selected:
             apiclient = APIClient.getInstance()
-            results = apiclient.queueCheckInstances(selected)
+            results = apiclient.queueCheckInstances(selected, force=True)
             if len(results.get("successes", [])) < 10:
                 for iid in results.get("successes", []):
                     self.mainApp.subscribe_notification("tool_start", self.toolStartedEvent, pentest=apiclient.getCurrentPentest(), iid=iid)

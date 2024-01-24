@@ -514,11 +514,11 @@ class APIClient():
             return None
 
     @handle_api_errors
-    def queueCheckInstances(self, iids, priority=0):
+    def queueCheckInstances(self, iids, priority=0, force=False):
         apiclient = APIClient.getInstance()
         pentest = apiclient.getCurrentPentest()
         api_url = '{0}cheatsheet/{1}/queueCheckInstances'.format(self.api_url_base, pentest)
-        data = {"iids":iids, "priority":priority}
+        data = {"iids":iids, "priority":priority, "force":force}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
