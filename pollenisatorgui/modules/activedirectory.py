@@ -1,6 +1,4 @@
 """ActiveDirectory module"""
-import cProfile, pstats, io
-from pstats import SortKey
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
