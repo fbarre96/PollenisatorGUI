@@ -417,7 +417,10 @@ class TerminalsWidget(CTkFrame):
                 if windows:
                     window = windows[0]
                     window.kill_window()
-                del self.terminalFrames[iid]
+                if str(iid) not in self.terminalFrames:
+                    logger.error("TERMINAL not in terminalFrames: "+str(iid)+ " list is "+str(self.terminalFrames))
+                else:
+                    del self.terminalFrames[str(iid)]
         self.terminalTv.delete(iid)
         
 
