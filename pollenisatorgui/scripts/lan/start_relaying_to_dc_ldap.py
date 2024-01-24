@@ -14,7 +14,7 @@ from pollenisatorgui.scripts.lan.utils import checkPath, findDc
 
 
 def main(apiclient, appli, **kwargs):
-    res, path = checkPath("ntlmrelayx.py", "ntlmrelayx")
+    res, path = checkPath(["ntlmrelayx.py", "ntlmrelayx"])
     if not res:
         return False, path
     APIClient.setInstance(apiclient)
