@@ -85,7 +85,7 @@ class ScrollableTreeview(Paginable):
     def insert(self, parent, index, iid, text="",values=(), tags=(), image=None, auto_update_pagination=True):
         res = None
         if iid is None:
-            iid = uuid.uuid4()
+            iid = str(uuid.uuid4())
         if str(iid) not in self.infos:
             res = self.addPaginatedInfo({"parent":parent,"iid":iid, "index":index, "text":text,"values":values,"tags":tags, "image":image}, auto_update_pagination=auto_update_pagination)
         return res

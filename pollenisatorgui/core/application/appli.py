@@ -1008,13 +1008,13 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         self.terminals.open_terminal(iid, title)
 
     def execute_in_terminal(self, title, commandline):
-        iid = uuid.uuid4()
+        iid = str(uuid.uuid4())
         self.terminals.open_terminal(iid, title, enable_trap=False)
         self.terminals.launch_in_terminal(iid, commandline, use_pollex=False)
 
     def launch_in_terminal(self, iid, title, commandline, use_pollex=True):
         if iid is None:
-            iid = uuid.uuid4()
+            iid = str(uuid.uuid4())
         self.terminals.open_terminal(iid, title, enable_trap=use_pollex)
         self.terminals.launch_in_terminal(iid, commandline, use_pollex=use_pollex)
         return iid
