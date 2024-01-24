@@ -100,7 +100,7 @@ class WaveView(ViewElement):
             wave_node = self.appliTw.insert(parentNode, "end", str(self.controller.getDbId()), text=str(
                 self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getClassIcon())
         except tk.TclError:
-            pass
+            wave_node = str(self.controller.getDbId())
         if addChildren:
             dates_node, scopes_node = self.addChildrenBaseNodes(wave_node)
             intervals = self.controller.getIntervals()
