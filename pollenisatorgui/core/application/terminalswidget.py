@@ -267,6 +267,8 @@ class TerminalsWidget(CTkFrame):
                 with open(tmux_conf, "r") as f:
                     tmux_conf_content = f.read()
                     with open(tmux_conf_new, "w") as f2:
+                        if "/bin" not in shell_command:
+                            shell_command = "/bin/"+shell_command
                         tmux_conf_content += f"\nset -g default-shell {shell_command}"
                         tmux_conf_content += f"\nset -g default-command \"{default_command}\"\n"
                         f2.write(tmux_conf_content)
