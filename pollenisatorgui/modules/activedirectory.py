@@ -259,9 +259,9 @@ class ActiveDirectory(Module):
             if event.keysym != "BackSpace" and event.keysym != "Delete" and (len(event.keysym) > 1 or not event.keysym.isalnum()):
                 return
         search = self.searchBar.get()
-        self.tvUsers.filter(search, search, search, search, search, search, search, check_all=False)
-        self.tvComputers.filter(search, search, search, search, search, search, search, search, search, search, check_all=False)
-        self.tvShares.filter(search, search, search, search, search, check_all=False)
+        self.tvUsers.filter(search, search, search, search, search, search, search, check_all=False, check_case=False)
+        self.tvComputers.filter(search, search, search, search, search, search, search, search, search, search, check_all=False, check_case=False)
+        self.tvShares.filter(search, search, search, search, search, check_all=False, check_case=False)
 
     def computerDoubleClick(self, event=None):
         selection = self.tvComputers.selection()
