@@ -143,6 +143,7 @@ class Paginable(CTkFrame):
         for item in subset_items:
             self.addPaginatedInfo(self._save_infos[item], auto_update_pagination=False)
         self.setPaginationPanel()
+        self.goToPage(0, force=True)
         self.update_contentview()
 
     def _brut_searcher(self, infos, *args, **kwargs):
