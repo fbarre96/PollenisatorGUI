@@ -228,7 +228,8 @@ class CheckItemView(ViewElement):
         scriptManagerInst.initUI(self.mainApp, whatfor="select")
         self.mainApp.wait_window(scriptManagerInst.app)
         liste = scriptManagerInst.rvalue
-        textForm.setValue(", ".join(liste))
+        if liste is not None:
+            textForm.setValue(", ".join(liste))
         
     def openModifyWindow(self, **kwargs):
         """
