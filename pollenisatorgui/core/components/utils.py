@@ -410,16 +410,19 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
                     break
     if fd:
         os.close(fd)
-    if queue:
-        while queue.qsize() > 0:
-            queue.get(block=False)
-        queue.close()
-        queue.join_thread()
-    if queueResponse:
-        while queueResponse.qsize() > 0:
-            queueResponse.get(block=False)
-        queueResponse.close()
-        queueResponse.join_thread()
+    try:
+        if queue:
+            while queue.qsize() > 0:
+                queue.get(block=False)
+            queue.close()
+            queue.join_thread()
+        if queueResponse:
+            while queueResponse.qsize() > 0 and queueResponse.empty() is False:
+                queueResponse.get(block=False)
+            queueResponse.close()
+            queueResponse.join_thread()
+    except Exception as e:
+        logger.error(f"Utils execute: read_and_forward_pty_output {e}")
     continue_reading = False
     return
 
