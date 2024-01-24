@@ -368,9 +368,7 @@ class TerminalsWidget(CTkFrame):
                         window = windows[0]
                         window.kill_window()
                     del self.terminalFrames[iid]
-        self.terminalTv.delete(*self.terminalTv.get_children())
-        self.terminalTv.insert("", "end", "shell", text="shell", image=TerminalsWidget.getIcon())
-        self.terminalTv.selection_set("shell")
+            self.terminalTv.delete(str(iid))
 
     def closeAllTerms(self):
         for iid in self.terminalTv.get_children():
