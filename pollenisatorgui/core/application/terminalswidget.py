@@ -75,7 +75,7 @@ class TerminalsWidget(CTkFrame):
         self.contextualMenu.add_command(
             label="Close term", command=self.closeTerm)
         self.contextualMenu.add_command(
-            label="Close done terms", command=self.closeDoneTerm)
+            label="Close done terms", command=self.closeDoneTerms)
         self.contextualMenu.add_command(
             label="Close all terms", command=self.closeAllTerms)
         self.contextualMenu.add_command(
