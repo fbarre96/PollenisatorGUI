@@ -23,6 +23,8 @@ def main(apiclient, appli, **kwargs):
         return False, "Responder not found, create an alias or install it. (responder, Responder.py, responder.py were tested)"
     APIClient.setInstance(apiclient)
     smb_signing_list = apiclient.find("computers", {"infos.signing":"False"}, True)
+    if smb_signing_list is None or len(smb_signing_list) == 0:
+        return False, "No computer with SMB signing disabled found"
     export_dir = utils.getExportDir()
     file_name = os.path.join(export_dir, "relay_list.lst")
     with open(file_name, "w") as f:
@@ -42,7 +44,7 @@ def main(apiclient, appli, **kwargs):
         cmd = 'sed -i -E "s/(socks[4-5]\s+127.0.0.1\s+)[0-9]+/\\11080/gm" /etc/proxychains.conf'
         if os.geteuid() != 0:
             cmd = "sudo "+cmd
-        appli.launch_in_terminal(kwargs.get("default_target",None), "sed for proxychains", cmd, use_pollex=False)
+        appli.launch_in_terminal(None, "sed for proxychains", cmd, use_pollex=False)
     responder_conf = ""
     if utils.which_expand_alias("locate"):
         output = multiprocessing.Queue()

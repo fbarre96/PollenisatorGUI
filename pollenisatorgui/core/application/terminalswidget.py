@@ -75,6 +75,8 @@ class TerminalsWidget(CTkFrame):
         self.contextualMenu.add_command(
             label="Close term", command=self.closeTerm)
         self.contextualMenu.add_command(
+            label="Close done terms", command=self.closeDoneTerm)
+        self.contextualMenu.add_command(
             label="Close all terms", command=self.closeAllTerms)
         self.contextualMenu.add_command(
             label="(Exit)", command= lambda: 0)# do nothing
@@ -123,7 +125,9 @@ class TerminalsWidget(CTkFrame):
         selection = self.terminalTv.selection()
         if len(selection) == 1:
             try:
-                self.terminalTv.item(str(selection[0]), tags=("neutral",))
+                tags = self.terminalTv.item(str(selection[0]))["tags"]
+                if "notified" in tags:
+                    self.terminalTv.item(str(selection[0]), tags="notified-read")
             except tk.TclError:
                 pass
             self.view_window(str(selection[0]))
@@ -339,6 +343,34 @@ class TerminalsWidget(CTkFrame):
                     window.select_window()
         self.opened = iid
 
+    def closeDoneTerms(self):
+        for iid in self.terminalTv.get_children():
+            if iid == "shell":
+                continue
+            try:
+                tags = self.terminalTv.item(str(iid))["tags"]
+                if "notified-read" not in tags:
+                    continue
+            except tk.TclError:
+                continue
+            if iid.endswith("|ro"):
+                if iid in self.pseudoTermFrames:
+                    self.pseudoTermFrames[iid].quit()
+                self.terminalTv.selection_set("shell")
+                self.pseudoTermFrames[iid].destroy()
+                del self.pseudoTermFrames[iid]
+            else:
+                sessions = self.s.sessions.filter(session_name="pollenisator")
+                if sessions:
+                    session = sessions[0]
+                    windows = session.windows.filter(window_name=str(iid))
+                    if windows:
+                        window = windows[0]
+                        window.kill_window()
+                    del self.terminalFrames[iid]
+        self.terminalTv.delete(*self.terminalTv.get_children())
+        self.terminalTv.insert("", "end", "shell", text="shell", image=TerminalsWidget.getIcon())
+        self.terminalTv.selection_set("shell")
 
     def closeAllTerms(self):
         for iid in self.terminalTv.get_children():
