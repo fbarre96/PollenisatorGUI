@@ -21,6 +21,7 @@ def main(apiclient, appli, **kwargs):
         domain = computer.get("domain", "")
         if domain.strip() != "":
             domains.add(domain)
+    domains = list(domains)
     relaying_loot_path = os.path.join(export_dir, "loot_relay")
     try:
         os.makedirs(relaying_loot_path)
