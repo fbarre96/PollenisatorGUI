@@ -397,22 +397,23 @@ class TerminalsWidget(CTkFrame):
         if self.contextualMenu.selection is None:
             return
         item = self.terminalTv.item(self.contextualMenu.selection)
-        iid = self.contextualMenu.selection
+        iid = str(self.contextualMenu.selection)
         if not iid:
             return
         if iid == "shell":
             return
+        
         if iid.endswith("|ro"):
             if iid in self.pseudoTermFrames:
                 self.pseudoTermFrames[iid].quit()
             self.terminalTv.selection_set("shell")
             self.pseudoTermFrames[iid].destroy()
-            del self.pseudoTermFrames[iid]
+            del self.pseudoTermFrames[str(iid)]
         else:
             sessions = self.s.sessions.filter(session_name="pollenisator")
             if sessions:
                 session = sessions[0]
-                windows = session.windows.filter(window_name=str(iid))
+                windows = session.windows.filter(window_name=iid)
                 if windows:
                     window = windows[0]
                     window.kill_window()
