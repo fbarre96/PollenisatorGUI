@@ -27,6 +27,7 @@ def main(apiclient, appli, **kwargs):
     "demo",
     "visio",
     "livesync",
+    "vagrant"
     "guest",
     "glpiadmin",
     "adminglpi",

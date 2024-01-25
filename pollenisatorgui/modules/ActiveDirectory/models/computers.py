@@ -68,7 +68,7 @@ class Computer(Element):
         Returns:
             Returns the defect +title.
         """
-        return self.domain+"\\"+self.name + " ("+self.ip+")"
+        return str(self.domain)+"\\"+str(self.name) + " ("+str(self.ip)+")"
 
     def getData(self):
         return {"_id": self._id, "name":self.name, "ip":self.ip, "domain":self.domain,
