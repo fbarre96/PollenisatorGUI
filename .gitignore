@@ -71,6 +71,7 @@ venv/
 config/client.cfg
 config/server.cfg
 config/settings.cfg
+pollenisatorgui/config/.tmux.conf.popo
 AllInOne/results/*
 !AllInOne/results
 PollenisatorWorker/
