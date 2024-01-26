@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 import requests
 import os
 import io
@@ -11,6 +12,7 @@ from jose import jwt, JWTError
 from functools import wraps
 from bson import ObjectId
 import tkinter as tk
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
 config_dir = utils.getConfigFolder()
@@ -76,6 +78,28 @@ def handle_api_errors(func):
                 return err.ret_values
         return res
     return wrapper
+
+def call_with_timeout(func, args, kwargs, timeout):
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+
+    # define a wrapper of `return_dict` to store the result.
+    def function(return_dict):
+        return_dict['value'] = func(*args, **kwargs)
+
+    p = multiprocessing.Process(target=function, args=(return_dict,))
+    p.start()
+
+    # Force a max. `timeout` or wait for the process to finish
+    p.join(timeout)
+
+    # If thread is still active, it didn't finish: raise TimeoutError
+    if p.is_alive():
+        p.terminate()
+        p.join()
+        raise TimeoutError
+    else:
+        return return_dict['value']
 
 class APIClient():
     __instances = dict()
@@ -169,8 +193,11 @@ class APIClient():
                 token = config.get("token", None)
             self.api_url = http_proto+"://"+host+":"+str(port)+"/"
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
-            response = requests.get(self.api_url_base, headers=self.headers, proxies=self.proxies, verify=False, timeout=10)
+            # requests timeout does not work when the DNS does not respond. So we use a thread to do the request and kill it if it takes too long.
+            response = call_with_timeout(requests.get, args=(self.api_url_base,), kwargs={"headers":self.headers, "proxies":self.proxies, "verify":False}, timeout=2)
         except requests.exceptions.RequestException as e:
+            return False
+        except TimeoutError as e:
             return False
         if response.status_code == 200:
             saveClientConfig(config)
