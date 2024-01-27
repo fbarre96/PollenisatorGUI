@@ -85,7 +85,10 @@ def call_with_timeout(func, args, kwargs, timeout):
 
     # define a wrapper of `return_dict` to store the result.
     def function(return_dict):
-        return_dict['value'] = func(*args, **kwargs)
+        try:
+            return_dict['value'] = func(*args, **kwargs)
+        except Exception as e:
+            raise e
 
     p = multiprocessing.Process(target=function, args=(return_dict,))
     p.start()
