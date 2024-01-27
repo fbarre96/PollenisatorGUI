@@ -1196,7 +1196,8 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             my_commands = self.settings.local_settings.get("my_commands", {})
             my_commands = {} if my_commands is None else my_commands
             bin_path = my_commands.get(plugin["plugin"])
-            if bin_path is None or bin_path == "" or utils.which_expand_alias(bin_path):
+            expanded_bin_path = utils.which_expand_alias(bin_path)
+            if bin_path is None or bin_path == "" or expanded_bin_path is None:
                 default_bin_names = plugin["default_bin_names"]
                 found_matching = False
                 for default_bin_name in default_bin_names:
@@ -1209,8 +1210,10 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                         break
                 if found_matching == False:
                     results["failures"].append({"title":"Invalid binary path", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is not recognized. ({bin_path})."})
-            else:
+            elif expanded_bin_path is not None:
                 results["successes"].append({"title":"Success", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is valid. ({bin_path})."})
+            else:
+                results["failures"].append({"title":"Invalid binary path", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is not recognized. ({bin_path})."})
         self.settings.local_settings["my_commands"] = my_commands
         self.settings.saveLocalSettings()
         return results
