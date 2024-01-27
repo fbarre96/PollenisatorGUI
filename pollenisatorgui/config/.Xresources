@@ -53,4 +53,8 @@ popoxterm*VT100.Translations: #override \
               <Key>Delete:    string("\033[3~")\n\
               <Key>Home:      string("\033[1~")\n\
               <Key>End:       string("\033[4~")
+popoxterm*vt100.translations: #override \
+              Shift Ctrl <Key> C: copy-selection(CLIPBOARD) \n\
+              Shift Ctrl <Key> V: insert-selection(CLIPBOARD)
+
 popoxterm*ttyModes: erase ^? 
