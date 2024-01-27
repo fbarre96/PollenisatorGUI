@@ -86,7 +86,7 @@ class ChildDialogScanHistory:
         if item is None or item == '':
             return
         datamanager = DataManager.getInstance()
-        tool = datamanager.get("tool", str(item), None)
+        tool = datamanager.get("tool", str(item))
         if tool is None:
             return
         
