@@ -39,9 +39,8 @@ class Dashboard(Module):
         self.label_count_vuln = None
         self.inited = False
 
-    def open(self, view, nbk, treevw):
+    def open(self, view, topviewframe, treevw):
         apiclient = APIClient.getInstance()
-        self.nbk = nbk
         self.treevwApp = treevw
         if self.inited is False:
             self.initUI(view)
@@ -239,7 +238,7 @@ class Dashboard(Module):
             self.set_autoscan_status()
 
     def go_to_pentest(self, event=None):
-        self.nbk.select("Main View")
+        self.tkApp.nbk.select("Main View")
 
 
     def set_scan_progression(self):
