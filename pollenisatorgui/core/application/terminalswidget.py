@@ -273,7 +273,7 @@ class TerminalsWidget(CTkFrame):
                         tmux_conf_content += f"\nset -g default-command \"{default_command}\"\n"
                         f2.write(tmux_conf_content)
                     tmux_conf = tmux_conf_new
-                command = f"xterm -into {wid} -class popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
+                command = f"xterm -into {wid} -class popoxterm -name popoxterm -e \"tmux -f {tmux_conf} new-session -s {session_name} -n shell\""
                 logger.debug(f"Lauching terminal : {command}")
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
                 signal.signal(signal.SIGINT, lambda signum,sigframe: killThisProc(proc))
