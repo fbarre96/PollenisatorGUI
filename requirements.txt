@@ -9,7 +9,7 @@ python-jose>=3.3.0
 requests>=2.18.4
 pymongo
 docker
-python-socketio
+python-socketio[client]
 ttkwidgets
 watchdog
 python-tkdnd
