@@ -18,6 +18,8 @@ class Paginable(CTkFrame):
         self._save_infos = None
         self.contentview = CTkFrame(self, height=0)
         self.contentview.grid(row=0, column=0, sticky="nsew")
+        self.contentview.columnconfigure(0, weight=1)
+        self.contentview.rowconfigure(0, weight=1)
         self.pagePanel = CTkFrame(self, height=0)
         self.pagePanel.grid(row=1, column=0, sticky="sew")
         self.columnconfigure(0, weight=1)

@@ -99,10 +99,12 @@ class ChildDialogAutoScanParams(CTkToplevel):
         form.constructView(frame)
         self.check_box_all = CTkCheckBox(frame, text="All", command=self.check_all)
         self.check_box_all.pack(padx=10,pady=10,side=tk.TOP)
-        self.autoScanTv = CheckboxScrollableTreeview(frame, ("Command", 'Category', 'Category title', 'Priority'), maxPerPage=25, height=25, sort_keys=(None, None, None, int), autoresize=False)
+        tvFrame = CTkFrame(frame)
+        self.autoScanTv = CheckboxScrollableTreeview(tvFrame, ("Command", 'Category', 'Category title', 'Priority'), maxPerPage=25, height=25, sort_keys=(None, None, None, int), fill=tk.X, autoresize=False)
         self.autoScanTv.pack(fill=tk.BOTH, expand="yes", padx=10, side=tk.BOTTOM, anchor=tk.CENTER)
+        tvFrame.pack(fill=tk.BOTH, expand="yes", padx=10, pady=10, side=tk.BOTTOM)
         self.switch_auto_queue = CTkSwitch(frame, text="Continously queue selected command(s)")
-        self.switch_auto_queue.pack(padx=10,pady=10,side=tk.BOTTOM)
+        self.switch_auto_queue.pack(padx=10,pady=15,side=tk.BOTTOM)
         self.refreshUI()
 
     def check_all(self):
