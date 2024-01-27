@@ -41,6 +41,7 @@ class Dashboard(Module):
 
     def open(self, view, nbk, treevw):
         apiclient = APIClient.getInstance()
+        self.nbk = nbk
         self.treevwApp = treevw
         if self.inited is False:
             self.initUI(view)
