@@ -99,7 +99,10 @@ def call_with_timeout(func, args, kwargs, timeout):
         p.join()
         raise TimeoutError
     else:
-        return return_dict['value']
+        try:
+            return return_dict['value']
+        except KeyError:
+            return None
 
 class APIClient():
     __instances = dict()
@@ -198,6 +201,8 @@ class APIClient():
         except requests.exceptions.RequestException as e:
             return False
         except TimeoutError as e:
+            return False
+        if response is None:
             return False
         if response.status_code == 200:
             saveClientConfig(config)
