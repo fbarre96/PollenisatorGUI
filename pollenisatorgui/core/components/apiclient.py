@@ -88,7 +88,7 @@ def call_with_timeout(func, args, kwargs, timeout):
         try:
             return_dict['value'] = func(*args, **kwargs)
         except Exception as e:
-            raise e
+            return None
 
     p = multiprocessing.Process(target=function, args=(return_dict,))
     p.start()
