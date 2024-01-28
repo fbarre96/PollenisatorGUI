@@ -122,8 +122,8 @@ class ChildDialogToolsInstalled(CTkToplevel):
         res = {}
         for item in self.tv.infos:
             command_name = item
-            bin_path = self.tv.infos[item]
-            res[command_name] = bin_path
+            line_info = self.tv.infos[item]
+            res[command_name] = line_info["values"][0]
         self.rvalue = res
         self.destroy()
         return
