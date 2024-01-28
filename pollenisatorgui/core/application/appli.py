@@ -1,6 +1,9 @@
 """
 Pollenisator client GUI window.
 """
+import cProfile
+import io
+import pstats
 import threading
 import traceback
 import tkinter.filedialog
@@ -1188,15 +1191,27 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """ test local binary path with which"""
         apiclient = APIClient.getInstance()
         self.settings.reloadLocalSettings()
+        pr = cProfile.Profile()
+        pr.enable()
+
         plugins = apiclient.getPlugins()
         results = {"successes":[], "failures":[]}
+        expanded_bin_paths = {}
         for plugin in plugins:
             if plugin["plugin"] == "Default":
                 continue
             my_commands = self.settings.local_settings.get("my_commands", {})
             my_commands = {} if my_commands is None else my_commands
             bin_path = my_commands.get(plugin["plugin"])
-            expanded_bin_path = utils.which_expand_alias(bin_path)
+            expanded_bin_paths[plugin["plugin"]] = bin_path
+        expanded_paths = utils.which_expand_aliases(expanded_bin_paths.values())
+        for plugin in plugins:
+            if plugin["plugin"] == "Default":
+                continue
+            my_commands = self.settings.local_settings.get("my_commands", {})
+            my_commands = {} if my_commands is None else my_commands
+            bin_path = my_commands.get(plugin["plugin"])
+            expanded_bin_path = expanded_paths.get(bin_path)
             if bin_path is None or bin_path == "" or expanded_bin_path is None:
                 default_bin_names = plugin["default_bin_names"]
                 found_matching = False
@@ -1216,6 +1231,14 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 results["failures"].append({"title":"Invalid binary path", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is not recognized. ({bin_path})."})
         self.settings.local_settings["my_commands"] = my_commands
         self.settings.saveLocalSettings()
+        pr.disable()
+        s = io.StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        ps.print_stats()
+        print(s.getvalue())
+        with open("/tmp/test.txt", "w") as f:
+            f.write(s.getvalue())
+        
         return results
     
 

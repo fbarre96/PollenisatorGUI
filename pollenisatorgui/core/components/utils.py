@@ -845,10 +845,36 @@ def openPathForUser(path, folder_only=False):
 #             "Terminal settings invalid", f"{favorite} terminal is not available on this computer. Choose a different one in the settings module.")
 #     return True
 
+def which_expand_aliases(whats):
+    whats = list(whats)
+    res = expand_alias(shlex.join(whats))
+    if res is None:
+        return res
+    aliases = {}
+    for i, result in enumerate(res.split("\n")):
+        if "not found" in result:
+            aliases[whats[i]] = None
+        elif "aliased to " in result:
+            aliases[whats[i]] = result.split("aliased to ")[1].strip()
+        else:
+            aliases[whats[i]] = result
+    return aliases
+
 def which_expand_alias(what):
     res = which(what)
     if res is not None:
         return res
+    stdout = expand_alias(what)
+    if stdout is None:
+        return None
+    if "not found" in stdout:
+        return None
+    elif "aliased to " in stdout:
+        return stdout.split("aliased to ")[1].strip()
+    else:
+        return stdout.strip()
+
+def expand_alias(what):
     settings = cacheSettings()
     settings.reloadLocalSettings()
     is_there_zsh = os.environ.get("ZSH",None) is not None
@@ -859,12 +885,9 @@ def which_expand_alias(what):
         home = expanduser("~")
         rc_file = os.path.join(home,"."+os.path.basename(terminal)+"rc") # rc file is not loaded automatically
     proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
-    if proc.returncode == 0:
+    if proc.returncode == 0 or proc.returncode == 1:
         stdout = proc.stdout.decode("utf-8")
-        if "aliased to " in stdout:
-            return stdout.split("aliased to ")[1].strip()
-        else:
-            return stdout.strip()
+        return stdout.strip()
     return None
 
 def is_json(myjson):
