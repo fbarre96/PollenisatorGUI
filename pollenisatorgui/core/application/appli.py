@@ -1204,6 +1204,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
             my_commands = {} if my_commands is None else my_commands
             bin_path = my_commands.get(plugin["plugin"])
             expanded_bin_paths[plugin["plugin"]] = bin_path
+            expanded_bin_paths[plugin["plugin"]] += plugin["default_bin_names"]
         expanded_paths = utils.which_expand_aliases(expanded_bin_paths.values())
         for plugin in plugins:
             if plugin["plugin"] == "Default":
@@ -1216,7 +1217,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 default_bin_names = plugin["default_bin_names"]
                 found_matching = False
                 for default_bin_name in default_bin_names:
-                    if utils.which_expand_alias(default_bin_name):
+                    if expanded_paths.get(default_bin_name):
                         plugin["bin_path"] = default_bin_name
                         bin_path = default_bin_name
                         my_commands[plugin["plugin"]] = default_bin_name
