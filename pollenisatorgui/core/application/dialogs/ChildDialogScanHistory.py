@@ -91,7 +91,7 @@ class ChildDialogScanHistory:
             return
         
         dialog = ChildDialogToolView(self.parent, "Tool view", ToolView(None, None, None, ToolController(tool)))
-        
+            
         
     def filter(self, event=None):
         category = self.str_filter_category.getValue()

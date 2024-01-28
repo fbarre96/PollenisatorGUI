@@ -27,7 +27,7 @@ def main(apiclient, appli, **kwargs):
     if dialog.rvalue is None:
         return False, "No ethernet device chosen"
     my_ip = addrs[dialog.rvalue][0].address
-    cmd = f"ntlmrelayx -t ldap://{dc} -smb2support -wh {my_ip} -6" 
+    cmd = f"{path} -t ldap://{dc} -smb2support -wh {my_ip} -6" 
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
     appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx to ldapr", cmd, use_pollex=False)
