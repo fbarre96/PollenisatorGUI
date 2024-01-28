@@ -1,9 +1,6 @@
 """
 Pollenisator client GUI window.
 """
-import cProfile
-import io
-import pstats
 import threading
 import traceback
 import tkinter.filedialog
@@ -1191,9 +1188,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
         """ test local binary path with which"""
         apiclient = APIClient.getInstance()
         self.settings.reloadLocalSettings()
-        pr = cProfile.Profile()
-        pr.enable()
-
         plugins = apiclient.getPlugins()
         results = {"successes":[], "failures":[]}
         expanded_bin_paths = []
@@ -1232,14 +1226,6 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
                 results["failures"].append({"title":"Invalid binary path", "plugin":plugin, "bin_path":bin_path,  "default_bin":plugin["default_bin_names"], "msg":f"The local settings for {plugin['plugin']} is not recognized. ({bin_path})."})
         self.settings.local_settings["my_commands"] = my_commands
         self.settings.saveLocalSettings()
-        pr.disable()
-        s = io.StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
-        ps.print_stats()
-        print(s.getvalue())
-        with open("/tmp/test.txt", "w") as f:
-            f.write(s.getvalue())
-        
         return results
     
 

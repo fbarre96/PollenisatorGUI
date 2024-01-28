@@ -19,10 +19,6 @@ from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDi
 import pollenisatorgui.core.components.utils as utils
 
 
-import cProfile
-import io
-import pstats
-
 
 class PollenisatorTreeview(ttk.Treeview):
     """PollenisatorTreeview class
