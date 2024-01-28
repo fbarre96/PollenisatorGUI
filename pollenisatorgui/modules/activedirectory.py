@@ -471,10 +471,13 @@ class ActiveDirectory(Module):
             apiclient = APIClient.getInstance()
             share_m = apiclient.find("shares", {"_id": ObjectId(parent_iid)}, False)
             path = item_values[0]
+            share_name = item_values[0]
         else:
             ip = model.ip
             share_m = model.getData()
             path = treeview.item(selected)["text"]
+            share_name = model.share
+            
 
         item_values = treeview.item(selected)["values"]
         if share_m is None:
@@ -495,7 +498,7 @@ class ActiveDirectory(Module):
         u = users[0] # take first one
         domain = u[0] if u[0] is not None else ""
         user = u[1] if u[1] is not None else ""
-        share_name = item_values[0]
+        
         apiclient = APIClient.getInstance()
         apiclient.getCurrentPentest()
         user_o = apiclient.find("users", 
@@ -509,9 +512,12 @@ class ActiveDirectory(Module):
         command_option = command_option.replace("|domain|", domain)
         command_option = command_option.replace("|password|", user_o["password"])
         command_option = command_option.replace("|share|",share_m["share"])
-        command_option = command_option.replace("|filepath|",share_name.replace("\\\\", "\\"))
-        command_option = command_option.replace("|file|",share_name.replace("\\\\", "\\").replace(share_m["share"], "",1))
-        command_option = command_option.replace("|filename|",os.path.basename(share_name.replace("\\\\", "\\").replace(share_m["share"], "",1)))
+        command_option = command_option.replace("|filepath|",path.replace("\\\\", "\\"))
+        just_path = path.replace("\\\\", "\\").replace(share_m["share"], "",1).replace("/", "\\")
+        while just_path.startswith("\\"):
+            just_path = just_path[1:]
+        command_option = command_option.replace("|file|",path.replace("\\\\", "\\").replace(share_m["share"], "",1))
+        command_option = command_option.replace("|filename|",os.path.basename(path.replace("\\\\", "\\").replace(share_m["share"], "",1)))
 
         command_option = command_option.replace("|ip|",ip)
         self.tkApp.launch_in_terminal(None, "Share command", command_option, use_pollex=False)
