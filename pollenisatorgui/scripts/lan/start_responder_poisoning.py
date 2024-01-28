@@ -7,15 +7,14 @@ import psutil
 from pollenisatorgui.core.components.apiclient import APIClient
 import os
 
+from pollenisatorgui.scripts.lan.utils import checkPath
+
 
 def main(apiclient, appli, **kwargs):
-   responder_path = utils.which_expand_alias("responder")
-   if responder_path is None:
-      responder_path = utils.which_expand_alias("Responder.py")
-   if responder_path is None:
-      responder_path = utils.which_expand_alias("responder.py")
-   if responder_path is None:
-      return False, "Responder not found, create an alias or install it. (responder, Responder.py, responder.py were tested)"
+   res, path = checkPath(["responder", "Responder.py", "responder.py"])
+   if res is None:
+      return False, path
+   responder_path = path
    APIClient.setInstance(apiclient)
    responder_conf = ""
    if utils.which_expand_alias("locate"):
@@ -32,9 +31,9 @@ def main(apiclient, appli, **kwargs):
             dialog.app.wait_window(dialog.app)
             if dialog.rvalue is not None:
                 responder_conf = dialog.rvalue.strip()
+                cmd = 'sed -i -E "s/(HTTP|SMB) = Off/\\1 = On/gm" '+str(responder_conf)
                 if os.geteuid() != 0:
                     cmd = "sudo "+cmd
-                cmd = 'sed -i -E "s/(HTTP|SMB) = Off/\\1 = On/gm" '+str(responder_conf)
                 appli.launch_in_terminal(None, "sed for responder", cmd, use_pollex=False)
    addrs = psutil.net_if_addrs()
    print(addrs.keys())
