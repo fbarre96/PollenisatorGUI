@@ -571,6 +571,9 @@ class ScanManager:
         return self.scan_worker.is_local_launched(toolId)
 
     def registerAsWorker(self, _event=None):
+        prog = ChildDialogProgress(self.parent, "Testing local tools", "Testing which tools will be available...", progress_mode="indeterminate")
+        prog.show()
+        prog.update()
         results = self.mainApp.testLocalTools()
         if len(results["failures"]) > 0:
             dialog = ChildDialogToolsInstalled(results)
@@ -578,11 +581,12 @@ class ScanManager:
             if not dialog.rvalue:
                 self.settings.local_settings["my_commands"] = dialog.rvalue
                 self.settings.saveLocalSettings()
+        prog.destroy()
+
         self.settings.reloadLocalSettings()
         apiclient = APIClient.getInstance()
         name = apiclient.getUser()
         self.scan_worker.connect(name)
-        
         dialog = ChildDialogProgress(self.parent, "Registering", "Waiting for register 0/4", progress_mode="indeterminate")
         dialog.show()
         nb_try = 0
