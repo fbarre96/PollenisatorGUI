@@ -1196,16 +1196,16 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
 
         plugins = apiclient.getPlugins()
         results = {"successes":[], "failures":[]}
-        expanded_bin_paths = {}
+        expanded_bin_paths = []
         for plugin in plugins:
             if plugin["plugin"] == "Default":
                 continue
             my_commands = self.settings.local_settings.get("my_commands", {})
             my_commands = {} if my_commands is None else my_commands
             bin_path = my_commands.get(plugin["plugin"])
-            expanded_bin_paths[plugin["plugin"]] = bin_path
-            expanded_bin_paths[plugin["plugin"]] += plugin["default_bin_names"]
-        expanded_paths = utils.which_expand_aliases(expanded_bin_paths.values())
+            expanded_bin_paths.append(bin_path)
+            expanded_bin_paths += plugin["default_bin_names"]
+        expanded_paths = utils.which_expand_aliases(expanded_bin_paths)
         for plugin in plugins:
             if plugin["plugin"] == "Default":
                 continue
