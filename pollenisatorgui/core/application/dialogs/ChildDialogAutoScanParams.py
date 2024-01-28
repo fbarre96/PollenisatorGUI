@@ -45,7 +45,7 @@ class ChildDialogAutoScanParams(CTkToplevel):
         cancel_button.pack(side=tk.RIGHT, padx=5)
         cancel_button.bind('<Button-1>', self.cancel)
         frame_buttons.pack(side=tk.BOTTOM, anchor=tk.SE , padx=5 , pady=5)
-        appFrame.pack(fill=tk.BOTH, pady=10, padx=10, expand="yes")
+        appFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand="yes")
 
         self.transient(parent)
         try:
