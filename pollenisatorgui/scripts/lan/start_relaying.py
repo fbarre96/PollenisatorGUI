@@ -11,6 +11,7 @@ import os
 import shutil
 import tkinter as tk
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.scripts.lan.utils import checkPath
 
 
 def main(apiclient, appli, **kwargs):
@@ -21,6 +22,9 @@ def main(apiclient, appli, **kwargs):
         responder_path = utils.which_expand_alias("responder.py")
     if responder_path is None:
         return False, "Responder not found, create an alias or install it. (responder, Responder.py, responder.py were tested)"
+    res, path = checkPath(["ntlmrelayx.py", "ntlmrelayx"])
+    if not res:
+        return False, path
     APIClient.setInstance(apiclient)
     smb_signing_list = apiclient.find("computers", {"infos.signing":"False"}, True)
     if smb_signing_list is None or len(smb_signing_list) == 0:
@@ -75,7 +79,7 @@ def main(apiclient, appli, **kwargs):
         cmd = "sudo "+cmd
     appli.launch_in_terminal(None, "responder", cmd, use_pollex=False)
 
-    cmd = f"ntlmrelayx -tf {file_name} -smb2support -socks -l {relaying_loot_path}"
+    cmd = f"{path} -tf {file_name} -smb2support -socks -l {relaying_loot_path}"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
     appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx for responder", cmd, use_pollex=False)

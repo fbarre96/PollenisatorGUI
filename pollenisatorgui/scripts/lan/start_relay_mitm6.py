@@ -62,7 +62,7 @@ def main(apiclient, appli, **kwargs):
         return False, "No domain choosen"
 
     address = addrs[device][0].address
-    cmd = f"ntlmrelayx -tf {file_name} -6 -wh {address} -of {relaying_loot_path}/"
+    cmd = f"{path} -tf {file_name} -6 -wh {address} -of {relaying_loot_path}/"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
     appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx for mitm6", f"{cmd}", use_pollex=False)
