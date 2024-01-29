@@ -90,7 +90,7 @@ class ChildDialogScanHistory:
         if tool is None:
             return
         
-        dialog = ChildDialogToolView(self.parent, "Tool view", ToolView(None, None, None, ToolController(tool)))
+        dialog = ChildDialogToolView(self.app, "Tool view", ToolView(None, None, None, ToolController(tool)))
             
         
     def filter(self, event=None):
