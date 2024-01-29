@@ -226,7 +226,7 @@ class Report(Module):
         lbl = CTkLabel(
             templatesFrame, text="Word template")
         lbl.grid(row=0, column=0, sticky=tk.E)
-        self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models)
+        self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models, width=300)
         self.combo_word.grid(row=0, column=1)
         self.btn_template_photo = CTkImage(Image.open(utils.getIcon("download.png")))
         btn_word = CTkButton(
@@ -240,7 +240,7 @@ class Report(Module):
                         text="Powerpoint template")
         lbl.grid(row=1, column=0, sticky=tk.E, pady=20)
         self.combo_pptx = CTkComboBox(
-            templatesFrame, values=self.pptx_models)
+            templatesFrame, values=self.pptx_models, width=300)
         self.combo_pptx.grid(row=1, column=1)
         
         btn_ppt = CTkButton(
