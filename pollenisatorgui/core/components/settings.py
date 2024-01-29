@@ -149,7 +149,7 @@ class Settings:
         return self.local_settings.get("show_only_manual", False)
 
     def isTrapCommand(self):
-        return self.local_settings.get("trap_commands", False)
+        return self.local_settings.get("trap_commands", True)
 
     def is_dark_mode(self):
         return self.local_settings.get("dark_mode", False)
