@@ -57,6 +57,8 @@ class SharedNotes(Module):
 
     def setText(self, text):
         self.mdFrame.text_area.delete(1.0, tk.END)
+        if isinstance(text, dict) and len(text) == 0:
+            text = ""
         self.mdFrame.text_area.insert(tk.INSERT, text)
  
     def initUI(self, parent):
