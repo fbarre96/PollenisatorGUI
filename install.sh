@@ -14,7 +14,7 @@ install_packages() {
             sudo apt-get install -y git python3-pil python3-pil.imagetk python3-tk tk-dev tmux xterm xdotool x11-xserver-utils pipx 
             ;;
         "archlinux")
-            sudo pacman -Syu
+            sudo pacman -Sy
             sudo pacman -S python tk git tmux xterm xdotool xorg-xrandr python-pipx
             ;;
         *)
