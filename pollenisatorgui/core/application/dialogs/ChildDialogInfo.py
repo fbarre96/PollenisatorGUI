@@ -20,6 +20,7 @@ class ChildDialogInfo:
             msg: Message to show to the user
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.resizable(False, False)
         self.app.title(title)
         self.app.bind("<Escape>", self.destroy)

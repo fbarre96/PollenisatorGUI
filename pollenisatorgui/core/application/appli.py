@@ -63,6 +63,7 @@ class FloatingHelpWindow(CTkToplevel):
 
     def __init__(self, w, h, posx, posy, *args, **kwargs):
         CTkToplevel.__init__(self, *args, **kwargs)
+        self.attributes("-type", "dialog")
         self.title('Help: search')
         self.x = posx
         self.y = posy

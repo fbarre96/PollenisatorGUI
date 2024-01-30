@@ -33,6 +33,7 @@ class ChildDialogException:
         self.rvalue = None
         self.parent = parent
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.bind("<Escape>", self.onError)
         self.app.title(title)
         appFrame = CTkFrame(self.app)

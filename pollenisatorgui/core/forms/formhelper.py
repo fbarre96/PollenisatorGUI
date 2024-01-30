@@ -66,6 +66,7 @@ class FormHelper(Form):
         y += self.lbl.winfo_rooty() + 20
         # creates a toplevel window
         self.tw = CTkToplevel(self.lbl)
+        self.tw.attributes("-type", "dialog")
         self.tw.title("Helper")
         # Leaves only the label and removes the app window
         self.tw.wm_overrideredirect(True)

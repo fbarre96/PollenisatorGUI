@@ -19,6 +19,7 @@ class ChildDialogFixView:
             defectModel : A Defect Model object to load default values. None to have empty fields, default is None.
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Fix edition")
         self.app.resizable(True, True)
         self.app.bind("<Escape>", self.cancel)

@@ -25,6 +25,7 @@ class ScriptManager:
         self.appli = appli
         parent = appli
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Scripts Manager")
         self.app.resizable(True, True)
         self.rvalue = None

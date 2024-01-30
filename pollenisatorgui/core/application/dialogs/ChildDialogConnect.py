@@ -56,6 +56,7 @@ class ChildDialogConnect:
         """
         self.parent = parent
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Connect to server")
         self.app.resizable(False, False)
         appFrame = CTkFrame(self.app)

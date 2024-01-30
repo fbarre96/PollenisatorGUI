@@ -21,6 +21,7 @@ class ChildDialogCombo:
         """
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
         self.app.title("Choose option")
+        self.app.attributes("-type", "dialog")
         self.app.resizable(False, False)
         self.app.bind("<Escape>", self.onError)
         appFrame = CTkFrame(self.app)

@@ -28,6 +28,7 @@ class ChildDialogAutoScanParams(CTkToplevel):
             parent: the tkinter parent view to use for this window construction.
         """
         super().__init__(parent)
+        self.attributes("-type", "dialog")
         self.title("AutoScan configuration")
         self.resizable(True, True)
         self.bind("<Escape>", self.cancel)

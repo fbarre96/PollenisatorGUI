@@ -24,6 +24,7 @@ class ChildDialogSelectChecks:
             parent: the tkinter parent view to use for this window construction.
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Choose checks")
         self.app.resizable(True, True)
         self.app.bind("<Escape>", self.cancel)

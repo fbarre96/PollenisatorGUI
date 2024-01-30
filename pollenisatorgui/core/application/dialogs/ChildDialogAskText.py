@@ -20,6 +20,7 @@ class ChildDialogAskText:
         """
         from pollenisatorgui.core.forms.formpanel import FormPanel
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app.attributes("-type", "dialog")
         fullscreen = False
         if kwargs.get("fullscreen", False):
             fullscreen = True

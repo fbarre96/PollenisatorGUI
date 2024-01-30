@@ -21,6 +21,7 @@ class ChildDialogQuestion:
             answers: a tuple with possible answers. Default to ("Yes" ,"No")
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title(title)
         self.app.resizable(True, True)
         

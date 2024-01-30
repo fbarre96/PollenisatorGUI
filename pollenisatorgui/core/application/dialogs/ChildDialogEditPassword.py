@@ -23,6 +23,7 @@ class ChildDialogEditPassword:
         """
         self.parent = parent
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.bind("<Escape>", self.onError)
         self.askOldPwd = askOldPwd
         self.app.title("Change "+str(username)+" password")

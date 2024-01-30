@@ -17,10 +17,8 @@ class ComputerController(ControllerElement):
         Returns:
             The mongo ObjectId _id of the updated computer document.
         """
-        raise NotImplementedError("ComputerController.doUpdate not implemented")
-        # self.model.dated = values.get("Start date", self.model.dated)
-        # self.model.datef = values.get("End date", self.model.datef)
-        self.model.update()
+        is_dc = values.get("is_dc", self.model.infos.is_dc)
+        self.model.update({"infos.is_dc": is_dc})
 
     def doInsert(self, values):
         """

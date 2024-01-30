@@ -24,6 +24,7 @@ class ChildDialogDate:
     def __init__(self, parent=None):
         self.parent = parent
         self.app = CTkToplevel(self.parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Choose a date")
         self.app.resizable(False, False)
         self.app.bind("<Escape>", self.destroy)

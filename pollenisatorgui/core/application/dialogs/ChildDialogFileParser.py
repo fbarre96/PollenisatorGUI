@@ -25,6 +25,7 @@ class ChildDialogFileParser:
             default_path: a default path to be added
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Upload result file")
         self.rvalue = None
         self.default = default_path

@@ -47,6 +47,7 @@ class ChildDialogToolsInstalled(CTkToplevel):
         self.parent = parent
         self.tools_results = tools_results
         self.title("Tools configured supported")
+        self.attributes("-type", "dialog")
         self.resizable(True, True)
         self.rvalue = None
         

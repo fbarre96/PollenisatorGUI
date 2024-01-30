@@ -27,6 +27,7 @@ class ChildDialogScanHistory:
             parent: the tkinter parent view to use for this window construction.
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         #self.app.geometry("800x650")
         self.app.title("Scan history")
         self.app.resizable(True, True)

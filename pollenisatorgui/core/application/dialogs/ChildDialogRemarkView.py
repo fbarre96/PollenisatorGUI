@@ -20,6 +20,7 @@ class ChildDialogRemarkView:
             remarkModel : A Remark Model object to load default values. None to have empty fields, default is None.
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.isInsert = remarkModel is None
         if self.isInsert:
             remarkModel = Remark()

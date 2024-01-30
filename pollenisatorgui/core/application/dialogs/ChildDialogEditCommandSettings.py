@@ -24,6 +24,7 @@ class ChildDialogEditCommandSettings:
             default: Choose a default selected option (one of the string in options). default is None
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Edit command settings")
         self.rvalue = None
         self.parent = parent

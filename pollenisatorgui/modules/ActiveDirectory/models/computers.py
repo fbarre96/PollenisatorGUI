@@ -1,3 +1,4 @@
+from bson import ObjectId
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.models.element import Element
@@ -61,6 +62,17 @@ class Computer(Element):
         self.users = users
         self._infos = ComputerInfos(infos)
     
+    def update(self, pipeline_set):
+        """Update this object in database.
+        Args:
+            pipeline_set: (Opt.) A dictionnary with custom values. If None (default) use model attributes.
+        """
+        apiclient = APIClient.getInstance()
+        if pipeline_set is None:
+            raise NotImplementedError("Computer.update() not implemented")
+        else:
+            apiclient.update("computers", ObjectId(self._id), pipeline_set)
+
     def __str__(self):
         """
         Get a string representation of a defect.

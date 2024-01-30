@@ -24,6 +24,7 @@ class ChildDialogExportSelection:
         self.rvalue = None
         self.parent = parent
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.bind("<Escape>", self.onError)
         self.app.title("Export selection")
         appFrame = CTkFrame(self.app)

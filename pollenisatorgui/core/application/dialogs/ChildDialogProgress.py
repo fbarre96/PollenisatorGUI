@@ -23,6 +23,7 @@ class ChildDialogProgress:
                            determinate: Show progression of a value against a max value.
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.transient(parent)
         self.app.resizable(False, False)
         self.app.title(title)

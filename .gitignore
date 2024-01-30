@@ -73,5 +73,6 @@ config/server.cfg
 config/settings.cfg
 pollenisatorgui/config/.tmux.conf.popo
 AllInOne/results/*
+*..zcompdump
 !AllInOne/results
 PollenisatorWorker/

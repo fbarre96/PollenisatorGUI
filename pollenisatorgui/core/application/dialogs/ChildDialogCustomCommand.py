@@ -23,6 +23,7 @@ class ChildDialogCustomCommand:
             default_worker: a worker to be selected by default.
         """
         self.app = CTkToplevel(parent)
+        self.app.attributes("-type", "dialog")
         self.app.title("Custom command")
         appFrame = CTkFrame(self.app)
         self.app.bind("<Escape>", self.onError)

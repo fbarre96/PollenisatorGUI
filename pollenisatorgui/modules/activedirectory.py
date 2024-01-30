@@ -642,6 +642,7 @@ class ChildDialogAddUsers:
             default: Choose a default selected option (one of the string in options). default is None
         """
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app.attributes("-type", "dialog")
         self.app.resizable(False, False)
         appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
@@ -684,6 +685,7 @@ class ChildDialogAddUsers:
 class ChildDialogShare:
     def __init__(self, parent, share_data):
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app.attributes("-type", "dialog")
         self.app.resizable(True, True)
         appFrame = CTkFrame(self.app)
         self.app.title("View share info")
@@ -733,6 +735,7 @@ class ChildDialogConfigureADModule:
             default: Choose a default selected option (one of the string in options). default is None
         """
         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app.attributes("-type", "dialog")
         self.app.resizable(True , True)
         appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
