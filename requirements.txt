@@ -20,3 +20,4 @@ psutil
 neo4j
 screeninfo
 pygments
+gitpython

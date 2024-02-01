@@ -6,4 +6,5 @@ recursive-include pollenisatorgui/scripts *
 include pollenisatorgui/exports/pollenisator_commands.gz
 include pollenisatorgui/exports/pollenisator_group_commands.gz
 include pollenisatorgui/setupTerminalForPentest.sh
+include requirements.txt
 

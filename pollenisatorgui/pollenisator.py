@@ -11,8 +11,11 @@ import time
 import tkinter as tk
 import os
 import sys
-
+import git
+import pipx
 import signal
+
+import requests
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.appli import Appli
 import pollenisatorgui.core.components.utils as utils
@@ -20,6 +23,8 @@ import threading
 from getpass import getpass
 from pollenisatorgui.core.components.logger_config import logger
 import customtkinter
+import subprocess
+
 event_obj = threading.Event()
 customtkinter.set_default_color_theme(utils.getColorTheme())
 
@@ -62,6 +67,50 @@ class GracefulKiller:
 #######################################
 ############## MAIN ###################
 #######################################
+
+def get_local_git_version():
+    try:
+        repo = git.Repo(search_parent_directories=True)
+        latest_tag = repo.tags[-1]
+        latest_version = latest_tag.name
+        return latest_version
+    except Exception as e:
+        print("Error fetching latest version from Git:", e)
+        return None
+
+
+def get_latest_github_version():
+    try:
+        # Make a GET request to GitHub's releases endpoint
+        url = f"https://api.github.com/repos/fbarre96/PollenisatorGUI/releases/latest"
+        response = requests.get(url)
+        if response.status_code == 200:
+            latest_version = response.json()["tag_name"]
+            return latest_version
+        else:
+            print("Error fetching latest version from GitHub:", response.text)
+            return None
+    except Exception as e:
+        print("Error fetching latest version from GitHub:", e)
+        return None
+    
+def checkForUpdates():
+    latest = get_latest_github_version()
+    local = get_local_git_version()
+    if local is None or latest is None:
+        return False
+    if local != latest:
+        return True
+    return False
+
+def update():
+    try:
+        # Use pipx to install the latest version of the package
+        subprocess.run(['pipx', 'install', '--upgrade', 'pollenisatorgui'])
+        print("Package updated successfully!")
+    except Exception as e:
+        print("Error updating package:", e)
+
 def consoleConnect(force=False, askPentest=True):    
     apiclient = APIClient.getInstance()
     abandon = False
@@ -199,6 +248,11 @@ def main():
 """)
     event_obj.clear() 
     gc = None
+    update_available = checkForUpdates()
+    if update_available:
+        ask_update = input("An update is available, do you want to update now (y/N)?").strip().lower() == "y"
+        if ask_update:
+            update()
     app = Appli()
     try:
         gc = GracefulKiller(app)
