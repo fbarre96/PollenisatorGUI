@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   deploy:
+    environment: PollenisatorGUIBuild
 
     runs-on: ubuntu-latest
 
