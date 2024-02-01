@@ -12,9 +12,7 @@ import tkinter as tk
 import os
 import sys
 import git
-import pipx
 import signal
-
 import requests
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.appli import Appli
