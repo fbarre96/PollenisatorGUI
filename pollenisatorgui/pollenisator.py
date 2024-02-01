@@ -4,7 +4,7 @@
 @author: Fabien Barré for AlgoSecure
 # Date: 12/10/2022
 # Major version released: 09/2019
-# @version: 2.2
+# @version: 2.5.0
 """
 
 import time
@@ -67,15 +67,7 @@ class GracefulKiller:
 #######################################
 
 def get_local_git_version():
-    try:
-        repo = git.Repo(search_parent_directories=True)
-        latest_tag = repo.tags[-1]
-        latest_version = latest_tag.name
-        return latest_version
-    except Exception as e:
-        print("Error fetching latest version from Git:", e)
-        return None
-
+    return "2.5.0"
 
 def get_latest_github_version():
     try:
