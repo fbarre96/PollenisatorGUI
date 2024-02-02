@@ -67,7 +67,7 @@ class GracefulKiller:
 #######################################
 
 def get_local_git_version():
-    return "2.5.0"
+    return "v2.5.0"
 
 def get_latest_github_version():
     try:
@@ -90,14 +90,16 @@ def checkForUpdates():
     if local is None or latest is None:
         return False
     if local != latest:
+        print(f"New version available: {latest} (current: {local})")
         return True
     return False
 
 def update():
     try:
         # Use pipx to install the latest version of the package
-        subprocess.run(['pipx', 'upgrade', 'pollenisatorgui'])
-        print("Package updated successfully!")
+        subprocess.run(['pipx', 'upgrade', 'pollenisator-gui'])
+        print("Package updated successfully! Restart the application to use the latest version.")
+        sys.exit(0)
     except Exception as e:
         print("Error updating package:", e)
 
