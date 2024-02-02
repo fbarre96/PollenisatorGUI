@@ -4,7 +4,7 @@
 @author: Fabien Barré for AlgoSecure
 # Date: 12/10/2022
 # Major version released: 09/2019
-# @version: 2.5.0
+# @version: 2.6.0
 """
 
 import time
@@ -67,7 +67,7 @@ class GracefulKiller:
 #######################################
 
 def get_local_git_version():
-    return "v2.5.0"
+    return "v2.6.0"
 
 def get_latest_github_version():
     try:
