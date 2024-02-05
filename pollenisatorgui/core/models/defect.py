@@ -46,9 +46,9 @@ class Defect(Element):
                         valuesFromDb.get("language", ""),
                         valuesFromDb.get("notes", ""), valuesFromDb.get("creation_time", None),
                         valuesFromDb.get("fixes", []), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
-                        valuesFromDb.get("index", "0"))
+                        valuesFromDb.get("index", "0"), valuesFromDb.get("isTemplate", False), valuesFromDb.get("perimeter", ""))
 
-    def initialize(self, target_id="", target_type="", title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0"):
+    def initialize(self, target_id="", target_type="", title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0", isTemplate=False, perimeter=None):
         """Set values of defect
         Args:
             target_id: defect will be assigned to this id; can be empty
@@ -67,6 +67,8 @@ class Defect(Element):
             fixes: a list of fixes for this defect, default to empty list
             infos: a dictionnary with key values as additional information. Default to None
             index: the index of this defect in global defect table (only for unassigned defect)
+            isTemplate: a boolean to know if this defect is a template or not
+            perimeter: the perimeter of the defect
         Returns:
             this object
         """
@@ -87,6 +89,8 @@ class Defect(Element):
         self.fixes = fixes if fixes is not None else []
         self.index = index
         self.creation_time = creation_time
+        self.perimeter = perimeter
+        self.isTemplate = isTemplate
         return self
 
     @classmethod

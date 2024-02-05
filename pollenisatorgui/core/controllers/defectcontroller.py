@@ -85,10 +85,13 @@ class DefectController(ControllerElement):
         description = values.get("Description", "")
         ease = values["Ease"]
         impact = values["Impact"]
-        redactor = values["Redactor"]
+        redactor = values.get("Redactor", "N/A")
         mtype_dict = values["Type"]
         language = values["Language"]
         risk = values["Risk"]
+        isTemplate = values.get("isTemplate", False)
+        perimeter = values.get("Perimeter", {})
+        perimeter = ",".join([k for k, v in perimeter.items() if v == 1])
         notes = values.get("Notes", "")
         mtype = [k for k, v in mtype_dict.items() if v == 1]
         target_id = values.get("target_id", "")
@@ -106,25 +109,29 @@ class DefectController(ControllerElement):
         if risk == "" or risk == "N/A":
             risk = tableau_from_ease.get(ease,{}).get(impact,"N/A")
         self.model.initialize(target_id, target_type, title, synthesis, description, ease,
-                              impact, risk, redactor, mtype, language, notes, None, fixes, [])
-        ret, _ = self.model.addInDb()
-        # Update this instance.
-        # Upload proof after insert on db cause we need its mongoid
-        group_proofs = self.findProofsInDescription(description)
-        must_update = False
-        apiclient = APIClient.getInstance()
-        for group_proof in group_proofs:
-            matched = group_proof.group(0)
-            path = group_proof.group(1)
-            if path.strip() != "" and not path.startswith("http"):
-                result_path = self.model.uploadProof(path)
-                if result_path is not None:
-                    result_path = os.path.basename(result_path)
-                    self.model.description = self.model.description.replace(matched, f"![{result_path}]({result_path})")
-                    must_update = True
-        
-        if must_update:
-            self.model.update({"description": self.model.description}) 
+                              impact, risk, redactor, mtype, language, notes, None, fixes, [], isTemplate=isTemplate, perimeter=perimeter)
+        if self.model.isTemplate:
+            ret, id = self.model.addInDefectTemplates()
+            return ret, (0, id)
+        else:
+            ret, _ = self.model.addInDb()
+            # Update this instance.
+            # Upload proof after insert on db cause we need its mongoid
+            group_proofs = self.findProofsInDescription(description)
+            must_update = False
+            apiclient = APIClient.getInstance()
+            for group_proof in group_proofs:
+                matched = group_proof.group(0)
+                path = group_proof.group(1)
+                if path.strip() != "" and not path.startswith("http"):
+                    result_path = self.model.uploadProof(path)
+                    if result_path is not None:
+                        result_path = os.path.basename(result_path)
+                        self.model.description = self.model.description.replace(matched, f"![{result_path}]({result_path})")
+                        must_update = True
+            
+            if must_update:
+                self.model.update({"description": self.model.description}) 
 
         return ret, 0  # 0 erros
 
