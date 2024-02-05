@@ -1180,6 +1180,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     def wrapperTestLocalTools(self):
         results = self.testLocalTools()
         dialog = ChildDialogToolsInstalled(results)
+        dialog.wait_window()
         if dialog.rvalue is not None:
             self.settings.local_settings["my_commands"] = dialog.rvalue
             self.settings.saveLocalSettings()

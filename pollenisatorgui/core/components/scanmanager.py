@@ -577,6 +577,7 @@ class ScanManager:
         results = self.mainApp.testLocalTools()
         if len(results["failures"]) > 0:
             dialog = ChildDialogToolsInstalled(results)
+            dialog.wait_window()
             if dialog.rvalue is not None:
                 self.settings.local_settings["my_commands"] = dialog.rvalue
                 self.settings.saveLocalSettings()
