@@ -107,7 +107,7 @@ class ScanManager:
             return
         if self.settings.db_settings.get("include_all_domains", False):
             answer = tk.messagebox.askyesno(
-                "Autoscan warning", "The current settings will add every domain found in attack's scope. Are you sure ?")
+                "Autoscan warning", "The current settings will add every domain found in attack's scope. Are you sure ?", parent=self.parent)
             if not answer:
                 return False
         self.btn_autoscan.configure(text="Stop Scanning", command=self.stopAutoscan)
