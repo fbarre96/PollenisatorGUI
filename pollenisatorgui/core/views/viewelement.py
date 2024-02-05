@@ -104,21 +104,22 @@ class ViewElement(object):
         if self._opened:
             return
         self._opened = True
-        try:
-            icon = self.appliTw.item(str(self.controller.getDbId()))["image"]
-            self.appliTw.item(str(self.controller.getDbId()), image=ViewElement.getLoadingIcon())
-            self.appliTw.update()
-            self.appliTw.delete(str(self.controller.getDbId())+"|<Empty>")
-        except tk.TclError as e:
-            pass
-        self._insertChildren()
-        for module in self.mainApp.modules:
-            if hasattr(module["object"], "_insertChildren"):
-                module["object"]._insertChildren(self.controller.model.coll_name, self.controller.getData())
-        try:
-            self.appliTw.item(str(self.controller.getDbId()), image=icon)
-        except tk.TclError:
-            pass
+        if lazyload:
+            try:
+                icon = self.appliTw.item(str(self.controller.getDbId()))["image"]
+                self.appliTw.item(str(self.controller.getDbId()), image=ViewElement.getLoadingIcon())
+                self.appliTw.update()
+                self.appliTw.delete(str(self.controller.getDbId())+"|<Empty>")
+            except tk.TclError as e:
+                pass
+            self._insertChildren()
+            for module in self.mainApp.modules:
+                if hasattr(module["object"], "_insertChildren"):
+                    module["object"]._insertChildren(self.controller.model.coll_name, self.controller.getData())
+            try:
+                self.appliTw.item(str(self.controller.getDbId()), image=icon)
+            except tk.TclError:
+                pass
         self.appliTw.update()
         
     def delete(self, _event=None, showWarning=True):
