@@ -99,7 +99,7 @@ class ViewElement(object):
         """
         # pass
 
-    def opened(self):
+    def opened(self, lazyload=False):
         """Callback called when the view is opened"""
         if self._opened:
             return
