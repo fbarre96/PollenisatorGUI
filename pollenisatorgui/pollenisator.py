@@ -11,7 +11,6 @@ import time
 import tkinter as tk
 import os
 import sys
-import git
 import signal
 import requests
 from pollenisatorgui.core.components.apiclient import APIClient
