@@ -52,8 +52,8 @@ class FormFile(Form):
         self.callback = self.getKw("command", None)
         self.listbox = tk.Listbox(listboxframe, 
                               width=self.getKw("width", 50), height=self.getKw("height", 10), selectmode=tk.SINGLE, bg=utils.getBackgroundColor(), fg=utils.getTextColor())
-        self.listbox.register_drop_target("*")
-        self.listbox.bind('<<Drop:File>>', self.add_path_listbox)
+        self.listbox.drop_target_register("*")
+        self.listbox.dnd_bind('<<Drop>>', self.add_path_listbox)
         self.listbox.bind('<Delete>', self.delete_path_listbox)
         self.scrolbar = CTkScrollbar(
             listboxframe,

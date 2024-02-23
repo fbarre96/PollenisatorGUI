@@ -2,32 +2,20 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import tkinterDnD
+import tkinterdnd2
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import pollenisatorgui.core.components.utils as utils
 
 
-class ChildDialogAskFile(CTk, tkinterDnD.tk.DnDWrapper):
+class ChildDialogAskFile(CTk, tkinterdnd2.TkinterDnD.DnDWrapper):
     """
     Open a child dialog of a tkinter application to ask details about
     existing files parsing.
     """
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
         """Add the tkdnd package to the auto_path, and import it"""
-        #HACK Copied from directory with a package_dir updated
-        platform = master.tk.call("tk", "windowingsystem")
-
-        if platform == "win32":
-            folder = "windows"
-        elif platform == "x11":
-            folder = "linux"
-        elif platform == "aqua":
-            folder = "mac"
-        package_dir = os.path.join(os.path.dirname(os.path.abspath(tkinterDnD.tk.__file__)), folder)
-        master.tk.call('lappend', 'auto_path', package_dir)
-        TkDnDVersion = master.tk.call('package', 'require', 'tkdnd')
-        return TkDnDVersion
+        return tkinterdnd2.TkinterDnD._require(master)
 
 
     def __init__(self, parent, info="Choose a file", default_path=""):

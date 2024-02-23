@@ -12,7 +12,7 @@ docker
 python-socketio[client]
 ttkwidgets
 watchdog
-python-tkdnd
+tkinterdnd2-universal
 customtkinter==5.1.2
 libtmux
 tkintermd

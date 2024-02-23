@@ -49,7 +49,7 @@ from pollenisatorgui.core.views.checkitemview import CheckItemView
 from pollenisatorgui.core.views.ipview import IpView
 import pollenisatorgui.modules
 import customtkinter
-import tkinterDnD
+import tkinterdnd2
 from ttkwidgets import tooltips
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 from pollenisatorgui.core.components.logger_config import logger
@@ -318,7 +318,7 @@ class ButtonNotebook(CTkFrame):
         self.callbackSwitch(name)
 
 
-class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdnd with CTk
+class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make work tkdnd with CTk
     """
     Main tkinter graphical application object.
     """
@@ -327,19 +327,7 @@ class Appli(customtkinter.CTk, tkinterDnD.tk.DnDWrapper):#HACK to make work tkdn
     
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
         """Add the tkdnd package to the auto_path, and import it"""
-        #HACK Copied from directory with a package_dir updated
-        platform = master.tk.call("tk", "windowingsystem")
-
-        if platform == "win32":
-            folder = "windows"
-        elif platform == "x11":
-            folder = "linux"
-        elif platform == "aqua":
-            folder = "mac"
-        package_dir = os.path.join(os.path.dirname(os.path.abspath(tkinterDnD.tk.__file__)), folder)
-        master.tk.call('lappend', 'auto_path', package_dir)
-        TkDnDVersion = master.tk.call('package', 'require', 'tkdnd')
-        return TkDnDVersion
+        return tkinterdnd2.TkinterDnD._require(master)
 
     def __init__(self):
         """

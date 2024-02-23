@@ -26,7 +26,6 @@ import os
 import docker
 from bson import ObjectId
 from pollenisatorgui.core.components.logger_config import logger
-
 import shutil
 
 
@@ -306,7 +305,8 @@ class ScanManager:
         parentFrame.columnconfigure(0, weight=1)
         parentFrame.columnconfigure(1, weight=1)
         parentFrame.rowconfigure(0, weight=1)
-        parentFrame.configure(onfiledrop=self.dropFile)
+        parentFrame.dnd_bind("<<Drop>>", self.dropFile)
+        parentFrame.drop_target_register("*")
         ### WORKER TREEVIEW : Which worker knows which commands
         workerScanFrame = CTkFrame(parentFrame)
         workerFrame = CTkFrame(workerScanFrame)

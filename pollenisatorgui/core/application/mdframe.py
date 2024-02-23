@@ -124,11 +124,11 @@ class TkintermdFrame(CTkFrame):
         
         self.editor_frame = ScrolledTextBox(self.editor_root_frame, undo=True, wrap=tk.WORD, font=("Times New Roman", self.font_size))
         self.text_area = self.editor_frame.tbox
-        self.text_area.register_drop_target("*")
-        if self.binds.get("<<Drop:File>>", None) is not None:
-            self.text_area.bind('<<Drop:File>>', self.binds.get("<<Drop:File>>"))
+        self.text_area.drop_target_register("*")
+        if self.binds.get("<<Drop>>", None) is not None:
+            self.text_area.dnd_bind('<<Drop>', self.binds.get("<<Drop>>"))
         else:
-            self.text_area.bind('<<Drop:File>>', self.dropFile)
+            self.text_area.dnd_bind('<<Drop>>', self.dropFile)
 
         self.editor_frame.pack(fill="both", expand=1)
         # Tabs for the preview and export options.
