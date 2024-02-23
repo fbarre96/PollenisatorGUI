@@ -1278,7 +1278,11 @@ class APIClient():
     @handle_api_errors
     def dumpDb(self, parent, pentest, collection=""):
         api_url = '{0}dumpDb/{1}'.format(self.api_url_base, pentest)
-        response = requests.get(api_url, headers=self.headers, params={"collection":collection}, proxies=self.proxies, verify=False)
+        if collection == "":
+            params = {}
+        else:
+            params = {"collection":collection}
+        response = requests.get(api_url, headers=self.headers, params=params, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.join(
