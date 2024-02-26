@@ -585,7 +585,7 @@ class DefectView(ViewElement):
                     return
         if proof_local_path is None:
             tk.messagebox.showerror(
-                "Download failed", "the file does not exist on sftp server")
+                "Download failed", "the file does not exist on remote server")
 
     def deleteProof(self, _event, obj):
         """Callback when delete proof is clicked.

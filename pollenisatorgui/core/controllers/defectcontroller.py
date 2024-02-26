@@ -162,7 +162,10 @@ class DefectController(ControllerElement):
         Returns:
             the local path of the downloaded proof (string)
         """
-        return os.path.realpath(self.model.getProofWithName(remote_name))
+        downloaded_name = self.model.getProofWithName(remote_name)
+        if downloaded_name is None:
+            return None
+        return os.path.realpath(downloaded_name)
 
     def deleteProof(self, ind):
         """Delete a proof file given a proof index

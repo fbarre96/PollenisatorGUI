@@ -265,7 +265,7 @@ class ToolView(ViewElement):
             path = None
         if path is None:
             tkinter.messagebox.showerror(
-                "Download failed", "the file does not exist on sftp server")
+                "Download failed", "the file does not exist on remote server")
 
     def createDefectCallback(self, _event=None):
         """Callback for tool click 

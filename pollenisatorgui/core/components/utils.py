@@ -42,21 +42,27 @@ class JSONEncoder(json.JSONEncoder):
 class JSONDecoder(json.JSONDecoder):
     def __init__(self, *args, **kwargs):
         json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-        
-    def object_hook(self, dct):
-        for k,v in dct.items():
-            if isinstance(v, list):
-                new_lst = []
-                for item in v:
-                    if 'ObjectId|' in str(item):
-                        new_lst.append(ObjectId(item.split('ObjectId|')[1]))
-                    else:
-                        new_lst.append(item)
-                    dct[k] = new_lst
-            else:
-                if 'ObjectId|' in str(v):
-                    dct[k] = ObjectId(v.split('ObjectId|')[1])
+
+    def decode_object(self, dct, max_depth=4):
+        if isinstance(dct, dict):
+            for k,v in dct.items():
+                dct[k] = self.decode_object(v, max_depth-1)
+        elif isinstance(dct, list):
+            for i, v in enumerate(dct):
+                dct[i] = self.decode_object(v, max_depth-1)
+        elif isinstance(dct, str):
+            if dct.startswith("ObjectId|"):
+                return ObjectId(dct.split("|")[1])
+            try:
+                return datetime.strptime(dct, '%d/%m/%Y %H:%M:%S')
+            except ValueError:
+                return dct
+        else:
+            return dct
         return dct
+
+    def object_hook(self, dct):
+        return self.decode_object(dct)
 
 def cacheSettings():
     """
