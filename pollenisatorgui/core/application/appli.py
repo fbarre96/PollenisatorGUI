@@ -322,9 +322,8 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "2.6.*"
+    version_compatible = "2.8.*"
 
-    
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
         """Add the tkdnd package to the auto_path, and import it"""
         return tkinterdnd2.TkinterDnD._require(master)
