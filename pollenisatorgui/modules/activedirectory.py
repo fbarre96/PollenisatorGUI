@@ -4,7 +4,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 import os
 import re
-
+from collections.abc import Iterable
 from pollenisatorgui.modules.ActiveDirectory.controllers.sharecontroller import ShareController
 
 from pollenisatorgui.modules.ActiveDirectory.controllers.computercontroller import ComputerController
@@ -376,9 +376,16 @@ class ActiveDirectory(Module):
             return
         if notif["collection"] not in ActiveDirectory.classes:
             return
+        notif_ids = notif["iid"]
+        if isinstance(notif_ids, Iterable):
+            for iid in notif_ids:
+                self.updateOneReceived(notif, ObjectId(iid))
+        else:
+            self.updateOneReceived(notif, ObjectId(notif_ids))
+
+    def updateOneReceived(self, notif, iid):
         apiclient = APIClient.getInstance()
-        res = apiclient.find(notif["collection"], {"_id": ObjectId(notif["iid"])}, False)
-        iid = notif["iid"]
+        res = apiclient.find(notif["collection"], {"_id": iid}, False)
         if notif["action"] == "insert":
             if res is None:
                 return

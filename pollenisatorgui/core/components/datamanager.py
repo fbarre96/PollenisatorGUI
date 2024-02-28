@@ -97,11 +97,14 @@ class DataManager(Subject):
                 if ret is None and fetch_on_none:
                     search = {"ip": ip}
                     ret = REGISTRY[collection].fetchObject(search)
-                    self.data[collection][str(ret.getId())] = ret
-                    self.ip_index[ip] = ret
+                    if ret is not None:
+                        self.data[collection][str(ret.getId())] = ret
+                        self.ip_index[ip] = ret
                 return ret
             if "_id" in search.keys():
                 iid = search["_id"]
+                if iid is None:
+                    return None
                 ret = self.data[collection].get(str(iid), None)
                 if ret is None and fetch_on_none:
                     search = {"_id": ObjectId(iid)}

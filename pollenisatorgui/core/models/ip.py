@@ -252,8 +252,12 @@ class Ip(Element):
         if self.parent is not None:
             return self.parent
         try:
-            if IPAddress(self.ip).is_private():
-                return None
+            try:
+                if IPAddress(self.ip).is_private():
+                    return None
+            except AttributeError:
+                if IPAddress(self.ip).is_ipv4_private_use():
+                    return None
         except AddrFormatError:
             return None
         except ValueError:
