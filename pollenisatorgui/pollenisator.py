@@ -66,7 +66,7 @@ class GracefulKiller:
 #######################################
 
 def get_local_git_version():
-    return "v2.6.0"
+    return "v2.7.1"
 
 def get_latest_github_version():
     try:
