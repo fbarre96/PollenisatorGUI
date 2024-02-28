@@ -463,10 +463,12 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
                 self.forceUpdate(srv_version, Appli.version_compatible)
+                apiclient.disconnect()
                 self.onClosing()
                 return False, True
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
                 self.forceUpdate(srv_version, Appli.version_compatible)
+                apiclient.disconnect()
                 self.onClosing()
                 return False, True
             if self.sio is not None:
