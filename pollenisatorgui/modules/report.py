@@ -412,7 +412,7 @@ class Report(Module):
         if dialog.rvalue != "Delete":
             return
         self.treevw.delete(toDeleteIid)
-        defectToDelete = Defect.fetchObject({"title": item["text"], "target_id":""})
+        defectToDelete = Defect.fetchObject({"title": item["text"], "target_id": None})
         if defectToDelete is not None:
             defectToDelete.delete()
             self.resizeDefectTreeview()

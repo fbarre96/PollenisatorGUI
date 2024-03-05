@@ -94,7 +94,7 @@ class DefectController(ControllerElement):
         perimeter = ",".join([k for k, v in perimeter.items() if v == 1])
         notes = values.get("Notes", "")
         mtype = [k for k, v in mtype_dict.items() if v == 1]
-        target_id = values.get("target_id", "")
+        target_id = values.get("target_id", None)
         target_type = values.get("target_type", "")
         fixes = []
         fixes_inserted = values.get("Fixes", None)

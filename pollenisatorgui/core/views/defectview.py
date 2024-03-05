@@ -190,7 +190,7 @@ class DefectView(ViewElement):
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
         rightPanel = globalPanel.addFormPanel(grid=False, side=tk.RIGHT, fill=tk.BOTH, padx=5)
         row = 0
-        if modelData.get("target_id", "") != "":
+        if modelData.get("target_id", "") is not None:
             leftPanel.addFormLabel("Target", row=row, column=0)
             target = self.controller.getTargetRepr()
             leftPanel.addFormStr(
