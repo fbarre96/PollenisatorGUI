@@ -1017,13 +1017,10 @@ class APIClient():
 
     @handle_api_errors
     def getResult(self, tool_iid, local_path):
-        resultfile = self.getFileName("result", tool_iid)
-        if resultfile is not None:
-            try:
-                return self._get("result", tool_iid, resultfile, local_path)
-            except ErrorHTTP as e:
-                raise e
-        return None
+        try:
+            return self._get("result", tool_iid, None, local_path)
+        except ErrorHTTP as e:
+            raise e
 
     @handle_api_errors
     def getProof(self, defect_iid, filename, local_dir):
@@ -1041,7 +1038,7 @@ class APIClient():
             attached_iid: tool or defect iid depending on filetype
         Returns : filename: remote file file name
         """
-        api_url = '{0}files/{1}/download/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), filetype, str(attached_iid))
+        api_url = '{0}files/{1}/list/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), filetype, str(attached_iid))
         response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             ret = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1052,20 +1049,25 @@ class APIClient():
         return None
 
     @handle_api_errors
-    def _get(self, filetype, attached_iid, filename, local_path):
+    def _get(self, filetype, attached_iid, local_filename, local_path):
         """Download file affiliated with given iid and place it at given path
         Args:
             filetype: 'result' or 'proof' 
             attached_iid: tool or defect iid depending on filetype
-            filename: remote file file name
+            local_filename: local desired file name
             local_path: local file path
         """
-        api_url = '{0}files/{1}/download/{2}/{3}/{4}'.format(self.api_url_base, self.getCurrentPentest(), filetype, attached_iid, filename)
+        api_url = '{0}files/{1}/download/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), filetype, attached_iid)
         response = requests.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        
         if response.status_code == 200:
+            if local_filename is None:
+                local_filename = response.headers.get('Content-Disposition').split('filename=')[1]
+                local_filename = local_filename.replace('"', '')
+                local_filename = os.path.basename(local_filename)
             if not os.path.exists(local_path):
                 os.makedirs(local_path)
-            local_path = os.path.join(local_path, filename)
+            local_path = os.path.join(local_path, local_filename)
             with open(local_path, mode='wb') as f:
                 f.write(response.content)
             return local_path
