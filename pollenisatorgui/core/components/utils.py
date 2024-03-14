@@ -426,7 +426,6 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
             while queueResponse.qsize() > 0 and queueResponse.empty() is False:
                 queueResponse.get(block=False)
             queueResponse.close()
-            queueResponse.join_thread()
     except Exception as e:
         logger.error(f"Utils execute: read_and_forward_pty_output {e}")
     continue_reading = False
