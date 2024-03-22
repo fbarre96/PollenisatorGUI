@@ -362,7 +362,10 @@ class FormTreevw(Form):
         self.resetOddTags()
 
     def addItem(self, parent="", insertPos="0", iid=None, **kwargs):
-        self.treevw.insert(parent, insertPos, iid, **kwargs)
+        try:
+            self.treevw.insert(parent, insertPos, iid, **kwargs)
+        except tk.TclError as e:
+            return None
         self.resetOddTags()
 
     def setValue(self, values):

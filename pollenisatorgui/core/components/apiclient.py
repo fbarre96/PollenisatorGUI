@@ -136,7 +136,7 @@ class APIClient():
         response = requests.post(api_url, data=json.dumps(data), headers=self.headers, proxies=self.proxies, verify=False)
         if response.status_code == 200:
             res_obj = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            return res_obj["answers"], "\n".join(res_obj["errors"])
+            return res_obj["answers"], "\n".join(res_obj.get("errors", []))
         else:
             return None, "Unexpected server response "+str(response.status_code)+"\n"+response.text    
 

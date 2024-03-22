@@ -260,7 +260,6 @@ class DefectView(ViewElement):
             self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, padx=1, height=3, max_height=5, anchor=tk.CENTER, 
                                                     side=tk.RIGHT, auto_size_columns=False,
                                                     doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
-        
             self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  style_change=True, just_editor=True, fill=tk.BOTH, expand=True)
         else:
             globalPanel.addFormHidden("Title", modelData.get("title", ""))
