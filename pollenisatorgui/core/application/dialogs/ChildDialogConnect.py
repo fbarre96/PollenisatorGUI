@@ -208,12 +208,12 @@ class ChildDialogConnect:
         apiclient = APIClient.getInstance()
         apiclient.reinitConnection()
         res = apiclient.tryConnection(config)
-        self.rvalue = False
+        self.rvalue = False, False
         if res:
             #  pylint: disable=len-as-condition
-            loginRes = apiclient.login(self.ent_login.get(), self.password.get())
+            loginRes, mustChangePassword = apiclient.login(self.ent_login.get(), self.password.get())
             if loginRes:
-                self.rvalue = True
+                self.rvalue = True, mustChangePassword
                 self.app.destroy()
             else:
                 tk.messagebox.showerror("Connection failure", "The login/password you entered does not exists")

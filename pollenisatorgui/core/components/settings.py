@@ -293,7 +293,7 @@ class Settings:
                         if tag not in v:
                             apiclient.unregisterTag(apiclient.getCurrentPentest(), tag)
                 else:
-                    apiclient.updatePentestSetting({"key":k, "value": json.dumps(v)})
+                    apiclient.updatePentestSetting([{"key":k, "value": json.dumps(v)}])
 
     def save(self):
         """

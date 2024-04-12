@@ -27,6 +27,7 @@ class ChildDialogEditPassword:
         self.app.bind("<Escape>", self.onError)
         self.askOldPwd = askOldPwd
         self.app.title("Change "+str(username)+" password")
+        self.mustChangePassword = tk.BooleanVar(value=True)
         appFrame = CTkFrame(self.app)
         self.form = FormPanel()
         self.form.addFormLabel("Username")
@@ -35,8 +36,10 @@ class ChildDialogEditPassword:
             self.form.addFormLabel("Old password")
             self.form.addFormStr("Old password", ".+", show="*")
         self.form.addFormLabel("New Password")
-        self.form.addFormStr("New password", ".{8,}", show="*", error_msg="New password must be at least 8 characters long")
-        self.form.addFormButton("OK", self.onOk)
+        self.form.addFormStr("New password", ".{8,}", show="*", error_msg="New password must be at least 12 characters long")
+        if not askOldPwd:
+            self.form.addFormCheckbox("PasswordChange", "Must change password", self.mustChangePassword.get(), side="left")
+        self.form.addFormButton("OK", self.onOk, side="bottom")
         self.rvalue = None
         self.form.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=10)
@@ -50,6 +53,7 @@ class ChildDialogEditPassword:
             pass
 
     def onError(self, _event=None):
+        self.rvalue = False
         self.app.destroy()
 
     def onOk(self, _event=None):
@@ -68,15 +72,23 @@ class ChildDialogEditPassword:
             if self.askOldPwd:
                 oldPwd = form_values_as_dicts["Old password"]
                 msg = apiclient.changeUserPassword(oldPwd, newPwd)
+               
             else:
-                msg = apiclient.resetPassword(username, newPwd)
+                try:
+                    forcePasswordChange = form_values_as_dicts["PasswordChange"]
+
+                    msg = apiclient.resetPassword(username, newPwd, forcePasswordChange)
+                except Exception as e:
+                    msg = str(e)
             if msg != "":
                 tk.messagebox.showwarning(
                     "Change password", msg, parent=self.app)
+            else:
+                success = True
         else:
             tk.messagebox.showwarning(
                 "Form not validated", msg, parent=self.app)
-        
+        self.rvalue = success
         self.app.destroy()
         
 

@@ -284,9 +284,12 @@ class APIClient():
         data = {"username":username, "pwd":passwd}
         response = requests.post(api_url, headers=self.headers, data=json.dumps(data, cls=JSONEncoder), proxies=self.proxies, verify=False)
         if response.status_code == 200:
-            token = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
-            return self.setConnection(token)
-        return response.status_code == 200
+            response = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            token = response["token"]
+            mustChangePwd = response.get("mustChangePassword", False)
+            return self.setConnection(token), mustChangePwd
+        
+        return response.status_code == 200, False
 
     @handle_api_errors
     def getVersion(self):
@@ -1402,7 +1405,7 @@ class APIClient():
         elif response.status_code >= 400:
             raise ErrorHTTP(response)
         return None
- 
+
     @handle_api_errors
     def generateReport(self, templateName, clientName, contractName, mainRedac, lang, additional_context):
         api_url = '{0}report/{1}/generate'.format(self.api_url_base, self.getCurrentPentest())
@@ -1509,9 +1512,9 @@ class APIClient():
         return []
 
     @handle_api_errors
-    def registerUser(self, username, password, name, surname, email):
+    def registerUser(self, username, password, name, surname, email, mustChangePassword=True):
         api_url = '{0}user/register'.format(self.api_url_base)
-        response = requests.post(api_url, headers=self.headers, data=json.dumps({"username":username, "pwd":password, "name":name, "surname":surname,"email":email}), proxies=self.proxies, verify=False)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"username":username, "pwd":password, "name":name, "surname":surname,"email":email, "mustChangePassword":mustChangePassword}), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code >= 400:
@@ -1549,9 +1552,9 @@ class APIClient():
         return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
 
     @handle_api_errors
-    def resetPassword(self, username, newPwd):
+    def resetPassword(self, username, newPwd, forceChangePassword=True):
         api_url = '{0}admin/resetPassword'.format(self.api_url_base)
-        response = requests.post(api_url, headers=self.headers, data=json.dumps({"username":username, "newPwd":newPwd}), proxies=self.proxies, verify=False)
+        response = requests.post(api_url, headers=self.headers, data=json.dumps({"username":username, "newPwd":newPwd, "mustChangePassword":forceChangePassword}), proxies=self.proxies, verify=False)
         if response.status_code == 200:
             return ""
         elif response.status_code >= 400:

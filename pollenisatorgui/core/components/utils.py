@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 from threading import Timer
 import json
+from typing import Tuple
 from netaddr import IPNetwork
 import pty
 from netaddr.core import AddrFormatError
@@ -879,7 +880,20 @@ def which_expand_alias(what):
     else:
         return stdout.strip()
 
-def expand_alias(what):
+def getPreferedShell() -> Tuple[str, str]:
+    """
+    Return the prefered shell of the user and the rc_file if configured.
+    The search order is:
+        1. the terminal in the local settings (key = terminal)
+        2. the SHELL environment variable
+        3. ZSH if the ZSH environment variable is set
+        4. /bin/bash
+    
+    Then , the rc file is searched in the local settings (key = rc_file) or in the home directory of the user .$shell_name.rc
+
+    Returns:
+        Tuple[str, str]: the shell and the rc file path
+    """
     settings = cacheSettings()
     settings.reloadLocalSettings()
     is_there_zsh = os.environ.get("ZSH",None) is not None
@@ -889,7 +903,11 @@ def expand_alias(what):
     if rc_file == "":
         home = expanduser("~")
         rc_file = os.path.join(home,"."+os.path.basename(terminal)+"rc") # rc file is not loaded automatically
-    proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
+    return terminal, rc_file
+
+def expand_alias(what):
+    shell, rcfile = getPreferedShell()
+    proc = subprocess.run(f"source {rcfile} && which {what}", executable=shell, shell=True, stdout=subprocess.PIPE)
     if proc.returncode == 0 or proc.returncode == 1:
         stdout = proc.stdout.decode("utf-8")
         return stdout.strip()

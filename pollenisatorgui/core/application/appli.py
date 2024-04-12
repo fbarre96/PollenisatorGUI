@@ -596,6 +596,12 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         apiclient.reinitConnection()
         connectDialog = ChildDialogConnect(self)
         self.wait_window(connectDialog.app)
+        if connectDialog.rvalue is None:
+            return False
+        result, mustChangePassword = connectDialog.rvalue
+        if result:
+            while mustChangePassword:
+                mustChangePassword = not self.changeMyPassword()
         return connectDialog.rvalue
 
     def changeMyPassword(self):
@@ -607,6 +613,7 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
             return 
         dialog = ChildDialogEditPassword(self, connected_user)
         self.wait_window(dialog.app)
+        return dialog.rvalue
         
     def disconnect(self):
         """Remove the session cookie"""
