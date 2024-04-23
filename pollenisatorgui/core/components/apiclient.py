@@ -1120,7 +1120,7 @@ class APIClient():
     def importToolResult(self, tool_iid, parser, local_path):
         api_url = '{0}tools/{1}/importResult/{2}'.format(self.api_url_base, self.getCurrentPentest(), tool_iid)
         if not os.path.isfile(local_path):
-            return "Failure to open provided file"
+            return "Failure to open provided file "+str(local_path)
         with io.open(local_path, mode='rb') as f:
             h = self.headers.copy()
             h.pop("Content-Type", None)

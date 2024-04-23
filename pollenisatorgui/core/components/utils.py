@@ -357,8 +357,14 @@ def fitNowTime(dated, datef):
         True if the current time is between the given interval. False otherwise.
         If one of the args is None, returns False."""
     today = datetime.now()
-    date_start = stringToDate(dated)
-    date_end = stringToDate(datef)
+    if isinstance(dated, str):
+        date_start = stringToDate(dated)
+    else:
+        date_start = dated
+    if isinstance(datef, str):
+        date_end = stringToDate(datef)
+    else:
+        date_end = datef
     if date_start is None or date_end is None:
         return False
     return today > date_start and date_end > today
@@ -472,7 +478,6 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
             logger.debug("Exit finally for command "+str(command))
             sys.exit(0)
     else:
-        
         p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout])
         p.start()
         p.join()

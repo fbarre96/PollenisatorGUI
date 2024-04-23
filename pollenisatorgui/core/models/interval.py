@@ -119,10 +119,12 @@ class Interval(Element):
             a string formated as datetime format : '%d/%m/%Y %H:%M:%S'
         """
         ret = None
-        if(type(datestring) == str or type(datestring) == str):
+        if (isinstance(datestring, str)):
             if datestring != "None":
                 ret = datetime.strptime(
                     datestring, '%d/%m/%Y %H:%M:%S')
+        if (isinstance(datestring, datetime)):
+            ret = datestring
         return ret
 
     def getEndingDate(self):
