@@ -60,7 +60,7 @@ class SharedNotes(Module):
         if isinstance(text, dict) and len(text) == 0:
             text = ""
         self.mdFrame.text_area.insert(tk.INSERT, text)
- 
+
     def initUI(self, parent):
         """
         Initialize Dashboard widgets

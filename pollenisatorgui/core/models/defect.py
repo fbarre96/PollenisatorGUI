@@ -37,7 +37,7 @@ class Defect(Element):
             types = [types]
         else:
             types = list(types)
-        self.initialize(valuesFromDb.get("target_id", ""), valuesFromDb.get("target_type", ""),
+        self.initialize(valuesFromDb.get("target_id"), valuesFromDb.get("target_type", ""),
                          valuesFromDb.get("title", ""), valuesFromDb.get("synthesis", ""), valuesFromDb.get("description", ""),
                         valuesFromDb.get("ease", ""), valuesFromDb.get(
                             "impact", ""),
@@ -46,12 +46,12 @@ class Defect(Element):
                         valuesFromDb.get("language", ""),
                         valuesFromDb.get("notes", ""), valuesFromDb.get("creation_time", None),
                         valuesFromDb.get("fixes", []), valuesFromDb.get("proofs", []), valuesFromDb.get("infos", {}),
-                        valuesFromDb.get("index", "0"), valuesFromDb.get("isTemplate", False), valuesFromDb.get("perimeter", ""))
+                        valuesFromDb.get("index", 0), valuesFromDb.get("isTemplate", False), valuesFromDb.get("perimeter", ""))
 
-    def initialize(self, target_id="", target_type="", title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0", isTemplate=False, perimeter=None):
+    def initialize(self, target_id=None, target_type="", title="", synthesis="", description="", ease="", impact="", risk="", redactor="N/A", mtype=None, language="", notes="", creation_time=None, fixes=None, proofs=None, infos=None, index="0", isTemplate=False, perimeter=None):
         """Set values of defect
         Args:
-            target_id: defect will be assigned to this id; can be empty
+            target_id: defect will be assigned to this id; can be None
             target_type: defect will be assigned to target_id of this type
             title: a title for this defect describing what it is
             synthesis: a short summary of what this defect is about
@@ -82,12 +82,12 @@ class Defect(Element):
         self.mtype = mtype if mtype is not None else []
         self.language = language
         self.notes = notes
-        self.target_id = target_id
+        self.target_id = ObjectId(target_id) if target_id is not None else None
         self.target_type = target_type
         self.infos = infos if infos is not None else {}
         self.proofs = proofs if proofs is not None else []
         self.fixes = fixes if fixes is not None else []
-        self.index = index
+        self.index = int(index)
         self.creation_time = creation_time
         self.perimeter = perimeter
         self.isTemplate = isTemplate
@@ -248,7 +248,7 @@ class Defect(Element):
         if pipeline_set is None:
             apiclient.update("defects", ObjectId(self._id), {"target_id":self.target_id, "target_type":self.target_type, "title": self.title, "synthesis":self.synthesis, "description":self.description,
                          "notes": self.notes, "ease": self.ease, "impact": self.impact,
-                         "risk": self.risk, "redactor": self.redactor, "type": list(self.mtype), "language":self.language, "proofs": self.proofs, "fixes":self.fixes, "infos": self.infos, "index":str(self.index)})
+                         "risk": self.risk, "redactor": self.redactor, "type": list(self.mtype), "language":self.language, "proofs": self.proofs, "fixes":self.fixes, "infos": self.infos, "index":int(self.index)})
         else:
             apiclient.update("defects", ObjectId(self._id), pipeline_set)
 
@@ -359,7 +359,7 @@ class Defect(Element):
         Returns:
             bool
         """
-        return self.target_id != ""
+        return self.target_id is not None
 
     @classmethod
     def getDefectTable(cls):
@@ -372,7 +372,7 @@ class Defect(Element):
     @classmethod
     def fetchPentestObjects(cls):
         apiclient = APIClient.getInstance()
-        ds = apiclient.find(cls.coll_name, {"target_id":{"$ne":""}}, True)
+        ds = apiclient.find(cls.coll_name, {"target_id":{"$ne":None}}, True)
         if ds is None:
             return None
         for d in ds:
@@ -386,5 +386,5 @@ class Defect(Element):
         """
         return {"title": self.title, "synthesis":self.synthesis, "description":self.description, "ease": self.ease, "impact": self.impact,
                 "risk": self.risk, "redactor": self.redactor, "type": self.mtype, "language":self.language, "notes": self.notes, "fixes":self.fixes,
-                "target_id": self.target_id, "target_type": self.target_type,"index":self.index, "creation_time":self.creation_time,
+                "target_id": self.target_id, "target_type": self.target_type,"index":int(self.index), "creation_time":self.creation_time,
                 "proofs": self.proofs, "_id": self.getId(),"infos": self.infos}

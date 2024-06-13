@@ -412,7 +412,7 @@ class Report(Module):
         if dialog.rvalue != "Delete":
             return
         self.treevw.delete(toDeleteIid)
-        defectToDelete = Defect.fetchObject({"title": item["text"], "target_id":""})
+        defectToDelete = Defect.fetchObject({"title": item["text"], "target_id": None})
         if defectToDelete is not None:
             defectToDelete.delete()
             self.resizeDefectTreeview()
@@ -722,7 +722,7 @@ def generateReport(tkApp, dialog, modele, mainRedac, curr_lang):
     apiclient = APIClient.getInstance()
     settings = Settings()
     settings._reloadDbSettings()
-    additional_context = {}
+    additional_context = {"clientName":settings.getClientName(), "missionName":settings.getMissionName()}
     for module in tkApp.modules:
         if callable(getattr(module["object"], "onGenerateReport", None)):
                 result = module["object"].onGenerateReport()

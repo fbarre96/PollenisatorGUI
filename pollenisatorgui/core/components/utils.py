@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 from threading import Timer
 import json
+from typing import Tuple
 from netaddr import IPNetwork
 import pty
 from netaddr.core import AddrFormatError
@@ -356,8 +357,14 @@ def fitNowTime(dated, datef):
         True if the current time is between the given interval. False otherwise.
         If one of the args is None, returns False."""
     today = datetime.now()
-    date_start = stringToDate(dated)
-    date_end = stringToDate(datef)
+    if isinstance(dated, str):
+        date_start = stringToDate(dated)
+    else:
+        date_start = dated
+    if isinstance(datef, str):
+        date_end = stringToDate(datef)
+    else:
+        date_end = datef
     if date_start is None or date_end is None:
         return False
     return today > date_start and date_end > today
@@ -426,7 +433,6 @@ def read_and_forward_pty_output(fd, child_pid, queue, queueResponse, printStdout
             while queueResponse.qsize() > 0 and queueResponse.empty() is False:
                 queueResponse.get(block=False)
             queueResponse.close()
-            queueResponse.join_thread()
     except Exception as e:
         logger.error(f"Utils execute: read_and_forward_pty_output {e}")
     continue_reading = False
@@ -472,7 +478,6 @@ def execute(command, timeout=None, queue=None, queueResponse=None, cwd=None, pri
             logger.debug("Exit finally for command "+str(command))
             sys.exit(0)
     else:
-        
         p = multiprocessing.Process(target=read_and_forward_pty_output, args=[fd, child_pid, queue, queueResponse, printStdout])
         p.start()
         p.join()
@@ -880,7 +885,20 @@ def which_expand_alias(what):
     else:
         return stdout.strip()
 
-def expand_alias(what):
+def getPreferedShell() -> Tuple[str, str]:
+    """
+    Return the prefered shell of the user and the rc_file if configured.
+    The search order is:
+        1. the terminal in the local settings (key = terminal)
+        2. the SHELL environment variable
+        3. ZSH if the ZSH environment variable is set
+        4. /bin/bash
+    
+    Then , the rc file is searched in the local settings (key = rc_file) or in the home directory of the user .$shell_name.rc
+
+    Returns:
+        Tuple[str, str]: the shell and the rc file path
+    """
     settings = cacheSettings()
     settings.reloadLocalSettings()
     is_there_zsh = os.environ.get("ZSH",None) is not None
@@ -890,7 +908,11 @@ def expand_alias(what):
     if rc_file == "":
         home = expanduser("~")
         rc_file = os.path.join(home,"."+os.path.basename(terminal)+"rc") # rc file is not loaded automatically
-    proc = subprocess.run(f"source {rc_file} && which {what}", executable=terminal, shell=True, stdout=subprocess.PIPE)
+    return terminal, rc_file
+
+def expand_alias(what):
+    shell, rcfile = getPreferedShell()
+    proc = subprocess.run(f"source {rcfile} && which {what}", executable=shell, shell=True, stdout=subprocess.PIPE)
     if proc.returncode == 0 or proc.returncode == 1:
         stdout = proc.stdout.decode("utf-8")
         return stdout.strip()

@@ -100,7 +100,10 @@ class ScanManager:
             tk.messagebox.showwarning("No selected worker found", "A worker exist but is not registered for this pentest. You might want to register it by double clicking on it or using the Use button.")
             return False
         dialog = ChildDialogAutoScanParams(self.parent)
-        dialog.wait_window()
+        try:
+            dialog.wait_window()
+        except:
+            pass
         params = dialog.rvalue
         if params is None:
             return
@@ -577,7 +580,10 @@ class ScanManager:
         results = self.mainApp.testLocalTools()
         if len(results["failures"]) > 0:
             dialog = ChildDialogToolsInstalled(results)
-            dialog.wait_window()
+            try:
+                dialog.wait_window()
+            except:
+                pass
             if dialog.rvalue is not None:
                 self.settings.local_settings["my_commands"] = dialog.rvalue
                 self.settings.saveLocalSettings()

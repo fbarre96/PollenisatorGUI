@@ -107,7 +107,6 @@ def consoleConnect(force=False, askPentest=True):
     abandon = False
     if force:
         apiclient.disconnect()
-    
     while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
         success = promptForConnection() is None
     if apiclient.isConnected() and askPentest:
@@ -136,7 +135,15 @@ def promptForConnection():
         username_result = input(f'Please input username:')
         password_result = getpass(prompt=f'Please input password:')
         #  pylint: disable=len-as-condition
-        loginRes = apiclient.login(username_result, password_result)
+        loginRes, mustChangePassword = apiclient.login(username_result, password_result)
+        if loginRes:
+            if mustChangePassword:
+                print("You must change your password, connect through a web or graphical client please.")
+                return False
+            else:
+                return loginRes
+        else:
+            print("Failed to login.")
         return loginRes
     else:
         print("Failed to contact this server.")

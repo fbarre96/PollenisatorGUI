@@ -322,9 +322,8 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
     """
     Main tkinter graphical application object.
     """
-    version_compatible = "2.7.*"
+    version_compatible = "2.9.*"
 
-    
     def _init_tkdnd(master: tk.Tk) -> None: #HACK to make work tkdnd with CTk
         """Add the tkdnd package to the auto_path, and import it"""
         return tkinterdnd2.TkinterDnD._require(master)
@@ -464,10 +463,12 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
             srv_version = apiclient.getVersion()
             if int(Appli.version_compatible.split(".")[0]) != int(srv_version.split(".")[0]):
                 self.forceUpdate(srv_version, Appli.version_compatible)
+                apiclient.disconnect()
                 self.onClosing()
                 return False, True
             if int(Appli.version_compatible.split(".")[1]) != int(srv_version.split(".")[1]):
                 self.forceUpdate(srv_version, Appli.version_compatible)
+                apiclient.disconnect()
                 self.onClosing()
                 return False, True
             if self.sio is not None:
@@ -595,6 +596,12 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         apiclient.reinitConnection()
         connectDialog = ChildDialogConnect(self)
         self.wait_window(connectDialog.app)
+        if connectDialog.rvalue is None:
+            return False
+        result, mustChangePassword = connectDialog.rvalue
+        if result:
+            while mustChangePassword:
+                mustChangePassword = not self.changeMyPassword()
         return connectDialog.rvalue
 
     def changeMyPassword(self):
@@ -606,6 +613,7 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
             return 
         dialog = ChildDialogEditPassword(self, connected_user)
         self.wait_window(dialog.app)
+        return dialog.rvalue
         
     def disconnect(self):
         """Remove the session cookie"""

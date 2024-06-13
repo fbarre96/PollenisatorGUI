@@ -196,7 +196,8 @@ setup(
             'pollex=pollenisatorgui.pollex:pollex',
             'pollup=pollenisatorgui.pollenisator:pollup',
             'pollwatch=pollenisatorgui.pollenisator:pollwatch',
-            'pollworker=pollenisatorgui.pollworker:pollworker'
+            'pollworker=pollenisatorgui.pollworker:pollworker',
+            'pollterminal=pollenisatorgui.pollterminal:pollterminal'
         ],
     },
 

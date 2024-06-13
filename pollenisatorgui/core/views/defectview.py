@@ -190,7 +190,7 @@ class DefectView(ViewElement):
         leftPanel = globalPanel.addFormPanel(grid=True, side=tk.LEFT, fill=tk.Y, anchor="center")
         rightPanel = globalPanel.addFormPanel(grid=False, side=tk.RIGHT, fill=tk.BOTH, padx=5)
         row = 0
-        if modelData.get("target_id", "") != "":
+        if modelData.get("target_id", "") is not None:
             leftPanel.addFormLabel("Target", row=row, column=0)
             target = self.controller.getTargetRepr()
             leftPanel.addFormStr(
@@ -260,7 +260,6 @@ class DefectView(ViewElement):
             self.fix_treevw = fixesPane.addFormTreevw("Fixes", ("Title", "Execution", "Gain"), values, padx=1, height=3, max_height=5, anchor=tk.CENTER, 
                                                     side=tk.RIGHT, auto_size_columns=False,
                                                     doubleClickBinds=[self.onFixDoubleClick, self.onFixDoubleClick, self.onFixDoubleClick])
-        
             self.description_form = rightPanel.addFormMarkdown("Description", r"", modelData.get("description", "Description"),  style_change=True, just_editor=True, fill=tk.BOTH, expand=True)
         else:
             globalPanel.addFormHidden("Title", modelData.get("title", ""))
