@@ -27,10 +27,11 @@ def pollex_exec(execCmd, verbose=False):
     import tempfile
     import time
     from pollenisatorgui.core.components.apiclient import APIClient
+    from pollenisatorgui.core.components.settings import Settings
     from pollenisatorgui.pollenisator import consoleConnect, parseDefaultTarget
     import pollenisatorgui.core.components.utils as utils
 
-    cmdName = os.path.splitext(os.path.basename(execCmd.split(" ")[0]))[0]
+    cmdName = os.path.splitext(os.path.basename(bin_name))[0]
     apiclient = APIClient.getInstance()
     apiclient.tryConnection()
     res = apiclient.tryAuth()
@@ -39,12 +40,12 @@ def pollex_exec(execCmd, verbose=False):
     res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
     (success, data) = res
     if not success:
-        print(msg)
+        print(data)
         consoleConnect()
     res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
     (success, data) = res
     if not success:
-        print(msg)
+        print(data)
         return
     cmdName +="::"+str(time.time()).replace(" ","-")
     default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
@@ -57,7 +58,20 @@ def pollex_exec(execCmd, verbose=False):
     if not data:
         print("ERROR : An error as occured : "+str(data))
         return
-    comm = data["command_line_options"]
+    settings = Settings()
+    settings.reloadLocalSettings()
+    my_commands = settings.local_settings.get("my_commands", {})
+    path_to_check = set()
+    bin_path = my_commands.get(bin_name, None)
+    if bin_path is not None:
+        path_to_check.add(bin_path)
+    path_to_check.add(bin_name)
+    bin_path_found, result_msg = utils.checkPaths(list(path_to_check))
+    if not bin_path_found:
+        print("ERROR : "+result_msg)
+        return
+    new_bin_path = result_msg
+    comm = data["command_line_options"].replace(bin_name, new_bin_path, 1)
     plugin_results = data["plugin_results"]
     if (verbose):
         print("INFO : Matching plugins are "+str(data["plugin_results"]))

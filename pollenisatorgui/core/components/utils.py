@@ -884,6 +884,15 @@ def which_expand_alias(what):
         return stdout.split("aliased to ")[1].strip()
     else:
         return stdout.strip()
+    
+def checkPaths(appnames):
+    if isinstance(appnames, str):
+        appnames = [appnames]
+    for appname in appnames:
+        path = which_expand_alias(appname)
+        if path is not None:
+            return True, path
+    return False, "App name not found, create an alias or install it. ("+", ".join(appnames)+" were tested)"
 
 def getPreferedShell() -> Tuple[str, str]:
     """

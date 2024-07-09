@@ -188,7 +188,6 @@ class TerminalsWidget(CTkFrame):
             window.select_window()
             window.panes[0].send_keys(commandline)
 
-
     def open_ro_terminal(self, iid, title, tool_controller, scanManager):
         if iid is not None:
             self.create_ro_window(iid, title, tool_controller, scanManager)

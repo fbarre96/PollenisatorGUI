@@ -54,6 +54,7 @@ class TerminalWorker:
 
     def startTerminalSession(self, data):
         session_id = data.get("id", None)
+        target_check_iid = data.get("target_check_iid", None)
         if session_id is None:
             return
         if session_id in self.sessions:
@@ -63,7 +64,8 @@ class TerminalWorker:
             "pid": None,
             "cmd": self.cmd,
             "timer": None,
-            "connected": False
+            "connected": False,
+            "target_check_iid": target_check_iid,
         }
         (child_pid, fd) = pty.fork()
         if child_pid != 0:
@@ -82,7 +84,11 @@ class TerminalWorker:
             )
             logger.info("task started")
         else:
-            subprocess.run(self.cmd,  shell=True)
+            environ = os.environ.copy()
+            target_iid = self.sessions[session_id].get("target_check_iid", None)
+            if target_iid:
+                environ["POLLENISATOR_DEFAULT_TARGET"] = target_iid
+            subprocess.run(self.cmd,  shell=True, env=environ)
         
     def stopTerminalSession(self, data):
         session_id = data.get("id", None)
@@ -95,8 +101,6 @@ class TerminalWorker:
             os.close(session["fd"])
         if session["pid"]:
             os.kill(session["pid"], 9)
-        if session["timer"]:
-            session["timer"].cancel()
         del self.sessions[session_id]
 
     def sendInput(self, data):
@@ -122,7 +126,7 @@ class TerminalWorker:
             logger.debug(f"Resizing window to {dims['rows']}x{dims['cols']}")
             set_winsize(session["fd"], dims["rows"], dims["cols"])
 
-    def connect(self, name, force_reconnect=False):
+    def connect(self, name, plugins, force_reconnect=False):
         apiclient = APIClient.getInstance()
         if force_reconnect:
             apiclient.disconnect()
@@ -133,15 +137,21 @@ class TerminalWorker:
         if apiclient.isConnected() is False or apiclient.getCurrentPentest() == "":
             return
         self.sio.connect(apiclient.api_url)
-        self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "pentest":apiclient.getCurrentPentest()})
+        self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
         self.connected = False
         @self.sio.on("testTerminal")
         def test(data):
             print("Got terminal test "+str(data))
+
         @self.sio.on("consumer_connected")
         def consumer_connected(data):
             print("Got terminal consumer_connected "+str(data))
             self.connected = True
+
+        @self.sio.on("consumer_disconnected")
+        def consumer_disconnected(data):
+            print("Got terminal consumer_disconnected "+str(data))
+            self.connected = False
 
         @self.sio.on("proxy-term")
         def proxy_term(data):
