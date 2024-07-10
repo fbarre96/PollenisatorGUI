@@ -21,7 +21,13 @@ class ScanWorker:
     def connect(self, name):
         self.name = name
         apiclient = APIClient.getInstance()
-        self.sio.connect(apiclient.api_url)
+        try:
+            self.sio.connect(apiclient.api_url)
+        except socketio.exceptions.ConnectionError as e:
+            if(e.args[0] == "Already connected"):
+                pass
+            else:
+                raise e
         plugins = list(set(self.settings.local_settings.get("my_commands",{}).keys()))
         print("REGISTER "+str(self.name))
         print("supported plugins "+str(plugins))

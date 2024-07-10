@@ -5,6 +5,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.logger_config import logger
 from pollenisatorgui.pollenisator import consoleConnect
+from pollenisatorgui.core.components.scanworker import ScanWorker
 import pty
 import os
 import subprocess
@@ -19,23 +20,18 @@ def set_winsize(fd, row, col, xpix=0, ypix=0):
     winsize = struct.pack("HHHH", row, col, xpix, ypix)
     fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
 
-class TerminalWorker:
+class TerminalWorker(ScanWorker):
     
     def __init__(self, settings):
-        self.settings = settings
-        self.sio = socketio.Client()
+        super().__init__(settings)
         self.name = ""
         self.pid = None
         self.fd = None
-        self.timer = None
-        self.local_scans = dict()
         self.connected = False
         self.sessions = {}
         terminal, _ = utils.getPreferedShell()
         self.cmd = [terminal]
 
-    def wait(self):
-        self.sio.wait() 
 
          
     def read_and_forward_pty_output(self, session_id):
@@ -113,6 +109,11 @@ class TerminalWorker:
         if session["fd"]:
             logger.debug("received input from browser: %s" % data["input"])
             os.write(session["fd"], data["input"].encode())
+
+    def sendStop(self, session):
+        if session["fd"]:
+            print("sending Ctrl+c to session")
+            os.write(session["fd"], b"\x03")
     
     def resize(self, data):
         session_id = data.get("id", None)
@@ -130,6 +131,7 @@ class TerminalWorker:
         apiclient = APIClient.getInstance()
         if force_reconnect:
             apiclient.disconnect()
+        self.name = name
         apiclient.tryConnection()
         res = apiclient.tryAuth()
         if not res:
@@ -137,7 +139,7 @@ class TerminalWorker:
         if apiclient.isConnected() is False or apiclient.getCurrentPentest() == "":
             return
         self.sio.connect(apiclient.api_url)
-        self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
+        self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "name":name, "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
         self.connected = False
         @self.sio.on("testTerminal")
         def test(data):
@@ -164,3 +166,19 @@ class TerminalWorker:
                 self.sendInput(data)
             if data.get("action", "") == "pty-resize":
                 self.resize(data)
+
+        @self.sio.on("stop-terminal-command")
+        def stop_terminal_command(data):
+            print("Got stop-terminal-command "+str(data))
+            for session_id, session_data in self.sessions.items():
+                target = session_data.get("target_check_iid")
+                print("Target is "+str(target))
+                parts = target.split("|")
+                if len(parts) >= 2:
+                    tool_iid = parts[1]
+                    print("If tool iid is "+str(tool_iid)+" == "+str(data.get("tool_iid")))
+                    if tool_iid == data.get("tool_iid"):
+                        print("SEndingStop to session if fd")
+                        self.sendStop(session_data)
+
+        super().connect(name)
