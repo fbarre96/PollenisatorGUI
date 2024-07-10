@@ -225,9 +225,9 @@ class CheckInstanceView(ViewElement):
         if dict_of_tools_running:
             formCommands = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5, grid=True)
             row=0
-            for tool_iid, tool_string in dict_of_tools_running.items():
+            for tool_iid, tool_data in dict_of_tools_running.items():
                 formCommands.addFormSeparator(row=row, column=0, columnspan=3)
-                formCommands.addFormButton(tool_string, self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
+                formCommands.addFormButton(tool_data.get("detailed_string", ""), self.openToolDialog, row=row*2+1, column=0,style="link.TButton", infos={"iid":tool_iid})
                 tool_model = datamanager.get("tools", tool_iid)
                 form_str = formCommands.addFormStr("commandline", "", tool_model.text, status="disabled", width=550, row=row*2+1, column=2)
                 formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=3, width=0, image=self.buttonRunImage)

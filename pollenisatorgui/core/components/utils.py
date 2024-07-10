@@ -808,6 +808,7 @@ def drop_file_event_parser(event):
 
 def openPathForUser(path, folder_only=False):
     path_to_open = os.path.dirname(path) if folder_only else path
+    path_to_open = os.path.normpath(path_to_open)
     cmd = ""
     if which("xdg-open"):
         cmd = "xdg-open "+path_to_open
