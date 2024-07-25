@@ -201,7 +201,7 @@ class CheckInstanceView(ViewElement):
             for tool_iid, tool_string in dict_of_tools_not_done.items():
                 success, data = apiclient.getCommandLine(tool_iid)
                 if success:
-                    comm = data
+                    comm, fileext = data["comm"], data["ext"]
                     toolModel =  Tool.fetchObject({"_id":ObjectId(tool_iid)})
                     if toolModel is None:
                         continue
