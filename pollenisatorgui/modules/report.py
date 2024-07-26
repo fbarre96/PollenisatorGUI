@@ -98,12 +98,12 @@ class Report(Module):
         self.parent = parent
         ### MAIN PAGE FRAME ###
         self.reportFrame = CTkScrollableFrame(parent)
-        self.image_add = CTkImage(Image.open(utils.getIcon("plus.png")))
-        self.image_del = CTkImage(Image.open(utils.getIcon("delete.png")))
-        self.image_edit = CTkImage(Image.open(utils.getIcon("stylo.png")))
-        self.image_docs = CTkImage(Image.open(utils.getIcon("documents.png")))
-        self.image_word = CTkImage(Image.open(utils.getIcon("word.png")))
-        self.image_ppt = CTkImage(Image.open(utils.getIcon("ppt.png")))
+        self.image_add = CTkImage(Image.open(utilsUI.getIcon("plus.png")))
+        self.image_del = CTkImage(Image.open(utilsUI.getIcon("delete.png")))
+        self.image_edit = CTkImage(Image.open(utilsUI.getIcon("stylo.png")))
+        self.image_docs = CTkImage(Image.open(utilsUI.getIcon("documents.png")))
+        self.image_word = CTkImage(Image.open(utilsUI.getIcon("word.png")))
+        self.image_ppt = CTkImage(Image.open(utilsUI.getIcon("ppt.png")))
         ### DEFECT TABLE ###
         self.rowHeight = 20
         self.style = ttk.Style()
@@ -133,7 +133,7 @@ class Report(Module):
         btn_addRemark.pack(side=tk.TOP, anchor=tk.CENTER, pady=5)	
         btn_delRemark = CTkButton(	
             frameButtonsRemark, text="Remove selection", image=self.image_del, command=self.deleteSelectedRemarkItem,
-                                    fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                                    fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")	
         btn_delRemark.pack(side=tk.TOP, anchor=tk.CENTER, pady=5)	
         frameButtonsRemark.grid(row=0, column=2, sticky=tk.W + tk.E)	
@@ -187,8 +187,8 @@ class Report(Module):
         frameBtn = CTkFrame(self.frameTw)
         #lbl_help = FormHelper("DefectHelper", "Use del to delete a defect, use Alt+Arrows to order them")
         #lbl_help.constructView(frameBtn)
-        self.buttonUpImage = CTkImage(Image.open(utils.getIcon("up-arrow.png")))
-        self.buttonDownImage = CTkImage(Image.open(utils.getIcon('down-arrow.png')))
+        self.buttonUpImage = CTkImage(Image.open(utilsUI.getIcon("up-arrow.png")))
+        self.buttonDownImage = CTkImage(Image.open(utilsUI.getIcon('down-arrow.png')))
         # use self.buttonPhoto
         frame_up_down = CTkFrame(frameBtn)
         btn_down = CTkButton(frame_up_down,  text = "", width=20, image=self.buttonDownImage, command=self.bDown)
@@ -197,7 +197,7 @@ class Report(Module):
         btn_up.pack(side="left", anchor="center")
         frame_up_down.pack(side=tk.TOP, anchor=tk.CENTER)
         btn_delDefect = CTkButton(
-            frameBtn, text="Remove selection", command=self.deleteSelectedItem, image=self.image_del, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+            frameBtn, text="Remove selection", command=self.deleteSelectedItem, image=self.image_del, fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         btn_delDefect.pack(side=tk.TOP, pady=5)
         btn_addDefect = CTkButton(
@@ -228,7 +228,7 @@ class Report(Module):
         lbl.grid(row=0, column=0, sticky=tk.E)
         self.combo_word = CTkComboBox(templatesFrame, values=self.docx_models, width=300)
         self.combo_word.grid(row=0, column=1)
-        self.btn_template_photo = CTkImage(Image.open(utils.getIcon("download.png")))
+        self.btn_template_photo = CTkImage(Image.open(utilsUI.getIcon("download.png")))
         btn_word = CTkButton(
             templatesFrame, text="Generate", image=self.image_word, command=self.generateReportWord)
         btn_word.grid(row=0, column=2, sticky=tk.E, padx=5)

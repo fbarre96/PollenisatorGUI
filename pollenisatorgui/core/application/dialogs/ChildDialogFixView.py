@@ -4,7 +4,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class ChildDialogFixView:
     """
@@ -57,7 +57,7 @@ class ChildDialogFixView:
         detailedFrame.pack(fill=tk.BOTH, ipady=10, ipadx=10, expand=True)
         btn_frame = CTkFrame(topFrame)
         cancel_button = CTkButton(btn_frame, text="Cancel", 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         cancel_button.pack(side="left", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)

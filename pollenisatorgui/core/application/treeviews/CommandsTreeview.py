@@ -10,7 +10,7 @@ from pollenisatorgui.core.controllers.commandcontroller import CommandController
 from pollenisatorgui.core.application.treeviews.PollenisatorTreeview import PollenisatorTreeview
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class CommandsTreeview(PollenisatorTreeview):
     """CommandsTreeview class
@@ -170,7 +170,7 @@ class CommandsTreeview(PollenisatorTreeview):
         Create the contextual menu
         """
         
-        self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
+        self.contextualMenu = utilsUI.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.add_command(
             label="Add command", command=self.addCommand)
         self.contextualMenu.add_command(

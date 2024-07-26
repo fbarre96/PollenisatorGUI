@@ -2,7 +2,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class ChildDialogAskText:
@@ -19,12 +19,12 @@ class ChildDialogAskText:
             default_path: a default path to be added
         """
         from pollenisatorgui.core.forms.formpanel import FormPanel
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app = CTkToplevel(parent, fg_color=utilsUI.getBackgroundColor())
         self.app.attributes("-type", "dialog")
         fullscreen = False
         if kwargs.get("fullscreen", False):
             fullscreen = True
-            monitor = utils.get_screen_where_widget(parent)
+            monitor = utilsUI.get_screen_where_widget(parent)
             self.app.geometry(f"{monitor.width}x{monitor.height}+{monitor.x}+{monitor.y}")
             del kwargs["fullscreen"]
         self.app.title(info)
@@ -55,7 +55,7 @@ class ChildDialogAskText:
             self.formText = self.form.addFormStr(info, "", default, side=tk.TOP, show=show, **kwargs)
         btn = self.form.addFormButton("OK", self.onOk, side=tk.RIGHT)
         self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT, 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
 
         self.form.constructView(appFrame)

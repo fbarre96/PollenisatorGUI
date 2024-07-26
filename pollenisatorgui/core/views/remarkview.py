@@ -39,7 +39,7 @@ class RemarkView(ViewElement):
 
         if cache is None:
             from PIL import Image, ImageTk
-            path = utils.getIcon(cls.getIconName(typeOfRemark))
+            path = utilsUI.getIcon(cls.getIconName(typeOfRemark))
             cls.cached_icons[typeOfRemark] = ImageTk.PhotoImage(Image.open(path))
             return cls.cached_icons[typeOfRemark]
         return cache
@@ -77,7 +77,7 @@ class RemarkView(ViewElement):
         
         topPanel = self.form.addFormPanel(grid=True, side="right")
         head = topPanel.addFormPanel(grid=True, row=0)
-        self.imgTypeForm = head.addFormImage(utils.getIcon(RemarkView.getIconName(modelData["type"])))
+        self.imgTypeForm = head.addFormImage(utilsUI.getIcon(RemarkView.getIconName(modelData["type"])))
         self.comboTypeForm = head.addFormCombo("Type", ["Positive","Neutral","Negative"], command=self.updateImage, column=1, default=modelData["type"], binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         self.comboTypeForm.configure(command=self.updateImage)
         head.addFormStr("Title", r".+", "", column=2, placeholder_text="Title")
@@ -105,7 +105,7 @@ class RemarkView(ViewElement):
         s = search_panel.addFormSearchBar("Search Remark", self.searchCallback, self.form, row=1)
 
         topPanel = self.form.addFormPanel(grid=True, side="right")
-        self.imgTypeForm = topPanel.addFormImage(utils.getIcon(RemarkView.getIconName(modelData["type"])))
+        self.imgTypeForm = topPanel.addFormImage(utilsUI.getIcon(RemarkView.getIconName(modelData["type"])))
         self.comboTypeForm = topPanel.addFormCombo("Type", ["Positive","Neutral","Negative"], column=1, default=modelData["type"],command=self.updateImage, binds={"<<ComboboxSelected>>": self.updateImage, "<<FormUpdated>>": self.updateImage})
         self.comboTypeForm.configure(command=self.updateImage)
         s.addOptionForm(type_search, "remark_type")
@@ -124,7 +124,7 @@ class RemarkView(ViewElement):
             _event: mandatory but not used
         """
         typeof = self.comboTypeForm.getValue()
-        self.imgTypeForm.setImage(utils.getIcon(RemarkView.getIconName(typeof)))
+        self.imgTypeForm.setImage(utilsUI.getIcon(RemarkView.getIconName(typeof)))
 
 
     

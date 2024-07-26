@@ -14,7 +14,7 @@ from pollenisatorgui.core.models.command import Command
 from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemController
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.components.scriptmanager import ScriptManager
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from customtkinter import *
 from bson import ObjectId
 import tkinter as tk
@@ -64,7 +64,7 @@ class CheckItemView(ViewElement):
         if cache is None:
             from PIL import Image, ImageTk
 
-            path = utils.getIcon(ui)
+            path = utilsUI.getIcon(ui)
             if iconStatus == "auto":
                 self.__class__.cached_icon_auto = ImageTk.PhotoImage(
                     Image.open(path))
@@ -370,7 +370,7 @@ class CheckItemView(ViewElement):
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
+        self.menuContextuel = utilsUI.craftMenuWithStyle(self.appliViewFrame)
 
     def popup(self, event):
         """

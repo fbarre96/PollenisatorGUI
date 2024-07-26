@@ -54,7 +54,7 @@ class PortView(ViewElement):
         """
         self.form.clear()
         modelData = self.controller.getData()
-        self.image_nav = tk.PhotoImage(file=utils.getIcon("internet.png"))
+        self.image_nav = tk.PhotoImage(file=utilsUI.getIcon("internet.png"))
         top_panel = self.form.addFormPanel(grid=True)
         top_panel.addFormLabel("IP", row=0, column=0)
         top_panel.addFormStr(

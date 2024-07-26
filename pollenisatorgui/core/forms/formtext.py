@@ -4,7 +4,7 @@ import tkinter as tk
 from customtkinter import *
 import pyperclip
 from pollenisatorgui.core.forms.form import Form
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class FormText(Form):
     """
@@ -43,7 +43,7 @@ class FormText(Form):
         """
         # FIXME Add to given menu instead of Overriding given contextual menu
         if self.contextualMenu is None:
-            self.contextualMenu = utils.craftMenuWithStyle(parent)
+            self.contextualMenu = utilsUI.craftMenuWithStyle(parent)
         parent.bind("<Button-3>",self.binds.get("<Button-3>", self.popup))
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Cut", command=self.cut)

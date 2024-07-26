@@ -3,7 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class ChildDialogQuestion:
     """
@@ -33,7 +33,7 @@ class ChildDialogQuestion:
         buttonsFrame = CTkFrame(appFrame)
         for i, answer in enumerate(answers):
             if answer == "Cancel" or answer == "No":
-                self.cancel_button = CTkButton(buttonsFrame, text=answer, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                self.cancel_button = CTkButton(buttonsFrame, text=answer, fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                 border_width=1, border_color="firebrick1", hover_color="tomato")
                 self.app.bind("<Escape>", self.escape)
                 self.cancel_button.bind("<Button-1>", self.onOk)

@@ -6,7 +6,7 @@ from customtkinter import *
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class ChildDialogEditCommandSettings:
     """
@@ -39,7 +39,7 @@ class ChildDialogEditCommandSettings:
         apiclient = APIClient.getInstance()
         optionsFrame.addFormCombo("plugin", tuple([x["plugin"] for x in apiclient.getPlugins()]), row=1, column=1)
         self.form.addFormButton("Cancel", self.onError, 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         self.form.addFormButton("OK", self.onOk)
         self.form.constructView(appFrame)

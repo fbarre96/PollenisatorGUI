@@ -21,6 +21,7 @@ from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.tool import Tool
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from PIL import ImageTk, Image
 from pollenisatorgui.core.components.logger_config import logger
 from bson import ObjectId
@@ -63,13 +64,13 @@ class CheckInstanceView(ViewElement):
         if cache is None:
             from PIL import Image, ImageTk
             if iconStatus == "done":
-                cls.cached_done_icon = utils.loadIcon(ui, resize=(16,16))
+                cls.cached_done_icon = utilsUI.loadIcon(ui, resize=(16,16))
                 return cls.cached_done_icon
             elif iconStatus == "running":
-                cls.cached_running_icon =  utils.loadIcon(ui, resize=(16,16))
+                cls.cached_running_icon =  utilsUI.loadIcon(ui, resize=(16,16))
                 return cls.cached_running_icon
             else:
-                cls.cached_not_ready_icon =  utils.loadIcon(ui, resize=(16,16))
+                cls.cached_not_ready_icon =  utilsUI.loadIcon(ui, resize=(16,16))
                 return cls.cached_not_ready_icon
         return cache
 
@@ -103,13 +104,13 @@ class CheckInstanceView(ViewElement):
         if cache is None:
             from PIL import Image, ImageTk
             if iconStatus == "done":
-                self.__class__.cached_done_icon = utils.loadIcon(ui, resize=(16,16))
+                self.__class__.cached_done_icon = utilsUI.loadIcon(ui, resize=(16,16))
                 return self.__class__.cached_done_icon
             elif iconStatus == "running":
-                self.__class__.cached_running_icon =  utils.loadIcon(ui, resize=(16,16))
+                self.__class__.cached_running_icon =  utilsUI.loadIcon(ui, resize=(16,16))
                 return self.__class__.cached_running_icon
             else:
-                self.__class__.cached_not_ready_icon =  utils.loadIcon(ui, resize=(16,16))
+                self.__class__.cached_not_ready_icon =  utilsUI.loadIcon(ui, resize=(16,16))
                 return self.__class__.cached_not_ready_icon
         return cache
 
@@ -161,20 +162,20 @@ class CheckInstanceView(ViewElement):
         panel_top.addFormButton(self.controller.target_repr, self.openTargetDialog, row=0, column=1, style="link.TButton", pady=5)
         panel_top.addFormLabel("Status", row=0, column=2)
         default_status = self.getStatus(infos)
-        self.image_terminal = CTkImage(Image.open(utils.getIcon('terminal_small.png')))
+        self.image_terminal = CTkImage(Image.open(utilsUI.getIcon('terminal_small.png')))
         self.form_status = panel_top.addFormCombo("Status", ["todo", "running","done"], default=default_status, command=self.status_change, row=0, column=3, pady=5)
         #panet_top_sub.addFormButton("Attack", callback=self.attackOnTerminal, image=self.image_terminal, row=0, column=2)
         
         #if "commands" in check_m.check_type:
 
-        self.buttonExecuteImage = CTkImage(Image.open(utils.getIcon('execute.png')))
-        self.buttonQueueImage = CTkImage(Image.open(utils.getIcon('exec_cloud.png')))
-        self.buttonRunImage = CTkImage(Image.open(utils.getIcon('terminal_small.png')))
-        self.buttonDownloadImage = CTkImage(Image.open(utils.getIcon("download.png")))
-        self.image_download = utils.loadIcon("download.png")
-        self.image_reset = utils.loadIcon("reset_small.png")
-        self.image_delete = utils.loadIcon("delete.png")
-        self.image_defect = utils.loadIcon("defect.png")
+        self.buttonExecuteImage = CTkImage(Image.open(utilsUI.getIcon('execute.png')))
+        self.buttonQueueImage = CTkImage(Image.open(utilsUI.getIcon('exec_cloud.png')))
+        self.buttonRunImage = CTkImage(Image.open(utilsUI.getIcon('terminal_small.png')))
+        self.buttonDownloadImage = CTkImage(Image.open(utilsUI.getIcon("download.png")))
+        self.image_download = utilsUI.loadIcon("download.png")
+        self.image_reset = utilsUI.loadIcon("reset_small.png")
+        self.image_delete = utilsUI.loadIcon("delete.png")
+        self.image_defect = utilsUI.loadIcon("defect.png")
         dict_of_tools_not_done = infos.get("tools_not_done", {})
         dict_of_tools_error = infos.get("tools_error", {})
         dict_of_tools_running = infos.get("tools_running", {})
@@ -231,7 +232,7 @@ class CheckInstanceView(ViewElement):
                 tool_model = datamanager.get("tools", tool_iid)
                 form_str = formCommands.addFormStr("commandline", "", tool_model.text, status="disabled", width=550, row=row*2+1, column=2)
                 formCommands.addFormButton("Peek", lambdas_running[row], row=row*2+1, column=3, width=0, image=self.buttonRunImage)
-                formCommands.addFormButton("Stop", lambdas_running_stop[row], row=row*2+1, column=4,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                formCommands.addFormButton("Stop", lambdas_running_stop[row], row=row*2+1, column=4,  width=0, fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         if dict_of_tools_done:
@@ -288,7 +289,7 @@ class CheckInstanceView(ViewElement):
                 formCommands.addFormButton(tool_m.getDetailedString(), self.openToolDialog, row=row,column=0,  style="link.TButton", infos={"iid":tool_iid})
                 
                 formCommands.addFormText(str(tool_iid)+"_notes", "", default=tool_m.notes,  row=row, column=1 , height=min(26*+len(tool_m.notes.split("\n")), 200))
-                formCommands.addFormButton("Reset", lambdas_error_reset[row], row=row, column=2,  width=0, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                formCommands.addFormButton("Reset", lambdas_error_reset[row], row=row, column=2,  width=0, fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
                 row+=1
         
@@ -302,8 +303,8 @@ class CheckInstanceView(ViewElement):
             formTv = self.form.addFormPanel(side=tk.TOP, fill=tk.X, pady=5)
             formTv.addFormLabel("Script", side=tk.LEFT)
             self.textForm = formTv.addFormStr("Script", ".+", check_m.script)
-            self.execute_icon = CTkImage(Image.open(utils.getIcon("execute.png")))
-            self.edit_icon = CTkImage(Image.open(utils.getIcon("view_doc.png")))
+            self.execute_icon = CTkImage(Image.open(utilsUI.getIcon("execute.png")))
+            self.edit_icon = CTkImage(Image.open(utilsUI.getIcon("view_doc.png")))
             formTv.addFormButton("View", lambda _event: self.viewScript(check_m.script), image=self.edit_icon)
             formTv.addFormButton("Exec", lambda _event: self.execScript(check_m.script), image=self.execute_icon)
         self.defect_titles = {}
@@ -672,7 +673,7 @@ class CheckInstanceView(ViewElement):
     
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = utils.craftMenuWithStyle(self.appliViewFrame)
+        self.menuContextuel = utilsUI.craftMenuWithStyle(self.appliViewFrame)
 
     def popup(self, event):
         """

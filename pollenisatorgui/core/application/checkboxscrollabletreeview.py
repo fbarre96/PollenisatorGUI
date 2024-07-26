@@ -1,5 +1,5 @@
 
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 import tkinter as tk
 
@@ -17,12 +17,12 @@ class CheckboxScrollableTreeview(ScrollableTreeview):
 
     def get_checked_image(self):
         if self.__class__.checked_image is None:
-            self.__class__.checked_image = utils.loadIcon("checked.png", resize=(16,16))
+            self.__class__.checked_image = utilsUI.loadIcon("checked.png", resize=(16,16))
         return self.__class__.checked_image
 
     def get_unchecked_image(self):
         if self.__class__.unchecked_image is None:
-            self.__class__.unchecked_image = utils.loadIcon("unchecked.png", resize=(16,16))
+            self.__class__.unchecked_image = utilsUI.loadIcon("unchecked.png", resize=(16,16))
         return self.__class__.unchecked_image
     
     def on_sub_click(self, event):

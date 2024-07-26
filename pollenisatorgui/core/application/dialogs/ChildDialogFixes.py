@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from PIL import ImageTk, Image
 from pollenisatorgui.core.application.dialogs.ChildDialogFixView import ChildDialogFixView
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class ChildDialogFixes:
@@ -37,7 +37,7 @@ class ChildDialogFixes:
         ok_button.pack(side="right", padx=5, pady=10)
         ok_button.bind('<Button-1>', self.okCallback)
         cancel_button = CTkButton(appFrame, text="Cancel", 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         cancel_button.pack(side="right", padx=5, pady=10)
         cancel_button.bind('<Button-1>', self.cancel)
@@ -117,8 +117,8 @@ class ChildDialogFixes:
         ### OFFICE EXPORT FRAME ###
         belowFrame = CTkFrame(self.paned)
         frameBtn = CTkFrame(belowFrame)
-        self.buttonUpImage = CTkImage(Image.open(utils.getIcon('up-arrow.png')))
-        self.buttonDownImage = CTkImage(Image.open(utils.getIcon('down-arrow.png')))
+        self.buttonUpImage = CTkImage(Image.open(utilsUI.getIcon('up-arrow.png')))
+        self.buttonDownImage = CTkImage(Image.open(utilsUI.getIcon('down-arrow.png')))
         # use self.buttonPhoto
         btn_down = CTkButton(frameBtn, image=self.buttonDownImage, text="",command=self.bDown)
         btn_down.pack(side="left", anchor="center")

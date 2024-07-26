@@ -105,8 +105,8 @@ class Dashboard(Module):
                               fill=tk.BOTH, expand=True)
 
     def populate_vuln_frame(self, vuln_frame):
-        self.vuln_image = CTkImage(Image.open(utils.getIcon("defect.png")))
-        self.host_image = CTkImage(Image.open(utils.getIcon("ip.png")))
+        self.vuln_image = CTkImage(Image.open(utilsUI.getIcon("defect.png")))
+        self.host_image = CTkImage(Image.open(utilsUI.getIcon("ip.png")))
         self.label_host_count = CTkLabel(
             vuln_frame, text="X Hosts", image=self.host_image, compound="left")
         self.label_host_count.pack(padx=10, pady=3, side=tk.TOP, anchor=tk.W)
@@ -162,10 +162,10 @@ class Dashboard(Module):
             text=str(val) + " thread"+("s" if val > 1 else ""))
 
     def populate_autoscan_frame(self, frame):
-        self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
-        self.image_start = CTkImage(Image.open(utils.getIcon("start.png")))
-        self.image_stop = CTkImage(Image.open(utils.getIcon("stop.png")))
-        self.image_pentest = CTkImage(Image.open(utils.getIcon("hacker.png")))
+        self.image_auto = CTkImage(Image.open(utilsUI.getIcon("auto.png")))
+        self.image_start = CTkImage(Image.open(utilsUI.getIcon("start.png")))
+        self.image_stop = CTkImage(Image.open(utilsUI.getIcon("stop.png")))
+        self.image_pentest = CTkImage(Image.open(utilsUI.getIcon("hacker.png")))
         frame_status = FormPanel(side=tk.TOP, fill=tk.X)
         frame_status.addFormButton("Go to pentest", self.go_to_pentest, image=self.image_pentest, width=200, height=50, padx=5, side=tk.LEFT, font=CTkFont("Calibri", 20, 'bold', "roman", True),anchor="center")
         frame_status.addFormSeparator(orient="vertical", padx=0, fill=tk.Y, side=tk.LEFT)

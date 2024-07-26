@@ -11,7 +11,6 @@ from shutil import copyfile
 from jose import jwt, JWTError
 from functools import wraps
 from bson import ObjectId
-import tkinter as tk
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
@@ -209,11 +208,10 @@ class APIClient():
             return False
         if response.status_code == 200:
             saveClientConfig(config)
-            import pollenisatorgui.core.components.settings as settings
-            s = settings.Settings()
-            if self.api_url not in [x["url"] for x in s.local_settings.get("hosts", [])]:
-                s.local_settings["hosts"] = [{"url":self.api_url, "proto":http_proto,"port":port, "host":host}] + s.local_settings.get("hosts", [])
-                s.saveLocalSettings()
+            local_settings = utils.load_local_settings()
+            if self.api_url not in [x["url"] for x in local_settings.get("hosts", [])]:
+                local_settings["hosts"] = [{"url":self.api_url, "proto":http_proto,"port":port, "host":host}] + local_settings.get("hosts", [])
+                utils.save_local_settings(local_settings)
             self.proxies = proxies
             if token:
                 return self.setConnection(token)
@@ -1229,6 +1227,7 @@ class APIClient():
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
+            import tkinter as tk
             f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
@@ -1249,6 +1248,7 @@ class APIClient():
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
+            import tkinter as tk
             f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
@@ -1269,6 +1269,7 @@ class APIClient():
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.normpath(os.path.join(
                 dir_path, "../../exports/"))
+            import tkinter as tk
             f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".json", initialdir=out_path, initialfile=filename)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return 
@@ -1292,6 +1293,7 @@ class APIClient():
             dir_path = os.path.dirname(os.path.realpath(__file__))
             out_path = os.path.join(
                 dir_path, "../../exports/")
+            import tkinter as tk
             f = tk.filedialog.asksaveasfilename(parent=parent, defaultextension=".gz", initialdir=out_path, initialfile=(pentest if collection == "" else pentest+"_"+collection)+".gz")
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return None, None
@@ -1417,6 +1419,7 @@ class APIClient():
             basename = clientName.strip()+" - "+contractName.strip()
             out_name = str(timestr)+" - "+basename
             out_path = os.path.join(dir_path, "../../exports/")
+            import tkinter as tk
             f = tk.filedialog.asksaveasfilename(defaultextension=ext, initialdir=out_path, initialfile=out_name+ext)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel". and empty tuple if close by cross
                 return False, "No report created"
@@ -1460,6 +1463,7 @@ class APIClient():
         response = requests.get(api_url, headers=self.headers, params={"templateName":templateName},proxies=self.proxies, verify=False)
         if response.status_code == 200:
             out_path = os.path.join(dir_path, "../../exports/")
+            import tkinter as tk
             f = tk.filedialog.asksaveasfilename(parent=parent, initialdir=out_path, initialfile=templateName)
             if f is None or len(f) == 0:  # asksaveasfile return `None` if dialog closed with "cancel".
                 return
@@ -1578,6 +1582,7 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code == 403:
+            import tkinter as tk
             tk.messagebox.showerror("Docker error", "Docker could not start, check server installation of docker")
             return None
         elif response.status_code >= 400:
@@ -1591,6 +1596,7 @@ class APIClient():
         if response.status_code == 200:
             return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
         elif response.status_code == 403:
+            import tkinter as tk
             tk.messagebox.showerror("Docker error", "Docker could not start, check server installation of docker")
             return None
         elif response.status_code >= 400:

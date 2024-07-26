@@ -29,10 +29,10 @@ class MultiSelectionView(ViewElement):
         top_panel = self.form.addFormPanel()
         top_panel.addFormButton("Export", self.appliTw.exportSelection)
         top_panel.addFormButton("Hide", self.appliTw.hideSelection)
-        self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
+        self.delete_image = CTkImage(Image.open(utilsUI.getIcon("delete.png")))
         #top_panel.addFormButton("Custom Command", self.appliTw.customCommand)
         top_panel.addFormButton("Delete", self.appliTw.deleteSelected, image=self.delete_image,
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         panTags = self.form.addFormPanel(grid=True)
         registeredTags = Settings.getTags()

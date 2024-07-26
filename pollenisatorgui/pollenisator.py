@@ -8,22 +8,17 @@
 """
 
 import time
-import tkinter as tk
 import os
 import sys
 import signal
 import requests
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.core.application.appli import Appli
 import pollenisatorgui.core.components.utils as utils
 import threading
 from getpass import getpass
 from pollenisatorgui.core.components.logger_config import logger
-import customtkinter
-import subprocess
 
 event_obj = threading.Event()
-customtkinter.set_default_color_theme(utils.getColorTheme())
 
 class GracefulKiller:
     """
@@ -244,6 +239,14 @@ def main():
 |   (_)||(/,[ )|_) (_] | (_)[  
                                
 """)
+
+    import tkinter as tk
+    import customtkinter
+    import pollenisatorgui.core.components.utilsUI as utilsUI
+    from pollenisatorgui.core.application.appli import Appli
+
+    customtkinter.set_default_color_theme(utilsUI.getColorTheme())
+
     event_obj.clear() 
     gc = None
     update_available = checkForUpdates()

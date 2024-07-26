@@ -4,6 +4,7 @@
 # from customtkinter import *
 # from multiprocessing import Manager
 # import pollenisatorgui.core.components.utils as utils
+# import pollenisatorgui.core.components.utilsUI as utilsUI
 # from PIL import Image, ImageTk
 # from pollenisatorgui.core.views.checkinstanceview import CheckInstanceView
 # from pollenisatorgui.core.views.waveview import WaveView
@@ -23,7 +24,7 @@
 #         self.proc = None
 #         self.s = None
 #         self.__class__.settings = settings
-#         self.img = CTkImage(Image.open(utils.getIcon("help.png")))
+#         self.img = CTkImage(Image.open(utilsUI.getIcon("help.png")))
 #         manager = Manager()
 #         self.exiting = manager.Value('i', 0)
 
@@ -68,7 +69,7 @@
 #         """
 #         Create a contextual menu
 #         """
-#         self.contextualMenu = utils.craftMenuWithStyle(parentFrame)
+#         self.contextualMenu = utilsUI.craftMenuWithStyle(parentFrame)
 #         self.contextualMenu.add_command(
 #             label="Attack from terminal", command=self.attackFromTerminal)
 #         return self.contextualMenu

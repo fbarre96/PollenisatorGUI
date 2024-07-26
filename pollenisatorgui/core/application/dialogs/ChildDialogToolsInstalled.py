@@ -23,7 +23,7 @@ class ChildDialogToolsInstalled(CTkToplevel):
         Returns:
             ImageTk PhotoImage"""
         if self.__class__.cvalid_icon is None:
-            self.__class__.cvalid_icon = ImageTk.PhotoImage(Image.open(utils.getValidMarkIconPath()))
+            self.__class__.cvalid_icon = ImageTk.PhotoImage(Image.open(utilsUI.getValidMarkIconPath()))
         return self.__class__.cvalid_icon
 
     def badIcon(self):
@@ -31,7 +31,7 @@ class ChildDialogToolsInstalled(CTkToplevel):
         Returns:
             ImageTk PhotoImage"""
         if self.__class__.cbad_icon is None:
-            self.__class__.cbad_icon = ImageTk.PhotoImage(Image.open(utils.getBadMarkIconPath()))
+            self.__class__.cbad_icon = ImageTk.PhotoImage(Image.open(utilsUI.getBadMarkIconPath()))
         return self.__class__.cbad_icon
 
     
@@ -95,7 +95,7 @@ class ChildDialogToolsInstalled(CTkToplevel):
         CTkButton(self.mainFrame, text="OK", command=self.onOk).pack(side=tk.RIGHT)
             
         self.button = CTkButton(self.mainFrame, text="Cancel",command=self.onError,
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato").pack(side=tk.RIGHT)
         self.mainFrame.pack(fill=tk.BOTH, ipadx=10, ipady=10, expand=1)
         try:

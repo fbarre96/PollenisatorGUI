@@ -8,9 +8,9 @@ import time
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
 import shutil
+import json
 from pollenisatorgui.core.components.apiclient import APIClient
 import pollenisatorgui.core.components.utils as utils
-from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.interval import Interval
 from pollenisatorgui.core.models.tool import Tool
 import threading
@@ -95,8 +95,8 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
             sys.exit(1)
     outputPath = os.path.join(outputDir, toolFileName)
     comm = comm.replace("|outputDir|", outputPath)
-    settings = Settings()
-    my_commands = settings.local_settings.get("my_commands", {})
+    local_settings = utils.load_local_settings()
+    my_commands = local_settings.get("my_commands", {})
     bin_path = my_commands.get(toolModel.name)
     if bin_path is None:
         if utils.which_expand_alias(command_dict["bin_path"]):

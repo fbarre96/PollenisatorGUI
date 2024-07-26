@@ -33,7 +33,7 @@
 #         self.ports = None
 #         self.tools = None
 
-#         iconPath = utils.getIconDir()
+#         iconPath = utilsUI.getIconDir()
 #         self.icons = {}
 #         self.icons["tool"] = CTkImage(
 #             Image.open(iconPath+"tool.png"))

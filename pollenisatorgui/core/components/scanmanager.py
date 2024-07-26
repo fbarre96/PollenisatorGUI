@@ -81,11 +81,11 @@ class ScanManager:
         self.workerTv = None
         self.linkTw = linkedTreeview
         self.scan_worker = ScanWorker(self.settings)
-        self.tool_icon = tk.PhotoImage(file=utils.getIcon("tool.png"))
-        self.nok_icon = tk.PhotoImage(file=utils.getIcon("cross.png"))
-        self.waiting_icon = tk.PhotoImage(file=utils.getIcon("waiting.png"))
-        self.ok_icon = tk.PhotoImage(file=utils.getIcon("done_tool.png"))
-        self.running_icon = tk.PhotoImage(file=utils.getIcon("running.png"))
+        self.tool_icon = tk.PhotoImage(file=utilsUI.getIcon("tool.png"))
+        self.nok_icon = tk.PhotoImage(file=utilsUI.getIcon("cross.png"))
+        self.waiting_icon = tk.PhotoImage(file=utilsUI.getIcon("waiting.png"))
+        self.ok_icon = tk.PhotoImage(file=utilsUI.getIcon("done_tool.png"))
+        self.running_icon = tk.PhotoImage(file=utilsUI.getIcon("running.png"))
         DataManager.getInstance().attach(self)
 
     def startAutoscan(self):
@@ -267,7 +267,7 @@ class ScanManager:
         if self.btn_autoscan is None:
             if apiclient.getAutoScanStatus():
                 self.btn_autoscan = CTkButton(
-                    self.parent, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                    self.parent, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan, fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
             else:
                 self.btn_autoscan = CTkButton(
@@ -337,8 +337,8 @@ class ScanManager:
         pane.addFormHelper("Use this computer as a worker", side=tk.LEFT)
         btn_pane.constructView(workerFrame)
         workerFrame.pack(side=tk.TOP, pady=5)
-        self.image_auto = CTkImage(Image.open(utils.getIcon("auto.png")))
-        self.image_import = CTkImage(Image.open(utils.getIcon("import.png")))
+        self.image_auto = CTkImage(Image.open(utilsUI.getIcon("auto.png")))
+        self.image_import = CTkImage(Image.open(utilsUI.getIcon("import.png")))
         if apiclient.getAutoScanStatus():
             self.btn_autoscan = CTkButton(
                 workerScanFrame, text="Stop Scanning", image=self.image_auto, command=self.stopAutoscan)

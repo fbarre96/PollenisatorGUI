@@ -26,9 +26,9 @@ class CheckInstanceMultiView(ViewElement):
         top_panel.addFormButton("Mark as done", self.markDoneSelection)
         top_panel.addFormButton("Mark as not done", self.markNotDoneSelection)
         top_panel.addFormButton("Export", self.appliTw.exportSelection)
-        self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
+        self.delete_image = CTkImage(Image.open(utilsUI.getIcon("delete.png")))
         top_panel.addFormButton("Delete", self.appliTw.deleteSelected, image=self.delete_image,
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         selected = self.appliTw.selection()
         dones = []

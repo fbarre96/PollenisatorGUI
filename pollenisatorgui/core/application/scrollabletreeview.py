@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import uuid
 from customtkinter import *
+import pollenisatorgui.core.components.utilsUI as utilsUI
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.application.paginable import Paginable
@@ -26,7 +27,7 @@ class ScrollableTreeview(Paginable):
         if len(columns) > 1:
             self.treevw['columns'] = columns[1:]
         settings = Settings()
-        self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor())
+        self.treevw.tag_configure("odd", background=utilsUI.getBackgroundSecondColor())
         lbl = CTkLabel(self)
         self.f = tk.font.Font(lbl, "Sans", bold=True, size=10)
         width = kwargs.get("width", None)
@@ -135,7 +136,7 @@ class ScrollableTreeview(Paginable):
         Args:
             parent: the tkinter parent widget for the contextual menu
         """
-        self.contextualMenu = utils.craftMenuWithStyle(parent)
+        self.contextualMenu = utilsUI.craftMenuWithStyle(parent)
         parent.bind("<Button-3>", self.popup)
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Close", command=self.close)

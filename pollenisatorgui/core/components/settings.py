@@ -318,7 +318,7 @@ class Settings:
             self.reloadUI()
             return
         self.parent = parent
-        self.image_save = CTkImage(Image.open(utils.getIcon("save.png")))
+        self.image_save = CTkImage(Image.open(utilsUI.getIcon("save.png")))
 
         self.settingsFrame = ScrollableFrameXPlateform(parent)
         parent.columnconfigure(0, weight=1)

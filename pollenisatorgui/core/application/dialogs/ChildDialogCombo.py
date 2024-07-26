@@ -3,7 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class ChildDialogCombo:
     """
@@ -19,7 +19,7 @@ class ChildDialogCombo:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app = CTkToplevel(parent, fg_color=utilsUI.getBackgroundColor())
         self.app.title("Choose option")
         self.app.attributes("-type", "dialog")
         self.app.resizable(False, False)

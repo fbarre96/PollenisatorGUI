@@ -648,7 +648,7 @@ class ChildDialogAddUsers:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app = CTkToplevel(parent, fg_color=utilsUI.getBackgroundColor())
         self.app.attributes("-type", "dialog")
         self.app.resizable(False, False)
         appFrame = CTkFrame(self.app)
@@ -659,10 +659,10 @@ class ChildDialogAddUsers:
         panel = FormPanel()
         self.formtext = panel.addFormText("Users", r"^\S+\\\S+:\S+$", default="domain\\username:password", side="top")
         button_panel = panel.addFormPanel(side="bottom")
-        self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
+        self.save_image = CTkImage(Image.open(utilsUI.getIcon("save.png")))
         button_panel.addFormButton("Submit", self.onOk, side="right", image=self.save_image)
         b = button_panel.addFormButton("Cancel", self.onError, side="right", 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         panel.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=5)
@@ -691,7 +691,7 @@ class ChildDialogAddUsers:
 
 class ChildDialogShare:
     def __init__(self, parent, share_data):
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app = CTkToplevel(parent, fg_color=utilsUI.getBackgroundColor())
         self.app.attributes("-type", "dialog")
         self.app.resizable(True, True)
         appFrame = CTkFrame(self.app)
@@ -741,14 +741,14 @@ class ChildDialogConfigureADModule:
             displayMsg: The message that will explain to the user what he is choosing.
             default: Choose a default selected option (one of the string in options). default is None
         """
-        self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+        self.app = CTkToplevel(parent, fg_color=utilsUI.getBackgroundColor())
         self.app.attributes("-type", "dialog")
         self.app.resizable(True , True)
         appFrame = CTkFrame(self.app)
         self.app.title(displayMsg)
         self.rvalue = None
         self.parent = parent
-        self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
+        self.save_image = CTkImage(Image.open(utilsUI.getIcon("save.png")))
         panel = FormPanel()
         ad_settings = ActiveDirectory.getSettings()
         self.explanationLbl = panel.addFormText("Explanation","","""
@@ -777,7 +777,7 @@ class ChildDialogConfigureADModule:
         button_panel = panel.addFormPanel(side="bottom")
         button_panel.addFormButton("Submit", self.onOk, side="right",  image=self.save_image)
         button_panel.addFormButton("Cancel", self.onError, side="right", 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         panel.constructView(appFrame)
         appFrame.pack(ipadx=10, ipady=5, fill=tk.BOTH, expand=tk.TRUE)

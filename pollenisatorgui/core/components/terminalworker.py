@@ -22,8 +22,8 @@ def set_winsize(fd, row, col, xpix=0, ypix=0):
 
 class TerminalWorker(ScanWorker):
     
-    def __init__(self, settings):
-        super().__init__(settings)
+    def __init__(self, local_settings):
+        super().__init__(local_settings)
         self.name = ""
         self.pid = None
         self.fd = None

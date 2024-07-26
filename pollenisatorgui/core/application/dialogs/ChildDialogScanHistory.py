@@ -41,7 +41,7 @@ class ChildDialogScanHistory:
         ok_button.pack(side=tk.RIGHT, padx=5)
         ok_button.bind('<Button-1>', self.okCallback)
         cancel_button = CTkButton(frame_buttons, text="Cancel", 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         cancel_button.pack(side=tk.RIGHT, padx=5)
         cancel_button.bind('<Button-1>', self.cancel)

@@ -25,6 +25,7 @@ from pollenisatorgui.core.application.terminalswidget import TerminalsWidget
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.tag import TagInfos
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from pollenisatorgui.core.application.treeviews.PentestTreeview import PentestTreeview
 from pollenisatorgui.core.application.treeviews.CommandsTreeview import CommandsTreeview
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
@@ -153,7 +154,7 @@ class AutocompleteEntry(PopoEntry):
         words = self.comparison()
         if words:
             if not self.lb_up:
-                self.lb = tk.Listbox(width=self.width, fg=utils.getTextColor(), bg=utils.getBackgroundColor())
+                self.lb = tk.Listbox(width=self.width, fg=utilsUI.getTextColor(), bg=utilsUI.getBackgroundColor())
                 self.lb.bind("<Double-Button-1>", self.selection)
                 self.lb.bind("<Right>", self.selection)
                 self.lb.bind("<Leave>", self.quit)
@@ -257,7 +258,7 @@ def iter_namespace(ns_pkg):
 class ButtonNotebook(CTkFrame):
     def __init__(self, parent, callbackSwitch, closeCallbackSwitch):
         super().__init__(parent)
-        self.frameButtons = CTkFrame(self, fg_color=utils.getStrongColor())
+        self.frameButtons = CTkFrame(self, fg_color=utilsUI.getStrongColor())
         self.callbackSwitch = callbackSwitch
         self.closeCallbackSwitch = closeCallbackSwitch
         self.tabs = {}
@@ -270,7 +271,7 @@ class ButtonNotebook(CTkFrame):
         if name not in self.tabs:
             self.tabs[name] = {"widget":widget, "image":image, "order": order, "name":name}
             widget.pack_forget()
-            btn = CTkButton(self.frameButtons, text=name, image=image,  fg_color=utils.getStrongColor() , hover_color=utils.getStrongActiveColor(), compound=tk.TOP)
+            btn = CTkButton(self.frameButtons, text=name, image=image,  fg_color=utilsUI.getStrongColor() , hover_color=utilsUI.getStrongActiveColor(), compound=tk.TOP)
             self.btns[name] = btn
             btn.bind("<Button-1>", self.clicked)
             self.redraw()
@@ -285,7 +286,7 @@ class ButtonNotebook(CTkFrame):
         for btn in btns:
             
             self.btns[btn["name"]].pack(side="top", fill=tk.X, anchor="nw")
-        self.image = Image.open(utils.getIcon("LogoPollenisator.png"))
+        self.image = Image.open(utilsUI.getIcon("LogoPollenisator.png"))
         img = CTkImage(light_image=self.image, dark_image=self.image, size=(100, 123))
         self.lbl = CTkLabel(self.frameButtons, text="", image=img)
         self.lbl.pack(side="bottom", fill=tk.X, pady=5,anchor="sw")
@@ -309,11 +310,11 @@ class ButtonNotebook(CTkFrame):
             return
         if self.current:
             self.tabs[self.current]["widget"].pack_forget()
-            self.btns[self.current].configure(fg_color=utils.getStrongColor())
+            self.btns[self.current].configure(fg_color=utilsUI.getStrongColor())
 
             self.closeCallbackSwitch(self.current, name)
         self.current = name
-        self.btns[name].configure(fg_color=utils.getStrongActiveColor())
+        self.btns[name].configure(fg_color=utilsUI.getStrongActiveColor())
         self.tabs[name]["widget"].pack(side="right", expand=True, anchor="center", fill=tk.BOTH)
         self.callbackSwitch(name)
 
@@ -353,17 +354,17 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         self.settings = Settings()
         self.notif_processing_timer = None
 
-        utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
+        utilsUI.setStyle(self, self.settings.local_settings.get("dark_mode", False))
         self.main_tab_img = CTkImage(
-            Image.open(utils.getIcon("tab_main.png")), size=(30, 30))
+            Image.open(utilsUI.getIcon("tab_main.png")), size=(30, 30))
         self.commands_tab_img = CTkImage(
-            Image.open(utils.getIcon("tab_commands.png")), size=(30, 30))
+            Image.open(utilsUI.getIcon("tab_commands.png")), size=(30, 30))
         self.scan_tab_img = CTkImage(
-            Image.open(utils.getIcon("tab_scan.png")), size=(30, 30))
+            Image.open(utilsUI.getIcon("tab_scan.png")), size=(30, 30))
         self.settings_tab_img = CTkImage(
-            Image.open(utils.getIcon("tab_settings.png")), size=(30, 30))
+            Image.open(utilsUI.getIcon("tab_settings.png")), size=(30, 30))
         self.admin_tab_img = CTkImage(
-            Image.open(utils.getIcon("tab_admin.png")), size=(30, 30))
+            Image.open(utilsUI.getIcon("tab_admin.png")), size=(30, 30))
         # HISTORY : Main view and command where historically in the same view;
         # This results in lots of widget here with a confusing naming style
         #### core components (Tab menu on the left objects)####
@@ -391,14 +392,14 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         self.btnHelp = None  # help button on the right of the search bar
         self.photo = None  # the ? image
         self.helpFrame = None  # the floating help frame poping when the button is pressed
-        dir_path = utils.getIcon("favicon.png")
+        dir_path = utilsUI.getIcon("favicon.png")
         img = tk.PhotoImage(file=dir_path)
         self.resizable(True, True)
         self.iconphoto(True, img)
         self.minsize(width=400, height=400)
         self.resizable(True, True)
         self.title("Pollenisator")
-        monitor = utils.get_screen_where_widget(self)
+        monitor = utilsUI.get_screen_where_widget(self)
         self.geometry(f"{monitor.width}x{monitor.height}+{monitor.x}+{monitor.y}")
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self.datamanager = DataManager.getInstance()
@@ -547,7 +548,7 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         for name, module_class in REGISTRY.items():
             if name != "Module":
                 module_obj = module_class(self, self.settings, self)
-                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utils.getIcon(module_obj.iconName)), size=(30, 30))})
+                self.modules.append({"name": module_obj.tabName, "object":module_obj, "view":None, "img":CTkImage(Image.open(utilsUI.getIcon(module_obj.iconName)), size=(30, 30))})
         
     def loadModulesInfos(self):
         for module in self.modules:
@@ -695,13 +696,13 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         """
         Create the bar menu on top of the screen.
         """
-        menubar = utils.craftMenuWithStyle(self)
+        menubar = utilsUI.craftMenuWithStyle(self)
         self.configure(menu=menubar)
 
         self.bind('<F5>', self.refreshView)
         self.bind('<F6>', self.reopen)
         self.bind('<Control-o>', self.openPentestsWindow)
-        fileMenu =  utils.craftMenuWithStyle(menubar)
+        fileMenu =  utilsUI.craftMenuWithStyle(menubar)
         fileMenu.add_command(label="Pentests management (Ctrl+o)",
                              command=self.openPentestsWindow)
         fileMenu.add_command(label="Connect to server", command=self.promptForConnection)
@@ -717,7 +718,7 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
                              command=self.importDefectTemplates)                     
 
         fileMenu.add_command(label="Exit", command=self.onClosing)
-        fileMenu2 = utils.craftMenuWithStyle(menubar)
+        fileMenu2 = utilsUI.craftMenuWithStyle(menubar)
         fileMenu2.add_command(label="Import existing tools results ...",
                               command=self.importExistingTools)
         fileMenu2.add_command(label="Reset unfinished tools",
@@ -726,14 +727,14 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
                               command=self.wrapperTestLocalTools)
         fileMenu2.add_command(label="Refresh (F5)",
                               command=self.refreshView)
-        fileMenuUser = utils.craftMenuWithStyle(menubar)
+        fileMenuUser = utilsUI.craftMenuWithStyle(menubar)
         fileMenuUser.add_command(label="Change your password",
                               command=self.changeMyPassword)
         fileMenuUser.add_command(label="Disconnect", command=self.disconnect)
-        fileMenu3 = utils.craftMenuWithStyle(menubar)
+        fileMenu3 = utilsUI.craftMenuWithStyle(menubar)
         fileMenu3.add_command(label="Submit a bug or feature",
                               command=self.submitIssue)
-        fileMenuDebug = utils.craftMenuWithStyle(menubar)
+        fileMenuDebug = utilsUI.craftMenuWithStyle(menubar)
         fileMenuDebug.add_command(label="Socket test", command=self.socketTest)
         menubar.add_cascade(label="Database", menu=fileMenu)
         menubar.add_cascade(label="Scans", menu=fileMenu2)
@@ -755,9 +756,9 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         Fill the main view tab menu
         """
         self.mainPageFrame = CTkFrame(self.topviewframe)
-        searchFrame = CTkFrame(self.mainPageFrame, fg_color=utils.getBackgroundSecondColor())
+        searchFrame = CTkFrame(self.mainPageFrame, fg_color=utilsUI.getBackgroundSecondColor())
         filterbar_frame = CTkFrame(searchFrame, fg_color="transparent")
-        self.image_filter = CTkImage(Image.open(utils.getIcon("filter.png")))
+        self.image_filter = CTkImage(Image.open(utilsUI.getIcon("filter.png")))
         lblSearch = CTkLabel(filterbar_frame, text="Filter bar", image=self.image_filter, compound = "left")
         lblSearch.pack(side="left", fill=tk.NONE)
         self.searchBar = AutocompleteEntry(self.settings, filterbar_frame)
@@ -775,14 +776,14 @@ class Appli(customtkinter.CTk, tkinterdnd2.TkinterDnD.DnDWrapper):#HACK to make 
         self.keep_parents_val.set(self.settings.local_settings.get("keep_parents", True))
         checkbox_keep_parent = CTkSwitch(filterbar_frame, text="Keep parents", variable=self.keep_parents_val, command=self.keepParentsChanged)
         checkbox_keep_parent.pack(side="left", padx=5)
-        self.search_icon = tk.PhotoImage(file=utils.getIcon("search.png"))
+        self.search_icon = tk.PhotoImage(file=utilsUI.getIcon("search.png"))
         btnSearchBar = ttk.Button(filterbar_frame, text="", image=self.search_icon, style="iconbis.TButton", tooltip="Filter elements based of complex query or only text if textsearch is selected", width=10, command=self.newSearch)
         btnSearchBar.pack(side="left", fill="x")
-        image=Image.open(utils.getIcon("reset_small.png"))
+        image=Image.open(utilsUI.getIcon("reset_small.png"))
         self.reset_icon = ImageTk.PhotoImage(image)
         btnReset = ttk.Button(filterbar_frame, image=self.reset_icon, text="",  style="iconbis.TButton", tooltip="Reset search bar filter", width=10, command=self.endSearch)
         btnReset.pack(side="left", fill="x")
-        self.photo = CTkImage(Image.open(utils.getHelpIconPath()))
+        self.photo = CTkImage(Image.open(utilsUI.getHelpIconPath()))
         self.helpFrame = None
         self.btnHelp = CTkButton(filterbar_frame, text="",image=self.photo,  fg_color="transparent", width=10, command=self.showSearchHelp)
 

@@ -182,8 +182,8 @@ class DefectView(ViewElement):
         modelData = self.controller.getData()
         settings = self.mainApp.settings
         settings.reloadSettings()
-        self.delete_image = CTkImage(Image.open(utils.getIcon('delete.png')))
-        self.edit_image = CTkImage(Image.open(utils.getIcon('stylo.png')))
+        self.delete_image = CTkImage(Image.open(utilsUI.getIcon('delete.png')))
+        self.edit_image = CTkImage(Image.open(utilsUI.getIcon('stylo.png')))
         self.form.addFormHidden("isTemplate", default=self.controller.model.isTemplate)
         globalPanel = self.form.addFormPanel(side=tk.TOP, fill=tk.BOTH)
         
@@ -379,9 +379,9 @@ class DefectView(ViewElement):
                                 binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
             
         panel_action = self.form.addFormPanel()
-        self.add_image = CTkImage(Image.open(utils.getIcon("plus.png")))
-        self.import_image = CTkImage(Image.open(utils.getIcon("import.png")))
-        self.export_image = CTkImage(Image.open(utils.getIcon("download.png")))
+        self.add_image = CTkImage(Image.open(utilsUI.getIcon("plus.png")))
+        self.import_image = CTkImage(Image.open(utilsUI.getIcon("import.png")))
+        self.export_image = CTkImage(Image.open(utilsUI.getIcon("download.png")))
         panel_action.addFormButton("Import", self.importDefectTemplates, image=self.import_image)
         panel_action.addFormButton("Export", self.exportDefectTemplates, image=self.export_image)
         panel_action.addFormButton("Add a defect template", self.addDefectTemplate, image=self.add_image)
@@ -444,8 +444,8 @@ class DefectView(ViewElement):
                                 default_values, side="top", fill="both", width=500, height=8, status="readonly", 
                                 binds={"<Double-Button-1>":self.doubleClickDefectView, "<Delete>":self.deleteDefectTemplate})
             
-        self.buttonUpImage = CTkImage(Image.open(utils.getIcon('up-arrow.png')))
-        self.buttonDownImage = CTkImage(Image.open(utils.getIcon('down-arrow.png')))
+        self.buttonUpImage = CTkImage(Image.open(utilsUI.getIcon('up-arrow.png')))
+        self.buttonDownImage = CTkImage(Image.open(utilsUI.getIcon('down-arrow.png')))
         # use self.buttonPhoto
         buttonPan = self.form.addFormPanel(side="top", anchor="center", fill="none")
         btn_down = buttonPan.addFormButton("Add to report", self.moveDownMultiTreeview, side="left", anchor="center", image=self.buttonDownImage)

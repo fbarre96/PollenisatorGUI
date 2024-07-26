@@ -76,7 +76,7 @@ class AdminView:
         self.email = PopoEntry(addUserFrame)
         self.email.grid(row=5, column=1, sticky=tk.W)
         CTkCheckBox(addUserFrame, text="Force change password on login", variable=self.mustChangePassword).grid(row=6, column=1, sticky=tk.W)
-        self.add_user_icon = CTkImage(Image.open(utils.getIcon("add_user.png")))
+        self.add_user_icon = CTkImage(Image.open(utilsUI.getIcon("add_user.png")))
         btn_addUser = CTkButton(
                 addUserFrame, text="Add user", image=self.add_user_icon, command=self.addUser)
         btn_addUser.grid(row=7, column = 2, sticky=tk.W)

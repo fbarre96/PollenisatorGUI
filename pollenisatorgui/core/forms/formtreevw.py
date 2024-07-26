@@ -9,6 +9,7 @@ import pyperclip
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class FormTreevw(Form):
     """
@@ -53,7 +54,7 @@ class FormTreevw(Form):
         Args:
             parent: the tkinter parent widget for the contextual menu
         """
-        self.contextualMenu = utils.craftMenuWithStyle(parent)
+        self.contextualMenu = utilsUI.craftMenuWithStyle(parent)
         parent.bind("<Button-3>", self.popup)
         self.contextualMenu.add_command(label="Copy", command=self.copy)
         self.contextualMenu.add_command(label="Close", command=self.close)
@@ -207,8 +208,8 @@ class FormTreevw(Form):
         self.treevw = ttk.Treeview(self.tvFrame, height=min(h, mh))
         settings = Settings()
         font = tkfont.nametofont('TkTextFont')
-        self.treevw.tag_configure("even", background=utils.getBackgroundColor(), font=tkfont.nametofont('TkTextFont'))
-        self.treevw.tag_configure("odd", background=utils.getBackgroundSecondColor(), font=tkfont.nametofont('TkTextFont'))
+        self.treevw.tag_configure("even", background=utilsUI.getBackgroundColor(), font=tkfont.nametofont('TkTextFont'))
+        self.treevw.tag_configure("odd", background=utilsUI.getBackgroundSecondColor(), font=tkfont.nametofont('TkTextFont'))
         self.scbVSel = CTkScrollbar(self.tvFrame,
                                      orientation=tk.VERTICAL,
                                      command=self.treevw.yview, height=0)

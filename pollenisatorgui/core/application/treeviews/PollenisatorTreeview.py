@@ -16,7 +16,7 @@ from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.filter import Filter, ParseError
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 
@@ -49,7 +49,7 @@ class PollenisatorTreeview(ttk.Treeview):
         datamanager = DataManager.getInstance().attach(self)
 
     def configureTags(self):
-        self.icon_oos = utils.loadIcon("ip_oos.png")
+        self.icon_oos = utilsUI.loadIcon("ip_oos.png")
         s = Settings()
         oos_color = "gray30" if s.is_dark_mode() else "grey"
         self.tag_configure('OOS', background=oos_color, image=self.icon_oos)
@@ -80,7 +80,7 @@ class PollenisatorTreeview(ttk.Treeview):
         """
         Create the contextual menu of variables
         """
-        self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
+        self.contextualMenu = utilsUI.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.selection = None
         self.contextualMenu.add_command(
             label="Sort children", command=self.sort)

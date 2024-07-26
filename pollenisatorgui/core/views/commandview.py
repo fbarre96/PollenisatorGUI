@@ -4,7 +4,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
 import tkinter as tk
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class CommandView(ViewElement):
@@ -143,7 +143,7 @@ class CommandView(ViewElement):
 
     def _initContextualMenu(self):
         """Initiate contextual menu with variables"""
-        self.menuContextuel = utils.craftMenuWithStyle(self.mainApp)
+        self.menuContextuel = utilsUI.craftMenuWithStyle(self.mainApp)
         apiclient = APIClient.getInstance()
         command_variables = apiclient.getCommandVariables()
         for variable_name in command_variables:

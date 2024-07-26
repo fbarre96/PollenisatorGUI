@@ -4,7 +4,7 @@
 # import tkinter.ttk as ttk
 # from customtkinter import *
 # from bson.objectid import ObjectId
-# import pollenisatorgui.core.components.utils as utils
+# import pollenisatorgui.core.components.utilsUI as utilsUI
 # from pollenisatorgui.core.components.apiclient import APIClient
 # from pollenisatorgui.core.application.dialogs.ChildDialogProgress import ChildDialogProgress
 # from pollenisatorgui.modules.module import Module
@@ -173,7 +173,7 @@
 #         """
 #         Create a contextual menu
 #         """
-#         self.contextualMenu = utils.craftMenuWithStyle(parentFrame)
+#         self.contextualMenu = utilsUI.craftMenuWithStyle(parentFrame)
 #         self.contextualMenu.add_command(
 #             label="Add Credentials", command=self.addCredentials)
 #         return self.contextualMenu
@@ -205,7 +205,7 @@
 #             displayMsg: The message that will explain to the user what he is choosing.
 #             default: Choose a default selected option (one of the string in options). default is None
 #         """
-#         self.app = CTkToplevel(parent, fg_color=utils.getBackgroundColor())
+#         self.app = CTkToplevel(parent, fg_color=utilsUI.getBackgroundColor())
 #         self.app.title("Auth information")
 #         self.app.resizable(False, False)
 #         appFrame = CTkFrame(self.app)
@@ -232,7 +232,7 @@
 #         self.ok_button.bind('<Return>', self.onOk)
 #         self.ok_button.pack(padx=10, pady=5, side="right")
 #         self.cancel_button = CTkButton(appFrame, text="Cancel", command=self.onError, 
-#                                fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+#                                fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
 #                                border_width=1, border_color="firebrick1", hover_color="tomato")
 #         self.cancel_button.pack(padx=10, pady=5, side="right")
 #         appFrame.pack(ipadx=10, ipady=5)

@@ -36,16 +36,16 @@ class MultiTodoCheckInstanceView(ViewElement):
         self.form.clear()
         top_panel = self.form.addFormPanel(fill=tk.NONE)
         ready, msg = self.mainApp.scanManager.is_ready_to_queue()
-        self.buttonQueueImage = CTkImage(Image.open(utils.getIcon('exec_cloud.png')))
+        self.buttonQueueImage = CTkImage(Image.open(utilsUI.getIcon('exec_cloud.png')))
         top_panel.addFormButton("Queue all", self.queueAll, state="normal" if ready else "disabled", image=self.buttonQueueImage)
         if not ready:
             top_panel.addFormLabel(msg)
         top_panel = self.form.addFormPanel(fill=tk.NONE)
         top_panel.addFormButton("Export", self.appliTw.exportSelection)
-        self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
+        self.delete_image = CTkImage(Image.open(utilsUI.getIcon("delete.png")))
         #top_panel.addFormButton("Custom Command", self.appliTw.customCommand)
         top_panel.addFormButton("Delete", self.appliTw.deleteSelected, image=self.delete_image,
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         # panTags = self.form.addFormPanel(grid=True)
         # registeredTags = Settings.getTags()

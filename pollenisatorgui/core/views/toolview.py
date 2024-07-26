@@ -85,7 +85,7 @@ class ToolView(ViewElement):
 
         if cache is None:
             from PIL import Image, ImageTk
-            path = utils.getIcon(ui)
+            path = utilsUI.getIcon(ui)
             if iconStatus == "done":
                 self.__class__.cached_done_icon = ImageTk.PhotoImage(
                     Image.open(path))
@@ -128,8 +128,8 @@ class ToolView(ViewElement):
         actions_panel = self.form.addFormPanel()
         apiclient = APIClient.getInstance()
         datamanager = DataManager.getInstance()
-        self.image_download = CTkImage(Image.open(utils.getIcon("download.png")))
-        self.image_reset = CTkImage(Image.open(utils.getIcon("reset_small.png")))
+        self.image_download = CTkImage(Image.open(utilsUI.getIcon("download.png")))
+        self.image_reset = CTkImage(Image.open(utilsUI.getIcon("reset_small.png")))
         try:
             command_d = datamanager.get("commands", modelData["command_iid"])
             if command_d is not None: # command not registered, I.E import
@@ -177,7 +177,7 @@ class ToolView(ViewElement):
                             pluginAction, pluginActions[pluginAction], side="right")
                     if command_d is not None:
                         actions_panel.addFormButton(
-                            "Reset", self.resetCallback, side="right", image=self.image_reset, fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                            "Reset", self.resetCallback, side="right", image=self.image_reset, fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         except errors.InvalidId:
             pass

@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 import pyperclip
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 
 class FormStr(Form):
@@ -43,7 +43,7 @@ class FormStr(Form):
             parent: the tkinter parent widget for the contextual menu
         """
         # FIXME Add to given menu instead of Overriding given contextual menu
-        self.contextualMenu = utils.craftMenuWithStyle(parent)
+        self.contextualMenu = utilsUI.craftMenuWithStyle(parent)
         self.contextualMenu.add_command(
             label="Copy", command=self.copy)
         self.contextualMenu.add_command(

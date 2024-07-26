@@ -62,7 +62,7 @@ class ViewElement(object):
         """
         from PIL import Image, ImageTk
         if cls.cachedClassIcon is None:
-            path = utils.getIcon(cls.icon)
+            path = utilsUI.getIcon(cls.icon)
             cls.cachedClassIcon = ImageTk.PhotoImage(Image.open(path))
         return cls.cachedClassIcon
     
@@ -76,7 +76,7 @@ class ViewElement(object):
         """
         from PIL import Image, ImageTk
         if cls.cachedloadingicon is None:
-            path = utils.getIcon(cls.loadingicon)
+            path = utilsUI.getIcon(cls.loadingicon)
             cls.cachedloadingicon = ImageTk.PhotoImage(Image.open(path))
         return cls.cachedloadingicon
 
@@ -235,12 +235,12 @@ class ViewElement(object):
             -Delete button that asks the user to delete the object with the delete function.
         """
         pan = self.form.addFormPanel()
-        self.delete_image = CTkImage(Image.open(utils.getIcon("delete.png")))
-        self.save_image = CTkImage(Image.open(utils.getIcon("save.png")))
+        self.delete_image = CTkImage(Image.open(utilsUI.getIcon("delete.png")))
+        self.save_image = CTkImage(Image.open(utilsUI.getIcon("save.png")))
         if editable:
             self.update_btn = pan.addFormButton("Submit", self.update, image=self.save_image)
             pan.addFormButton("Delete", self.delete, image=self.delete_image,
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
             # if addTags:
             #     registeredTags = settings.Settings.getTags()

@@ -34,7 +34,7 @@ class IpView(ViewElement):
         if not self.controller.is_in_scope():
             from PIL import Image, ImageTk
             if self.__class__.cachedClassOOSIcon == None:
-                path = utils.getIcon(self.__class__.icon_out_of_scope)
+                path = utilsUI.getIcon(self.__class__.icon_out_of_scope)
                 self.__class__.cachedClassOOSIcon = ImageTk.PhotoImage(Image.open(path))
             return self.__class__.cachedClassOOSIcon
         return super().getIcon()

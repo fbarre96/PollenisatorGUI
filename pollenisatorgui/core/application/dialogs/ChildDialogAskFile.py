@@ -5,7 +5,7 @@ from customtkinter import *
 import tkinterdnd2
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.forms.formpanel import FormPanel
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class ChildDialogAskFile(CTk, tkinterdnd2.TkinterDnD.DnDWrapper):
@@ -29,7 +29,7 @@ class ChildDialogAskFile(CTk, tkinterdnd2.TkinterDnD.DnDWrapper):
         super().__init__()
         self.TkDnDVersion = self._init_tkdnd()  #HACK to make work tkdnd with CTk
         self.settings = Settings()
-        utils.setStyle(self, self.settings.local_settings.get("dark_mode", False))
+        utilsUI.setStyle(self, self.settings.local_settings.get("dark_mode", False))
         self.title(info)
         self.bind("<Escape>", self.onError)
         self.rvalue = None
@@ -41,7 +41,7 @@ class ChildDialogAskFile(CTk, tkinterdnd2.TkinterDnD.DnDWrapper):
         self.fileForm = self.form.addFormFile("File", ".+", '', width=50,
                               side=tk.TOP, mode="file")
         self.button = self.form.addFormButton("Cancel", self.onError, side=tk.RIGHT, 
-                               fg_color=utils.getBackgroundColor(), text_color=utils.getTextColor(),
+                               fg_color=utilsUI.getBackgroundColor(), text_color=utilsUI.getTextColor(),
                                border_width=1, border_color="firebrick1", hover_color="tomato")
         self.form.addFormButton("OK", self.onOk, side=tk.RIGHT)
 

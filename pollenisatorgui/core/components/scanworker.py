@@ -9,8 +9,8 @@ from pollenisatorgui.core.components.logger_config import logger
 
 class ScanWorker:
 
-    def __init__(self, settings):
-        self.settings = settings
+    def __init__(self, local_settings):
+        self.local_settings = local_settings
         self.sio = socketio.Client()
         self.timer = None
         self.local_scans = dict()
@@ -28,7 +28,7 @@ class ScanWorker:
                 pass
             else:
                 raise e
-        plugins = list(set(self.settings.local_settings.get("my_commands",{}).keys()))
+        plugins = list(set(self.local_settings.get("my_commands",{}).keys()))
         print("REGISTER "+str(self.name))
         print("supported plugins "+str(plugins))
         self.sio.emit("register", {"name":self.name, "supported_plugins":plugins})

@@ -10,7 +10,7 @@ from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.views.checkitemview import CheckItemView
 from pollenisatorgui.core.views.multicheckitemView import MultiCheckItemView
 from pollenisatorgui.core.controllers.checkitemcontroller import CheckItemController
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class CheatsheetTreeview(PollenisatorTreeview):
@@ -193,7 +193,7 @@ class CheatsheetTreeview(PollenisatorTreeview):
         """
         Create the contextual menu
         """
-        self.contextualMenu = utils.craftMenuWithStyle(self.parentFrame)
+        self.contextualMenu = utilsUI.craftMenuWithStyle(self.parentFrame)
         self.contextualMenu.add_command(label="Add new Check", command=self.add_check)
         self.contextualMenu.add_command(
             label="Apply to opened pentest", command=self.applyToPentest)

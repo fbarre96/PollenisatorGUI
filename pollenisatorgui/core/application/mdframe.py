@@ -73,7 +73,7 @@ class TkintermdFrame(CTkFrame):
         self.editor_root_frame = tk.Frame(self.editor_pw)
         # Toolbar buttons
         self.editor_toolbar = tk.Frame(self.editor_root_frame)
-        self.icons = utils.loadIcons(["maximize.png", "undo_small.png","redo_small.png", "cut_small.png", "copy_small.png", "paste_small.png", "find_small.png","bold_small.png", "italic_small.png", "strikethrough_small.png","image_small.png"])
+        self.icons = utilsUI.loadIcons(["maximize.png", "undo_small.png","redo_small.png", "cut_small.png", "copy_small.png", "paste_small.png", "find_small.png","bold_small.png", "italic_small.png", "strikethrough_small.png","image_small.png"])
         if self.enable_maximize:
             self.maximize_btn = ttk.Button(self.editor_toolbar, text="Maximize", image=self.icons["maximize.png"], command=self.maximize, style="icon.TButton", tooltip="Maximize editor")
             self.maximize_btn.pack(side="left", padx=0, pady=0)
