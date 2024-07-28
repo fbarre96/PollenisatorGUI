@@ -8,6 +8,8 @@ import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.settings import Settings
 import tkinter.ttk as ttk
 import tkinter as tk
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 
 
 class CheckInstanceMultiView(ViewElement):

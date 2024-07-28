@@ -11,6 +11,7 @@ from pollenisatorgui.core.controllers.defectcontroller import DefectController
 import tkinter as tk
 import json
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class PortView(ViewElement):

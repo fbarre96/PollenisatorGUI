@@ -14,6 +14,8 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.models.defect import Defect
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 from pollenisatorgui.core.application.dialogs.ChildDialogInfo import ChildDialogInfo
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion

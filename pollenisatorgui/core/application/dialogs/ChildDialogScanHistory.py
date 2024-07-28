@@ -14,6 +14,8 @@ from pollenisatorgui.core.controllers.toolcontroller import ToolController
 from pollenisatorgui.core.views.toolview import ToolView
 from pollenisatorgui.core.application.dialogs.ChildDialogToolView import ChildDialogToolView
 from bson.objectid import ObjectId
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 
 class ChildDialogScanHistory:
     """

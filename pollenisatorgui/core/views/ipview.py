@@ -17,6 +17,8 @@ from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.controllers.ipcontroller import IpController
 from pollenisatorgui.core.views.viewelement import ViewElement
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from tkinter import TclError
 from bson.objectid import ObjectId
 import json

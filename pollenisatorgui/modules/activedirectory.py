@@ -30,7 +30,7 @@ from pollenisatorgui.modules.ActiveDirectory.models.computers import Computer # 
 from pollenisatorgui.modules.ActiveDirectory.models.shares import Share # load it in registry
 import tempfile
 from bson import ObjectId
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from pollenisatorgui.core.components.settings import Settings
 from PIL import Image
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry

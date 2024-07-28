@@ -22,6 +22,8 @@ from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDi
 from pollenisatorgui.core.models.checkinstance import CheckInstance
 from PIL import Image
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 import os
 import docker
 from bson import ObjectId

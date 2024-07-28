@@ -8,8 +8,8 @@ from shutil import which
 
 from customtkinter import *
 from PIL import Image
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
-import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 from pollenisatorgui.core.components.apiclient import APIClient, ErrorHTTP
 from pollenisatorgui.core.forms.formpanel import FormPanel

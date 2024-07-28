@@ -18,6 +18,8 @@ from pygments.lexer import bygroups
 from pygments.styles import get_style_by_name, get_all_styles
 from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
 from pollenisatorgui.core.components import utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 
 class TkintermdFrame(CTkFrame):
     """A Markdown editor with HTML preview for use in tkinter projects. 

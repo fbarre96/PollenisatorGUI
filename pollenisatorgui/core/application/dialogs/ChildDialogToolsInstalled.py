@@ -8,6 +8,7 @@ from pollenisatorgui.core.application.scrollableframexplateform import Scrollabl
 from pollenisatorgui.core.application.scrollabletreeview import ScrollableTreeview
 import pollenisatorgui.core.components.utils as utils
 from PIL import Image, ImageTk
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 from pollenisatorgui.core.forms.formpanel import FormPanel
 

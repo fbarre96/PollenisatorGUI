@@ -14,6 +14,8 @@ from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
 from pollenisatorgui.core.application.dialogs.ChildDialogInfo import ChildDialogInfo
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from bson import ObjectId, errors
 from customtkinter import *
 import os

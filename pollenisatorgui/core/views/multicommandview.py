@@ -2,7 +2,7 @@
 
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 class MultiCommandView(ViewElement):
     """View for command list object. Present an multi editing form to user when interacted with."""

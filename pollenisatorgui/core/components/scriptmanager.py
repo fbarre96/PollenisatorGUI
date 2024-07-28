@@ -3,6 +3,8 @@ import tkinter.ttk as ttk
 from customtkinter import *
 import os
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from pollenisatorgui.core.components.apiclient import APIClient
 from PIL import Image, ImageTk
 from ttkwidgets import CheckboxTreeview

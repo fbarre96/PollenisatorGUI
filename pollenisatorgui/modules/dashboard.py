@@ -3,7 +3,6 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from PIL import Image
 from pollenisatorgui.core.application.dialogs.ChildDialogSelectChecks import ChildDialogSelectChecks
-from pollenisatorgui.core.components import utils
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.components.datamanager import DataManager
 from pollenisatorgui.core.components.settings import Settings
@@ -12,6 +11,8 @@ from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.modules.module import Module
 from pollenisatorgui.core.forms.formpanel import FormPanel
 import threading
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 
 
 class Dashboard(Module):

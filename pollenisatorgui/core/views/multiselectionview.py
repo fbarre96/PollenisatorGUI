@@ -3,7 +3,7 @@
 from tkinter import ttk
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.components.settings import Settings
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from customtkinter import *
 from PIL import Image
 

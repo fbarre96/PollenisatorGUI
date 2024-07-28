@@ -3,6 +3,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from pollenisatorgui.core.forms.form import Form
 import pollenisatorgui.core.components.utils as utils
 import tkinter.filedialog

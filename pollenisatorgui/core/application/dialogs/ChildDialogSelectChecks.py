@@ -10,6 +10,7 @@ import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.forms.formpanel import FormPanel
 from pollenisatorgui.core.models.checkitem import CheckItem
 from pollenisatorgui.core.models.command import Command
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class ChildDialogSelectChecks:

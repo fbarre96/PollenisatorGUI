@@ -7,6 +7,7 @@ from customtkinter import *
 from PIL import Image, ImageTk
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class AdminView:

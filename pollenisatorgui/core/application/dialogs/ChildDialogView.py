@@ -3,7 +3,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from customtkinter import *
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 from pollenisatorgui.core.application.scrollableframexplateform import ScrollableFrameXPlateform
 class ChildDialogView:
     """

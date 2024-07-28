@@ -4,7 +4,8 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.viewelement import ViewElement
 from customtkinter import *
 from PIL import ImageTk, Image
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from pollenisatorgui.core.components.settings import Settings
 import tkinter.ttk as ttk
 import tkinter as tk

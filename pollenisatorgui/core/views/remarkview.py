@@ -5,7 +5,8 @@ import tkinter as tk
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.models.remark import Remark
 from pollenisatorgui.core.components.apiclient import APIClient
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from shutil import which
 import os
 import sys

@@ -7,6 +7,8 @@ from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDi
 from pollenisatorgui.core.views.viewelement import ViewElement
 from pollenisatorgui.core.models.defect import Defect
 import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
+
 from pollenisatorgui.core.components.apiclient import APIClient
 from PIL import ImageTk, Image
 from shutil import which
