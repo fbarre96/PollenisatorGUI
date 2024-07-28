@@ -27,7 +27,6 @@ def pollex_exec(execCmd, verbose=False):
     import tempfile
     import time
     from pollenisatorgui.core.components.apiclient import APIClient
-    from pollenisatorgui.core.components.settings import Settings
     from pollenisatorgui.pollenisator import consoleConnect, parseDefaultTarget
     import pollenisatorgui.core.components.utils as utils
 
@@ -58,9 +57,8 @@ def pollex_exec(execCmd, verbose=False):
     if not data:
         print("ERROR : An error as occured : "+str(data))
         return
-    settings = Settings()
-    settings.reloadLocalSettings()
-    my_commands = settings.local_settings.get("my_commands", {})
+    local_settings = utils.load_local_settings()
+    my_commands = local_settings.get("my_commands", {})
     path_to_check = set()
     bin_path = my_commands.get(bin_name, None)
     if bin_path is not None:
