@@ -8,7 +8,8 @@ from pollenisatorgui.core.application.pollenisatorentry import PopoEntry
 from PIL import ImageTk, Image
 from pollenisatorgui.core.components.settings import Settings
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.core.components.utils import loadClientConfig, saveClientConfig, getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
+from pollenisatorgui.core.components.utils import loadClientConfig, saveClientConfig
+from pollenisatorgui.core.components.utilsUI import  getValidMarkIconPath, getBadMarkIconPath, getWaitingMarkIconPath
 from pollenisatorgui.core.application.CollapsibleFrame import CollapsibleFrame
 
 class ChildDialogConnect:
