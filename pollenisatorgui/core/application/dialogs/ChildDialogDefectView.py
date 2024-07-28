@@ -9,7 +9,7 @@ from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.core.views.defectview import DefectView
 from pollenisatorgui.core.controllers.defectcontroller import DefectController
 from pollenisatorgui.core.models.defect import Defect
-from pollenisatorgui.core.components.utils import get_screen_where_widget
+from pollenisatorgui.core.components.utilsUI import get_screen_where_widget
 
 class DummyMainApp:
     def __init__(self, settings):
