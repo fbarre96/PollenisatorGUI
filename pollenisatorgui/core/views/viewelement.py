@@ -11,7 +11,7 @@ from tkinter import TclError
 from customtkinter import *
 from PIL import Image
 import tkinter as tk
-import pollenisatorgui.core.components.utils as utils
+import pollenisatorgui.core.components.utilsUI as utilsUI
 
 
 class ViewElement(object):

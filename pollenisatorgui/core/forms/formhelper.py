@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from customtkinter import *
 from pollenisatorgui.core.forms.form import Form
 from PIL import ImageTk, Image
-from pollenisatorgui.core.components.utils import getIcon
+from pollenisatorgui.core.components.utilsUI import getIcon
 
 
 class FormHelper(Form):

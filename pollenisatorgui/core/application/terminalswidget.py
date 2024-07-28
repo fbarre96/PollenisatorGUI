@@ -12,7 +12,8 @@ from customtkinter import *
 import libtmux
 from pollenisatorgui.core.application.pseudotermframe import PseudoTermFrame
 from pollenisatorgui.core.components.settings import Settings
-from pollenisatorgui.core.components.utils import getMainDir, getIcon, craftMenuWithStyle, read_and_forward_pty_output
+from pollenisatorgui.core.components.utils import getMainDir,read_and_forward_pty_output
+from pollenisatorgui.core.components.utilsUI import  getIcon, craftMenuWithStyle
 from pollenisatorgui.core.components.logger_config import logger
 from PIL import Image, ImageTk
 
