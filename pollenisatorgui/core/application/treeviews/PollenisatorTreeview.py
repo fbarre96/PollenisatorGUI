@@ -366,25 +366,25 @@ class PollenisatorTreeview(ttk.Treeview):
             dialog = ChildDialogProgress(self.parentFrame, "Searching ...",  msg="Querying ...", progress_mode="indeterminate")
             dialog.show()
             try:
-                if self.lazyload:
-                    if len(query.strip().split(" ")) == 1 and text_search_allowed:
-                        textsearch = True
-                    else:
-                        textsearch = bool(settings.local_settings.get("textsearch", False))
-                    searcher = apiclient.searchPentest(query.strip(), textonly=textsearch)
-                    dialog.update(msg="Loading in treeview ...")
-                    if searcher.get("success", True):
-                        self.doFilterTreeview(searcher, True, keep_parents=settings.local_settings.get("keep_parents", True), dialog_progress=dialog)
-                    else:
-                        tk.messagebox.showerror("Search error", searcher.get("msg", "Unknown error"))
-                        return False
-                elif len(query.strip().split(" ")) == 1 and text_search_allowed: # 1 word search = text search
-                    self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
-                elif settings.local_settings.get("textsearch", False) and text_search_allowed:
-                    self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
+                # if self.lazyload:
+                if len(query.strip().split(" ")) == 1 and text_search_allowed:
+                    textsearch = True
                 else:
-                    searcher = Filter(query, )
-                    self.doFilterTreeview(searcher, True, keep_parents=settings.local_settings.get("keep_parents", True))
+                    textsearch = bool(settings.local_settings.get("textsearch", False))
+                searcher = apiclient.searchPentest(query.strip(), textonly=textsearch)
+                dialog.update(msg="Loading in treeview ...")
+                if searcher.get("success", True):
+                    self.doFilterTreeview(searcher, True, keep_parents=settings.local_settings.get("keep_parents", True), dialog_progress=dialog)
+                else:
+                    tk.messagebox.showerror("Search error", searcher.get("msg", "Unknown error"))
+                    return False
+                # elif len(query.strip().split(" ")) == 1 and text_search_allowed: # 1 word search = text search
+                #     self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
+                # elif settings.local_settings.get("textsearch", False) and text_search_allowed:
+                #     self.doFilterTreeview(query, False, keep_parents=settings.local_settings.get("keep_parents", True))
+                # else:
+                #     searcher = Filter(query, )
+                #     self.doFilterTreeview(searcher, True, keep_parents=settings.local_settings.get("keep_parents", True))
             except ParseError as e:
                 tk.messagebox.showerror("Search error", str(e))
                 return False
