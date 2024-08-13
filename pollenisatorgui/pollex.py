@@ -69,7 +69,7 @@ def pollscript_exec(script_checkinstance_id, verbose=False):
     data["default_target"] = str(check_instance.getId())
     success, res = script_module.main(APIClient.getInstance(), None, **data)
     if success:
-        print("Script {script_name} finished.\n{res}")
+        print(f"Script {script_name} finished.\n{res}")
     else:
         print(f"Script {script_name} failed.\n{res}")
 
