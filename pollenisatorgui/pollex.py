@@ -5,15 +5,65 @@ from pollenisatorgui.core.components.logger_config import logger
 
 def pollex():
     if len(sys.argv) <= 1:
-        print("Usage : pollex [-v] <command to execute>")
+        print("Usage : pollex [-v] [--script <script_id> | <Plugin name> <command options> | <command to execute>]")
         sys.exit(1)
     verbose = False
     if sys.argv[1] == "-v":
         verbose = True
         execCmd = shlex.join(sys.argv[2:])
+    if "--script" in sys.argv:
+        index = sys.argv.index("--script")
+        try:
+            script_checkitem_id = sys.argv[index+1]
+            pollscript_exec(script_checkitem_id, verbose)
+            return
+        except IndexError as e:
+            print("ERROR : --script option must be followed by a checkinstance id")
+            sys.exit(1)
     else:
         execCmd = shlex.join(sys.argv[1:])
     pollex_exec(execCmd, verbose)
+
+def pollscript_exec(script_checkitem_id, verbose=False):
+    import os
+    import tempfile
+    import time
+    import shutil
+    from pollenisatorgui.core.components.apiclient import APIClient
+    from pollenisatorgui.core.models.checkitem import CheckItem
+    from bson import ObjectId
+    from pollenisatorgui.pollenisator import consoleConnect, parseDefaultTarget
+    import pollenisatorgui.core.components.utils as utils
+    import importlib
+
+    apiclient = APIClient.getInstance()
+    apiclient.tryConnection()
+    res = apiclient.tryAuth()
+    if not res:
+        consoleConnect()
+    check_o = CheckItem.fetchObject({"_id":ObjectId(script_checkitem_id)})
+    if check_o is None:
+        print("ERROR : Check not found")
+        return
+    if check_o.check_type != "script":
+        print("ERROR : Check is not a script check")
+        return
+    
+    script_name = os.path.normpath(check_o.title).replace(" ", "_").replace("/", "_").replace("\\", "_")+".py"
+    default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
+    tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
+    script_path = os.path.normpath(os.path.join(tmpdirname, script_name))
+    with open(script_path, "w") as f:
+        f.write(check_o.script)
+    spec = importlib.util.spec_from_file_location("pollenisatorgui.scripts."+str(script_name), script_path)
+    script_module = importlib.util.module_from_spec(spec)
+    sys.modules["pollenisatorgui.scripts."+str(script_name)] = script_module
+    spec.loader.exec_module(script_module)
+    success, res = script_module.main(APIClient.getInstance(), None, default_target=default_target)
+    if success:
+        print("Script {script_name} finished.\n{res}")
+    else:
+        print(f"Script {script_name} failed.\n{res}")
 
 def pollex_exec(execCmd, verbose=False):
     """Send a command to execute for pollenisator-gui running instance
