@@ -18,7 +18,7 @@ def main(apiclient, appli, **kwargs):
     if not res:
         return False, path
     APIClient.setInstance(apiclient)
-    res, dc = findDc(apiclient)
+    res, dc = findDc(apiclient, graphical=appli is not None)
     if not res:
         return False, dc
     addrs = psutil.net_if_addrs()
