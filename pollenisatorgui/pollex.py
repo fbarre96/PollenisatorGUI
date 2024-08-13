@@ -5,32 +5,35 @@ from pollenisatorgui.core.components.logger_config import logger
 
 def pollex():
     if len(sys.argv) <= 1:
-        print("Usage : pollex [-v] [--script <script_id> | <Plugin name> <command options> | <command to execute>]")
+        print("Usage : pollex [-v] [--checkinstance <checkinstance_id> | <Plugin name> <command options> | <command to execute>]")
         sys.exit(1)
     verbose = False
     if sys.argv[1] == "-v":
         verbose = True
         execCmd = shlex.join(sys.argv[2:])
     if "--script" in sys.argv:
-        index = sys.argv.index("--script")
+       
+       
         try:
-            script_checkitem_id = sys.argv[index+1]
-            pollscript_exec(script_checkitem_id, verbose)
+            index_check = sys.argv.index("--checkinstance")
+            script_checkinstance_id = sys.argv[index_check+1]
+            pollscript_exec(script_checkinstance_id,  verbose)
             return
         except IndexError as e:
-            print("ERROR : --script option must be followed by a checkinstance id")
+            print("ERROR : --checkinstance option must be followed by a checkinstance id")
             sys.exit(1)
     else:
         execCmd = shlex.join(sys.argv[1:])
     pollex_exec(execCmd, verbose)
 
-def pollscript_exec(script_checkitem_id, verbose=False):
+def pollscript_exec(script_checkinstance_id, verbose=False):
     import os
     import tempfile
     import time
     import shutil
     from pollenisatorgui.core.components.apiclient import APIClient
     from pollenisatorgui.core.models.checkitem import CheckItem
+    from pollenisatorgui.core.models.checkinstance import CheckInstance
     from bson import ObjectId
     from pollenisatorgui.pollenisator import consoleConnect, parseDefaultTarget
     import pollenisatorgui.core.components.utils as utils
@@ -41,6 +44,11 @@ def pollscript_exec(script_checkitem_id, verbose=False):
     res = apiclient.tryAuth()
     if not res:
         consoleConnect()
+    check_instance = CheckInstance.fetchObject({"_id":ObjectId(script_checkinstance_id)})
+    if check_instance is None:
+        print("ERROR : CheckInstance not found")
+        return
+    script_checkitem_id = check_instance.check_iid
     check_o = CheckItem.fetchObject({"_id":ObjectId(script_checkitem_id)})
     if check_o is None:
         print("ERROR : Check not found")
@@ -59,7 +67,9 @@ def pollscript_exec(script_checkitem_id, verbose=False):
     script_module = importlib.util.module_from_spec(spec)
     sys.modules["pollenisatorgui.scripts."+str(script_name)] = script_module
     spec.loader.exec_module(script_module)
-    success, res = script_module.main(APIClient.getInstance(), None, default_target=default_target)
+    data = check_instance.getData()
+    data["default_target"] = str(check_instance.getId())
+    success, res = script_module.main(APIClient.getInstance(), None, **data)
     if success:
         print("Script {script_name} finished.\n{res}")
     else:
