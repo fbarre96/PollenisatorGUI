@@ -1,4 +1,5 @@
 from pollenisatorgui.core.components import utils
+import psutil
 
 
 def findDc(apiclient, domain=None, ask_if_fail=True, graphical=False):
@@ -32,3 +33,30 @@ def checkPath(appnames):
             return True, path
     return False, "App name not found, create an alias or install it. ("+", ".join(appnames)+" were tested)"
     
+def getNICs(graphical=False):
+    addrs = psutil.net_if_addrs()
+    if graphical:
+        from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
+
+        dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
+        dialog.app.wait_window(dialog.app)
+        if dialog.rvalue is None:
+            raise ValueError("No ethernet device chosen")
+        eth = dialog.rvalue
+    else:
+        addrs_keys = list(addrs.keys())
+        print("Choose your ethernet device to listen on")
+        for i, ethitem in enumerate(addrs_keys):
+            print(str(i+1)+". "+ethitem)
+
+        eth = input("Choose your ethernet device to listen on (type its number):")
+        if eth is None:
+            raise ValueError("No ethernet device chosen")
+        try:
+            eth = addrs_keys[int(eth)-1]
+        except:
+            raise ValueError("Wrong number given")
+    if eth is None or eth == "":
+        raise ValueError("No ethernet device chosen")
+        
+    return eth

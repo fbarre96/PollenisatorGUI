@@ -1,24 +1,25 @@
 import subprocess
 import pollenisatorgui.core.components.utils as utils
-from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 import psutil
 from pollenisatorgui.core.components.apiclient import APIClient
+from pollenisatorgui.scripts.lan.utils import checkPath, getNICs
 import os
 import re
 
 def main(apiclient, appli, **kwargs):
+        
     APIClient.setInstance(apiclient)
-    addrs = psutil.net_if_addrs()
-    print(addrs.keys())
-    dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device connected to a domain")
-    dialog.app.wait_window(dialog.app)
+    try:
+        eth = getNICs(graphical=appli is not None)
+    except ValueError as e:
+        return False, str(e)
     nmcli_path = utils.which_expand_alias("nmcli")
     if nmcli_path is None:
         return False, "nmcli is not installed"
     probable_dc = []
     probable_domain = []
-    if dialog.rvalue is not None:
-        cmd = f"{nmcli_path} dev show {dialog.rvalue}"
+    if eth is not None:
+        cmd = f"{nmcli_path} dev show {eth}"
         result = subprocess.check_output(cmd, shell=True)
         result = result.decode("utf-8")
         regex_res = re.findall(r"\.DNS\[\d+\]:\s+(\S+)$", result, re.MULTILINE)
