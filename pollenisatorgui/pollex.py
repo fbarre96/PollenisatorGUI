@@ -11,9 +11,7 @@ def pollex():
     if sys.argv[1] == "-v":
         verbose = True
         execCmd = shlex.join(sys.argv[2:])
-    if "--script" in sys.argv:
-       
-       
+    if "--checkinstance" in sys.argv:
         try:
             index_check = sys.argv.index("--checkinstance")
             script_checkinstance_id = sys.argv[index_check+1]
