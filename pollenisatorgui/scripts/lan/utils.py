@@ -35,16 +35,17 @@ def checkPath(appnames):
     
 def getNICs(graphical=False):
     addrs = psutil.net_if_addrs()
+    addrs_keys = list(addrs.keys())
     if graphical:
         from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
 
-        dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
+        dialog = ChildDialogCombo(None, addrs_keys, displayMsg="Choose your ethernet device to listen on")
         dialog.app.wait_window(dialog.app)
         if dialog.rvalue is None:
             raise ValueError("No ethernet device chosen")
         eth = dialog.rvalue
     else:
-        addrs_keys = list(addrs.keys())
+        
         print("Choose your ethernet device to listen on")
         for i, ethitem in enumerate(addrs_keys):
             print(str(i+1)+". "+ethitem)
@@ -54,7 +55,7 @@ def getNICs(graphical=False):
             raise ValueError("No ethernet device chosen")
         try:
             eth = addrs_keys[int(eth)-1]
-        except:
+        except ValueError:
             raise ValueError("Wrong number given")
     if eth is None or eth == "":
         raise ValueError("No ethernet device chosen")
