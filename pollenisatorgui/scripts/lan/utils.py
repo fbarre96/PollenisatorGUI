@@ -1,3 +1,4 @@
+from getpass import getpass
 from pollenisatorgui.core.components import utils
 import psutil
 
@@ -61,3 +62,17 @@ def getNICs(graphical=False):
         raise ValueError("No ethernet device chosen")
         
     return eth
+
+
+def ask_text(graphical, title, default, secret=False):
+    if graphical:
+        from pollenisatorgui.core.application.dialogs.ChildDialogAskText import ChildDialogAskText
+        dialog = ChildDialogAskText(None, title, default, secret)
+        return dialog.rvalue
+    else:
+        if secret:
+            res = getpass(title+ " (or default to :"+str(default)+")")
+        res = input(title+" (or default to :"+str(default)+")").strip()
+        if res == "" or res is None:
+            return default
+        return res

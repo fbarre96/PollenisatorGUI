@@ -1,9 +1,7 @@
 import multiprocessing
 import subprocess
 import pollenisatorgui.core.components.utils as utils
-import tempfile
 import os
-import shutil
 from pollenisatorgui.core.components.apiclient import APIClient
 from pollenisatorgui.scripts.lan.utils import checkPath, getNICs
 from pollenisatorgui.pollex import pollex_exec

