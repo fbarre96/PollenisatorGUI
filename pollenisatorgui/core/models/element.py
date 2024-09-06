@@ -21,7 +21,7 @@ class Element(metaclass=MetaElement):
         Args:
             _id: mongo database id
             parent: a parent mongo id object for this model.
-            infos: a dicitonnary of custom information 
+            infos: a dicitonnary of custom information
         """
         # Initiate a cachedIcon for a model, not a class.
         self._id = _id
@@ -31,7 +31,7 @@ class Element(metaclass=MetaElement):
 
     @classmethod
     def fetchObject(cls, pipeline):
-        """Fetch one element from database and return the object 
+        """Fetch one element from database and return the object
         Args:
             pipeline: a Mongo search pipeline (dict)
         Returns:
@@ -52,7 +52,7 @@ class Element(metaclass=MetaElement):
             return None
         for d in ds:
             # disabling this error as it is an abstract function
-            yield cls(d)  
+            yield cls(d)
 
 
     @classmethod
@@ -84,7 +84,7 @@ class Element(metaclass=MetaElement):
             list of CheckInstance objects
         """
         from pollenisatorgui.core.models.checkinstance import CheckInstance
-        return CheckInstance.fetchObjects({"target_iid": str(self._id)})
+        return CheckInstance.fetchObjects({"target_iid": ObjectId(self._id)})
 
     def getParentId(self):
         """Returns the mongo id  of this element parent.
@@ -101,7 +101,7 @@ class Element(metaclass=MetaElement):
     def _getParentId(self):
         """
         To be overriden
-        Return the mongo ObjectId _id of the first parent of this object. 
+        Return the mongo ObjectId _id of the first parent of this object.
         Returns:
             Returns the parent's ObjectId _id".
         Returns:
@@ -122,7 +122,7 @@ class Element(metaclass=MetaElement):
         Add this model to pollenisator database.
         Returns: a tuple with :
                 * bool for success
-                * mongo ObjectId : already existing object if duplicate, create object id otherwise 
+                * mongo ObjectId : already existing object if duplicate, create object id otherwise
         """
         # pass
 
@@ -148,7 +148,7 @@ class Element(metaclass=MetaElement):
         tags = settings.Settings.getTags()
         return [tags, ["hidden"]]
 
-    
+
 
     def getDetailedString(self):
         """To be inherited and overriden

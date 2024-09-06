@@ -84,8 +84,8 @@ class CheckItemView(ViewElement):
         self.form.addFormHidden("Parent", default.get("parent", ""))
         panel_bottom = self.form.addFormPanel(grid=True)
         panel_bottom.addFormLabel("Check type", row=0, column=0)
-        self.checktypeForm = panel_bottom.addFormCombo("Check type", ("manual_commands", "auto_commands", "script", "manual"), 
-                                                        default=default.get("check_type","manual"),  
+        self.checktypeForm = panel_bottom.addFormCombo("Check type", ("manual_commands", "auto_commands", "script", "manual"),
+                                                        default=default.get("check_type","manual"),
                                                         command=lambda ev: self.updateCheckType(action),
                                                         row=0, column=1)
         panel_bottom.addFormLabel("Trigger", row=0, column=0)
@@ -112,7 +112,7 @@ class CheckItemView(ViewElement):
         if default.get("lvl", "").startswith("tag:"):
             lvl_split = default.get("lvl", "").split(":")
             if len(lvl_split) == 3:
-                tag_name = lvl_split[2] 
+                tag_name = lvl_split[2]
             else:
                 tag_name = ""
             self.panel_trigger_options.clear()
@@ -130,7 +130,7 @@ class CheckItemView(ViewElement):
             "Priority", r"\d+", default["priority"], width=40, column=1)
         panel.addFormHelper(
             "Defines the priority of this group of command when an auto scan is running.\nAutoscan will try to launch the highest priority (0 is max) and the highest+1.", column=2)
-        
+
         panel_bottom = self.form.addFormPanel()
         panel_bottom.addFormLabel("Description")
         panel_bottom.addFormText("Description", r"", default.get("description", ""), side="right")
@@ -188,7 +188,7 @@ class CheckItemView(ViewElement):
                     tv_defects.append((defect_o.title,  tag, str(defect_o.getId())))
         self.treeview_defects = self.formDefects.addFormTreevw(
             "Defects", ("Defect names", "Tag association"), tv_defects, doubleClickBinds=[self.onDefectDoubleClick, self.possible_tags],height=5, width=30, pady=5, fill=tk.X, side=tk.RIGHT)
-        
+
     def onCommandDoubleClick(self, oldval):
         command_o = Command.fetchObject({"name":oldval})
         if command_o is None:
@@ -201,7 +201,7 @@ class CheckItemView(ViewElement):
         if defect_o is None:
             return
         dialog = ChildDialogDefectView(self.mainApp, "Edit defect", self.settings, defect_o)
-    
+
     def reopen(self):
         if self.is_insert_view:
             self.openInsertWindow()
@@ -230,7 +230,7 @@ class CheckItemView(ViewElement):
         liste = scriptManagerInst.rvalue
         if liste is not None:
             textForm.setValue(", ".join(liste))
-        
+
     def openModifyWindow(self, **kwargs):
         """
         Creates a tkinter form using Forms classes. This form aims to update or delete an existing Command
@@ -241,7 +241,7 @@ class CheckItemView(ViewElement):
         else:
             self.openModifyWindowFromPentestView()
             return
-        
+
     def openModifyWindowFromPentestView(self):
         self.is_insert_view = False
         self.completeModifyWindow(editable=False, addTags=False)
@@ -278,13 +278,15 @@ class CheckItemView(ViewElement):
         panel_top = self.form.addFormPanel(grid=True)
         panel_top.addFormLabel("Title", column=0)
         panel_top.addFormStr("Title", r".+", default=data.get("title", ""), column=1)
-        
-       
+
+
         self._commonWindowForms(data, action="insert")
         self.completeInsertWindow()
 
     def _insertChildren(self):
+        print("INSERT CHILDEN")
         checks = self.controller.getChecks()
+        print("CHECKS "+str(checks))
         if len(checks) > self._limit_childrens:
             checks_done = {}
             checks_running = {}
@@ -303,7 +305,7 @@ class CheckItemView(ViewElement):
             checks_vw = MultiTodoCheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, checks_not_done, self.controller.getDbId())
             checks_vw.addInTreeview(title)
             return
-        
+
         for check in checks:
             check_o = CheckInstanceController(check)
             check_vw = CheckInstanceView(self.appliTw, self.appliViewFrame, self.mainApp, check_o)
@@ -327,13 +329,13 @@ class CheckItemView(ViewElement):
                 text += f" ({count_children})"
             #FASTER THAN self.appliTw.insert(parentNode, "end", str(
             #    self.controller.getDbId()), text=str(self.controller.getModelRepr()), tags=self.controller.getTags(), image=self.getIcon())
-            node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()), 
+            node = self.appliTw.tk.call(self.appliTw._w, "insert", parentNode, "end", "-id", str(self.controller.getDbId()),
                                  "-text", text, "-image", self.getIcon())
         except tk.TclError as e:
             pass
         if not addChildren and getattr(self.appliTw, "lazyload", False) and not self.mainApp.searchMode:
             try:
-                self.appliTw.tk.call(self.appliTw._w, "insert", str(self.controller.getDbId()), "end", "-id", str(self.controller.getDbId())+"|<Empty>", 
+                self.appliTw.tk.call(self.appliTw._w, "insert", str(self.controller.getDbId()), "end", "-id", str(self.controller.getDbId())+"|<Empty>",
                                  "-text","<Empty>")
             except tk.TclError as e:
                 pass
@@ -344,7 +346,7 @@ class CheckItemView(ViewElement):
                 self.hide("checklist_view")
             if self.mainApp.settings.is_show_only_manual() and self.controller.isAuto():
                 self.hide("filter_manual")
-            
+
 
     def getParentNode(self, with_category=False):
         """
@@ -365,7 +367,7 @@ class CheckItemView(ViewElement):
         parent = self.controller.getParent()
         if parent is not None and parent != "":
             return parent
-        
+
         return "" # category
 
     def _initContextualMenu(self):
@@ -410,7 +412,7 @@ class CheckItemView(ViewElement):
 
         ret = [{"TITLE":command["name"], "commands":{"text":command["name"], "values":(0, str(command["_id"]))}} for command in commands]
         return ret, ""
-    
+
     def create_command_callback(self, _event=None):
         view = CommandView(self.appliTw, self.appliViewFrame, self.mainApp, CommandController(Command()))
         result = view.openInDialog(is_insert=True)
@@ -425,7 +427,7 @@ class CheckItemView(ViewElement):
     def create_defect_callback(self, _event=None):
         dialog = ChildDialogDefectView(self.mainApp, "Add a security defect template", self.mainApp.settings, as_template=True)
         try:
-            self.mainApp.wait_window(dialog.app)	
+            self.mainApp.wait_window(dialog.app)
         except tk.TclError:
             pass
         if dialog.rvalue:
@@ -451,7 +453,7 @@ class CheckItemView(ViewElement):
         #         self.appliTw.move(str(self.controller.model.getId()), self.appliTw.commands_node, "end")
         #     except tk.TclError:
         #         print("WARNING: Update received for a non existing command "+str(self.controller.getModelRepr()))
-        
+
         super().updateReceived()
 
     def key(self):
@@ -462,6 +464,6 @@ class CheckItemView(ViewElement):
         return tuple([ord(c) for c in str(self.controller.getModelRepr()).lower()])
 
     # function that converts a string into a lsit of ascii values
-    def convert(self, string):  
-        li = list(string.split(" ")) 
-        return li   
+    def convert(self, string):
+        li = list(string.split(" "))
+        return li

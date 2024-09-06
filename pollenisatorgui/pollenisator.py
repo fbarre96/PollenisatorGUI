@@ -64,6 +64,7 @@ def get_local_git_version():
     return "v2.7.1"
 
 def get_latest_github_version():
+    return None
     try:
         # Make a GET request to GitHub's releases endpoint
         url = f"https://api.github.com/repos/fbarre96/PollenisatorGUI/releases/latest"
@@ -77,7 +78,7 @@ def get_latest_github_version():
     except Exception as e:
         print("Error fetching latest version from GitHub:", e)
         return None
-    
+
 def checkForUpdates():
     latest = get_latest_github_version()
     local = get_local_git_version()
@@ -97,7 +98,7 @@ def update():
     except Exception as e:
         print("Error updating package:", e)
 
-def consoleConnect(force=False, askPentest=True):    
+def consoleConnect(force=False, askPentest=True):
     apiclient = APIClient.getInstance()
     abandon = False
     if force:
@@ -107,9 +108,9 @@ def consoleConnect(force=False, askPentest=True):
     if apiclient.isConnected() and askPentest:
         promptForPentest()
     return not abandon
-        
+
 def promptForConnection():
-   
+
     clientCfg = utils.loadClientConfig()
     host = clientCfg.get("host", "")
     port = clientCfg.get("port", "5000")
@@ -122,7 +123,7 @@ def promptForConnection():
     if port_result.strip() == "":
         port_result = port
     https_result = input(f'Use HTTPS (y/N)?').strip() == 'y'
-    
+
     apiclient = APIClient.getInstance()
     apiclient.reinitConnection()
     res = apiclient.tryConnection({"host":host_result, "port":port_result, "https":https_result})
@@ -227,17 +228,17 @@ def pollwatch():
         observer.stop()
         observer.join()
 
-    
+
 
 def main():
     """Main function. Start pollenisator application
     """
-    
+
     print("""
-.__    ..              ,       
+.__    ..              ,
 [__) _ || _ ._ * __ _.-+- _ ._.
-|   (_)||(/,[ )|_) (_] | (_)[  
-                               
+|   (_)||(/,[ )|_) (_] | (_)[
+
 """)
 
     import tkinter as tk
@@ -247,7 +248,7 @@ def main():
 
     customtkinter.set_default_color_theme(utilsUI.getColorTheme())
 
-    event_obj.clear() 
+    event_obj.clear()
     gc = None
     update_available = checkForUpdates()
     if update_available:

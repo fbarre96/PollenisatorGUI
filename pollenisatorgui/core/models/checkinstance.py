@@ -25,8 +25,8 @@ class CheckInstance(Element):
             valuesFromDb = dict()
         super().__init__(valuesFromDb.get("_id", None), valuesFromDb.get("parent", None), valuesFromDb.get("infos", {}))
         self.initialize(valuesFromDb.get("check_iid"), valuesFromDb.get("target_iid"),valuesFromDb.get("target_type"), valuesFromDb.get("parent"), valuesFromDb.get("status", ""), valuesFromDb.get("notes", ""))
-        
-   
+
+
     def initialize(self, check_iid, target_iid, target_type, parent, status, notes):
         self.check_iid = check_iid
         self.parent = parent
@@ -48,13 +48,13 @@ class CheckInstance(Element):
         ret = self._id
         apiclient = APIClient.getInstance()
         apiclient.deleteCheckInstance(ret)
-        
+
 
     # def addInDb(self):
     #     """Add this command to pollenisator database
     #     Returns: a tuple with :
     #             * bool for success
-    #             * mongo ObjectId : already existing object if duplicate, create object id otherwise 
+    #             * mongo ObjectId : already existing object if duplicate, create object id otherwise
     #     """
     #     apiclient = APIClient.getInstance()
     #     res, id = apiclient.insertCheckInstance(self.getData())
@@ -62,10 +62,10 @@ class CheckInstance(Element):
     #         return False, id
     #     self._id = id
     #     return True, id
-        
+
     def getStatus(self):
         return self.status
-    
+
 
     def update(self, pipeline_set=None):
         """Update this object in database.
@@ -77,12 +77,12 @@ class CheckInstance(Element):
             apiclient.updateCheckInstance(self._id, self.getData())
         else:
             apiclient.updateCheckInstance(self._id, pipeline_set )
-        
+
 
 
     @classmethod
     def fetchObject(cls,  pipeline):
-        """Fetch one CheckInstance from database and return the CheckInstance object 
+        """Fetch one CheckInstance from database and return the CheckInstance object
         Args:
             pipeline: a Mongo search pipeline (dict)
         Returns:
@@ -111,7 +111,7 @@ class CheckInstance(Element):
             return None
         for d in ds:
             yield CheckInstance(d)
-    
+
     def getData(self):
         return {"_id": self._id,  "check_iid": self.check_iid, "target_type": self.target_type, "target_iid": self.target_iid,"parent":self.parent, "status": self.status, "notes": self.notes}
 

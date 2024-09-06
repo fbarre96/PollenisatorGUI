@@ -26,7 +26,7 @@ class CheckItem(Element):
             valuesFromDb.get("ports", ""), valuesFromDb.get("priority", 0), valuesFromDb.get("max_thread", 1), valuesFromDb.get("description", ""), valuesFromDb.get("category", ""),\
             valuesFromDb.get("check_type", "manual"), valuesFromDb.get("step", 0), valuesFromDb.get("parent", None),
             valuesFromDb.get("commands", []), valuesFromDb.get("defect_tags", []), valuesFromDb.get("script", ""),  valuesFromDb.get("infos", {}))
-        
+
     def initialize(self, title, pentest_types=None, lvl="port:onServiceUpdate", ports="", priority=0, max_thread=1, description="", category="", check_type="manual", step=0, parent=None, commands=None, defect_tags=None, script="", infos=None):
         self.title = title
         self.description = description
@@ -55,13 +55,13 @@ class CheckItem(Element):
         ret = self._id
         apiclient = APIClient.getInstance()
         apiclient.deleteCheckItem(ret)
-        
+
 
     def addInDb(self):
         """Add this command to pollenisator database
         Returns: a tuple with :
                 * bool for success
-                * mongo ObjectId : already existing object if duplicate, create object id otherwise 
+                * mongo ObjectId : already existing object if duplicate, create object id otherwise
         """
         apiclient = APIClient.getInstance()
         res, id = apiclient.insertCheckItem(self.getData())
@@ -69,7 +69,7 @@ class CheckItem(Element):
             return False, id
         self._id = id
         return True, id
-        
+
 
     def update(self, pipeline_set=None):
         """Update this object in database.
@@ -81,12 +81,12 @@ class CheckItem(Element):
             apiclient.updateCheckItem(self._id, self.getData())
         else:
             apiclient.updateCheckItem(self._id, pipeline_set )
-        
+
 
 
     @classmethod
     def fetchObject(cls,  pipeline):
-        """Fetch one CheckItem from database and return the CheckItem object 
+        """Fetch one CheckItem from database and return the CheckItem object
         Args:
             pipeline: a Mongo search pipeline (dict)
         Returns:
@@ -113,17 +113,17 @@ class CheckItem(Element):
             return None
         for d in ds:
             yield CheckItem(d)
-    
+
     def getChecks(self):
         """Return check instances that implements this check item
         Returns:
             list of checkInstance objects
         """
         datamanager = DataManager.getInstance()
-        return datamanager.find("checkinstance", {"check_iid": str(self._id)}, multi=True)
-    
+        return datamanager.find("checkinstance", {"check_iid": ObjectId(self._id)}, multi=True)
+
     def getData(self):
-        return {"_id": self._id,  "title":self.title, "pentest_types":self.pentest_types, "lvl":self.lvl, "ports":self.ports, 
+        return {"_id": self._id,  "title":self.title, "pentest_types":self.pentest_types, "lvl":self.lvl, "ports":self.ports,
                 "priority": int(self.priority), "max_thread": int(self.max_thread),
                 "description": self.description, "category":self.category,
                 "check_type":self.check_type, "step":self.step, "parent":self.parent,
