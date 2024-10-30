@@ -124,8 +124,8 @@ def pollex_exec(execCmd, verbose=False):
     path_to_check.add(bin_name)
     plugin_results = data["plugin_results"]
     for plugin, plugin_data in plugin_results.items():
-        if plugin in execCmd:
-            path_to_check.union(plugin_data.get("common_bin_names", [])) 
+        if os.path.splitext(plugin)[0] in execCmd:
+            path_to_check.union(plugin_data.get("common_bin_names", []))
     bin_path_found, result_msg = utils.checkPaths(list(path_to_check))
     if not bin_path_found:
         print("ERROR : "+result_msg)
