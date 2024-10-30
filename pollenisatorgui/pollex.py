@@ -130,7 +130,7 @@ def pollex_exec(execCmd, verbose=False):
     if not bin_path_found:
         print("ERROR : "+result_msg)
         return
-    
+    new_bin_path = result_msg
     comm = data["command_line_options"].replace(bin_name, new_bin_path, 1)
     
     if (verbose):
