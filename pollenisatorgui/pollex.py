@@ -167,7 +167,8 @@ def pollex_exec(execCmd, verbose=False):
     logger.debug("pollex detect plugins "+str(plugin_results))
     atLeastOne = False
     error = ""
-    for plugin,ext in plugin_results.items():
+    for plugin, plugin_data in plugin_results.items():
+        ext = plugin_data.get("expected_extension", ".log.txt")
         outputFilePath = os.path.join(tmpdirname, cmdName) + ext
         if not os.path.exists(outputFilePath):
             if os.path.exists(outputFilePath+ext):
