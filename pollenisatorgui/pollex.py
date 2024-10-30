@@ -122,18 +122,24 @@ def pollex_exec(execCmd, verbose=False):
     if bin_path is not None:
         path_to_check.add(bin_path)
     path_to_check.add(bin_name)
+    plugin_results = data["plugin_results"]
+    for plugin, plugin_data in plugin_results.items():
+        if plugin in execCmd:
+            path_to_check.union(plugin_data.get("common_bin_names", [])) 
     bin_path_found, result_msg = utils.checkPaths(list(path_to_check))
     if not bin_path_found:
         print("ERROR : "+result_msg)
         return
-    new_bin_path = result_msg
+    
     comm = data["command_line_options"].replace(bin_name, new_bin_path, 1)
-    plugin_results = data["plugin_results"]
+    
     if (verbose):
         print("INFO : Matching plugins are "+str(data["plugin_results"]))
     
     tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
-    for plugin,ext in plugin_results.items():
+    for plugin, plugin_data in plugin_results.items():
+        ext = plugin_data.get("expected_extension", ".log.txt")
+
         outputFilePath = os.path.join(tmpdirname, cmdName) + ext
         comm = comm.replace(f"|{plugin}.outputDir|", outputFilePath)
     if (verbose):
