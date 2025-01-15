@@ -1,5 +1,6 @@
 import json
 import multiprocessing
+import uuid
 import requests
 import os
 import io
@@ -253,6 +254,15 @@ class APIClient():
         except KeyError:
             pass
 
+    def isUUID(self, val):
+        """Check if the given value is a valid UUID"""
+        try:
+            uuidv4 = uuid.UUID(val, version=4)
+            return True
+        except ValueError:
+            return False
+
+
     def setConnection(self, token, name=""):
         try:
             jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
@@ -263,7 +273,7 @@ class APIClient():
             self.currentPentest = ""
             self.currentPentestName = ""
             for scope in self.scope:
-                if scope not in ["pentester", "admin", "user", "owner", "worker"]:
+                if self.isUUID(scope):
                     self.currentPentest = scope
                     self.currentPentestName = name
             client_config = utils.loadClientConfig()
