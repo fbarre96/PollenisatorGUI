@@ -11,7 +11,7 @@ class ScanWorker:
 
     def __init__(self, local_settings):
         self.local_settings = local_settings
-        self.sio = socketio.Client()
+        self.sio = socketio.Client(ssl_verify=False)
         self.timer = None
         self.local_scans = dict()
 
