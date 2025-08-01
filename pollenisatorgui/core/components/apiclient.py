@@ -1030,7 +1030,7 @@ class APIClient():
         if os.path.exists(local_path) and os.path.isfile(local_path):
             with open(local_path,mode='rb') as f:
                 self.session.headers.pop('Content-Type', None)
-                response = self.session.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, headers=h, proxies=self.proxies, verify=False)
+                response = self.session.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, proxies=self.proxies, verify=False)
                 self.session.headers.update(self.headers)  # Restore original headers
                 if response.status_code == 200:
                     return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1094,7 +1094,7 @@ class APIClient():
                 else:
                     files = {"upfile": (os.path.basename(local_path), f)}
                 self.session.headers.pop('Content-Type', None)
-                response = self.session.post(api_url, files=files, headers=h, proxies=self.proxies, verify=False)
+                response = self.session.post(api_url, files=files, proxies=self.proxies, verify=False)
                 self.session.headers.update(self.headers)  # Restore original headers
                 if response.status_code == 200:
                     return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1193,7 +1193,7 @@ class APIClient():
             return "Failure to open provided file "+str(local_path)
         with io.open(local_path, mode='rb') as f:
             self.session.headers.pop('Content-Type', None)
-            response = self.session.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, headers=h, proxies=self.proxies, verify=False)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(local_path) ,f)}, data={"plugin":parser}, proxies=self.proxies, verify=False)
             self.session.headers.update(self.headers)  # Restore original headers
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1216,7 +1216,7 @@ class APIClient():
         api_url = '{0}files/{1}/import'.format(self.api_url_base, self.getCurrentPentest())
         with io.open(filepath, mode='rb') as f:
             self.session.headers.pop('Content-Type', None)
-            response = self.session.post(api_url, headers=h, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":json.dumps(default_target), "cmdline":command_used}, proxies=self.proxies, verify=False)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(filepath) ,f)}, data={"plugin":plugin, "default_target":json.dumps(default_target), "cmdline":command_used}, proxies=self.proxies, verify=False)
             self.session.headers.update(self.headers)  # Restore original headers
             if response.status_code == 200:
                 return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
@@ -1382,7 +1382,7 @@ class APIClient():
         api_url = '{0}importDb'.format(self.api_url_base)
         with io.open(filename, mode='rb') as f:
             self.session.headers.pop('Content-Type', None)
-            response = self.session.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f,'application/gzip')}, params={"orig_name":original_db_name}, proxies=self.proxies, verify=False)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(filename) ,f,'application/gzip')}, params={"orig_name":original_db_name}, proxies=self.proxies, verify=False)
             self.session.headers.update(self.headers)  # Restore original headers
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
@@ -1396,7 +1396,7 @@ class APIClient():
             api_url += "/worker"
         with io.open(filename, mode='rb') as f:
             self.session.headers.pop('Content-Type', None)
-            response = self.session.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
             self.session.headers.update(self.headers)  # Restore original headers
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
@@ -1407,7 +1407,7 @@ class APIClient():
         api_url = '{0}importCheatsheet'.format(self.api_url_base)
         with io.open(filename, mode='rb') as f:
             self.session.headers.pop('Content-Type', None)
-            response = self.session.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
             self.session.headers.update(self.headers)  # Restore original headers
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
@@ -1418,7 +1418,7 @@ class APIClient():
         api_url = '{0}report/DefectTemplates/import'.format(self.api_url_base)
         with io.open(filename, mode='rb') as f:
             self.session.headers.pop('Content-Type', None)
-            response = self.session.post(api_url, headers=h, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(filename) ,f, 'application/json')}, proxies=self.proxies, verify=False)
             self.session.headers.update(self.headers)  # Restore original headers
             if response.status_code >= 400:
                 raise ErrorHTTP(response, False)
