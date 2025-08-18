@@ -272,7 +272,7 @@ class APIClient():
             return False
 
 
-    def setConnection(self, token, name=""):
+    def setConnection(self, token, name="", pentest_uuid=""):
         try:
             jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
             self.scope = jwt_decoded["scope"]
@@ -281,12 +281,8 @@ class APIClient():
             self.headers["Authorization"] = "Bearer "+token
             # Update session headers with the new authorization
             self.session.headers.update({"Authorization": "Bearer "+token})
-            self.currentPentest = ""
-            self.currentPentestName = ""
-            for scope in self.scope:
-                if self.isUUID(scope):
-                    self.currentPentest = scope
-                    self.currentPentestName = name
+            self.currentPentest = pentest_uuid
+            self.currentPentestName = name
             client_config = utils.loadClientConfig()
             client_config["token"] = self.token
             utils.saveClientConfig(client_config)
@@ -345,7 +341,7 @@ class APIClient():
             body = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
             token = body["token"]
             pentest_name = body["pentest_name"]
-            self.setConnection(token, pentest_name)
+            self.setConnection(token, pentest_name, newCurrentPentest)
             return True
         elif response.status_code >= 400:
             raise ErrorHTTP(response, False)
