@@ -147,6 +147,10 @@ class TerminalWorker(ScanWorker):
                         # auto-detect is a special case, we don't want to configure it
                         continue
                     get_bin_path = utils.which_expand_aliases(pluginFound["default_bin_names"])
+                    for value in get_bin_path.values():
+                        if value is not None:
+                            get_bin_path = value
+                            break
                     if get_bin_path is not None:
                         # BUT TOOL IS INSTALLED
                         self.local_settings["my_commands"][pluginFound["plugin"]] = get_bin_path
