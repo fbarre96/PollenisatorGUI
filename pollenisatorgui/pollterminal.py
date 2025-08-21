@@ -25,7 +25,6 @@ def pollterminal():
     sm = TerminalWorker(local_settings)
     myname = os.getenv('POLLENISATOR_WORKER_NAME', str(uuid.uuid4())+"@"+socket.gethostname())
     plugins = list(set(local_settings.get("my_commands",{}).keys()))
-    print("supported plugins "+str(plugins))
     
     sm.connect(myname, plugins, force_reconnect=force_reconnect)
     

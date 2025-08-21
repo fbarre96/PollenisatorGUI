@@ -143,12 +143,16 @@ class TerminalWorker(ScanWorker):
             for pluginFound in findPlugins:
                 if pluginFound["plugin"] not in self.local_settings["my_commands"].keys():
                     # NOT CONFIGURED YET
+                    if pluginFound["plugin"] == "auto-detect" or pluginFound["plugin"] == "Default":
+                        # auto-detect is a special case, we don't want to configure it
+                        continue
                     get_bin_path = utils.which_expand_aliases(pluginFound["default_bin_names"])
                     if get_bin_path is not None:
                         # BUT TOOL IS INSTALLED
                         self.local_settings["my_commands"][pluginFound["plugin"]] = get_bin_path
                         utils.save_local_settings(self.local_settings)
                         plugins.append(pluginFound["plugin"])
+                        print("[+] Found missing plugin : auto configuration "+pluginFound["plugin"]+" with path "+get_bin_path)
         
         self.sio.connect(apiclient.api_url)
         print("Supported plugins "+str(plugins))

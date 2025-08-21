@@ -622,7 +622,7 @@ def openPathForUser(path, folder_only=False):
 #     return True
 
 def which_expand_aliases(whats):
-    whats = list(whats)
+    whats = list(set(whats))
     res = expand_alias(shlex.join(whats))
     if res is None:
         return res
