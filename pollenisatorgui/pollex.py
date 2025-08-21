@@ -41,7 +41,10 @@ def pollscript_exec(script_checkinstance_id, verbose=False):
     apiclient.tryConnection()
     res = apiclient.tryAuth()
     if not res:
-        consoleConnect()
+        # Check if we have a current pentest configured before asking for one
+        current_pentest = apiclient.getCurrentPentest()
+        ask_pentest = not current_pentest or current_pentest.strip() == ""
+        consoleConnect(askPentest=ask_pentest)
     check_instance = CheckInstance.fetchObject({"_id":ObjectId(script_checkinstance_id)})
     if check_instance is None:
         print("ERROR : CheckInstance not found")
@@ -93,12 +96,18 @@ def pollex_exec(execCmd, verbose=False):
     apiclient.tryConnection()
     res = apiclient.tryAuth()
     if not res:
-        consoleConnect()
+        # Check if we have a current pentest configured before asking for one
+        current_pentest = apiclient.getCurrentPentest()
+        ask_pentest = not current_pentest or current_pentest.strip() == ""
+        consoleConnect(askPentest=ask_pentest)
     res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
     (success, data) = res
     if not success:
         print(data)
-        consoleConnect()
+        # Only ask for pentest if we don't have one configured
+        current_pentest = apiclient.getCurrentPentest()
+        ask_pentest = not current_pentest or current_pentest.strip() == ""
+        consoleConnect(askPentest=ask_pentest)
     res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
     (success, data) = res
     if not success:

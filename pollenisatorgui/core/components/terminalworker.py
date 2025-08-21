@@ -159,7 +159,6 @@ class TerminalWorker(ScanWorker):
                         print("[+] Found missing plugin : auto configuration "+pluginFound["plugin"]+" with path "+get_bin_path)
         
         self.sio.connect(apiclient.api_url)
-        print("Supported plugins "+str(plugins))
         self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "name":name, "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
         self.connected = False
         @self.sio.on("testTerminal")
