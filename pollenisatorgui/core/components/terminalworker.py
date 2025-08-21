@@ -138,6 +138,17 @@ class TerminalWorker(ScanWorker):
             consoleConnect()
         if apiclient.isConnected() is False or apiclient.getCurrentPentest() == "":
             return
+        findPlugins = apiclient.getPlugins()
+        if findPlugins is not None:
+            for pluginFound in findPlugins:
+                if pluginFound["plugin"] not in self.local_settings["my_commands"].keys():
+                    # NOT CONFIGURED YET
+                    get_bin_path = utils.which_expand_alias(pluginFound["default_bin_names"])
+                    if get_bin_path is not None:
+                        # BUT TOOL IS INSTALLED
+                        self.local_settings["my_commands"][pluginFound["plugin"]] = get_bin_path
+                        utils.save_local_settings(self.local_settings)
+        
         self.sio.connect(apiclient.api_url)
         self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "name":name, "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
         self.connected = False
