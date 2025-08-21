@@ -84,6 +84,7 @@ class TerminalWorker(ScanWorker):
             target_iid = self.sessions[session_id].get("target_check_iid", None)
             if target_iid:
                 environ["POLLENISATOR_DEFAULT_TARGET"] = target_iid
+            logger.info("starting terminal session with command: %s" % self.cmd)
             subprocess.run(self.cmd,  shell=True, env=environ)
         
     def stopTerminalSession(self, data):
