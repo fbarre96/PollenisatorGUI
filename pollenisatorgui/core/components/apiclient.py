@@ -201,6 +201,10 @@ class APIClient():
             token = None
             if not force:
                 token = config.get("token", None)
+                current = config.get("currentPentest", "")
+                if current != "":
+                    self.setCurrentPentest(current, addDefaultCommands=False)
+
             self.api_url = http_proto+"://"+host+":"+str(port)+"/"
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
             # requests timeout does not work when the DNS does not respond. So we use a thread to do the request and kill it if it takes too long.
@@ -285,6 +289,8 @@ class APIClient():
             self.currentPentestName = name
             client_config = utils.loadClientConfig()
             client_config["token"] = self.token
+            client_config["currentPentest"] = self.currentPentest
+            client_config["currentPentestName"] = self.currentPentestName
             utils.saveClientConfig(client_config)
             
         except JWTError as e:
