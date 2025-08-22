@@ -202,6 +202,8 @@ class APIClient():
             token = None
             if not force:
                 token = config.get("token", None)
+                if token is not None and token.strip() != "":
+                    self.setConnection(token)
                 current = config.get("currentPentest", "")
                 if current != "":
                     self.setCurrentPentest(current, addDefaultCommands=False)
@@ -286,13 +288,14 @@ class APIClient():
             self.headers["Authorization"] = "Bearer "+token
             # Update session headers with the new authorization
             self.session.headers.update({"Authorization": "Bearer "+token})
-            self.currentPentest = pentest_uuid
-            self.currentPentestName = name
+            
             client_config = utils.loadClientConfig()
             client_config["token"] = self.token
-            client_config["currentPentest"] = self.currentPentest
-            client_config["currentPentestName"] = self.currentPentestName
-            logger.debug("Set current pentest to "+str(self.currentPentest)+" "+str(self.currentPentestName))
+            if name == "" and pentest_uuid != "":
+                self.currentPentest = pentest_uuid
+                self.currentPentestName = name
+                client_config["currentPentest"] = self.currentPentest
+                client_config["currentPentestName"] = self.currentPentestName
             utils.saveClientConfig(client_config)
             
         except JWTError as e:
