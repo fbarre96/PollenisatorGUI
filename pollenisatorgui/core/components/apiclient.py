@@ -12,6 +12,7 @@ from shutil import copyfile
 from jose import jwt, JWTError
 from functools import wraps
 from bson import ObjectId
+from pollenisatorgui.core.components.logger_config import logger
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
@@ -291,6 +292,7 @@ class APIClient():
             client_config["token"] = self.token
             client_config["currentPentest"] = self.currentPentest
             client_config["currentPentestName"] = self.currentPentestName
+            logger.debug("Set current pentest to "+str(self.currentPentest)+" "+str(self.currentPentestName))
             utils.saveClientConfig(client_config)
             
         except JWTError as e:

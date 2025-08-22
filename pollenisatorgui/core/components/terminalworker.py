@@ -199,7 +199,7 @@ class TerminalWorker(ScanWorker):
                     tool_iid = parts[1]
                     print("If tool iid is "+str(tool_iid)+" == "+str(data.get("tool_iid")))
                     if tool_iid == data.get("tool_iid"):
-                        print("SEndingStop to session if fd")
+                        print("SendingStop to session if fd")
                         self.sendStop(session_data)
 
         super().connect(name)
