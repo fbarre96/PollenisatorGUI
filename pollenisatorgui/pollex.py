@@ -1,3 +1,4 @@
+import re
 import sys
 import shlex
 import multiprocessing
@@ -144,6 +145,12 @@ def pollex_exec(execCmd, verbose=False):
     
     if (verbose):
         print("INFO : Matching plugins are "+str(data["plugin_results"]))
+
+    files_attached = re.findall(r'\|file\_[a-f0-9\-]+\|', comm)
+    for f in files_attached:
+        file_id = f.replace("|file_", "").replace("|", "")
+        file_path = apiclient._get("file", file_id, file_id, "/tmp/"+file_id)
+        comm = comm.replace(f"|file_{file_id}|", file_path)
     
     tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
     for plugin, plugin_data in plugin_results.items():
