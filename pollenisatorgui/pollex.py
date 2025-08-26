@@ -12,6 +12,7 @@ def pollex():
     if sys.argv[1] == "-v":
         verbose = True
         execCmd = shlex.join(sys.argv[2:])
+    
     if "--checkinstance" in sys.argv:
         try:
             index_check = sys.argv.index("--checkinstance")
@@ -97,18 +98,9 @@ def pollex_exec(execCmd, verbose=False):
     apiclient.tryConnection()
     res = apiclient.tryAuth()
     if not res:
-        # Check if we have a current pentest configured before asking for one
-        current_pentest = apiclient.getCurrentPentest()
-        ask_pentest = not current_pentest or current_pentest.strip() == ""
-        consoleConnect(askPentest=ask_pentest)
-    res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
-    (success, data) = res
-    if not success:
-        print(data)
-        # Only ask for pentest if we don't have one configured
-        current_pentest = apiclient.getCurrentPentest()
-        ask_pentest = not current_pentest or current_pentest.strip() == ""
-        consoleConnect(askPentest=ask_pentest)
+        consoleConnect()
+    if apiclient.isConnected() is False or apiclient.getCurrentPentest() == "":
+        return
     res = apiclient.getDesiredOutputForPlugin(execCmd, "auto-detect")
     (success, data) = res
     if not success:
