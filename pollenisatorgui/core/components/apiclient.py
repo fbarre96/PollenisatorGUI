@@ -291,7 +291,7 @@ class APIClient():
             
             client_config = utils.loadClientConfig()
             client_config["token"] = self.token
-            if name == "" and pentest_uuid != "":
+            if name != "" and pentest_uuid != "":
                 self.currentPentest = pentest_uuid
                 self.currentPentestName = name
                 client_config["currentPentest"] = self.currentPentest
