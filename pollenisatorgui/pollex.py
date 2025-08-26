@@ -108,7 +108,7 @@ def pollex_exec(execCmd, verbose=False):
         return
     cmdName +="::"+str(time.time()).replace(" ","-")
     default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
-    if default_target.get("tool_iid") is not  None:
+    if default_target.get("tool_iid") is not None:
         apiclient.setToolStatus(default_target.get("tool_iid"), ["running"])
     
     if not success:

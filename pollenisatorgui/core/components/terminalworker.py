@@ -83,6 +83,8 @@ class TerminalWorker(ScanWorker):
             environ = os.environ.copy()
             target_iid = self.sessions[session_id].get("target_check_iid", None)
             if target_iid:
+                if isinstance(target_iid, list):
+                    target_iid = ",".join(target_iid)
                 environ["POLLENISATOR_DEFAULT_TARGET"] = target_iid
             logger.info("starting terminal session with command: %s" % self.cmd)
             subprocess.run(self.cmd,  shell=True, env=environ)

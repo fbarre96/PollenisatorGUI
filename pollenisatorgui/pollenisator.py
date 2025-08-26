@@ -173,7 +173,9 @@ def parseDefaultTarget(stringToParse):
         ret["tool_iid"] = parts[1]
         ret["lvl"] = "import"
         return ret
-
+    if "," in stringToParse:
+        parts = stringToParse.split(",")
+        return {"check_iid":parts, "tool_iid":None, "lvl":"import"}
     else:
         return {"check_iid":str(stringToParse), "lvl":"import"}
 
