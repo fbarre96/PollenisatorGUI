@@ -62,6 +62,7 @@ class TerminalWorker(ScanWorker):
             "timer": None,
             "connected": False,
             "target_check_iid": target_check_iid,
+            "target_tools_iids": data.get("target_tools_iids", None)
         }
         (child_pid, fd) = pty.fork()
         if child_pid != 0:
