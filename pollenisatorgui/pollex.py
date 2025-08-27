@@ -108,8 +108,12 @@ def pollex_exec(execCmd, verbose=False):
         return
     cmdName +="::"+str(time.time()).replace(" ","-")
     default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
-    if default_target.get("tool_iid") is not None:
-        apiclient.setToolStatus(default_target.get("tool_iid"), ["running"])
+    tools_iids = default_target.get("tool_iid") 
+    if tools_iids is not None:
+        if not isinstance(tools_iids, list):
+            tools_iids = [tools_iids]
+        for tool_iid in tools_iids:
+            apiclient.setToolStatus(tool_iid, ["running"])
     
     if not success:
         print("ERROR : "+data)
@@ -196,5 +200,6 @@ def pollex_exec(execCmd, verbose=False):
             if q:
                 if isinstance(q, str):
                     notes += q.encode()
-        apiclient.setToolStatus(default_target.get("tool_iid"), ["error"], error+"\nSTDOUT:\n"+notes.decode())
+        for tool_iid in tools_iids:
+            apiclient.setToolStatus(tool_iid), ["error"], error+"\nSTDOUT:\n"+notes.decode())
     shutil.rmtree(tmpdirname)
