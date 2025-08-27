@@ -81,11 +81,21 @@ class TerminalWorker(ScanWorker):
             logger.info("task started")
         else:
             environ = os.environ.copy()
-            target_iid = self.sessions[session_id].get("target_check_iid", None)
-            if target_iid:
-                if isinstance(target_iid, list):
-                    target_iid = ",".join(target_iid)
-                environ["POLLENISATOR_DEFAULT_TARGET"] = target_iid
+            target_check_iid = self.sessions[session_id].get("target_check_iid", None)
+            target_tools_iids = self.sessions[session_id].get("target_tools_iids", None)
+            target = ""
+            if target_check_iid:
+                if isinstance(target_check_iid, list):
+                    target = ",".join(target_check_iid)
+                else:
+                    target = str(target_check_iid)
+            if target_tools_iids:
+                target += "|"
+                if isinstance(target_tools_iids, list):
+                    target += ",".join(target_tools_iids)
+                else:
+                    target += str(target_tools_iids)
+            environ["POLLENISATOR_DEFAULT_TARGET"] = target
             logger.info("starting terminal session with command: %s" % self.cmd)
             subprocess.run(self.cmd,  shell=True, env=environ)
         

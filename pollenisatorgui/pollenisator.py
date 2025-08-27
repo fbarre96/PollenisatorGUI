@@ -170,14 +170,18 @@ def parseDefaultTarget(stringToParse):
         parts = stringToParse.split("|")
         ret = {}
         ret["check_iid"] = parts[0]
+        if "," in parts[0]:
+            ret["check_iid"] = parts[0].split(",")
         ret["tool_iid"] = parts[1]
+        if "," in parts[1]:
+            ret["tool_iid"] = parts[1].split(",")
         ret["lvl"] = "import"
         return ret
     if "," in stringToParse:
         parts = stringToParse.split(",")
         return {"check_iid":parts, "tool_iid":None, "lvl":"import"}
     else:
-        return {"check_iid":str(stringToParse), "lvl":"import"}
+        return {"check_iid":str(stringToParse), "tool_iid":None,  "lvl":"import"}
 
 
 def pollup():
