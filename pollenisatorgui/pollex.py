@@ -201,5 +201,5 @@ def pollex_exec(execCmd, verbose=False):
                 if isinstance(q, str):
                     notes += q.encode()
         for tool_iid in tools_iids:
-            apiclient.setToolStatus(tool_iid), ["error"], error+"\nSTDOUT:\n"+notes.decode())
+            apiclient.setToolStatus(tool_iid, ["error"], error+"\nSTDOUT:\n"+notes.decode())
     shutil.rmtree(tmpdirname)
