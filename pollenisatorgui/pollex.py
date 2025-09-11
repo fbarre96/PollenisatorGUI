@@ -11,8 +11,6 @@ def pollex():
     verbose = False
     if sys.argv[1] == "-v":
         verbose = True
-        execCmd = shlex.join(sys.argv[2:])
-    
     if "--checkinstance" in sys.argv:
         try:
             index_check = sys.argv.index("--checkinstance")
@@ -23,7 +21,10 @@ def pollex():
             print("ERROR : --checkinstance option must be followed by a checkinstance id")
             sys.exit(1)
     else:
-        execCmd = shlex.join(sys.argv[1:])
+        if sys.argv[1] == "-v":
+            execCmd = shlex.join(sys.argv[2:])
+        else:
+            execCmd = shlex.join(sys.argv[1:])
     pollex_exec(execCmd, verbose)
 
 def pollscript_exec(script_checkinstance_id, verbose=False):
@@ -78,7 +79,7 @@ def pollscript_exec(script_checkinstance_id, verbose=False):
     else:
         print(f"Script {script_name} failed.\n{res}")
 
-def pollex_exec(execCmd, verbose=False):
+def pollex_exec(execCmd, verbose=False, delete_tmp=True):
     """Send a command to execute for pollenisator-gui running instance
     """
     
@@ -202,4 +203,7 @@ def pollex_exec(execCmd, verbose=False):
                     notes += q.encode()
         for tool_iid in tools_iids:
             apiclient.setToolStatus(tool_iid, ["error"], error+"\nSTDOUT:\n"+notes.decode())
-    shutil.rmtree(tmpdirname)
+    if delete_tmp:
+        shutil.rmtree(tmpdirname)
+    if not delete_tmp:
+        return outputFilePath
