@@ -281,7 +281,7 @@ class APIClient():
 
     def setConnection(self, token, name="", pentest_uuid=""):
         try:
-            jwt_decoded = jwt.decode(token, "", options={"verify_signature":False})
+            jwt_decoded = jwt.decode(token, "", options={"verify_signature":False, "verify_exp":False})
             self.scope = jwt_decoded["scope"]
             self.userConnected = jwt_decoded.get("sub", None)
             self.token = token
@@ -299,6 +299,7 @@ class APIClient():
             utils.saveClientConfig(client_config)
             
         except JWTError as e:
+            print(e)
             return False
         return True
 
