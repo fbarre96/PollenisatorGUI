@@ -3,6 +3,7 @@ import sys
 import shlex
 import multiprocessing
 from pollenisatorgui.core.components.logger_config import logger
+from pollenisatorgui.core.components.utils import getDataFolder
 
 def pollex():
     if len(sys.argv) <= 1:
@@ -25,7 +26,9 @@ def pollex():
             execCmd = shlex.join(sys.argv[2:])
         else:
             execCmd = shlex.join(sys.argv[1:])
-    pollex_exec(execCmd, verbose)
+    output = pollex_exec(execCmd, verbose)
+    if output is not None:
+        print("Result file : "+str(output))
 
 def pollscript_exec(script_checkinstance_id, verbose=False):
     import os
@@ -63,8 +66,8 @@ def pollscript_exec(script_checkinstance_id, verbose=False):
     
     script_name = os.path.normpath(check_o.title).replace(" ", "_").replace("/", "_").replace("\\", "_")+".py"
     default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
-    tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
-    script_path = os.path.normpath(os.path.join(tmpdirname, script_name))
+    results_folder = getDataFolder() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
+    script_path = os.path.normpath(os.path.join(results_folder, script_name))
     with open(script_path, "w") as f:
         f.write(check_o.script)
     spec = importlib.util.spec_from_file_location("pollenisatorgui.scripts."+str(script_name), script_path)
@@ -79,7 +82,7 @@ def pollscript_exec(script_checkinstance_id, verbose=False):
     else:
         print(f"Script {script_name} failed.\n{res}")
 
-def pollex_exec(execCmd, verbose=False, delete_tmp=True):
+def pollex_exec(execCmd, verbose=False):
     """Send a command to execute for pollenisator-gui running instance
     """
     
@@ -149,11 +152,14 @@ def pollex_exec(execCmd, verbose=False, delete_tmp=True):
         file_path = apiclient._get("file", file_id, file_id, "/tmp/"+file_id)
         comm = comm.replace(f"|file_{file_id}|", file_path)
     
-    tmpdirname = tempfile.mkdtemp() ### HACK: tempfile.TemporaryDirectory() gets deleted early because a fork occurs in execute and atexit triggers.
+    result_dir = getDataFolder() 
+    
     for plugin, plugin_data in plugin_results.items():
         ext = plugin_data.get("expected_extension", ".log.txt")
-
-        outputFilePath = os.path.join(tmpdirname, cmdName) + ext
+    
+        outputFileDir= os.path.join(result_dir, str(plugin))
+        os.makedirs(outputFileDir, exist_ok=True)
+        outputFilePath = os.path.join(outputFileDir, cmdName) + ext
         comm = comm.replace(f"|{plugin}.outputDir|", outputFilePath)
     if (verbose):
         print("Executing command : "+str(comm))
@@ -164,7 +170,8 @@ def pollex_exec(execCmd, verbose=False, delete_tmp=True):
     #    returncode = utils.execute_no_fork(comm, None, True, queue, queueResponse, cwd=tmpdirname)
     #else:
     try:
-        returncode = utils.execute(comm, None, queue, queueResponse, cwd=tmpdirname, printStdout=True)
+        # getcwd is needed to have a valid cwd in case of relative paths in the command (filepath to a userlist for example)
+        returncode = utils.execute(comm, None, queue, queueResponse, cwd=os.getcwd(), printStdout=True)
     except KeyboardInterrupt:
         logger.debug("pollex KeyboardInterrupt for comm "+str(comm))
     except Exception as e:
@@ -175,14 +182,13 @@ def pollex_exec(execCmd, verbose=False, delete_tmp=True):
             print("INFO : Only default plugin found")
         response = input("No plugin matched, do you want to use default plugin to log the command and stdout ? (Y/n) :")
         if str(response).strip().lower() == "n":
-            shutil.rmtree(tmpdirname)
             return
     logger.debug("pollex detect plugins "+str(plugin_results))
     atLeastOne = False
     error = ""
     for plugin, plugin_data in plugin_results.items():
         ext = plugin_data.get("expected_extension", ".log.txt")
-        outputFilePath = os.path.join(tmpdirname, cmdName) + ext
+        outputFilePath = os.path.join(result_dir, str(plugin), cmdName) + ext
         if not os.path.exists(outputFilePath):
             if os.path.exists(outputFilePath+ext):
                 outputFilePath+=ext
@@ -203,7 +209,4 @@ def pollex_exec(execCmd, verbose=False, delete_tmp=True):
                     notes += q.encode()
         for tool_iid in tools_iids:
             apiclient.setToolStatus(tool_iid, ["error"], error+"\nSTDOUT:\n"+notes.decode())
-    if delete_tmp:
-        shutil.rmtree(tmpdirname)
-    if not delete_tmp:
-        return outputFilePath
+    return outputFilePath

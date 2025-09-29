@@ -471,6 +471,12 @@ def getConfigFolder():
     config = os.path.join(home,".config/pollenisator-gui/")
     return config
 
+def getDataFolder():
+    home = expanduser("~")
+    data = os.path.join(home,".pollenisator-gui/results/")
+    os.makedirs(data, exist_ok=True)
+    return data
+
 def loadClientConfig():
     """Return data converted from json inside config/client.cfg
     Returns:
