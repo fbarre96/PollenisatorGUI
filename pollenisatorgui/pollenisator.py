@@ -134,10 +134,8 @@ def promptForConnection():
         loginRes, mustChangePassword = apiclient.login(username_result, password_result)
         if loginRes:
             if mustChangePassword:
-                print("You must change your password, connect through a web or graphical client please.")
-                return False
-            else:
-                return loginRes
+                print("You should change your password, connect through a web or graphical client please.")
+            return loginRes
         else:
             print("Failed to login.")
         return loginRes
