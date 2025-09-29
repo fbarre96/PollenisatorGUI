@@ -157,7 +157,7 @@ def pollex_exec(execCmd, verbose=False):
     for plugin, plugin_data in plugin_results.items():
         ext = plugin_data.get("expected_extension", ".log.txt")
     
-        outputFileDir= os.path.join(result_dir, str(plugin))
+        outputFileDir= os.path.join(result_dir, os.path.splitext(plugin)[0])
         os.makedirs(outputFileDir, exist_ok=True)
         outputFilePath = os.path.join(outputFileDir, cmdName) + ext
         comm = comm.replace(f"|{plugin}.outputDir|", outputFilePath)
@@ -188,7 +188,7 @@ def pollex_exec(execCmd, verbose=False):
     error = ""
     for plugin, plugin_data in plugin_results.items():
         ext = plugin_data.get("expected_extension", ".log.txt")
-        outputFilePath = os.path.join(result_dir, str(plugin), cmdName) + ext
+        outputFilePath = os.path.join(result_dir, os.path.splitext(plugin)[0], cmdName) + ext
         if not os.path.exists(outputFilePath):
             if os.path.exists(outputFilePath+ext):
                 outputFilePath+=ext
