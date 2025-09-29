@@ -90,11 +90,9 @@ def pollex_exec(execCmd, verbose=False):
     if bin_name in ["echo", "print", "vim", "vi", "tmux", "nano", "code", "cd", "ls","pwd", "cat", "export"]:
         sys.exit(-1)
     import os
-    import shutil
-    import tempfile
-    import time
     from pollenisatorgui.core.components.apiclient import APIClient
     from pollenisatorgui.pollenisator import consoleConnect, parseDefaultTarget
+    from datetime import datetime
     import pollenisatorgui.core.components.utils as utils
 
     cmdName = os.path.splitext(os.path.basename(bin_name))[0]
@@ -110,7 +108,7 @@ def pollex_exec(execCmd, verbose=False):
     if not success:
         print(data)
         return
-    cmdName +="::"+str(time.time()).replace(" ","-")
+    cmdName += "_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     default_target = parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", ""))
     tools_iids = default_target.get("tool_iid") 
     if tools_iids is not None:
