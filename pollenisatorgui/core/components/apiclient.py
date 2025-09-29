@@ -13,7 +13,8 @@ from jose import jwt, JWTError
 from functools import wraps
 from bson import ObjectId
 from pollenisatorgui.core.components.logger_config import logger
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # fullpath to this file
 config_dir = utils.getConfigFolder()
