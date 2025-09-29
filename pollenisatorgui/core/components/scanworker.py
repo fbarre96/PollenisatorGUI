@@ -41,7 +41,7 @@ class ScanWorker:
             pentest = data.get("pentest", "")
             pentest_name = data.get("pentest_name", "Unknown")
             apiclient = APIClient.getInstance()
-            apiclient.setConnection(workerToken, name=pentest_name, pentest_uuid=pentest)
+            #apiclient.setConnection(workerToken, name=pentest_name, pentest_uuid=pentest)
             toolId = data.get("toolId")
             infos = data.get("infos")
             tool = Tool.fetchObject({"_id":ObjectId(toolId)})
