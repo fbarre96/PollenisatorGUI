@@ -171,7 +171,8 @@ class TerminalWorker(ScanWorker):
                         utils.save_local_settings(self.local_settings)
                         plugins.append(pluginFound["plugin"])
                         print("[+] Found missing plugin : auto configuration "+pluginFound["plugin"]+" with path "+get_bin_path)
-        
+                    else:
+                        print("[-] Missing plugin : "+pluginFound["plugin"]+" (not installed on this system?)")
         self.sio.connect(apiclient.api_url)
         self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "name":name, "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
         self.connected = False
