@@ -190,7 +190,7 @@ class APIClient():
             raise FileNotFoundError(str(configClientPath)+" does not exist")
         try:
             is_https = config.get("https", True)
-            http_proto = "https" if str(is_https).lower() == "true" or is_https == 1 else "http"
+            http_proto = "https" if (str(is_https).lower() == "true" or is_https == 1) else "http"
             host = config.get("host")
             port = config.get("port")
             proxies = config.get("proxies", "")
@@ -201,6 +201,7 @@ class APIClient():
                     proxies = {"http": proxies, "https": proxies}
             self.proxies = proxies
             token = None
+            self.session.verify = False
             if not force:
                 token = config.get("token", None)
                 if token is not None and token.strip() != "":
@@ -212,7 +213,7 @@ class APIClient():
             self.api_url = http_proto+"://"+host+":"+str(port)+"/"
             self.api_url_base = http_proto+"://"+host+":"+str(port)+"/api/v1/"
             # requests timeout does not work when the DNS does not respond. So we use a thread to do the request and kill it if it takes too long.
-            response = call_with_timeout(self.session.get, args=(self.api_url_base,), kwargs={"verify":False}, timeout=2)
+            response = self.session.get(self.api_url_base, proxies=proxies, verify=False, timeout=2)
         except requests.exceptions.RequestException as e:
             return False
         except TimeoutError as e:
