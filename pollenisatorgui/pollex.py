@@ -147,7 +147,7 @@ def pollex_exec(execCmd, verbose=False):
     files_attached = re.findall(r'\|file\_[a-f0-9\-]+\|', comm)
     for f in files_attached:
         file_id = f.replace("|file_", "").replace("|", "")
-        file_path = apiclient._get("file", file_id, file_id, "/tmp/"+file_id)
+        file_path = apiclient.downloadById("file", file_id, file_id, "/tmp/"+file_id)
         comm = comm.replace(f"|file_{file_id}|", file_path)
     
     result_dir = getDataFolder() 
