@@ -1130,6 +1130,33 @@ class APIClient():
         elif response.status_code >= 400:
             raise ErrorHTTP(response)
         return None
+    
+    @handle_api_errors
+    def downloadById(self, filetype, attached_iid, local_filename, local_path):
+        """Download file affiliated with given iid and place it at given path
+        Args:
+            filetype: 'result' or 'proof' 
+            attached_iid: tool or defect iid depending on filetype
+            local_filename: local desired file name
+            local_path: local file path
+        """
+        api_url = '{0}files/{1}/downloadById/{2}/{3}'.format(self.api_url_base, self.getCurrentPentest(), filetype, attached_iid)
+        response = self.session.get(api_url, verify=False)
+        
+        if response.status_code == 200:
+            if local_filename is None:
+                local_filename = response.headers.get('Content-Disposition').split('filename=')[1]
+                local_filename = local_filename.replace('"', '')
+                local_filename = os.path.basename(local_filename)
+            if not os.path.exists(local_path):
+                os.makedirs(local_path)
+            local_path = os.path.join(local_path, local_filename)
+            with open(local_path, mode='wb') as f:
+                f.write(response.content)
+            return local_path
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response)
+        return None
 
     @handle_api_errors
     def _get(self, filetype, attached_iid, local_filename, local_path):
