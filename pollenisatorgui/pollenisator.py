@@ -202,9 +202,56 @@ def uploadFile(filename, plugin='auto-detect'):
     res = apiclient.tryAuth()
     if not res:
         consoleConnect()
-    print(f"INFO : Uploading results {filename}")
-    msg = apiclient.importExistingResultFile(filename, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), "")
-    print(msg)
+    print(f"INFO : Uploading results {filename} (async)")
+    
+    # Use async upload
+    try:
+        response = apiclient.importExistingResultFileAsync(filename, plugin, parseDefaultTarget(os.environ.get("POLLENISATOR_DEFAULT_TARGET", "")), "")
+        task_id = response.get("task_id")
+        print(f"INFO : Upload queued with task ID: {task_id}")
+        
+        # Poll for completion
+        max_wait_time = 300  # 5 minutes timeout
+        poll_interval = 2  # Poll every 2 seconds
+        elapsed_time = 0
+        
+        while elapsed_time < max_wait_time:
+            try:
+                result = apiclient.getImportTaskResult(task_id)
+                status = result.get("status")
+                
+                if status == "completed":
+                    results = result.get("results", {})
+                    print(f"INFO : Import completed successfully: {results}")
+                    return
+                elif status in ["queued", "processing"]:
+                    print(f"INFO : Import {status}... (elapsed: {elapsed_time}s)")
+                    time.sleep(poll_interval)
+                    elapsed_time += poll_interval
+                else:
+                    # Should not reach here as failed status raises an exception
+                    error = result.get("error", "Unknown error")
+                    print(f"ERROR : Import failed: {error}")
+                    return
+                    
+            except Exception as e:
+                # Check if it's a failed task (400 error)
+                if hasattr(e, 'response') and e.response.status_code == 400:
+                    task_error = e.ret_values[0] if e.ret_values else str(e)
+                    if isinstance(task_error, dict):
+                        error = task_error.get("error", str(task_error))
+                    else:
+                        error = str(task_error)
+                    print(f"ERROR : Import failed: {error}")
+                    return
+                else:
+                    raise
+        
+        if elapsed_time >= max_wait_time:
+            print(f"WARNING : Import timed out after {max_wait_time}s. Check task {task_id} status later.")
+            
+    except Exception as e:
+        print(f"ERROR : Failed to upload file: {str(e)}")
 
 def pollwatch():
     from watchdog.observers import Observer

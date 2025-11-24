@@ -141,18 +141,101 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         return False, str(e)
     # Execute found plugin if there is one
     outputfile = outputPath+fileext
-    plugin = "auto-detect" if command_dict["plugin"] == "" else command_dict["plugin"] 
-    msg = apiclient.importToolResult(toolId, plugin, outputfile)
-    if msg != "Success":
-        #toolModel.markAsNotDone()
-        print(str(msg))
+    plugin = "auto-detect" if command_dict["plugin"] == "" else command_dict["plugin"]
+    
+    # Use async upload for better performance with large files
+    logger.debug(f"Autoscan: Uploading results {outputfile} (async)")
+    try:
+        # Build the async import URL
+        api_url = '{0}files/{1}/import/async'.format(apiclient.api_url_base, apiclient.getCurrentPentest())
+        
+        if not os.path.isfile(outputfile):
+            error_msg = "Failure to open provided file "+str(outputfile)
+            print(error_msg)
+            toolModel.setStatus(["error"])
+            logger.debug("Autoscan: "+error_msg)
+            sys.exit(1)
+            
+        with open(outputfile, 'rb') as f:
+            apiclient.session.headers.pop('Content-Type', None)
+            response = apiclient.session.post(api_url, 
+                                             files={"upfile": (os.path.basename(outputfile), f)}, 
+                                             data={"plugin": plugin}, 
+                                             proxies=apiclient.proxies, 
+                                             verify=False)
+            apiclient.session.headers.update(apiclient.headers)
+            
+            if response.status_code != 200:
+                error_msg = f"Failed to queue import: {response.status_code} - {response.text}"
+                print(error_msg)
+                toolModel.setStatus(["error"])
+                logger.debug(f"Autoscan: {error_msg}")
+                sys.exit(1)
+                
+            response_data = json.loads(response.content.decode('utf-8'))
+            task_id = response_data.get("task_id")
+            logger.debug(f"Autoscan: Upload queued with task ID: {task_id}")
+            print(f"INFO : Upload queued with task ID: {task_id}")
+        
+        # Poll for completion
+        max_wait_time = 300  # 5 minutes timeout
+        poll_interval = 2  # Poll every 2 seconds
+        elapsed_time = 0
+        
+        while elapsed_time < max_wait_time:
+            result_url = '{0}files/import/task/{1}/result'.format(apiclient.api_url_base, task_id)
+            result_response = apiclient.session.get(result_url, 
+                                                    headers=apiclient.headers, 
+                                                    proxies=apiclient.proxies, 
+                                                    verify=False)
+            
+            if result_response.status_code == 200:
+                # Task completed successfully
+                result_data = json.loads(result_response.content.decode('utf-8'))
+                results = result_data.get("results", {})
+                logger.debug(f"Autoscan: Import completed successfully: {results}")
+                print(f"INFO : Import completed successfully: {results}")
+                break
+            elif result_response.status_code == 202:
+                # Task still processing
+                result_data = json.loads(result_response.content.decode('utf-8'))
+                status = result_data.get("status")
+                logger.debug(f"Autoscan: Import {status}... (elapsed: {elapsed_time}s)")
+                time.sleep(poll_interval)
+                elapsed_time += poll_interval
+            elif result_response.status_code == 400:pol
+                # Task failed
+                result_data = json.loads(result_response.content.decode('utf-8'))
+                error = result_data.get("error", "Unknown error")
+                error_msg = f"Import failed: {error}"
+                print(error_msg)
+                toolModel.setStatus(["error"])
+                logger.debug(f"Autoscan: {error_msg}")
+                sys.exit(1)
+            else:
+                # Other errors
+                error_msg = f"Failed to check import status: {result_response.status_code} - {result_response.text}"
+                print(error_msg)
+                toolModel.setStatus(["error"])
+                logger.debug(f"Autoscan: {error_msg}")
+                sys.exit(1)
+        
+        if elapsed_time >= max_wait_time:
+            error_msg = f"Import timed out after {max_wait_time}s. Task ID: {task_id}"
+            print(f"WARNING : {error_msg}")
+            logger.debug(f"Autoscan: {error_msg}")
+            # Don't mark as error, just warn - the import might still complete
+            
+    except Exception as e:
+        error_msg = f"Failed to upload file: {str(e)}"
+        print(error_msg)
         toolModel.setStatus(["error"])
-        logger.debug("Autoscan: import tool result error "+str(msg))
+        logger.debug(f"Autoscan: {error_msg}")
         sys.exit(1)
           
     # Delay
     if command_dict is not None:
-        print(msg)
+        print("Import processing completed")
     sys.exit(0)
     
 def getWaveTimeLimit():

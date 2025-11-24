@@ -2,6 +2,7 @@ import re
 import sys
 import shlex
 import multiprocessing
+import time
 from pollenisatorgui.core.components.logger_config import logger
 from pollenisatorgui.core.components.utils import getDataFolder
 
@@ -194,10 +195,59 @@ def pollex_exec(execCmd, verbose=False):
                 print(f"ERROR : Expected file was not generated {outputFilePath}")
                 error = "ERROR : Expected file was not generated"
                 continue
-        print(f"INFO : Uploading results {outputFilePath}")
-        msg = apiclient.importExistingResultFile(outputFilePath, plugin, default_target, comm)
-        print(msg)
-        atLeastOne = True
+        print(f"INFO : Uploading results {outputFilePath} (async)")
+        
+        # Use async upload
+        try:
+            response = apiclient.importExistingResultFileAsync(outputFilePath, plugin, default_target, comm)
+            task_id = response.get("task_id")
+            print(f"INFO : Upload queued with task ID: {task_id}")
+            
+            # Poll for completion
+            max_wait_time = 300  # 5 minutes timeout
+            poll_interval = 2  # Poll every 2 seconds
+            elapsed_time = 0
+            
+            while elapsed_time < max_wait_time:
+                try:
+                    result = apiclient.getImportTaskResult(task_id)
+                    status = result.get("status")
+                    
+                    if status == "completed":
+                        results = result.get("results", {})
+                        print(f"INFO : Import completed successfully: {results}")
+                        atLeastOne = True
+                        break
+                    elif status in ["queued", "processing"]:
+                        print(f"INFO : Import {status}... (elapsed: {elapsed_time}s)")
+                        time.sleep(poll_interval)
+                        elapsed_time += poll_interval
+                    else:
+                        # Should not reach here as failed status raises an exception
+                        error = result.get("error", "Unknown error")
+                        print(f"ERROR : Import failed: {error}")
+                        break
+                        
+                except Exception as e:
+                    # Check if it's a failed task (400 error)
+                    if hasattr(e, 'response') and e.response.status_code == 400:
+                        task_error = e.ret_values[0] if e.ret_values else str(e)
+                        if isinstance(task_error, dict):
+                            error = task_error.get("error", str(task_error))
+                        else:
+                            error = str(task_error)
+                        print(f"ERROR : Import failed: {error}")
+                        break
+                    else:
+                        raise
+            
+            if elapsed_time >= max_wait_time:
+                print(f"WARNING : Import timed out after {max_wait_time}s. Check task {task_id} status later.")
+                error = f"Import timed out after {max_wait_time}s"
+                
+        except Exception as e:
+            print(f"ERROR : Failed to upload file: {str(e)}")
+            error = str(e)
     if not atLeastOne:
         notes = b""
         while not queueResponse.empty():

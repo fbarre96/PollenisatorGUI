@@ -1262,6 +1262,81 @@ class APIClient():
         return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
 
     @handle_api_errors
+    def importExistingResultFileAsync(self, filepath, plugin, default_target={}, command_used=""):
+        """Import a file asynchronously and return a task_id for tracking.
+        
+        Args:
+            filepath: path to the file to upload
+            plugin: plugin name to use or "auto-detect"
+            default_target: default pentest object to affect to
+            command_used: command line used if knowingly
+            
+        Returns:
+            dict: Response containing task_id, status, and message
+        """
+        api_url = '{0}files/{1}/import/async'.format(self.api_url_base, self.getCurrentPentest())
+        with io.open(filepath, mode='rb') as f:
+            self.session.headers.pop('Content-Type', None)
+            response = self.session.post(api_url, files={"upfile": (os.path.basename(filepath) ,f)}, 
+                                        data={"plugin":plugin, "default_target":json.dumps(default_target), "cmdline":command_used}, 
+                                        proxies=self.proxies, verify=False)
+            self.session.headers.update(self.headers)  # Restore original headers
+            if response.status_code == 200:
+                return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            elif response.status_code >= 400:
+                raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+    @handle_api_errors
+    def getImportTaskStatus(self, task_id):
+        """Get the status of an async import task.
+        
+        Args:
+            task_id: the unique task ID returned from importExistingResultFileAsync
+            
+        Returns:
+            dict: Response containing task_id, status, results (if completed), error (if failed), 
+                  created_at, and updated_at timestamps
+        """
+        api_url = '{0}files/import/task/{1}/status'.format(self.api_url_base, task_id)
+        response = self.session.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code == 404:
+            raise ErrorHTTP(response, "Task not found")
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, response.content.decode('utf-8'))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+    @handle_api_errors
+    def getImportTaskResult(self, task_id):
+        """Get the result of a completed async import task.
+        
+        Args:
+            task_id: the unique task ID returned from importExistingResultFileAsync
+            
+        Returns:
+            dict: Response containing task_id, status, and results (if completed)
+                  or error (if failed)
+        """
+        api_url = '{0}files/import/task/{1}/result'.format(self.api_url_base, task_id)
+        response = self.session.get(api_url, headers=self.headers, proxies=self.proxies, verify=False)
+        if response.status_code == 200:
+            # Task completed successfully
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code == 202:
+            # Task still processing
+            return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+        elif response.status_code == 400:
+            # Task failed
+            raise ErrorHTTP(response, json.loads(response.content.decode('utf-8'), cls=JSONDecoder))
+        elif response.status_code == 404:
+            raise ErrorHTTP(response, "Task not found")
+        elif response.status_code >= 400:
+            raise ErrorHTTP(response, response.content.decode('utf-8'))
+        return json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+
+    @handle_api_errors
     def fetchWorkerInstruction(self, worker_name):
         api_url = '{0}workers/{1}/instructions'.format(self.api_url_base, worker_name)
         response = self.session.get(api_url, verify=False)
