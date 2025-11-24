@@ -203,7 +203,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
                 logger.debug(f"Autoscan: Import {status}... (elapsed: {elapsed_time}s)")
                 time.sleep(poll_interval)
                 elapsed_time += poll_interval
-            elif result_response.status_code == 400:pol
+            elif result_response.status_code == 400:
                 # Task failed
                 result_data = json.loads(result_response.content.decode('utf-8'))
                 error = result_data.get("error", "Unknown error")
@@ -232,7 +232,7 @@ def executeTool(queue, queueResponse, apiclient, toolId, local=True, allowAnyCom
         toolModel.setStatus(["error"])
         logger.debug(f"Autoscan: {error_msg}")
         sys.exit(1)
-          
+        
     # Delay
     if command_dict is not None:
         print("Import processing completed")
