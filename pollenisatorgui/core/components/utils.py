@@ -631,7 +631,7 @@ def which_expand_aliases(whats):
     whats = list(set(whats))
     res = expand_alias(shlex.join(whats))
     if res is None:
-        return res
+        res = ""
     aliases = {}
     for i, result in enumerate(res.split("\n")):
         if "not found" in result:
