@@ -160,8 +160,9 @@ class TerminalWorker(ScanWorker):
                     if pluginFound["plugin"] == "auto-detect" or pluginFound["plugin"] == "Default":
                         # auto-detect is a special case, we don't want to configure it
                         continue
-                    get_bin_path = utils.which_expand_aliases(pluginFound["default_bin_names"])
-                    for value in get_bin_path.values():
+                    get_bin_path_dict = utils.which_expand_aliases(pluginFound["default_bin_names"])
+                    get_bin_path = None
+                    for value in get_bin_path_dict.values():
                         if value is not None:
                             get_bin_path = value
                             break
