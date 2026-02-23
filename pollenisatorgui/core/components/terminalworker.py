@@ -167,6 +167,9 @@ class TerminalWorker(ScanWorker):
                             break
                     if get_bin_path is not None:
                         # BUT TOOL IS INSTALLED
+                        if not isinstance(pluginFound["plugin"] , str):
+                            print("[-] Invalid plugin name : "+str(pluginFound["plugin"]))
+                            continue
                         self.local_settings["my_commands"][pluginFound["plugin"]] = get_bin_path
                         utils.save_local_settings(self.local_settings)
                         plugins.append(pluginFound["plugin"])
