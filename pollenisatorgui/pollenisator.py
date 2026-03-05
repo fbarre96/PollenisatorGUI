@@ -105,7 +105,7 @@ def consoleConnect(force=False, askPentest=True):
         apiclient.disconnect()
     while (not apiclient.tryConnection(force=force) or not apiclient.isConnected()) and not abandon:
         success = promptForConnection() is None
-    if apiclient.isConnected() and askPentest:
+    if apiclient.isConnected() and askPentest and apiclient.getCurrentPentest() == "":
         promptForPentest()
     return not abandon
 
@@ -185,16 +185,14 @@ def parseDefaultTarget(stringToParse):
 def pollup():
     """Send a file to pollenisator backend for analysis
     """
-    if len(sys.argv) == 2:
-        filename = sys.argv[1]
-        plugin = "auto-detect"
-    elif len(sys.argv) == 3:
-        filename = sys.argv[1]
-        plugin = sys.argv[2]
-    else:
-        print("Usage : pollup <filename> [plugin or auto-detect]")
-        sys.exit(1)
-    uploadFile(filename, plugin)
+    from pollenisatorgui.core.components.cli_args import build_common_parser, apply_common_args
+    parser = build_common_parser(description='Upload a result file to Pollenisator')
+    parser.add_argument('filename', help='Path to the result file to upload')
+    parser.add_argument('plugin', nargs='?', default='auto-detect',
+                        help='Plugin name or auto-detect (default: auto-detect)')
+    args = parser.parse_args()
+    apply_common_args(args)
+    uploadFile(args.filename, args.plugin)
 
 def uploadFile(filename, plugin='auto-detect'):
     apiclient = APIClient.getInstance()
@@ -254,8 +252,13 @@ def uploadFile(filename, plugin='auto-detect'):
         print(f"ERROR : Failed to upload file: {str(e)}")
 
 def pollwatch():
+    from pollenisatorgui.core.components.cli_args import build_common_parser, apply_common_args
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
+    parser = build_common_parser(description='Watch a directory and upload new files to Pollenisator')
+    args = parser.parse_args()
+    apply_common_args(args)
+
     class Handler(FileSystemEventHandler):
         @staticmethod
         def on_any_event(event):

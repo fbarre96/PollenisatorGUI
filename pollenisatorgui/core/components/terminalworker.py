@@ -1,6 +1,5 @@
 import threading
 import time
-import socketio
 from pollenisatorgui.core.components.apiclient import APIClient
 import pollenisatorgui.core.components.utils as utils
 from pollenisatorgui.core.components.logger_config import logger
@@ -177,6 +176,8 @@ class TerminalWorker(ScanWorker):
                         print("[+] Found missing plugin : auto configuration "+pluginFound["plugin"]+" with path "+get_bin_path)
                     else:
                         print("[-] Missing plugin : "+pluginFound["plugin"]+" (not installed on this system?)")
+        print(f"Connecting to server with name `{name}` and supported plugins: {plugins}")
+        print("Server URL is "+apiclient.api_url)
         self.sio.connect(apiclient.api_url)
         self.sio.emit("registerAsTerminalWorker", {"token":apiclient.getToken(), "name":name, "supported_plugins":plugins, "pentest":apiclient.getCurrentPentest()})
         self.connected = False

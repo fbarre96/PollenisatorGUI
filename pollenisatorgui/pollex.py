@@ -7,27 +7,28 @@ from pollenisatorgui.core.components.logger_config import logger
 from pollenisatorgui.core.components.utils import getDataFolder
 
 def pollex():
-    if len(sys.argv) <= 1:
-        print("Usage : pollex [-v] [--checkinstance <checkinstance_id> | <Plugin name> <command options> | <command to execute>]")
+    from pollenisatorgui.core.components.cli_args import build_common_parser, apply_common_args
+    parser = build_common_parser(description='Execute a command through Pollenisator')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Print verbose information about matching plugins and the command executed')
+    parser.add_argument('--checkinstance', metavar='CHECKINSTANCE_ID',
+                        help='Execute a check instance script identified by its ID')
+    # parse_known_args lets arbitrary command tokens (including flags like -p 80)
+    # pass through without being consumed by argparse
+    args, remaining = parser.parse_known_args()
+
+    apply_common_args(args)
+
+    if args.checkinstance:
+        pollscript_exec(args.checkinstance, args.verbose)
+        return
+
+    if not remaining:
+        parser.print_help()
         sys.exit(1)
-    verbose = False
-    if sys.argv[1] == "-v":
-        verbose = True
-    if "--checkinstance" in sys.argv:
-        try:
-            index_check = sys.argv.index("--checkinstance")
-            script_checkinstance_id = sys.argv[index_check+1]
-            pollscript_exec(script_checkinstance_id,  verbose)
-            return
-        except IndexError as e:
-            print("ERROR : --checkinstance option must be followed by a checkinstance id")
-            sys.exit(1)
-    else:
-        if sys.argv[1] == "-v":
-            execCmd = shlex.join(sys.argv[2:])
-        else:
-            execCmd = shlex.join(sys.argv[1:])
-    output = pollex_exec(execCmd, verbose)
+
+    execCmd = shlex.join(remaining)
+    output = pollex_exec(execCmd, args.verbose)
     if output is not None:
         print("Result file : "+str(output))
 

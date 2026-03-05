@@ -162,6 +162,8 @@ class APIClient():
         self._observers = []
         self.scope = []
         self.userConnected = None
+        self.token = ""
+        self.api_key = ""
         self.appli = None
         APIClient.__instances[pid] = self
         self.headers = {'Content-Type': 'application/json'}
@@ -227,11 +229,17 @@ class APIClient():
                 local_settings["hosts"] = [{"url":self.api_url, "proto":http_proto,"port":port, "host":host}] + local_settings.get("hosts", [])
                 utils.save_local_settings(local_settings)
             self.proxies = proxies
+            if not force:
+                api_key = config.get("api_key", None)
+                if api_key and api_key.strip() != "":
+                    return self.loginWithApiKey(api_key)
             if token:
                 return self.setConnection(token)
         return response.status_code == 200
     
     def tryAuth(self):
+        if self.api_key:
+            return True
         try:
             res = self.setCurrentPentest(self.getCurrentPentest())
         except Exception as e:
@@ -245,7 +253,7 @@ class APIClient():
         
 
     def isConnected(self):
-        return self.headers.get("Authorization", "") != ""
+        return self.headers.get("Authorization", "") != "" or self.api_key != ""
 
     
     
@@ -259,8 +267,10 @@ class APIClient():
         self.scope = []
         self.userConnected = None
         self.token = ""
+        self.api_key = ""
         client_config = utils.loadClientConfig()
         client_config["token"] = self.token
+        client_config["api_key"] = ""
         utils.saveClientConfig(client_config)
         try:
             del self.headers["Authorization"]
@@ -271,6 +281,10 @@ class APIClient():
             self.session.cookies.clear()
         except KeyError:
             pass
+        if "X-API-Key" in self.headers:
+            del self.headers["X-API-Key"]
+        if "X-API-Key" in self.session.headers:
+            del self.session.headers["X-API-Key"]
 
     def isUUID(self, val):
         """Check if the given value is a valid UUID"""
@@ -306,7 +320,7 @@ class APIClient():
         return True
 
     def getToken(self):
-        return self.token
+        return self.token if self.token else self.api_key
 
     def getCookies(self):
         """Get cookies from the session for use with socketio"""
@@ -330,6 +344,61 @@ class APIClient():
             return self.setConnection(token), mustChangePwd
         
         return response.status_code == 200, False
+
+    def loginWithApiKey(self, api_key):
+        """Authenticate using a server-issued API key.
+
+        Sends ``GET /api/v1/user/me`` with an ``X-API-Key`` header to
+        validate the key.  On success the key is persisted to
+        *client.cfg* and the current pentest is auto-selected from the
+        list returned by the server (the pentest scope is embedded in
+        the key server-side).
+
+        Returns ``True`` on success, ``False`` otherwise.
+        """
+        try:
+            response = self.session.get(
+                '{0}users/me'.format(self.api_url_base),
+                headers={**dict(self.session.headers), 'X-API-Key': api_key},
+                verify=False,
+                timeout=5,
+            )
+        except requests.exceptions.RequestException:
+            return False
+        if response.status_code != 200:
+            return False
+
+        self.api_key = api_key
+        self.session.headers.update({'X-API-Key': api_key})
+        self.headers['X-API-Key'] = api_key
+
+        try:
+            body = json.loads(response.content.decode('utf-8'), cls=JSONDecoder)
+            self.userConnected = body.get('username', body.get('sub', None))
+        except Exception:
+            pass
+
+        # Persist the key; clear any stale JWT to avoid conflicts
+        client_config = utils.loadClientConfig()
+        client_config['api_key'] = api_key
+        client_config['token'] = ''
+        utils.saveClientConfig(client_config)
+
+        # Auto-select the pentest this API key is scoped to
+        try:
+            pentests = self.getPentestList()
+            if pentests:
+                pentest = pentests[0]
+                self.currentPentest = pentest.get('uuid', '')
+                self.currentPentestName = pentest.get('nom', '')
+                cfg_update = utils.loadClientConfig()
+                cfg_update['currentPentest'] = self.currentPentest
+                cfg_update['currentPentestName'] = self.currentPentestName
+                utils.saveClientConfig(cfg_update)
+        except Exception:
+            pass
+
+        return True
 
     @handle_api_errors
     def getVersion(self):

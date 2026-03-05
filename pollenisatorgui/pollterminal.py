@@ -9,23 +9,21 @@ import json
 def pollterminal():
     """Starts a worker that receives scan orders from the server and upload results
     """
-    force_reconnect = False
-    if len(sys.argv) > 2:
-        print("Usage : pollterminal [--reconnect]")
-        sys.exit(1)
-    elif len(sys.argv) == 2:
-        if sys.argv[1] == "--reconnect":
-            print("Reconnecting to server")
-            force_reconnect = True
-        else:
-            print("Invalid option : "+sys.argv[1]+"\nUsage : pollterminal [--reconnect]")
-            sys.exit(1)
-    verbose = False
+    from pollenisatorgui.core.components.cli_args import build_common_parser, apply_common_args
+    parser = build_common_parser(description='Start a Pollenisator terminal worker')
+    parser.add_argument('--reconnect', action='store_true',
+                        help='Force reconnection to server even if a session is already saved')
+    args = parser.parse_args()
+    apply_common_args(args)
+
     local_settings = utils.load_local_settings()
     sm = TerminalWorker(local_settings)
     myname = os.getenv('POLLENISATOR_WORKER_NAME', str(uuid.uuid4())+"@"+socket.gethostname())
     plugins = list(set(local_settings.get("my_commands",{}).keys()))
-    
-    sm.connect(myname, plugins, force_reconnect=force_reconnect)
-    
+
+    sm.connect(myname, plugins, force_reconnect=args.reconnect)
+
     sm.wait()
+
+if __name__ == "__main__":
+    pollterminal()
